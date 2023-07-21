@@ -1,8 +1,8 @@
-module ScriptaV2.DifferentialCompiler exposing (init, EditRecord, messagesFromForest, renderEditRecord, update)
+module ScriptaV2.DifferentialCompiler exposing (EditRecord, init, update, renderEditRecord, messagesFromForest)
 
 {-|
 
-@docs init, EditRecord, messagesFromForest, renderEditRecord, update
+@docs EditRecord, init, update, renderEditRecord, messagesFromForest
 
 -}
 
@@ -29,6 +29,7 @@ import Render.Settings
 import ScriptaV2.Compiler
 import ScriptaV2.Config
 import ScriptaV2.Language exposing (Language(..))
+import ScriptaV2.Settings
 import Tree exposing (Tree)
 import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
@@ -39,7 +40,7 @@ renderEditRecord : Generic.Compiler.DisplaySettings -> EditRecord -> List (Eleme
 renderEditRecord displaySettings editRecord =
     let
         renderSettings =
-            ScriptaV2.Language.renderSettingsFromDisplaySettings displaySettings
+            ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings
 
         counter =
             displaySettings.counter

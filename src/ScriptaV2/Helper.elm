@@ -1,14 +1,22 @@
 module ScriptaV2.Helper exposing
-    ( RenderSettings, banner, defaultSettings
-    , encodeForPDF, fileNameForExport, getBlockNames, getImageUrls
-    , getName, makeSettings, pdfFileNameToGet, prepareContentForExport, renderBody, setName, title, viewToc
+    ( banner
+    , encodeForPDF, pdfFileNameToGet, fileNameForExport
+    , getName, getBlockNames, getImageUrls, prepareContentForExport, renderBody, setName, title, viewToc
     )
 
 {-|
 
-@docs RenderSettings, banner, defaultSettings
-@docs encodeForPDF, fileNameForExport, getBlockNames, getImageUrls
-@docs getName, makeSettings, pdfFileNameToGet, prepareContentForExport, renderBody, setName, title, viewToc
+@docs banner
+
+
+## PDF
+
+@docs encodeForPDF, pdfFileNameToGet, fileNameForExport
+
+
+## Getters
+
+@docs getName, getBlockNames, getImageUrls, prepareContentForExport, renderBody, setName, title, viewToc
 
 -}
 
@@ -47,12 +55,6 @@ banner =
 getName : ExpressionBlock -> Maybe String
 getName =
     Generic.Language.getName
-
-
-{-| -}
-makeSettings : String -> Maybe String -> Float -> Int -> Render.Settings.RenderSettings
-makeSettings =
-    Render.Settings.makeSettings
 
 
 {-| -}
@@ -121,7 +123,7 @@ On each document change it brought up to date by the
 `update` function. The `render` function transforms
 the current `EditRecord` into HTML.
 
-@docs EditRecord, init, update, render, makeSettings, defaultSettings
+@docs EditRecord, init, update, render, makeSettings
 
 
 # Export
@@ -327,12 +329,6 @@ compressWhitespace string =
 removeNonAlphaNum : String -> String
 removeNonAlphaNum string =
     Tools.Utility.userReplace "[^A-Za-z0-9\\-]" (\_ -> "") string
-
-
-{-| -}
-defaultSettings : RenderSettings
-defaultSettings =
-    Render.Settings.defaultSettings
 
 
 
