@@ -27,7 +27,12 @@ import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
 
 
-{-| -}
+{-|
+
+    compile lang width counter selectedId lines
+    Used only in View.Phone (twice)
+
+-}
 compile : Language -> Int -> Int -> String -> List String -> CompilerOutput
 compile lang width outerCount selectedId lines =
     case lang of
@@ -68,7 +73,12 @@ parseFromString lang str =
     parse lang Config.idPrefix 0 (String.lines str)
 
 
-{-| -}
+{-|
+
+    parse lang idPrefix counter lines
+    Used only in CurrentDocument.setInPhone
+
+-}
 parse : Language -> String -> Int -> List String -> Result Error (Forest ExpressionBlock)
 parse lang idPrefix outerCount lines =
     case lang of
@@ -148,7 +158,11 @@ compileL width outerCount selectedId lines =
             render width selectedId outerCount forest_
 
 
-{-| -}
+{-|
+
+    render width selectedId counter forest
+
+-}
 render : Int -> String -> Int -> Forest ExpressionBlock -> CompilerOutput
 render width selectedId outerCount forest_ =
     let
@@ -166,8 +180,12 @@ render width selectedId outerCount forest_ =
     }
 
 
-{-| -}
-renderForest : Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> List (Tree ExpressionBlock) -> List (Element MarkupMsg)
+{-|
+
+    renderForest count renderSettings accumulator
+
+-}
+renderForest : Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> Forest ExpressionBlock -> List (Element MarkupMsg)
 renderForest count renderSettings accumulator =
     List.map (Render.Tree.renderTreeQ count accumulator renderSettings [])
 

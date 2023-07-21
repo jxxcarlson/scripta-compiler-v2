@@ -2,7 +2,7 @@ module ScriptaV2.Helper exposing
     ( encodeForPDF, pdfFileNameToGet
     , fileNameForExport, prepareContentForExport
     , getName, getBlockNames, getImageUrls
-    , banner, renderBody, setName, title, viewToc
+    , banner, renderBody, setName, title, viewToc, tableOfContents, existsBlockWithName, matchingIdsInAST
     )
 
 {-|
@@ -25,14 +25,14 @@ module ScriptaV2.Helper exposing
 
 ## Render
 
-@docs banner, renderBody, setName, title, viewToc
+@docs banner, renderBody, setName, title, viewToc, tableOfContents, existsBlockWithName, matchingIdsInAST
 
 -}
 
 import Dict
 import Either
 import Element exposing (Attribute, Element)
-import Generic.ASTTools as ASTTools
+import Generic.ASTTools
 import Generic.Acc exposing (Accumulator)
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExpressionBlock)
@@ -57,7 +57,7 @@ type alias RenderSettings =
 {-| -}
 banner : List (Tree.Tree ExpressionBlock) -> Maybe ExpressionBlock
 banner =
-    ASTTools.banner
+    Generic.ASTTools.banner
 
 
 {-| -}
@@ -81,7 +81,7 @@ setName =
 {-| -}
 title : Forest ExpressionBlock -> String
 title =
-    ASTTools.title
+    Generic.ASTTools.title
 
 
 {-| -}
@@ -159,60 +159,11 @@ The PDF module in Example2 requires these.
 
 # Utility
 
-@docs matchingIdsInAST
-
 -}
-
-
-
---
---import Compiler.ASTTools as ASTTools
---import Compiler.AbstractDifferentialParser
---import Compiler.DifferentialParser
---import Dict exposing (Dict)
---import Either exposing (Either(..))
---import Element exposing (..)
---import Json.Encode as E
---import List.Extra
---import Maybe.Extra
---import Parser.Block exposing (ExpressionBlock(..))
---import Parser.Forest exposing (Forest)
---import Regex
---import Render.Block
---import Render.Export.LaTeX
---import Render.Markup
---import Render.Msg exposing (MarkupMsg)
---import Render.Settings
---import Scripta.Language exposing (Language)
---import Scripta.TOC
---import Time
---import Tree
---
--- type alias MarkupMsg = Render.Msg.MarkupMsg
---{-| Compile source text in the given language using the given display settings.
----}
---compile : DisplaySettings -> Language -> String -> List (Element Render.Msg.MarkupMsg)
---compile displaySettings language sourceText =
---    sourceText
---        |> init Dict.empty language
---        |> render displaySettings
--- EDITOR
-
-
-matchingIdsInAST =
-    ASTTools.matchingIdsInAST
-
-
-
--- VIEW
--- EXPORT
-
-
-{-| -}
 fileNameForExport : Forest ExpressionBlock -> String
 fileNameForExport ast =
     ast
-        |> ASTTools.title
+        |> Generic.ASTTools.title
         |> compressWhitespace
         |> String.replace " " "-"
         |> removeNonAlphaNum
@@ -223,7 +174,7 @@ fileNameForExport ast =
 pdfFileNameToGet : Forest ExpressionBlock -> String
 pdfFileNameToGet ast =
     ast
-        |> ASTTools.title
+        |> Generic.ASTTools.title
         |> compressWhitespace
         |> String.replace " " "-"
         |> String.toLower
@@ -299,8 +250,8 @@ getImageUrlsFromExpressions syntaxTree =
         |> List.map (\block -> Either.toList block.body)
         |> List.concat
         |> List.concat
-        |> ASTTools.filterExpressionsOnName "image"
-        |> List.map (ASTTools.getText >> Maybe.map String.trim)
+        |> Generic.ASTTools.filterExpressionsOnName "image"
+        |> List.map (Generic.ASTTools.getText >> Maybe.map String.trim)
         |> List.map (Maybe.andThen extractUrl)
         |> Maybe.Extra.values
 
@@ -310,7 +261,7 @@ getImageUrlsFromBlocks syntaxTree =
     syntaxTree
         |> List.map Tree.flatten
         |> List.concat
-        |> ASTTools.filterBlocksOnName "image"
+        |> Generic.ASTTools.filterBlocksOnName "image"
         |> List.map Generic.Language.getVerbatimContent
         |> Maybe.Extra.values
 
@@ -347,3 +298,25 @@ removeNonAlphaNum string =
 body : { a | tree : Forest ExpressionBlock } -> Forest ExpressionBlock
 body editRecord =
     editRecord.tree
+
+
+
+-- MORE --
+
+
+{-| -}
+tableOfContents : Int -> Forest ExpressionBlock -> List ExpressionBlock
+tableOfContents =
+    Generic.ASTTools.tableOfContents
+
+
+{-| -}
+existsBlockWithName : List (Tree.Tree ExpressionBlock) -> String -> Bool
+existsBlockWithName =
+    Generic.ASTTools.existsBlockWithName
+
+
+{-| -}
+matchingIdsInAST : String -> Forest ExpressionBlock -> List String
+matchingIdsInAST =
+    Generic.ASTTools.matchingIdsInAST
