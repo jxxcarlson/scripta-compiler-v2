@@ -1,22 +1,31 @@
 module ScriptaV2.Helper exposing
-    ( banner
-    , encodeForPDF, pdfFileNameToGet, fileNameForExport
-    , getName, getBlockNames, getImageUrls, prepareContentForExport, renderBody, setName, title, viewToc
+    ( encodeForPDF, pdfFileNameToGet
+    , fileNameForExport, prepareContentForExport
+    , getName, getBlockNames, getImageUrls
+    , banner, renderBody, setName, title, viewToc
     )
 
 {-|
 
-@docs banner
-
 
 ## PDF
 
-@docs encodeForPDF, pdfFileNameToGet, fileNameForExport
+@docs encodeForPDF, pdfFileNameToGet
+
+
+## Export
+
+@docs fileNameForExport, prepareContentForExport
 
 
 ## Getters
 
-@docs getName, getBlockNames, getImageUrls, prepareContentForExport, renderBody, setName, title, viewToc
+@docs getName, getBlockNames, getImageUrls
+
+
+## Render
+
+@docs banner, renderBody, setName, title, viewToc
 
 -}
 
