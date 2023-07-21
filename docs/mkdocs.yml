@@ -1,0 +1,9 @@
+site_name: Scripta Compiler V2 Docs
+site_url: https://jxxcarlson.github.io/docs-scripta-compilerV2
+docs_dir: 'docs-scripta-compilerV2'
+
+theme: readthedocs
+
+nav:
+  - Home: 'index.md'
+  - AST: 'ast.md'
