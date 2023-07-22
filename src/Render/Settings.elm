@@ -1,14 +1,11 @@
-module Render.Settings exposing
-    ( Display(..), defaultSettings, makeSettings
-    , RenderSettings, default
-    )
+module Render.Settings exposing (Display(..), defaultSettings, makeSettings, RenderSettings, default)
 
 {-| The Settings record holds information needed to render a
 parsed document. For example, the renderer needs to
 know the width of the window in which the document
 is to be displayed. This is given by the `.width` field.
 
-@docs Display, Settings, defaultSettings, makeSettings
+@docs Display, defaultSettings, makeSettings, RenderSettings, default
 
 -}
 
@@ -56,6 +53,8 @@ defaultSettings =
     makeSettings "" Nothing 1 600
 
 
+{-| -}
+default : String -> Int -> RenderSettings
 default selectedId width =
     makeSettings selectedId Nothing 1 width
 

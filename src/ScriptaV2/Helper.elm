@@ -40,6 +40,7 @@ import Json.Encode
 import List.Extra
 import Maybe.Extra
 import Render.Block
+import Render.Export.Check
 import Render.Export.LaTeX
 import Render.Msg exposing (MarkupMsg)
 import Render.Settings
@@ -47,11 +48,6 @@ import Render.TOC
 import Time
 import Tools.Utility
 import Tree
-
-
-{-| -}
-type alias RenderSettings =
-    Render.Settings.RenderSettings
 
 
 {-| -}
@@ -195,7 +191,7 @@ packageNames syntaxTree =
 
 
 {-| -}
-prepareContentForExport : Time.Posix -> RenderSettings -> Forest ExpressionBlock -> String
+prepareContentForExport : Time.Posix -> Render.Settings.RenderSettings -> Forest ExpressionBlock -> String
 prepareContentForExport currentTime settings syntaxTree =
     let
         contentForExport : String
@@ -206,7 +202,7 @@ prepareContentForExport currentTime settings syntaxTree =
 
 
 {-| -}
-encodeForPDF : Time.Posix -> RenderSettings -> Forest ExpressionBlock -> Json.Encode.Value
+encodeForPDF : Time.Posix -> Render.Settings.RenderSettings -> Forest ExpressionBlock -> Json.Encode.Value
 encodeForPDF currentTime settings forest =
     let
         imageUrls : List String
@@ -320,3 +316,11 @@ existsBlockWithName =
 matchingIdsInAST : String -> Forest ExpressionBlock -> List String
 matchingIdsInAST =
     Generic.ASTTools.matchingIdsInAST
+
+
+nonExportableBlocks =
+    Render.Export.Check.nonExportableBlocks
+
+
+nonExportableExpressions =
+    Render.Export.Check.nonExportableExpressions

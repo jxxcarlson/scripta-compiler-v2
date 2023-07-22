@@ -1,5 +1,11 @@
 module Render.Export.LaTeX exposing (export, exportExpr, rawExport)
 
+{-|
+
+@docs export, exportExpr, rawExport
+
+-}
+
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Generic.ASTTools as ASTTools
@@ -29,6 +35,7 @@ counterValue ast =
         |> Maybe.andThen String.toInt
 
 
+{-| -}
 export : Time.Posix -> RenderSettings -> Forest ExpressionBlock -> String
 export currentTime settings_ ast =
     let
@@ -195,6 +202,7 @@ exportTree settings tree =
                     firstLines ++ renderedChildren ++ [ lastLine ] |> String.join "\n"
 
 
+{-| -}
 rawExport : RenderSettings -> List (Tree ExpressionBlock) -> String
 rawExport settings ast =
     ast
@@ -928,6 +936,7 @@ exportExprList settings exprs =
     List.map (exportExpr settings) exprs |> String.join "" |> mapChars1
 
 
+{-| -}
 exportExpr : RenderSettings -> Expression -> String
 exportExpr settings expr =
     case expr of
