@@ -101,7 +101,10 @@ blockDict =
         , ( "subheading", subheading )
         , ( "runninghead_", \_ _ _ _ _ -> Element.none )
         , ( "banner", \_ _ _ _ _ -> Element.none )
-        , ( "title", \c a s b -> title c a s b )
+        , ( "visibleBanner", visibleBanner )
+        , ( "title", \_ _ _ _ _ -> Element.none )
+
+        -- , ( "title", \c a s b -> title c a s b )
         , ( "subtitle", \_ _ _ _ _ -> Element.none )
         , ( "author", \_ _ _ _ _ -> Element.none )
         , ( "date", \_ _ _ _ _ -> Element.none )
@@ -378,6 +381,27 @@ section count acc settings attr block =
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
         , label = Element.paragraph [] (sectionNumber :: renderWithDefaultWithSize 18 "??!!" count acc settings attr exprs)
         }
+
+
+visibleBanner count acc settings attr block =
+    let
+        fontSize =
+            12
+
+        _ =
+            Debug.log "@@VISIBLEBANNER" block
+
+        exprs =
+            case block.body of
+                Left _ ->
+                    []
+
+                Right exprs_ ->
+                    exprs_
+    in
+    Element.paragraph [ Font.size fontSize, elementAttribute "id" "banner" ]
+        -- renderWithDefaultWithSize size default count acc settings attr exprs
+        (renderWithDefaultWithSize fontSize "??!!" count acc settings attr exprs)
 
 
 title count acc settings attr block =

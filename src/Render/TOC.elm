@@ -1,4 +1,4 @@
-module Render.TOC exposing (view)
+module Render.TOC exposing (view, viewWithTitle)
 
 -- import Render.Block
 
@@ -18,6 +18,20 @@ import Render.Settings
 import Render.Utility
 import ScriptaV2.Config as Config
 import Tree
+
+
+viewWithTitle : Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element Render.Msg.MarkupMsg)
+viewWithTitle counter acc attr ast =
+    let
+        maximumLevel =
+            case Dict.get "contentsdepth" acc.keyValueDict of
+                Just level ->
+                    String.toInt level |> Maybe.withDefault 3
+
+                Nothing ->
+                    3
+    in
+    prepareTOCWithTitle maximumLevel counter acc Render.Settings.defaultSettings attr ast
 
 
 view : Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element Render.Msg.MarkupMsg)
@@ -76,8 +90,8 @@ tocLevel k { args } =
             (String.toInt level |> Maybe.withDefault 4) <= k
 
 
-prepareTOC : Int -> Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
-prepareTOC maximumLevel count acc settings attr ast =
+prepareTOCWithTitle : Int -> Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
+prepareTOCWithTitle maximumLevel count acc settings attr ast =
     let
         rawToc : List ExpressionBlock
         rawToc =
@@ -105,6 +119,28 @@ prepareTOC maximumLevel count acc settings attr ast =
         toc =
             topItem
                 :: (rawToc |> List.map (viewTocItem count acc settings attr))
+    in
+    toc
+
+
+prepareTOC : Int -> Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
+prepareTOC maximumLevel count acc settings attr ast =
+    let
+        rawToc : List ExpressionBlock
+        rawToc =
+            Generic.ASTTools.tableOfContents maximumLevel ast
+                |> List.filter (tocLevel maximumLevel)
+
+        headings =
+            getHeadings ast
+
+        title : List (Element MarkupMsg)
+        title =
+            headings.title
+                |> List.map (Render.Expression.render count acc settings attr)
+
+        toc =
+            rawToc |> List.map (viewTocItem count acc settings attr)
     in
     toc
 

@@ -2,6 +2,7 @@ module Generic.ASTTools exposing
     ( banner
     , blockNameInList
     , blockNames
+    , changeName
     , existsBlockWithName
     , exprListToStringList
     , expressionNames
@@ -23,6 +24,7 @@ module Generic.ASTTools exposing
     , getText
     , getValue
     , getVerbatimBlockValue
+    , insertAfter
     , isBlank
     , matchingIdsInAST
     , normalize
@@ -242,9 +244,32 @@ getBlockByName name ast =
         |> List.head
 
 
+insertAfter : String -> List (Tree ExpressionBlock) -> List (Tree ExpressionBlock) -> List (Tree ExpressionBlock)
+insertAfter name toInsert ast =
+    let
+        match : String -> Tree ExpressionBlock -> Bool
+        match name_ tree =
+            matchBlockName name_ (Tree.label tree)
+
+        ( before, after ) =
+            ast
+                |> List.partition (match name)
+    in
+    before ++ toInsert ++ after
+
+
 banner : List (Tree ExpressionBlock) -> Maybe ExpressionBlock
 banner ast =
-    ast |> getBlockByName "banner"
+    ast |> getBlockByName "banner" |> Maybe.map (changeName "banner" "visibleBanner")
+
+
+changeName : String -> String -> ExpressionBlock -> ExpressionBlock
+changeName oldName newName block =
+    if block.heading == Ordinary oldName then
+        { block | heading = Ordinary newName }
+
+    else
+        block
 
 
 frontMatterDict : List (Tree ExpressionBlock) -> Dict String String

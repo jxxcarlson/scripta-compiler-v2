@@ -83,7 +83,7 @@ title =
 {-| -}
 viewToc : Int -> Accumulator -> List (Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
 viewToc counter acc attr ast =
-    Render.TOC.view counter acc attr ast
+    Render.TOC.viewWithTitle counter acc attr ast
 
 
 

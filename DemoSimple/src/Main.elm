@@ -180,7 +180,8 @@ mainColumn : Model -> Element Msg
 mainColumn model =
     let
         compiled =
-            ScriptaV2.Compiler.compile model.currentLanguage
+            ScriptaV2.Compiler.compile
+                model.currentLanguage
                 (panelWidth model - 3 * xPadding)
                 model.count
                 model.selectId
@@ -193,7 +194,8 @@ mainColumn model =
             , row [ spacing margin.between, centerX, width (px <| model.windowWidth - margin.left - margin.right) ]
                 [ inputText model
                 , displayRenderedText model compiled |> Element.map Render
-                , viewToc model compiled.toc |> Element.map Render
+                , Element.column [ Element.spacing 12 ]
+                    ([ viewToc model compiled ] |> List.map (Element.map Render))
                 ]
             ]
         ]
@@ -254,23 +256,12 @@ title str =
     row [ centerX, Font.bold, fontGray 0.9 ] [ text str ]
 
 
+displayRenderedText : Model -> ScriptaV2.Compiler.CompilerOutput -> Element MarkupMsg
 displayRenderedText model compiled =
-    let
-        out =
-            case compiled.banner of
-                Nothing ->
-                    compiled.body
-
-                Just banner ->
-                    banner :: compiled.body
-
-        bbb =
-            compiled.body
-    in
     column [ spacing 8, Font.size 14 ]
         [ el [ fontGray 0.9 ] (text "Rendered Text")
         , column
-            [ spacing 18
+            [ spacing 4
             , Background.color (Element.rgb 1.0 1.0 1.0)
             , width (px <| panelWidth model)
             , panelHeight model
@@ -278,7 +269,13 @@ displayRenderedText model compiled =
             , htmlId "rendered-text"
             , scrollbarY
             ]
-            out
+            (case compiled.banner of
+                Nothing ->
+                    Element.el [ Font.size 24 ] compiled.title :: compiled.body
+
+                Just banner ->
+                    Element.el [] banner :: (Element.el [ Font.size 24 ] compiled.title :: compiled.body)
+            )
         ]
 
 
@@ -286,7 +283,17 @@ htmlId str =
     Element.htmlAttribute (Html.Attributes.id str)
 
 
-viewToc model compiledTOC =
+viewToc : Model -> ScriptaV2.Compiler.CompilerOutput -> Element MarkupMsg
+viewToc model compiled =
+    let
+        title_ : Element MarkupMsg
+        title_ =
+            compiled.title
+
+        toc : List (Element MarkupMsg)
+        toc =
+            compiled.toc
+    in
     column [ spacing 8, Font.size 14 ]
         [ el [ fontGray 0.9 ] (text "Table of contents")
         , column
@@ -297,7 +304,7 @@ viewToc model compiledTOC =
             , paddingXY 16 32
             , scrollbarY
             ]
-            compiledTOC
+            (Element.el [ Font.size 18 ] title_ :: toc)
         ]
 
 
