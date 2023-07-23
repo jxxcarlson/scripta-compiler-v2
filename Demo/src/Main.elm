@@ -13,6 +13,7 @@ import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
 import Render.Msg exposing (MarkupMsg)
+import ScriptaV2.API
 import ScriptaV2.Compiler
 import ScriptaV2.Language
 import Task
@@ -146,13 +147,9 @@ appHeight model =
     model.windowHeight - headerHeight
 
 
-tocWidth =
-    250
-
-
 panelWidth : Model -> Int
 panelWidth model =
-    (appWidth model - tocWidth - (margin.left + margin.right + 2 * margin.between)) // 2
+    (appWidth model - (margin.left + margin.right + margin.between)) // 2
 
 
 panelHeight : Model -> Attribute msg
@@ -178,22 +175,13 @@ headerHeight =
 
 mainColumn : Model -> Element Msg
 mainColumn model =
-    let
-        compiled =
-            ScriptaV2.Compiler.compile model.currentLanguage
-                (panelWidth model - 3 * xPadding)
-                model.count
-                model.selectId
-                (String.lines model.sourceText)
-    in
     column mainColumnStyle
         [ column [ width (px <| appWidth model), height (px <| appHeight model), clipY ]
-            [ -- title "Compiler Demo"
-              header model
-            , row [ spacing margin.between, centerX, width (px <| model.windowWidth - margin.left - margin.right) ]
+            [ title "Compiler Demo"
+            , header model
+            , row [ spacing margin.between, centerX, width (px <| model.windowWidth - 500 - margin.left - margin.right) ]
                 [ inputText model
-                , displayRenderedText model compiled |> Element.map Render
-                , viewToc model compiled.toc |> Element.map Render
+                , displayRenderedText model |> Element.map Render
                 ]
             ]
         ]
@@ -254,23 +242,12 @@ title str =
     row [ centerX, Font.bold, fontGray 0.9 ] [ text str ]
 
 
-displayRenderedText model compiled =
-    let
-        out =
-            case compiled.banner of
-                Nothing ->
-                    compiled.body
-
-                Just banner ->
-                    banner :: compiled.body
-
-        bbb =
-            compiled.body
-    in
+displayRenderedText : Model -> Element MarkupMsg
+displayRenderedText model =
     column [ spacing 8, Font.size 14 ]
         [ el [ fontGray 0.9 ] (text "Rendered Text")
         , column
-            [ spacing 18
+            [ spacing 4
             , Background.color (Element.rgb 1.0 1.0 1.0)
             , width (px <| panelWidth model)
             , panelHeight model
@@ -278,15 +255,35 @@ displayRenderedText model compiled =
             , htmlId "rendered-text"
             , scrollbarY
             ]
-            out
+            (ScriptaV2.API.compile
+                model.currentLanguage
+                (panelWidth model - 3 * xPadding)
+                model.count
+                model.selectId
+                (String.lines model.sourceText)
+            )
         ]
+
+
+bottomPadding k =
+    Element.paddingEach { left = 0, right = 0, top = 0, bottom = k }
 
 
 htmlId str =
     Element.htmlAttribute (Html.Attributes.id str)
 
 
-viewToc model compiledTOC =
+viewToc : Model -> ScriptaV2.Compiler.CompilerOutput -> Element MarkupMsg
+viewToc model compiled =
+    let
+        title_ : Element MarkupMsg
+        title_ =
+            compiled.title
+
+        toc : List (Element MarkupMsg)
+        toc =
+            compiled.toc
+    in
     column [ spacing 8, Font.size 14 ]
         [ el [ fontGray 0.9 ] (text "Table of contents")
         , column
@@ -297,7 +294,7 @@ viewToc model compiledTOC =
             , paddingXY 16 32
             , scrollbarY
             ]
-            compiledTOC
+            (Element.el [ Font.size 16 ] title_ :: toc)
         ]
 
 

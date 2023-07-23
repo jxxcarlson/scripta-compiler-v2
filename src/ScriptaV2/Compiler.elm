@@ -1,8 +1,8 @@
-module ScriptaV2.Compiler exposing (CompilerOutput, compile, parse, parseFromString, render, renderForest)
+module ScriptaV2.Compiler exposing (CompilerOutput, compile, parse, parseFromString, render, renderForest, view)
 
 {-|
 
-@docs CompilerOutput, compile, parse, parseFromString, render, renderForest
+@docs CompilerOutput, compile, parse, parseFromString, render, renderForest, view
 
 -}
 
@@ -27,6 +27,25 @@ import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language(..))
 import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
+
+
+{-| -}
+view : CompilerOutput -> List (Element MarkupMsg)
+view compiled =
+    case compiled.banner of
+        Nothing ->
+            Element.el [ Font.size 32, bottomPadding 18 ] compiled.title :: compiled.body
+
+        Just banner ->
+            Element.el [] banner
+                :: (Element.el [ Font.size 32, bottomPadding 18 ] compiled.title
+                        :: Element.column [ Element.spacing 8, bottomPadding 18 ] compiled.toc
+                        :: compiled.body
+                   )
+
+
+bottomPadding k =
+    Element.paddingEach { left = 0, right = 0, top = 0, bottom = k }
 
 
 {-|

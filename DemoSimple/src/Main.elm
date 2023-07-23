@@ -13,6 +13,7 @@ import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
 import Render.Msg exposing (MarkupMsg)
+import ScriptaV2.API
 import ScriptaV2.Compiler
 import ScriptaV2.Language
 import Task
@@ -189,13 +190,10 @@ mainColumn model =
     in
     column mainColumnStyle
         [ column [ width (px <| appWidth model), height (px <| appHeight model), clipY ]
-            [ -- title "Compiler Demo"
-              header model
-            , row [ spacing margin.between, centerX, width (px <| model.windowWidth - margin.left - margin.right) ]
+            [ header model
+            , row [ spacing margin.between, centerX ]
                 [ inputText model
-                , displayRenderedText model compiled |> Element.map Render
-                , Element.column [ Element.spacing 12 ]
-                    ([ viewToc model compiled ] |> List.map (Element.map Render))
+                , displayRenderedText model |> Element.map Render
                 ]
             ]
         ]
@@ -256,8 +254,8 @@ title str =
     row [ centerX, Font.bold, fontGray 0.9 ] [ text str ]
 
 
-displayRenderedText : Model -> ScriptaV2.Compiler.CompilerOutput -> Element MarkupMsg
-displayRenderedText model compiled =
+displayRenderedText : Model -> Element MarkupMsg
+displayRenderedText model =
     column [ spacing 8, Font.size 14 ]
         [ el [ fontGray 0.9 ] (text "Rendered Text")
         , column
@@ -269,12 +267,12 @@ displayRenderedText model compiled =
             , htmlId "rendered-text"
             , scrollbarY
             ]
-            (case compiled.banner of
-                Nothing ->
-                    Element.el [ Font.size 24 ] compiled.title :: compiled.body
-
-                Just banner ->
-                    Element.el [] banner :: (Element.el [ Font.size 24 ] compiled.title :: compiled.body)
+            (ScriptaV2.API.compile
+                model.currentLanguage
+                (panelWidth model - 3 * xPadding)
+                model.count
+                model.selectId
+                (String.lines model.sourceText)
             )
         ]
 
@@ -283,34 +281,10 @@ htmlId str =
     Element.htmlAttribute (Html.Attributes.id str)
 
 
-viewToc : Model -> ScriptaV2.Compiler.CompilerOutput -> Element MarkupMsg
-viewToc model compiled =
-    let
-        title_ : Element MarkupMsg
-        title_ =
-            compiled.title
-
-        toc : List (Element MarkupMsg)
-        toc =
-            compiled.toc
-    in
-    column [ spacing 8, Font.size 14 ]
-        [ el [ fontGray 0.9 ] (text "Table of contents")
-        , column
-            [ spacing 18
-            , Background.color (Element.rgb 1.0 1.0 1.0)
-            , width (px tocWidth)
-            , panelHeight model
-            , paddingXY 16 32
-            , scrollbarY
-            ]
-            (Element.el [ Font.size 18 ] title_ :: toc)
-        ]
-
-
 header model =
     Element.row [ Element.spacing 32, Element.centerX, paddingEach { left = 0, right = 0, top = 0, bottom = 12 } ]
-        [ languageButton model.currentLanguage ScriptaV2.Language.L0Lang
+        [ Element.el [ Font.color (Element.rgb 1 1 1) ] (Element.text "Compiler Demo 1")
+        , languageButton model.currentLanguage ScriptaV2.Language.L0Lang
         , languageButton model.currentLanguage ScriptaV2.Language.MicroLaTeXLang
         , languageButton model.currentLanguage ScriptaV2.Language.XMarkdownLang
         ]
