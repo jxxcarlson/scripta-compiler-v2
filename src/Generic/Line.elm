@@ -66,7 +66,7 @@ classify position lineNumber str =
             { indent = 0, content = "!!ERROR", prefix = "", position = position, lineNumber = lineNumber }
 
         Ok result ->
-            result |> Debug.log "classify"
+            result
 
 
 {-|

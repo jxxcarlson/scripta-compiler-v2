@@ -33,14 +33,8 @@ toPrimitiveBlockForest blocks =
         output =
             Generic.ForestTransform.forestFromBlocks emptyBlock .indent input
 
-        _ =
-            Debug.log "INPUT" (input |> List.map (Generic.Language.simplifyBlock (\c -> ())))
-
         mapperF =
             Generic.Forest.map (Generic.Language.simplifyBlock (\c -> ()))
-
-        _ =
-            Debug.log "OUTPUT" (output |> Result.map mapperF)
     in
     Generic.ForestTransform.forestFromBlocks { emptyBlock | indent = -2 } .indent blocks
 

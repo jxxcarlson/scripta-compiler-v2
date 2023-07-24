@@ -1,8 +1,8 @@
-module ScriptaV2.DifferentialCompiler exposing (EditRecord, init, update, renderEditRecord, messagesFromForest)
+module ScriptaV2.DifferentialCompiler exposing (EditRecord, init, update, renderEditRecord, messagesFromForest, editRecordToCompilerOutput)
 
 {-|
 
-@docs EditRecord, init, update, renderEditRecord, messagesFromForest
+@docs EditRecord, init, update, renderEditRecord, messagesFromForest, editRecordToCompilerOutput
 
 -}
 
@@ -12,6 +12,8 @@ import Differential.Differ
 import Differential.Utility
 import Either exposing (Either)
 import Element exposing (Element)
+import Element.Font as Font
+import Generic.ASTTools
 import Generic.Acc
 import Generic.BlockUtilities
 import Generic.Compiler
@@ -24,8 +26,10 @@ import M.Expression
 import M.PrimitiveBlock
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
+import Render.Block
 import Render.Msg exposing (MarkupMsg)
 import Render.Settings
+import Render.TOC
 import ScriptaV2.Compiler
 import ScriptaV2.Config
 import ScriptaV2.Language exposing (Language(..))
@@ -46,6 +50,44 @@ renderEditRecord displaySettings editRecord =
             displaySettings.counter
     in
     ScriptaV2.Compiler.renderForest counter renderSettings editRecord.accumulator editRecord.tree
+
+
+{-| -}
+editRecordToCompilerOutput : Generic.Compiler.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
+editRecordToCompilerOutput displaySettings editRecord =
+    let
+        renderSettings =
+            ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings
+
+        counter =
+            displaySettings.counter
+    in
+    forestToCompilerOutput counter renderSettings editRecord.accumulator editRecord.tree
+
+
+forestToCompilerOutput : Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> Forest ExpressionBlock -> ScriptaV2.Compiler.CompilerOutput
+forestToCompilerOutput outerCount renderSettings accumulator forest =
+    let
+        toc : List (Element MarkupMsg)
+        toc =
+            Render.TOC.view outerCount accumulator [] forest
+
+        banner : Maybe (Element MarkupMsg)
+        banner =
+            Generic.ASTTools.banner forest
+                |> Maybe.map (Render.Block.renderBody outerCount accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
+                |> Maybe.map (Element.row [ Element.height (Element.px 40) ])
+
+        title : Element MarkupMsg
+        title =
+            Element.paragraph [] [ Element.text <| Generic.ASTTools.title forest ]
+    in
+    { body =
+        ScriptaV2.Compiler.renderForest outerCount renderSettings accumulator forest
+    , banner = banner
+    , toc = toc
+    , title = title
+    }
 
 
 {-| -}

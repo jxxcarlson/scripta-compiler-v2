@@ -153,7 +153,7 @@ nextStep state_ =
         Just rawLine ->
             let
                 currentLine =
-                    Line.classify (getPosition rawLine state) state.lineNumber rawLine |> Debug.log "CLASSIFY"
+                    Line.classify (getPosition rawLine state) state.lineNumber rawLine
             in
             case ClassifyBlock.classify (currentLine.content ++ "\n") of
                 CBeginBlock label ->
@@ -317,6 +317,9 @@ handleSpecial_ classifier line state =
                     let
                         ( name, args ) =
                             case name_ of
+                                "banner" ->
+                                    ( "banner", [] )
+
                                 "section" ->
                                     ( "section", [ "2" ] )
 
@@ -553,10 +556,32 @@ endBlockOnMatch labelHead classifier line state =
                     newBlock =
                         case classifier of
                             CSpecialBlock (LXVerbatimBlock "texComment") ->
-                                newBlockWithError classifier (getContent classifier line state ++ [ block.firstLine ]) block |> addSource line.content
+                                newBlockWithError
+                                    classifier
+                                    (getContent classifier line state ++ [ block.firstLine ])
+                                    block
+                                    |> addSource line.content
 
-                            CSpecialBlock (LXOrdinaryBlock _) ->
-                                block
+                            CSpecialBlock (LXOrdinaryBlock name) ->
+                                case name of
+                                    "banner" ->
+                                        let
+                                            listSlice : Int -> Int -> List a -> List a
+                                            listSlice start end list =
+                                                List.drop start (List.take end list)
+                                        in
+                                        --{ block | body = listSlice line.lineNumber state.lineNumber state.lines }
+                                        let
+                                            start =
+                                                Maybe.map .lineNumber labelHead |> Maybe.withDefault finish |> (\x -> x + 1)
+
+                                            finish =
+                                                state.lineNumber
+                                        in
+                                        { block | body = listSlice start finish state.lines }
+
+                                    _ ->
+                                        block
 
                             _ ->
                                 if List.member classifier (List.map CEndBlock verbatimBlockNames) then

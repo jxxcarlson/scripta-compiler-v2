@@ -379,7 +379,7 @@ section count acc settings attr block =
     Element.link
         (sectionBlockAttributes block settings [ topPadding 20, Font.size fontSize ])
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
-        , label = Element.paragraph [] (sectionNumber :: renderWithDefaultWithSize 18 "??!!" count acc settings attr exprs)
+        , label = Element.paragraph [] (sectionNumber :: renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
         }
 
 
@@ -387,9 +387,6 @@ visibleBanner count acc settings attr block =
     let
         fontSize =
             12
-
-        _ =
-            Debug.log "@@VISIBLEBANNER" block
 
         exprs =
             case block.body of
@@ -401,7 +398,7 @@ visibleBanner count acc settings attr block =
     in
     Element.paragraph [ Font.size fontSize, elementAttribute "id" "banner" ]
         -- renderWithDefaultWithSize size default count acc settings attr exprs
-        (renderWithDefaultWithSize fontSize "??!!" count acc settings attr exprs)
+        (renderWithDefaultWithSize fontSize "??!!(2)" count acc settings attr exprs)
 
 
 title count acc settings attr block =

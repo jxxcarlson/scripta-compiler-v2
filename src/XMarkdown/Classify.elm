@@ -50,4 +50,4 @@ verbatimBlockNames =
 
 
 bareBlockNames =
-    [ "contents" ]
+    [ "contents", "banner" ]

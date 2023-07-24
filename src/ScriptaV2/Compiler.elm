@@ -206,7 +206,7 @@ render width selectedId outerCount forest_ =
 
         title : Element MarkupMsg
         title =
-            Element.paragraph [] [ Element.text <| Debug.log "@@TITLE" <| Generic.ASTTools.title forest ]
+            Element.paragraph [] [ Element.text <| Generic.ASTTools.title forest ]
     in
     { body =
         renderForest outerCount renderSettings accumulator forest
