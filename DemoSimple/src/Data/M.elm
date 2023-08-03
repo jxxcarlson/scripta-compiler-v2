@@ -2,11 +2,10 @@ module Data.M exposing (text)
 
 
 text =
-    """
- 
-|title 
+    """| title
 Table Test
- 
+
+
 | table {c c c}
  a & bbb & c \\\\
  a & y & z

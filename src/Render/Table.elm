@@ -15,86 +15,14 @@ import Render.Sync
 import Render.Utility
 
 
-
---
---render : Int -> Accumulator -> RenderSettings -> ExpressionBlock -> Element MarkupMsg
---render count acc settings block =
---    let
---        formatString : List String
---        formatString =
---            String.words (Dict.get "format" block.properties |> Maybe.withDefault "")
---
---        formatList : List (Element.Attribute msg)
---        formatList =
---            List.map (\c -> Dict.get c formatDict |> Maybe.withDefault Element.centerX) formatString
---
---        lines =
---            Render.Utility.getVerbatimContent block |> String.split "\\\\"
---
---        cellsAsStrings_ : List (List String)
---        cellsAsStrings_ =
---            List.map (String.split "&") lines
---                |> List.map (List.map String.trim)
---
---        effectiveFontWidth_ =
---            9.0
---
---        maxRowSize : Maybe Int
---        maxRowSize =
---            List.map List.length cellsAsStrings_ |> List.maximum
---
---        cellsAsStrings =
---            List.filter (\row_ -> Just (List.length row_) == maxRowSize) cellsAsStrings_
---
---        columnWidths : List Int
---        columnWidths =
---            List.map (List.map (Render.Utility.textWidth settings.display)) cellsAsStrings
---                |> List.Extra.transpose
---                |> List.map (\column -> List.maximum column |> Maybe.withDefault 1)
---                |> List.map ((\w -> effectiveFontWidth_ * w) >> round)
---
---        fix colWidths fmtList =
---            let
---                m =
---                    List.length colWidths
---
---                n =
---                    List.length fmtList
---            in
---            case compare m n of
---                LT ->
---                    List.repeat m Element.centerX
---
---                EQ ->
---                    fmtList
---
---                GT ->
---                    List.repeat m Element.centerX
---
---        extendedFormatList : List ( Int, Element.Attribute msg )
---        extendedFormatList =
---            List.map2 (\x y -> ( x, y )) columnWidths (fix columnWidths formatList)
---
---        totalWidth =
---            List.sum columnWidths
---    in
---    Element.column
---        [ Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 }
---        , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber (block.meta.lineNumber + block.meta.numberOfLines)
---        , Render.Utility.idAttributeFromInt block.meta.lineNumber
---        ]
---        (renderTable extendedFormatList block)
---
---
---renderer count acc settings attr expr =
---    Render.Expression.render count acc settings attr expr
-
-
 render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> Generic.Language.ExpressionBlock -> Element MarkupMsg
 render count acc settings columnFormats block =
     case block.body of
         Right [ Generic.Language.Fun "table" rows _ ] ->
             let
+                _ =
+                    Debug.log "@@TABLE" rows
+
                 formatList_ =
                     Dict.get "format" block.properties
                         |> Maybe.withDefault ""
@@ -115,6 +43,7 @@ render count acc settings columnFormats block =
 
                 formats =
                     List.map2 (\x y -> ( x, y )) columnWidths_ formatList_
+                        |> Debug.log "@@FORMATS"
             in
             Element.column [ Element.paddingEach { left = 24, right = 0, top = 24, bottom = 24 } ]
                 (List.map (renderRow count acc settings formats) rows)

@@ -20,7 +20,7 @@ toExpressionBlockForestFromStringlist idPrefix outerCount parser lines =
 
 toExpressionBlock : (Int -> String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
 toExpressionBlock parser block =
-    Generic.Language.toExpressionBlock (parser block.meta.lineNumber) block
+    Generic.Language.toExpressionBlock (parser block.meta.lineNumber) block |> Debug.log "TO EXPRESSION BLOCK"
 
 
 toPrimitiveBlockForest : List PrimitiveBlock -> Result Error (Forest PrimitiveBlock)

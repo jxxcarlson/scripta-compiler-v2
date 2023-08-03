@@ -189,6 +189,7 @@ toExpressionBlock parse block =
                 block.properties
                     |> Dict.insert "columnWidths" (String.join "," (List.map String.fromInt columnWidths) |> (\x -> "[" ++ x ++ "]"))
                     |> Dict.insert "format" (block.args |> String.join " ")
+                    |> Debug.log "PROPS"
 
             _ ->
                 block.properties
@@ -202,7 +203,7 @@ toExpressionBlock parse block =
                 let
                     t1 : List Expression
                     t1 =
-                        prepareTable parse (String.join "\n" block.body)
+                        prepareTable parse (String.join "\n" block.body) |> Debug.log "PREPARED TABLE"
                 in
                 Right t1
 
@@ -268,14 +269,17 @@ prepareTable parse str =
                 |> List.map (\cell -> "[cell " ++ cell ++ "]")
                 |> String.join " "
 
+        cells : String
         cells =
             str
                 |> String.split "\\\\\n"
                 |> List.filter (\s -> compress s /= "")
                 |> List.map (\r -> "[row " ++ inner r ++ " ]")
                 |> (\rows -> "[table " ++ String.join " " rows ++ "]")
+                |> Debug.log "CELLS"
     in
     parse cells
+        -- M.Expression.parse 0 cells
         |> fixTable
 
 
