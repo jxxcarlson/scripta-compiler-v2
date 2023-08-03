@@ -4,6 +4,19 @@ module Data.MicroLaTeX exposing (text)
 text =
     """
 
+\\title{Table Test}
+
+\\begin{table}{c c c}
+a & bbb & c \\\\
+a & y & z
+\\end{table}
+
+"""
+
+
+text1 =
+    """
+
 
  \\title{Wave Packets and the Dispersion Relation}
  

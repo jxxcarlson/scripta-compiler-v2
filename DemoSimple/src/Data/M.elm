@@ -1,26 +1,21 @@
 module Data.M exposing (text)
 
 
-text1 =
-    """
-. AAA
-
-. BBB
-
-. CCC
-
-. DDD
-
-. EEE
-
-. FFF
-
-. GGG
-
-"""
-
-
 text =
+    """
+ 
+|title 
+Table Test
+ 
+| table {c c c}
+ a & bbb & c \\\\
+ a & y & z
+
+ 
+ """
+
+
+text1 =
     """
 
 | title
