@@ -1,8 +1,8 @@
-module ScriptaV2.Compiler exposing (CompilerOutput, compile, parse, parseFromString, render, renderForest, view)
+module ScriptaV2.Compiler exposing (CompilerOutput, compile, parse, parseFromString, render, renderForest, view, viewTOC)
 
 {-|
 
-@docs CompilerOutput, compile, parse, parseFromString, render, renderForest, view
+@docs CompilerOutput, compile, parse, parseFromString, render, renderForest, view, viewTOC
 
 -}
 
@@ -42,6 +42,12 @@ view compiled =
                         :: Element.column [ Element.spacing 8, bottomPadding 18 ] compiled.toc
                         :: compiled.body
                    )
+
+
+{-| -}
+viewTOC : CompilerOutput -> List (Element MarkupMsg)
+viewTOC compiled =
+    compiled.toc
 
 
 bottomPadding k =

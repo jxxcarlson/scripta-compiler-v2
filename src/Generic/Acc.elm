@@ -1,5 +1,6 @@
 module Generic.Acc exposing
     ( Accumulator
+    , InListState(..)
     , InitialAccumulatorData
     , getMacroArg
     , initialData

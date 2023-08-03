@@ -10,7 +10,7 @@ import Element.Font as Font
 import Generic.ASTTools
 import Generic.Acc exposing (Accumulator)
 import Generic.Forest exposing (Forest)
-import Generic.Language exposing (Expression, ExpressionBlock)
+import Generic.Language exposing (ExprMeta, Expression, ExpressionBlock)
 import List.Extra
 import Render.Expression
 import Render.Msg exposing (MarkupMsg(..))
@@ -126,10 +126,22 @@ prepareTOCWithTitle maximumLevel count acc settings attr ast =
 prepareTOC : Int -> Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
 prepareTOC maximumLevel count acc settings attr ast =
     let
+        fixIdInExpressionBlock : ExpressionBlock -> ExpressionBlock
+        fixIdInExpressionBlock block =
+            let
+                meta =
+                    block.meta
+
+                newMeta =
+                    { meta | id = "xy" ++ meta.id }
+            in
+            { block | meta = newMeta }
+
         rawToc : List ExpressionBlock
         rawToc =
             Generic.ASTTools.tableOfContents maximumLevel ast
                 |> List.filter (tocLevel maximumLevel)
+                |> List.map (Generic.Language.updateMetaInBlock (\m -> { m | id = "xy" ++ m.id }))
 
         headings =
             getHeadings ast

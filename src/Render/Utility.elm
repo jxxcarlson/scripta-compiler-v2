@@ -10,6 +10,7 @@ module Render.Utility exposing
     , leftPadding
     , makeId
     , textWidth
+    , textWidthWithPixelsPerCharacter
     , vspace
     )
 
@@ -31,6 +32,11 @@ argString args =
 
 leftPadding p =
     Element.paddingEach { left = p, right = 0, top = 0, bottom = 0 }
+
+
+textWidthWithPixelsPerCharacter : Float -> String -> Float
+textWidthWithPixelsPerCharacter pixelsPerCharacter str =
+    textWidth_ str * pixelsPerCharacter
 
 
 textWidth : Render.Settings.Display -> String -> Float

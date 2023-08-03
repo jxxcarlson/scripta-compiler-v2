@@ -25,6 +25,7 @@ import Render.Math
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
+import Render.Table
 import Render.Tabular
 import Render.Utility exposing (elementAttribute)
 import Render.VerbatimBlock as VerbatimBlock
@@ -109,6 +110,7 @@ blockDict =
         , ( "author", \_ _ _ _ _ -> Element.none )
         , ( "date", \_ _ _ _ _ -> Element.none )
         , ( "contents", \_ _ _ _ _ -> Element.none )
+        , ( "table", Render.Table.render )
         , ( "tags", \_ _ _ _ _ -> Element.none )
         , ( "type", \_ _ _ _ _ -> Element.none )
         , ( "env", env_ )
