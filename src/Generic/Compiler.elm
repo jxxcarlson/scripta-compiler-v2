@@ -12,6 +12,7 @@ import Generic.ForestTransform exposing (Error)
 import Generic.Language exposing (ExpressionBlock)
 import Generic.Pipeline
 import Render.Settings
+import ScriptaV2.Language exposing (Language)
 
 
 {-|
@@ -23,17 +24,18 @@ import Render.Settings
 
 -}
 parse_ :
-    (String -> Int -> List String -> List Generic.Language.PrimitiveBlock)
+    Language
+    -> (String -> Int -> List String -> List Generic.Language.PrimitiveBlock)
     -> (Int -> String -> List Generic.Language.Expression)
     -> String
     -> Int
     -> List String
     -> Result Error (Forest ExpressionBlock)
-parse_ primitiveBlockParser exprParser idPrefix outerCount lines =
+parse_ lang primitiveBlockParser exprParser idPrefix outerCount lines =
     lines
         |> primitiveBlockParser idPrefix outerCount
         |> Generic.Pipeline.toPrimitiveBlockForest
-        |> Result.map (Generic.Forest.map (Generic.Pipeline.toExpressionBlock exprParser))
+        |> Result.map (Generic.Forest.map (Generic.Pipeline.toExpressionBlock lang exprParser))
 
 
 type alias RenderData =

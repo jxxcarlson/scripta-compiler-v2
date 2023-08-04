@@ -121,12 +121,12 @@ parse lang idPrefix outerCount lines =
 
 parseM : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
 parseM idPrefix outerCount lines =
-    Generic.Compiler.parse_ M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ L0Lang M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
 
 
 parseX : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
 parseX idPrefix outerCount lines =
-    Generic.Compiler.parse_ XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ XMarkdownLang XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
 
 
 
@@ -173,7 +173,7 @@ compileX width outerCount selectedId lines =
 -}
 parseL : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
 parseL idPrefix outerCount lines =
-    Generic.Compiler.parse_ MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ MicroLaTeXLang MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
 
 
 compileL : Int -> Int -> String -> List String -> CompilerOutput

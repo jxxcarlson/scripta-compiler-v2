@@ -292,10 +292,10 @@ toExprBlock : Language -> PrimitiveBlock -> ExpressionBlock
 toExprBlock lang =
     case lang of
         MicroLaTeXLang ->
-            Generic.Pipeline.toExpressionBlock MicroLaTeX.Expression.parse
+            Generic.Pipeline.toExpressionBlock MicroLaTeXLang MicroLaTeX.Expression.parse
 
         L0Lang ->
-            Generic.Pipeline.toExpressionBlock M.Expression.parse
+            Generic.Pipeline.toExpressionBlock L0Lang M.Expression.parse
 
         XMarkdownLang ->
-            Generic.Pipeline.toExpressionBlock XMarkdown.Expression.parse
+            Generic.Pipeline.toExpressionBlock XMarkdownLang XMarkdown.Expression.parse

@@ -20,9 +20,6 @@ render count acc settings columnFormats block =
     case block.body of
         Right [ Generic.Language.Fun "table" rows _ ] ->
             let
-                _ =
-                    Debug.log "@@TABLE" rows
-
                 formatList_ =
                     Dict.get "format" block.properties
                         |> Maybe.withDefault ""
@@ -43,7 +40,6 @@ render count acc settings columnFormats block =
 
                 formats =
                     List.map2 (\x y -> ( x, y )) columnWidths_ formatList_
-                        |> Debug.log "@@FORMATS"
             in
             Element.column [ Element.paddingEach { left = 24, right = 0, top = 24, bottom = 24 } ]
                 (List.map (renderRow count acc settings formats) rows)
