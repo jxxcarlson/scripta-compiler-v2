@@ -80,13 +80,14 @@ equation count acc settings attrs block =
         content =
             String.join "\n" filteredLines
 
+        label : Element msg
         label =
-            equationLabel settings block.properties content
+            Element.el [ Element.alignTop ] (equationLabel settings block.properties content)
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
-        [ Element.el
+        [ Element.row
             (highlightMath settings block)
-            (mathText count w block.meta.id DisplayMathMode content)
+            [ mathText count w block.meta.id DisplayMathMode content, label ]
         ]
 
 
@@ -175,6 +176,7 @@ aligned count acc settings attrs block =
         ]
 
 
+rightToLeftSyncHelper : { a | meta : { b | lineNumber : Int, numberOfLines : Int, id : String } } -> Element MarkupMsg -> List (Element.Attribute MarkupMsg)
 rightToLeftSyncHelper block label =
     [ Element.centerX, Element.spacing 12, Element.inFront label ]
         ++ (Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
