@@ -41,7 +41,7 @@ render count acc settings columnFormats block =
                 formats =
                     List.map2 (\x y -> ( x, y )) columnWidths_ formatList_
             in
-            Element.column [ Element.paddingEach { left = 24, right = 0, top = 24, bottom = 24 } ]
+            Element.column [ Element.paddingEach { left = 24, right = 0, top = 24, bottom = 24 }, Element.spacing 0 ]
                 (List.map (renderRow count acc settings formats) rows)
 
         _ ->
@@ -56,7 +56,7 @@ renderRow count acc settings columnFormats row =
                 list =
                     List.map2 (renderCell count acc settings) columnFormats cells
             in
-            Element.row [] list
+            Element.row [ Element.height (Element.px 20) ] list
 
         _ ->
             Element.none
