@@ -1,5 +1,7 @@
 # The Scripta Compiler V2
 
+[visualize!](https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=jxxcarlson%2Fscripta-compiler-v2)
+
 
 The Scripta compiler is a markup-to-html compiler
 suitable for real-time applications such as online

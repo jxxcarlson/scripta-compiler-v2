@@ -1,5 +1,7 @@
 # AST
 
+[visualize!](https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=jxxcarlson%2Fscripta-compiler-v2)
+
 The AST is defined at the level of running text
 and of blocks.  Running text is parsed to a value of 
 type `List Expression`.

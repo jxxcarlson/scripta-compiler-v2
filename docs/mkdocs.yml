@@ -7,3 +7,4 @@ theme: readthedocs
 nav:
   - Home: 'index.md'
   - AST: 'ast.md'
+  - Blocks: 'blocks.md'
