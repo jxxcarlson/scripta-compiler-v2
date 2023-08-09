@@ -25,7 +25,7 @@ toExpressionBlockForestFromStringlist lang idPrefix outerCount parser lines =
 
 toExpressionBlock : Language -> (Int -> String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
 toExpressionBlock lang parser block =
-    toExpressionBlock_ lang (parser block.meta.lineNumber) block
+    toExpressionBlock_ lang (parser block.meta.lineNumber) block |> Generic.Language.boostBlock
 
 
 toPrimitiveBlockForest : List PrimitiveBlock -> Result Error (Forest PrimitiveBlock)
@@ -93,7 +93,7 @@ toExpressionBlock_ lang parse block =
     , body =
         case block.heading of
             Paragraph ->
-                Right (parse <| String.join "\n" block.body)
+                Right (String.join "\n" block.body |> parse)
 
             Ordinary "table" ->
                 let
@@ -109,7 +109,7 @@ toExpressionBlock_ lang parse block =
                 Right t1
 
             Ordinary _ ->
-                Right (parse <| String.join "\n" block.body)
+                Right (String.join "\n" block.body |> parse)
 
             Verbatim _ ->
                 Left <| String.join "\n" block.body

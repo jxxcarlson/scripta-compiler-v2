@@ -1,4 +1,7 @@
-module ScriptaV2.Compiler exposing (CompilerOutput, compile, parse, parseFromString, render, renderForest, view, viewTOC)
+module ScriptaV2.Compiler exposing
+    ( CompilerOutput, compile, parse, parseFromString, render, renderForest, view, viewTOC
+    , p
+    )
 
 {-|
 
@@ -140,6 +143,10 @@ type alias CompilerOutput =
     , toc : List (Element MarkupMsg)
     , title : Element MarkupMsg
     }
+
+
+p str =
+    parseM Config.idPrefix 0 (String.lines str)
 
 
 compileM : Int -> Int -> String -> List String -> CompilerOutput

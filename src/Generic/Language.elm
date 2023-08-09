@@ -9,6 +9,7 @@ module Generic.Language exposing
     , PrimitiveBlock
     , SimpleExpressionBlock
     , SimplePrimitiveBlock
+    , boostBlock
     , emptyBlockMeta
     , expressionBlockEmpty
     , getExpressionContent
@@ -34,6 +35,37 @@ import Tools.Utility
 
 
 
+--
+--
+--out11 =
+--    Ok
+--        [ Tree
+--            { args = []
+--            , body =
+--                Right
+--                    [ Text "this is " { begin = 0, end = 7, id = "e-1.0", index = 0 }
+--                    , Fun "i" [ Text " really" { begin = 10, end = 16, id = "e-0.3", index = 3 } ] { begin = 9, end = 9, id = "e-1.2", index = 2 }
+--                    , Text " a test" { begin = 18, end = 24, id = "e-1.5", index = 5 }
+--                    ]
+--            , firstLine = "this is [i really] a test"
+--            , heading = Paragraph
+--            , indent = 0
+--            , meta = { error = Nothing, id = "@-0", lineNumber = 1, messages = [], numberOfLines = 1, position = 0, sourceText = "this is [i really] a test" }
+--            , properties = Dict.fromList []
+--            }
+--            []
+--        , Tree
+--            { args = []
+--            , body = Right [ Text "Ho ho ho" { begin = 27, end = 34, id = "e-3.0", index = 0 } ]
+--            , firstLine = "Ho ho ho"
+--            , heading = Paragraph
+--            , indent = 0
+--            , meta = { error = Nothing, id = "@-1", lineNumber = 3, messages = [], numberOfLines = 1, position = 27, sourceText = "Ho ho ho" }
+--            , properties = Dict.fromList []
+--            }
+--            []
+--        ]
+--
 -- PARAMETRIZED TYPES
 
 
@@ -126,6 +158,21 @@ setMeta meta expr =
 
         Text text _ ->
             Text text meta
+
+
+{-|
+
+    Transform meta so that begin and end are positions in the source text
+
+-}
+boost : Int -> ExprMeta -> ExprMeta
+boost position meta =
+    { meta | begin = meta.begin + position, end = meta.end + position }
+
+
+boostBlock : ExpressionBlock -> ExpressionBlock
+boostBlock block =
+    updateMetaInBlock (boost block.meta.position) block
 
 
 updateMeta : (ExprMeta -> ExprMeta) -> Expression -> Expression
