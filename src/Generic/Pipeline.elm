@@ -86,9 +86,10 @@ toExpressionBlock_ lang parse block =
                 block.properties
                     |> Dict.insert "columnWidths" (String.join "," (List.map String.fromInt columnWidths) |> (\x -> "[" ++ x ++ "]"))
                     |> Dict.insert "format" (block.args |> String.join " ")
+                    |> Dict.insert "id" block.meta.id
 
             _ ->
-                block.properties
+                block.properties |> Dict.insert "id" block.meta.id
     , firstLine = block.firstLine
     , body =
         case block.heading of
