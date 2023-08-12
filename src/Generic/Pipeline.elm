@@ -66,27 +66,10 @@ toExpressionBlock_ lang parse block =
     , properties =
         case block.heading of
             Ordinary "table" ->
-                let
-                    cellsAsString : List (List String)
-                    cellsAsString =
-                        String.join "\n" block.body
-                            |> String.split "\\\\\n"
-                            |> List.map (String.split "&")
+                fixTableProperties block
 
-                    effectiveFontWidth_ =
-                        9.0
-
-                    columnWidths : List Int
-                    columnWidths =
-                        List.map (List.map (textWidthWithPixelsPerCharacter effectiveFontWidth_)) cellsAsString
-                            |> List.Extra.transpose
-                            |> List.map (\column -> List.maximum column |> Maybe.withDefault 1)
-                            |> List.map round
-                in
-                block.properties
-                    |> Dict.insert "columnWidths" (String.join "," (List.map String.fromInt columnWidths) |> (\x -> "[" ++ x ++ "]"))
-                    |> Dict.insert "format" (block.args |> String.join " ")
-                    |> Dict.insert "id" block.meta.id
+            Ordinary "tabular" ->
+                fixTableProperties block
 
             _ ->
                 block.properties |> Dict.insert "id" block.meta.id
@@ -97,17 +80,10 @@ toExpressionBlock_ lang parse block =
                 Right (String.join "\n" block.body |> parse)
 
             Ordinary "table" ->
-                let
-                    t1 : List Expression
-                    t1 =
-                        case lang of
-                            MicroLaTeXLang ->
-                                prepareTableLaTeX parse (String.join "\n" block.body)
+                fixTable block lang parse
 
-                            _ ->
-                                prepareTable1 parse (String.join "\n" block.body)
-                in
-                Right t1
+            Ordinary "tabular" ->
+                fixTable block lang parse
 
             Ordinary _ ->
                 Right (String.join "\n" block.body |> parse)
@@ -118,8 +94,47 @@ toExpressionBlock_ lang parse block =
     }
 
 
-fixTable : List Expression -> List Expression
-fixTable exprs =
+fixTableProperties : PrimitiveBlock -> Dict String String
+fixTableProperties block =
+    let
+        cellsAsString : List (List String)
+        cellsAsString =
+            String.join "\n" block.body
+                |> String.split "\\\\\n"
+                |> List.map (String.split "&")
+
+        effectiveFontWidth_ =
+            9.0
+
+        columnWidths : List Int
+        columnWidths =
+            List.map (List.map (textWidthWithPixelsPerCharacter effectiveFontWidth_)) cellsAsString
+                |> List.Extra.transpose
+                |> List.map (\column -> List.maximum column |> Maybe.withDefault 1)
+                |> List.map round
+    in
+    block.properties
+        |> Dict.insert "columnWidths" (String.join "," (List.map String.fromInt columnWidths) |> (\x -> "[" ++ x ++ "]"))
+        |> Dict.insert "format" (block.args |> String.join " ")
+        |> Dict.insert "id" block.meta.id
+
+
+fixTable block lang parse =
+    let
+        t1 : List Expression
+        t1 =
+            case lang of
+                MicroLaTeXLang ->
+                    prepareTableLaTeX parse (String.join "\n" block.body)
+
+                _ ->
+                    prepareTable1 parse (String.join "\n" block.body)
+    in
+    Right t1
+
+
+fixTable_ : List Expression -> List Expression
+fixTable_ exprs =
     case List.head exprs of
         Just (Fun "table" innerExprs meta) ->
             let
@@ -248,7 +263,7 @@ prepareTable1 parse str =
                 |> (\rows -> "[table " ++ String.join " " rows ++ "]")
     in
     parse cells
-        |> fixTable
+        |> fixTable_
 
 
 textWidthWithPixelsPerCharacter : Float -> String -> Float
