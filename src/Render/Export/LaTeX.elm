@@ -1040,7 +1040,8 @@ aliases : Dict String String
 aliases =
     Dict.fromList
         [ ( "i", "italic" )
-        , ( "b", "bold" )
+        , ( "b", "textbf" )
+        , ( "bold", "textbf" )
         ]
 
 
