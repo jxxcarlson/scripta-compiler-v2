@@ -179,7 +179,9 @@ exportTree settings tree =
             let
                 renderedChildren : List String
                 renderedChildren =
-                    List.map (exportTree settings) children |> List.map String.lines |> List.concat
+                    List.map (exportTree settings) children
+                        |> List.map String.lines
+                        |> List.concat
 
                 root =
                     exportBlock settings (Tree.label tree) |> String.lines
@@ -411,6 +413,64 @@ exportBlock settings block =
 
                 Right exprs_ ->
                     exportExprList settings exprs_
+
+        Ordinary "table" ->
+            case block.body of
+                Left str ->
+                    str
+
+                Right exprs_ ->
+                    case List.head exprs_ of
+                        Just (Fun "table" body _) ->
+                            let
+                                renderRow : Expression -> List Expression
+                                renderRow rowExpr =
+                                    case rowExpr of
+                                        Fun "row" cells _ ->
+                                            cells
+
+                                        _ ->
+                                            []
+
+                                cellTable : List (List Expression)
+                                cellTable =
+                                    List.map renderRow body
+
+                                stringTable : List (List String)
+                                stringTable =
+                                    cellTable |> List.map (List.map (exportCell settings))
+
+                                exportCell : RenderSettings -> Expression -> String
+                                exportCell settings_ expr =
+                                    case expr of
+                                        Fun "cell" exprs2 _ ->
+                                            exportExprList settings_ exprs2
+
+                                        _ ->
+                                            "error constructing table cell"
+
+                                makeRow : List String -> String
+                                makeRow row =
+                                    row |> String.join "& "
+
+                                output =
+                                    List.map makeRow stringTable |> String.join " \\\\\n"
+
+                                columns =
+                                    List.length (List.Extra.transpose stringTable)
+
+                                defaultFormat =
+                                    List.repeat columns "l"
+                                        |> String.join " "
+                                        |> (\x -> "{" ++ x ++ "}")
+
+                                format =
+                                    Dict.get "format" block.properties |> Maybe.withDefault defaultFormat
+                            in
+                            "\\begin{tabular}" ++ format ++ "\n" ++ output ++ "\n\\end{tabular}"
+
+                        _ ->
+                            "error in constructing table"
 
         Ordinary name ->
             case block.body of
