@@ -493,9 +493,10 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
             case getNameContentId block of
                 Just { name, content, id } ->
                     updateWithOrdinarySectionBlock accumulator (Just name) content level id
+                        |> updateReferenceWithBlock block
 
                 Nothing ->
-                    accumulator
+                    accumulator |> updateReferenceWithBlock block
 
         Ordinary "document" ->
             let
@@ -528,6 +529,7 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
 
         Ordinary _ ->
             updateWithOrdinaryBlock block accumulator
+                |> updateReferenceWithBlock block
 
         -- provide for numbering of equations
         Verbatim "mathmacros" ->
@@ -560,7 +562,7 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
                     { accumulator | inListState = nextInListState block.heading accumulator.inListState }
 
                 Just { name, content, id, tag } ->
-                    accumulator |> updateWithParagraph block
+                    accumulator |> updateWithParagraph block |> updateReferenceWithBlock block
 
 
 normalzeLines : List String -> List String
