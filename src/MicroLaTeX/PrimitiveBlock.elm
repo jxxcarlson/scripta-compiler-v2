@@ -782,7 +782,11 @@ elaborate line pb =
                             adjustedLine =
                                 String.replace prefix "" line.content
                         in
-                        MicroLaTeX.Util.getBracedItems adjustedLine
+                        if name_ == "table" || name_ == "tabular" then
+                            [ adjustedLine ]
+
+                        else
+                            MicroLaTeX.Util.getBracedItems adjustedLine
 
             properties =
                 namedArgs |> prepareList |> prepareKVData
@@ -1281,6 +1285,9 @@ updateHeadingWithName name_ heading =
                 Paragraph ->
                     Paragraph
 
+                Ordinary "tabular" ->
+                    Ordinary "table"
+
                 Ordinary _ ->
                     Ordinary name
 
@@ -1329,7 +1336,6 @@ verbatimBlockNames =
     , "verse"
     , "mathmacros"
     , "textmacros"
-    , "tabular"
     , "hide"
     , "docinfo"
     , "datatable"
