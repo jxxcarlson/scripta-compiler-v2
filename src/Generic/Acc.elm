@@ -56,6 +56,7 @@ import Maybe.Extra
 import Parser exposing ((|.), (|=), Parser)
 import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language)
+import Tools.String
 import Tools.Utility as Utility
 import Tree exposing (Tree)
 
@@ -202,7 +203,12 @@ transformBlock : Accumulator -> ExpressionBlock -> ExpressionBlock
 transformBlock acc block =
     case ( block.heading, block.args ) of
         ( Ordinary "section", _ ) ->
-            { block | properties = Dict.insert "label" (Vector.toString acc.headingIndex) block.properties }
+            { block
+                | properties =
+                    block.properties
+                        |> Dict.insert "label" (Vector.toString acc.headingIndex)
+                        |> Dict.insert "tag" (block.firstLine |> Tools.String.makeSlug)
+            }
 
         ( Ordinary "quiver", _ ) ->
             { block | properties = Dict.insert "figure" (getCounterAsString "figure" acc.counter) block.properties }
@@ -375,7 +381,7 @@ updateReference referenceDatum acc =
 
 updateReferenceWithBlock : ExpressionBlock -> Accumulator -> Accumulator
 updateReferenceWithBlock block acc =
-    case getReferenceDatum block of
+    case getReferenceDatum acc block of
         Just referenceDatum ->
             updateReference referenceDatum acc
 
