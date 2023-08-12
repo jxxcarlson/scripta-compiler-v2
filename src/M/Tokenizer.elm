@@ -262,7 +262,7 @@ stringValue token =
             "$"
 
         BracketedMath s _ ->
-            "\\[" ++ s ++ "\\]"
+            "\\(" ++ s ++ "\\)"
 
         CodeToken _ ->
             "`"
@@ -550,10 +550,10 @@ rightBracketParser start index =
 bracketedMathParser : Int -> Int -> TokenParser
 bracketedMathParser start index =
     Parser.succeed (\a b content -> BracketedMath (String.slice a (b - 2) content) { begin = start, end = start + b - a + 1, index = index })
-        |. Parser.symbol (Parser.Token "\\[" (PT.ExpectingSymbol "\\["))
+        |. Parser.symbol (Parser.Token "\\(" (PT.ExpectingSymbol "\\)"))
         |= Parser.getOffset
-        |. Parser.chompUntil (Parser.Token "\\]" (PT.ExpectingSymbol "\\]"))
-        |. Parser.symbol (Parser.Token "\\]" (PT.ExpectingSymbol "\\]"))
+        |. Parser.chompUntil (Parser.Token "\\)" (PT.ExpectingSymbol "\\)"))
+        |. Parser.symbol (Parser.Token "\\)" (PT.ExpectingSymbol "\\)"))
         |= Parser.getOffset
         |= Parser.getSource
 
