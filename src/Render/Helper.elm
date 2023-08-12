@@ -121,7 +121,7 @@ showError maybeError x =
 noSuchVerbatimBlock : String -> String -> Element MarkupMsg
 noSuchVerbatimBlock functionName content =
     Element.column [ Element.spacing 4 ]
-        [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "No such block: " ++ functionName ]
+        [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "No such block (V): " ++ functionName ]
         , Element.column [ Element.spacing 4 ] (List.map (\t -> Element.el [] (Element.text t)) (String.lines content))
         ]
 
@@ -129,7 +129,7 @@ noSuchVerbatimBlock functionName content =
 noSuchOrdinaryBlock : Int -> Accumulator -> RenderSettings -> ExpressionBlock -> Element MarkupMsg
 noSuchOrdinaryBlock count acc settings block =
     Element.column [ Element.spacing 4 ]
-        [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "No such block:" ++ (block.args |> String.join " ") ]
+        [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "No such block (O):" ++ (block.args |> String.join " ") ]
 
         -- TODO fix this
         --, Element.paragraph [] (List.map (Render.Expression.render count acc settings) (Generic.Language.getExpressionContent block))
