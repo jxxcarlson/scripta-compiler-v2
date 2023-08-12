@@ -429,21 +429,23 @@ getNameContentIdTag block =
             Just { name = name_, content = block.body, id = id, tag = tag }
 
 
-getReferenceDatum : ExpressionBlock -> Maybe ReferenceDatum
-getReferenceDatum block =
+getReferenceDatum : Accumulator -> ExpressionBlock -> Maybe ReferenceDatum
+getReferenceDatum acc block =
+    -- TODO: fix!
     let
+        id : String
         id =
-            Dict.get "id" block.properties
+            block.meta.id
 
         tag =
             Dict.get "tag" block.properties
 
         numRef =
-            Dict.get "label" block.properties
+            acc.headingIndex |> Vector.toString
     in
-    case ( id, tag, numRef ) of
-        ( Just id_, Just tag_, Just numRef_ ) ->
-            Just { id = id_, tag = tag_, numRef = numRef_ }
+    case tag of
+        Just tag_ ->
+            Just { id = id, tag = tag_, numRef = numRef }
 
         _ ->
             Nothing
