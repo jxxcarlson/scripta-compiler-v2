@@ -221,19 +221,26 @@ collection _ _ _ _ _ =
         | document jxxcarlson:wave-packets-schroedinger
         Wave Packets and Schrödinger's Equation
 
+    The primitive block parser converts the argument 'jxxcarlson:wave-packets-schroedinger'
+    into a dictionary entry with key 'jxxcarlson' and value 'wave-packets-schroedinger'.
+
 -}
 document : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 document _ _ settings attrs block =
     let
         docId =
+            -- In the example above, docId = "jxxcarlson:wave-packets-schroedinger"
             case block.args |> List.head of
                 Just idx ->
+                    -- could be the block ID
                     idx
 
                 Nothing ->
-                    case block.properties |> Dict.toList |> List.head |> Maybe.map (\( a, b ) -> a ++ ":" ++ b) of
+                    case Dict.get "docId" block.properties of
+                        --|> Dict.toList |> List.head |> Maybe.map (\( a, b ) -> a ++ ":" ++ b) of
                         Just ident ->
-                            ident
+                            -- this is the block slug referred to
+                            ident |> Debug.log "IDENT"
 
                         Nothing ->
                             "(noId)"
@@ -370,7 +377,7 @@ section count acc settings attr block =
                     String.toFloat n |> Maybe.withDefault 3
 
         fontSize =
-            settings.maxHeadingFontSize / sqrt (headingLevel - toFloat acc.deltaLevel) |> round
+            settings.maxHeadingFontSize / sqrt headingLevel |> round
 
         sectionNumber =
             Element.el [ Font.size fontSize ] (Element.text (Render.Helper.blockLabel block.properties ++ ". "))

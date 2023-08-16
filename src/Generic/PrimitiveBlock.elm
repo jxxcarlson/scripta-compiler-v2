@@ -83,8 +83,24 @@ finalize block =
 
         newMeta =
             { oldMeta | sourceText = sourceText }
+
+        properties =
+            case block.heading of
+                Ordinary "document" ->
+                    let
+                        docId =
+                            block.properties
+                                |> Dict.toList
+                                |> List.head
+                                |> Maybe.map (\( a, b ) -> a ++ ":" ++ b)
+                                |> Maybe.withDefault "noDocId"
+                    in
+                    Dict.insert "docId" docId block.properties
+
+                _ ->
+                    block.properties
     in
-    { block | body = content, meta = newMeta }
+    { block | properties = properties, body = content, meta = newMeta }
 
 
 {-|
