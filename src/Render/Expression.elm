@@ -627,10 +627,10 @@ ref acc exprList =
             Dict.get key acc.reference
 
         val =
-            ref_ |> Maybe.map .numRef |> Maybe.withDefault ""
+            ref_ |> Maybe.map .numRef |> Maybe.withDefault "??"
 
         id =
-            ref_ |> Maybe.map .id |> Maybe.withDefault ""
+            ref_ |> Maybe.map .id |> Maybe.withDefault "id??"
     in
     Element.link
         [ Font.color (Element.rgb 0 0 0.7)
