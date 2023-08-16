@@ -26,6 +26,14 @@ isReducible symbols_ =
                 _ ->
                     False
 
+        LM :: ST :: rest ->
+            case List.head (List.reverse rest) of
+                Just RM ->
+                    hasReducibleArgs (dropLast rest)
+
+                _ ->
+                    False
+
         _ ->
             False
 
@@ -37,6 +45,9 @@ hasReducibleArgs symbols =
             True
 
         L :: _ ->
+            reducibleAux symbols
+
+        LM :: _ ->
             reducibleAux symbols
 
         C :: _ ->

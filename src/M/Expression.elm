@@ -128,7 +128,9 @@ nextStep state =
             state
                 |> advanceTokenIndex
                 |> pushOrCommit token
+                -- TODO |> Debug.log "BEFORE reduceState"
                 |> reduceState
+                -- TODO |> Debug.log "AFTER reduceState"
                 |> (\st -> { st | step = st.step + 1 })
                 |> Loop
 
@@ -170,6 +172,12 @@ pushOrCommit token state =
             pushOnStack_ token state
 
         RB _ ->
+            pushOnStack_ token state
+
+        LMB _ ->
+            pushOnStack_ token state
+
+        RMB _ ->
             pushOnStack_ token state
 
         TokenError _ _ ->
@@ -267,6 +275,9 @@ reduceTokens lineNumber tokens =
             (CodeToken meta) :: (S str _) :: (CodeToken _) :: rest ->
                 VFun "code" str (boostMeta lineNumber meta.index meta) :: reduceRestOfTokens lineNumber rest
 
+            (LMB meta) :: (S str _) :: (RMB _) :: rest ->
+                VFun "math" str (boostMeta lineNumber meta.index meta) :: reduceRestOfTokens lineNumber rest
+
             _ ->
                 [ errorMessage "[????]" ]
 
@@ -275,6 +286,14 @@ reduceRestOfTokens : Int -> List Token -> List Expression
 reduceRestOfTokens lineNumber tokens =
     case tokens of
         (LB _) :: _ ->
+            case splitTokens tokens of
+                Nothing ->
+                    [ errorMessageInvisible "Error on match", Text "error on match" dummyLocWithId ]
+
+                Just ( a, b ) ->
+                    reduceTokens lineNumber a ++ reduceRestOfTokens lineNumber b
+
+        (LMB _) :: _ ->
             case splitTokens tokens of
                 Nothing ->
                     [ errorMessageInvisible "Error on match", Text "error on match" dummyLocWithId ]
@@ -317,6 +336,10 @@ reduceRestOfTokens lineNumber tokens =
 
 recoverFromError : State -> Step State State
 recoverFromError state =
+    let
+        _ =
+            Debug.log "RECOVERY STACK" (state.stack |> List.reverse)
+    in
     case List.reverse state.stack of
         -- brackets with no intervening text
         (LB _) :: (RB meta) :: _ ->
@@ -339,10 +362,88 @@ recoverFromError state =
             in
             Loop
                 { state
-                    | tokens = List.take (k + 1) state.tokens ++ (S "[??" { dummyLoc | index = k + 1 } :: List.drop (k + 1) shiftedTokens)
+                    | tokens = List.take (k + 1) state.tokens ++ (S "1[??" { dummyLoc | index = k + 1 } :: List.drop (k + 1) shiftedTokens)
                     , stack = []
                     , tokenIndex = meta1.index
                     , messages = Helpers.prependMessage state.lineNumber "Consecutive left brackets" state.messages
+                }
+
+        --(LMB meta1) :: (LMB _) :: _ ->
+        --    let
+        --        k =
+        --            meta1.index
+        --
+        --        shiftedTokens =
+        --            Token.changeTokenIndicesFrom (k + 1) 1 state.tokens
+        --    in
+        --    Loop
+        --        { state
+        --            | tokens = List.take (k + 1) state.tokens ++ (S "2[??" { dummyLoc | index = k + 1 } :: List.drop (k + 1) shiftedTokens)
+        --            , stack = []
+        --            , tokenIndex = meta1.index
+        --            , messages = Helpers.prependMessage state.lineNumber "Consecutive left math brackets" state.messages
+        --        }
+        --  left math bracket error
+        (LMB meta1) :: rest ->
+            let
+                k =
+                    meta1.index |> Debug.log "INDEX k"
+
+                _ =
+                    Debug.log "ORIGINAL TOKENS" state.tokens
+
+                shiftedTokens =
+                    Token.changeTokenIndicesFrom (k + 1) 4 state.tokens |> Debug.log "shiftedTokens"
+
+                errorTokens : List (Token_ { begin : number, end : number, index : Int })
+                errorTokens =
+                    [ LB { begin = 0, end = 0, index = k + 1 }
+                    , S "red" { begin = 1, end = 3, index = k + 2 }
+                    , S " missing \\(" { begin = 4, end = 9, index = k + 3 }
+                    , RB { begin = 10, end = 10, index = k + 4 }
+                    ]
+
+                --    LB :: S "red"{ dummyLoc | index = k + 1 } :: [ Text "missing \\(" { dummyLoc | index = k + 1 } ] { dummyLoc | index = k + 1 }
+            in
+            Loop
+                { state
+                    | --tokens = List.take (k + 1) state.tokens ++ (S "3[??" { dummyLoc | index = k + 1 } :: List.drop (k + 1) shiftedTokens) |> Debug.log "NEW TOKENS"
+                      -- tokens = List.take (k + 1) state.tokens ++ (S "missing \\(" { dummyLoc | index = k + 1 } :: List.drop (k + 1) shiftedTokens) |> Debug.log "NEW TOKENS"
+                      tokens = List.take (k + 1) state.tokens ++ errorTokens ++ List.drop (k + 1) shiftedTokens |> Debug.log "NEW TOKENS"
+                    , stack = []
+                    , tokenIndex = meta1.index + 1
+                    , messages = Helpers.prependMessage state.lineNumber "No terminating right math bracket" state.messages
+                }
+
+        (RMB meta1) :: rest ->
+            let
+                k =
+                    meta1.index |> Debug.log "INDEX k"
+
+                _ =
+                    Debug.log "ORIGINAL TOKENS" state.tokens
+
+                shiftedTokens =
+                    Token.changeTokenIndicesFrom (k + 1) 4 state.tokens |> Debug.log "shiftedTokens"
+
+                errorTokens : List (Token_ { begin : number, end : number, index : Int })
+                errorTokens =
+                    [ LB { begin = 0, end = 0, index = k + 1 }
+                    , S "red" { begin = 1, end = 3, index = k + 2 }
+                    , S "\\) << extra, or previous missing \\)" { begin = 4, end = 9, index = k + 3 }
+                    , RB { begin = 10, end = 10, index = k + 4 }
+                    ]
+
+                --    LB :: S "red"{ dummyLoc | index = k + 1 } :: [ Text "missing \\(" { dummyLoc | index = k + 1 } ] { dummyLoc | index = k + 1 }
+            in
+            Loop
+                { state
+                    | --tokens = List.take (k + 1) state.tokens ++ (S "3[??" { dummyLoc | index = k + 1 } :: List.drop (k + 1) shiftedTokens) |> Debug.log "NEW TOKENS"
+                      -- tokens = List.take (k + 1) state.tokens ++ (S "missing \\(" { dummyLoc | index = k + 1 } :: List.drop (k + 1) shiftedTokens) |> Debug.log "NEW TOKENS"
+                      tokens = List.take (k + 1) state.tokens ++ errorTokens ++ List.drop (k + 1) shiftedTokens |> Debug.log "NEW TOKENS"
+                    , stack = []
+                    , tokenIndex = meta1.index + 1
+                    , messages = Helpers.prependMessage state.lineNumber "No terminating right math bracket" state.messages
                 }
 
         -- missing right bracket // OK

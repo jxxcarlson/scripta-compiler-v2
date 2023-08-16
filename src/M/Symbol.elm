@@ -7,6 +7,8 @@ type Symbol
     = L -- LB, [
     | R -- RB, ]
     | BM -- bracketed math, e.g., \[x^2\]
+    | LM -- left math, e.g., \(
+    | RM -- right math, e.g., \)
     | ST -- S String (string)
     | M -- $
     | C -- `
@@ -21,6 +23,12 @@ value symbol =
             1
 
         R ->
+            -1
+
+        LM ->
+            1
+
+        RM ->
             -1
 
         ST ->
@@ -55,6 +63,12 @@ symbolToString symbol =
 
         R ->
             "R"
+
+        LM ->
+            "LM"
+
+        RM ->
+            "RM"
 
         ST ->
             "S"
@@ -93,6 +107,12 @@ toSymbol token =
 
         RB _ ->
             R
+
+        LMB _ ->
+            LM
+
+        RMB _ ->
+            RM
 
         S _ _ ->
             ST

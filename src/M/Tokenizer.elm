@@ -9,6 +9,8 @@ module M.Tokenizer exposing
     , idemTest
     , indexOf
     , init
+    , leftMathBracketParser
+    , rightMathBracketParser
     , run
     , simplify
     , toString
@@ -37,6 +39,8 @@ idemTest str =
 type Token_ meta
     = LB meta
     | RB meta
+    | LMB meta
+    | RMB meta
     | S String meta
     | W String meta
     | MathToken meta
@@ -61,6 +65,12 @@ simplify token =
 
         RB _ ->
             RB ()
+
+        LMB _ ->
+            LMB ()
+
+        RMB _ ->
+            RMB ()
 
         S str _ ->
             S str ()
@@ -108,6 +118,12 @@ indexOf token =
         RB meta ->
             meta.index
 
+        LMB meta ->
+            meta.index
+
+        RMB meta ->
+            meta.index
+
         S _ meta ->
             meta.index
 
@@ -135,6 +151,12 @@ setIndex k token =
 
         RB meta ->
             RB { meta | index = k }
+
+        LMB meta ->
+            LMB { meta | index = k }
+
+        RMB meta ->
+            RMB { meta | index = k }
 
         S str meta ->
             S str { meta | index = k }
@@ -179,6 +201,8 @@ type Mode
 type TokenType
     = TLB
     | TRB
+    | TLMB
+    | TRMB
     | TS
     | TW
     | TMath
@@ -195,6 +219,12 @@ type_ token =
 
         RB _ ->
             TRB
+
+        LMB _ ->
+            TLMB
+
+        RMB _ ->
+            TRMB
 
         S _ _ ->
             TS
@@ -224,6 +254,12 @@ getMeta token =
         RB m ->
             m
 
+        LMB m ->
+            m
+
+        RMB m ->
+            m
+
         S _ m ->
             m
 
@@ -251,6 +287,12 @@ stringValue token =
 
         RB _ ->
             "]"
+
+        LMB _ ->
+            "\\("
+
+        RMB _ ->
+            "\\)"
 
         S str _ ->
             str
@@ -283,6 +325,12 @@ length token =
             meta.end - meta.begin
 
         RB meta ->
+            meta.end - meta.begin
+
+        LMB meta ->
+            meta.end - meta.begin
+
+        RMB meta ->
             meta.end - meta.begin
 
         S _ meta ->
@@ -501,13 +549,21 @@ codeChars =
 tokenParser_ : Int -> Int -> TokenParser
 tokenParser_ start index =
     Parser.oneOf
-        [ textParser start index
+        [ Parser.oneOf
+            [ Parser.backtrackable <| leftMathBracketParser start index
+            , Parser.backtrackable <| rightMathBracketParser start index
+            , backSlahshedPrefixParser start index
+            ]
+        , whiteSpaceParser start index
+        , textParser start index
         , leftBracketParser start index
         , rightBracketParser start index
-        , bracketedMathParser start index
+
+        --, bracketedMathParser start index
         , mathParser start index
         , codeParser start index
-        , whiteSpaceParser start index
+
+        -- ORIGINAL, whiteSpaceParser start index
         ]
 
 
@@ -545,6 +601,40 @@ rightBracketParser : Int -> Int -> TokenParser
 rightBracketParser start index =
     PT.text (\c -> c == ']') (\_ -> False)
         |> Parser.map (\_ -> RB { begin = start, end = start, index = index })
+
+
+backSlahshedPrefixParser : Int -> Int -> TokenParser
+backSlahshedPrefixParser start index =
+    --PT.text (\c -> c == '\\') (\c -> not <| List.member c (' ' :: languageChars))
+    --    |> Parser.map (\_ -> S { begin = start, end = start, index = index })
+    PT.text (\c -> c == '\\') (\c -> not <| List.member c (' ' :: languageChars))
+        |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index })
+
+
+
+--|> Parser.andThen (\_ -> mathTextParser start index)
+
+
+leftMathBracketParser : Int -> Int -> TokenParser
+leftMathBracketParser start index =
+    PT.text (\c -> c == '\\') (\_ -> False) |> Parser.andThen (\_ -> leftMathBracketParser_ start index)
+
+
+leftMathBracketParser_ : Int -> Int -> TokenParser
+leftMathBracketParser_ start index =
+    PT.text (\c -> c == '(') (\_ -> False)
+        |> Parser.map (\_ -> LMB { begin = start, end = start + 1, index = index })
+
+
+rightMathBracketParser : Int -> Int -> TokenParser
+rightMathBracketParser start index =
+    Parser.backtrackable (PT.text (\c -> c == '\\') (\_ -> False) |> Parser.andThen (\_ -> rightMathBracketParser_ start index))
+
+
+rightMathBracketParser_ : Int -> Int -> TokenParser
+rightMathBracketParser_ start index =
+    PT.text (\c -> c == ')') (\_ -> False)
+        |> Parser.map (\_ -> RMB { begin = start, end = start + 1, index = index })
 
 
 bracketedMathParser : Int -> Int -> TokenParser
