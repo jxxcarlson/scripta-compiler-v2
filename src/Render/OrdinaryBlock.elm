@@ -240,7 +240,7 @@ document _ _ settings attrs block =
                         --|> Dict.toList |> List.head |> Maybe.map (\( a, b ) -> a ++ ":" ++ b) of
                         Just ident ->
                             -- this is the block slug referred to
-                            ident |> Debug.log "IDENT"
+                            ident
 
                         Nothing ->
                             "(noId)"
