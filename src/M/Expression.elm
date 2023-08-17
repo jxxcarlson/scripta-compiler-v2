@@ -4,6 +4,7 @@ module M.Expression exposing
     , parse
     , parseToState
     , parseWithMessages
+    , reduceTokens
     )
 
 import Generic.Language exposing (Expr(..), ExprMeta, Expression)
@@ -79,7 +80,13 @@ type alias State =
     , stack : List Token
     , messages : List String
     , lineNumber : Int
+    , mode : Mode
     }
+
+
+type Mode
+    = Normal
+    | Math
 
 
 initWithTokens : Int -> List Token -> State
@@ -92,6 +99,7 @@ initWithTokens lineNumber tokens =
     , stack = []
     , messages = []
     , lineNumber = lineNumber
+    , mode = Normal
     }
 
 
@@ -277,6 +285,42 @@ reduceTokens lineNumber tokens =
 
             (LMB meta) :: (S str _) :: (RMB _) :: rest ->
                 VFun "math" str (boostMeta lineNumber meta.index meta) :: reduceRestOfTokens lineNumber rest
+
+            (LMB meta) :: rest ->
+                let
+                    reversedRest =
+                        List.reverse rest
+
+                    n =
+                        List.length rest
+                in
+                case List.head reversedRest of
+                    Just (RMB _) ->
+                        let
+                            content =
+                                List.drop 1 rest
+                                    |> List.map
+                                        (\t ->
+                                            case t of
+                                                S str _ ->
+                                                    str
+
+                                                LB _ ->
+                                                    "["
+
+                                                RB _ ->
+                                                    "]"
+
+                                                _ ->
+                                                    ""
+                                        )
+                                    |> String.join " "
+                        in
+                        [ VFun "math" content (boostMeta lineNumber meta.index meta) ]
+
+                    _ ->
+                        -- this happens with input of "["
+                        [ errorMessage "[????]" ]
 
             _ ->
                 [ errorMessage "[????]" ]
