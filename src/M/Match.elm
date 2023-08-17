@@ -26,10 +26,10 @@ isReducible symbols_ =
                 _ ->
                     False
 
-        LM :: ST :: rest ->
+        LM :: rest ->
             case List.head (List.reverse rest) of
                 Just RM ->
-                    hasReducibleArgs (dropLast rest)
+                    True
 
                 _ ->
                     False

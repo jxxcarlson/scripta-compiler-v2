@@ -558,12 +558,8 @@ tokenParser_ start index =
         , textParser start index
         , leftBracketParser start index
         , rightBracketParser start index
-
-        --, bracketedMathParser start index
         , mathParser start index
         , codeParser start index
-
-        -- ORIGINAL, whiteSpaceParser start index
         ]
 
 
@@ -605,14 +601,8 @@ rightBracketParser start index =
 
 backSlahshedPrefixParser : Int -> Int -> TokenParser
 backSlahshedPrefixParser start index =
-    --PT.text (\c -> c == '\\') (\c -> not <| List.member c (' ' :: languageChars))
-    --    |> Parser.map (\_ -> S { begin = start, end = start, index = index })
     PT.text (\c -> c == '\\') (\c -> not <| List.member c (' ' :: languageChars))
         |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index })
-
-
-
---|> Parser.andThen (\_ -> mathTextParser start index)
 
 
 leftMathBracketParser : Int -> Int -> TokenParser
