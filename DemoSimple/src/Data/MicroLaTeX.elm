@@ -4,12 +4,12 @@ module Data.MicroLaTeX exposing (text)
 text =
     """
 
-\\title{Table Test}
+\\title{Test}
 
-\\begin{table}{c c c}
-a & bbb & c \\\\
-a & y & z
-\\end{table}
+One: \\(x^2\\)
+
+Two: \\(x^2 Ho ho ho!
+
 
 """
 

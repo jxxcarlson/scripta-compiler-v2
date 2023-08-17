@@ -297,11 +297,32 @@ handleBracketedMath state =
             String.right 1 content
 
         committed =
-            if trailing == "]" then
+            if trailing == ")" then
                 VFun "math" (content |> String.dropLeft 2 |> String.dropRight 2) (boostMeta_ state.tokenIndex 2 { begin = 0, end = 0, index = 0 }) :: state.committed
 
             else
                 Fun "red" [ Text "$" dummyLocWithId ] dummyLocWithId
+                    :: VFun "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+                    :: state.committed
+    in
+    { state | stack = [], committed = committed }
+
+
+handleBracketedMathDollar : State -> State
+handleBracketedMathDollar state =
+    let
+        content =
+            state.stack |> List.reverse |> Token.toString
+
+        trailing =
+            String.right 1 content
+
+        committed =
+            if trailing == ")" then
+                VFun "math" (content |> String.dropLeft 2 |> String.dropRight 2) (boostMeta_ state.tokenIndex 2 { begin = 0, end = 0, index = 0 }) :: state.committed
+
+            else
+                Fun "red!!" [ Text "$" dummyLocWithId ] dummyLocWithId
                     :: VFun "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
                     :: state.committed
     in
@@ -361,6 +382,10 @@ reduceTokens lineNumber tokens =
 
         (S t m2) :: rest ->
             Text t (boostMeta lineNumber m2) :: reduceRestOfTokens Nothing lineNumber rest
+
+        (LMathBracket m1) :: (S str m2) :: (RMathBracket m3) :: rest ->
+            -- TODO: new
+            VFun "math" str (boostMeta lineNumber m2) :: reduceTokens lineNumber (RMathBracket m3 :: rest)
 
         (BS m1) :: (S name _) :: rest ->
             let
@@ -556,21 +581,54 @@ recoverFromError state =
         -- left bracket with no closing right bracket
         (LMathBracket meta) :: rest ->
             let
-                content =
-                    Token.toString rest
+                reversedStack =
+                    List.reverse state.stack
 
-                message =
-                    if content == "" then
-                        "\\[ ? \\]"
+                toCommitted =
+                    case reversedStack of
+                        (LMathBracket _) :: (S c m) :: rest_ ->
+                            Text c m :: Fun "red" [ Text "insert \\(" m ] m :: state.committed
 
-                    else
-                        "\\[ "
+                        _ ->
+                            state.committed
+
+                newTokenIndex =
+                    meta.index + 2
             in
             Loop
                 { state
-                    | committed = errorMessage message :: state.committed
+                  --| committed = errorMessage message :: state.committed
+                    | committed = toCommitted
                     , stack = []
-                    , tokenIndex = meta.index + 1
+
+                    --, tokenIndex = meta.index + 1
+                    , tokenIndex = newTokenIndex
+                    , numberOfTokens = 0
+                    , messages = Helpers.prependMessage state.lineNumber "left bracket needs to be matched with a right bracket" state.messages
+                }
+
+        -- unmatched right bracket
+        (RMathBracket meta) :: rest ->
+            let
+                reversedStack =
+                    List.reverse state.stack
+
+                toCommitted =
+                    case reversedStack of
+                        (RMathBracket m) :: rest_ ->
+                            Fun "red" [ Text "extra \\)" m ] m :: state.committed
+
+                        _ ->
+                            state.committed
+
+                newTokenIndex =
+                    meta.index + 1
+            in
+            Loop
+                { state
+                    | committed = toCommitted
+                    , stack = []
+                    , tokenIndex = newTokenIndex
                     , numberOfTokens = 0
                     , messages = Helpers.prependMessage state.lineNumber "left bracket needs to be matched with a right bracket" state.messages
                 }

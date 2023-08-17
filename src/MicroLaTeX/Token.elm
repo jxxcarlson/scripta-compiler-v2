@@ -268,10 +268,10 @@ stringValue token =
             "}"
 
         LMathBracket _ ->
-            "\\["
+            "\\("
 
         RMathBracket _ ->
-            "\\]"
+            "\\)"
 
         S str _ ->
             str
@@ -679,12 +679,12 @@ mathParser start index =
 
 leftMathBracketParser : Int -> Int -> TokenParser
 leftMathBracketParser start index =
-    PT.symbol "\\[" |> Parser.map (\_ -> LMathBracket { begin = start, end = start + 1, index = index, id = makeId start index })
+    PT.symbol "\\(" |> Parser.map (\_ -> LMathBracket { begin = start, end = start + 1, index = index, id = makeId start index })
 
 
 rightMathBracketParser : Int -> Int -> TokenParser
 rightMathBracketParser start index =
-    PT.symbol "\\]" |> Parser.map (\_ -> RMathBracket { begin = start, end = start + 1, index = index, id = makeId start index })
+    PT.symbol "\\)" |> Parser.map (\_ -> RMathBracket { begin = start, end = start + 1, index = index, id = makeId start index })
 
 
 codeParser : Int -> Int -> TokenParser
