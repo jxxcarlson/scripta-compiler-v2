@@ -408,7 +408,7 @@ recoverFromError state =
                 errorTokens =
                     [ LB { begin = 0, end = 0, index = k + 1 }
                     , S "red" { begin = 1, end = 3, index = k + 2 }
-                    , S " insert \\(" { begin = 4, end = 9, index = k + 3 }
+                    , S " unmatched \\(" { begin = 4, end = 9, index = k + 3 }
                     , RB { begin = 10, end = 10, index = k + 4 }
                     ]
             in
