@@ -99,6 +99,7 @@ markupDict =
         , ( "reflink", \_ acc _ attr exprList -> reflink acc exprList )
         , ( "eqref", \_ acc _ attr exprList -> eqref acc exprList )
         , ( "underline", \g acc s attr exprList -> underline g acc s attr exprList )
+        , ( "u", \g acc s attr exprList -> underline g acc s attr exprList )
         , ( "hide", \_ _ _ _ _ -> Element.none )
         , ( "author", \_ _ _ _ _ -> Element.none )
         , ( "date", \_ _ _ _ _ -> Element.none )
