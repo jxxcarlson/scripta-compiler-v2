@@ -621,7 +621,7 @@ ref : Accumulator -> List Expression -> Element MarkupMsg
 ref acc exprList =
     let
         key =
-            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim
+            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim |> String.replace "-" ""
 
         ref_ =
             Dict.get key acc.reference
