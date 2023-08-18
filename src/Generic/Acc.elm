@@ -568,6 +568,8 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
             case getNameContentIdTag block of
                 Nothing ->
                     { accumulator | inListState = nextInListState block.heading accumulator.inListState }
+                        |> updateWithParagraph block
+                        |> updateReferenceWithBlock block
 
                 Just { name, content, id, tag } ->
                     accumulator |> updateWithParagraph block |> updateReferenceWithBlock block
