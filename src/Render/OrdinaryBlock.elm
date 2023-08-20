@@ -87,8 +87,8 @@ attributeDict =
 blockDict : Dict String (Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg)
 blockDict =
     Dict.fromList
-        [ --( "indent", indented )
-          ( "center", centered )
+        [ ( "indent", indented )
+        , ( "center", centered )
         , ( "box", box )
         , ( "quotation", quotation )
         , ( "set-key", \_ _ _ _ _ -> Element.none )
@@ -160,6 +160,15 @@ centered count acc settings attr block =
     Element.el
         [ Element.width (Element.px settings.width) ]
         (Element.paragraph [ Element.centerX, Element.width (Element.px (settings.width - 100)) ]
+            (Render.Helper.renderWithDefault "indent" count acc settings attr (Generic.Language.getExpressionContent block))
+        )
+
+
+indented : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+indented count acc settings attr block =
+    Element.el
+        [ Element.width (Element.px settings.width) ]
+        (Element.paragraph [ Element.paddingEach { left = settings.leftIndent, right = 0, top = 0, bottom = 0 } ]
             (Render.Helper.renderWithDefault "indent" count acc settings attr (Generic.Language.getExpressionContent block))
         )
 
