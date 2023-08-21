@@ -285,7 +285,6 @@ transformBlock acc block =
                                     Dict.insert "label"
                                         (vectorPrefix acc.headingIndex ++ String.fromInt acc.blockCounter)
                                         block.properties
-                                        |> Debug.log "@@IL INSERT LABEL"
                             }
 
                          else
@@ -375,35 +374,26 @@ updateReference referenceDatum acc =
     -- reference, e.g., "foo" in \\label{foo} or [label foo], and where the
     -- value is a record with an id and a "numerical" reference, e.g, "2" or "2.3"
     --  TODO: review!
-    let
-        _ =
-            Debug.log "@@R2 acc.ref" acc.reference
-    in
     if referenceDatum.tag /= "" then
         { acc
             | reference =
                 Dict.insert referenceDatum.tag
                     { id = referenceDatum.id, numRef = referenceDatum.numRef }
                     acc.reference
-                    |> Debug.log "@@0 Reference"
         }
 
     else
-        acc |> Debug.log "@@no-tag Reference"
+        acc
 
 
 updateReferenceWithBlock : ExpressionBlock -> Accumulator -> Accumulator
 updateReferenceWithBlock block acc =
-    --let
-    --    _ =
-    --        Debug.log "@@ updateReferenceWithBlock" block.heading
-    --in
     case getReferenceDatum acc block of
         Just referenceDatum ->
-            updateReference referenceDatum acc |> Debug.log "@@1"
+            updateReference referenceDatum acc
 
         Nothing ->
-            acc |> Debug.log "@@2"
+            acc
 
 
 getNameContentId : ExpressionBlock -> Maybe { name : String, content : Either String (List Expression), id : String }
@@ -454,16 +444,14 @@ getNameContentIdTag block =
 
 getReferenceDatum : Accumulator -> ExpressionBlock -> Maybe ReferenceDatum
 getReferenceDatum acc block =
-    -- TODO: fix!
+    -- TODO: REVIEW!
     let
-        _ =
-            Debug.log "@@R getReferenceDatum" ( block.properties, block.meta.id )
-
         id : String
         id =
             block.meta.id
 
         tag =
+            -- TODO: REVIEW! (tag/label????)
             case ( Dict.get "tag" block.properties, Dict.get "label" block.properties ) of
                 ( Just tag_, _ ) ->
                     tag_
@@ -480,6 +468,7 @@ getReferenceDatum acc block =
         numRef =
             if numRef_ == "" then
                 -- Dict.get "label" (block.properties |> Debug.log "@@BLOCK PROPS") |> Maybe.withDefault "no-numRef"
+                -- TODO: REVIEW!
                 acc.blockCounter |> String.fromInt
 
             else
@@ -642,7 +631,6 @@ updateWithOrdinarySectionBlock accumulator name content level id =
         , counter = Dict.insert "equation" 0 accumulator.counter --TODO: this is strange!!
     }
         |> updateReference referenceDatum
-        |> Debug.log "@@S"
 
 
 updateWithOrdinaryDocumentBlock : Accumulator -> Maybe String -> Either String (List Expression) -> String -> String -> Accumulator
@@ -666,7 +654,7 @@ updateWithOrdinaryDocumentBlock accumulator name content level id =
             makeReferenceDatum id sectionTag (Vector.toString documentIndex)
     in
     -- TODO: take care of numberedItemIndex = 0 here and elsewhere
-    { accumulator | documentIndex = documentIndex } |> updateReference referenceDatum |> Debug.log "@@3"
+    { accumulator | documentIndex = documentIndex } |> updateReference referenceDatum
 
 
 updateBibItemBlock accumulator args id =

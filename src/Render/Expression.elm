@@ -625,7 +625,7 @@ ref acc exprList =
         key =
             -- TODO: review the change below. Is it really OK to not squeeze the hyphens?
             --List.map ASTTools.getText exprList  |> Maybe.Extra.values |> String.join "" |> String.trim |> String.replace "-" ""
-            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim |> Debug.log "@@KEY"
+            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim
 
         ref_ =
             Dict.get key acc.reference
