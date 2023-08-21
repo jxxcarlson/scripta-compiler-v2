@@ -502,7 +502,6 @@ env count acc settings attr block =
             Element.none
 
         Right exprs ->
-            -- TODO: set id properly
             Element.column ([ Element.spacing 8, Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
                 [ Element.el
                     [ Font.bold
