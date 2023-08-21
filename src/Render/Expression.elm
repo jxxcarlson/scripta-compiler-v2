@@ -623,17 +623,18 @@ ref : Accumulator -> List Expression -> Element MarkupMsg
 ref acc exprList =
     let
         key =
+            -- TODO: review the change below. Is it really OK to not squeeze the hyphens?
             --List.map ASTTools.getText exprList  |> Maybe.Extra.values |> String.join "" |> String.trim |> String.replace "-" ""
             List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim |> Debug.log "@@KEY"
 
         ref_ =
-            Dict.get key acc.reference |> Debug.log "@@REF"
+            Dict.get key acc.reference
 
         val =
-            ref_ |> Maybe.map .numRef |> Maybe.withDefault "??"
+            ref_ |> Maybe.map .numRef
 
         id =
-            ref_ |> Maybe.map .id |> Maybe.withDefault "id??"
+            ref_ |> Maybe.map .id
     in
     Element.link
         [ Font.color (Element.rgb 0 0 0.7)
