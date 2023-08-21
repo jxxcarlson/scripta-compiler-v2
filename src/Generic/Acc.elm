@@ -260,7 +260,6 @@ transformBlock acc block =
                     block
 
                 Just name ->
-                    --{ block | properties = Dict.insert "label" name block.properties }
                     -- Insert the numerical counter, e.g,, equation number, in the arg list of the block
                     if List.member name [ "section" ] then
                         let
@@ -282,7 +281,11 @@ transformBlock acc block =
                         -- Default insertion of "label" property (used for block numbering)
                         (if List.member name Generic.Settings.numberedBlockNames then
                             { block
-                                | properties = Dict.insert "label" (vectorPrefix acc.headingIndex ++ String.fromInt acc.blockCounter) block.properties
+                                | properties =
+                                    Dict.insert "label"
+                                        (vectorPrefix acc.headingIndex ++ String.fromInt acc.blockCounter)
+                                        block.properties
+                                        |> Debug.log "@@IL INSERT LABEL"
                             }
 
                          else
@@ -367,26 +370,40 @@ e.g, "2" or "2.3"
 -}
 updateReference : ReferenceDatum -> Accumulator -> Accumulator
 updateReference referenceDatum acc =
+    -- Update the accumulator.reference dictionary with new reference data:
+    -- Namely, insert a new key-value pair where the key is the tag of the
+    -- reference, e.g., "foo" in \\label{foo} or [label foo], and where the
+    -- value is a record with an id and a "numerical" reference, e.g, "2" or "2.3"
+    --  TODO: review!
+    let
+        _ =
+            Debug.log "@@R2 acc.ref" acc.reference
+    in
     if referenceDatum.tag /= "" then
         { acc
             | reference =
                 Dict.insert referenceDatum.tag
                     { id = referenceDatum.id, numRef = referenceDatum.numRef }
                     acc.reference
+                    |> Debug.log "@@0 Reference"
         }
 
     else
-        acc
+        acc |> Debug.log "@@no-tag Reference"
 
 
 updateReferenceWithBlock : ExpressionBlock -> Accumulator -> Accumulator
 updateReferenceWithBlock block acc =
+    --let
+    --    _ =
+    --        Debug.log "@@ updateReferenceWithBlock" block.heading
+    --in
     case getReferenceDatum acc block of
         Just referenceDatum ->
-            updateReference referenceDatum acc
+            updateReference referenceDatum acc |> Debug.log "@@1"
 
         Nothing ->
-            acc
+            acc |> Debug.log "@@2"
 
 
 getNameContentId : ExpressionBlock -> Maybe { name : String, content : Either String (List Expression), id : String }
@@ -439,22 +456,36 @@ getReferenceDatum : Accumulator -> ExpressionBlock -> Maybe ReferenceDatum
 getReferenceDatum acc block =
     -- TODO: fix!
     let
+        _ =
+            Debug.log "@@R getReferenceDatum" ( block.properties, block.meta.id )
+
         id : String
         id =
             block.meta.id
 
         tag =
-            Dict.get "tag" block.properties
+            case ( Dict.get "tag" block.properties, Dict.get "label" block.properties ) of
+                ( Just tag_, _ ) ->
+                    tag_
+
+                ( _, Just label ) ->
+                    label
+
+                _ ->
+                    id
+
+        numRef_ =
+            acc.headingIndex |> Vector.toString
 
         numRef =
-            acc.headingIndex |> Vector.toString
-    in
-    case tag of
-        Just tag_ ->
-            Just { id = id, tag = tag_, numRef = numRef }
+            if numRef_ == "" then
+                -- Dict.get "label" (block.properties |> Debug.log "@@BLOCK PROPS") |> Maybe.withDefault "no-numRef"
+                acc.blockCounter |> String.fromInt
 
-        _ ->
-            Nothing
+            else
+                numRef_
+    in
+    Just { id = id, tag = tag, numRef = numRef }
 
 
 updateAccumulator : ExpressionBlock -> Accumulator -> Accumulator
@@ -611,6 +642,7 @@ updateWithOrdinarySectionBlock accumulator name content level id =
         , counter = Dict.insert "equation" 0 accumulator.counter --TODO: this is strange!!
     }
         |> updateReference referenceDatum
+        |> Debug.log "@@S"
 
 
 updateWithOrdinaryDocumentBlock : Accumulator -> Maybe String -> Either String (List Expression) -> String -> String -> Accumulator
@@ -634,7 +666,7 @@ updateWithOrdinaryDocumentBlock accumulator name content level id =
             makeReferenceDatum id sectionTag (Vector.toString documentIndex)
     in
     -- TODO: take care of numberedItemIndex = 0 here and elsewhere
-    { accumulator | documentIndex = documentIndex } |> updateReference referenceDatum
+    { accumulator | documentIndex = documentIndex } |> updateReference referenceDatum |> Debug.log "@@3"
 
 
 updateBibItemBlock accumulator args id =

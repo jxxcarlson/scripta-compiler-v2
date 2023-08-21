@@ -71,7 +71,7 @@ getHeadingData line_ =
                                     Err <| HEMissingName
 
                                 name :: args2 ->
-                                    Ok <| { heading = Ordinary name, args = args2, properties = properties }
+                                    Ok <| { heading = Ordinary name, args = args2, properties = properties |> Debug.log "@@P properties" }
 
                         "-" ->
                             let

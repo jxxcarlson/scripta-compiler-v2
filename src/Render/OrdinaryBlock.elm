@@ -11,24 +11,18 @@ import Generic.ASTTools as ASTTools
 import Generic.Acc exposing (Accumulator)
 import Generic.BlockUtilities
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
-import Html.Attributes
 import List.Extra
 import Maybe.Extra
 import Render.Color as Color
 import Render.Expression
 import Render.Footnote
-import Render.Graphics
 import Render.Helper
-import Render.IFrame
 import Render.List
-import Render.Math
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Table
-import Render.Tabular
 import Render.Utility exposing (elementAttribute)
-import Render.VerbatimBlock as VerbatimBlock
 import String.Extra
 import Tools.Utility as Utility
 
@@ -508,6 +502,7 @@ env count acc settings attr block =
             Element.none
 
         Right exprs ->
+            -- TODO: set id properly
             Element.column ([ Element.spacing 8, Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
                 [ Element.el
                     [ Font.bold
@@ -516,14 +511,11 @@ env count acc settings attr block =
                     (Element.text (blockHeading block))
                 , Element.paragraph
                     [ Font.italic
+                    , Render.Utility.elementAttribute "id" block.meta.id
                     , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
                     ]
                     (renderWithDefault2 ("??" ++ (Generic.Language.getNameFromHeading block.heading |> Maybe.withDefault "(name)")) count acc settings attr exprs)
                 ]
-
-
-
--- renderWithDefault2 : String -> Int -> Accumulator -> RenderSettings -> List Expression -> List (Element MarkupMsg)
 
 
 renderWithDefault2 _ count acc settings attr exprs =

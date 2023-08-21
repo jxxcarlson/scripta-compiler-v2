@@ -12,6 +12,7 @@ numberedBlockNames =
     , "corollary"
     , "note"
     , "remark"
+    , "exercise"
     , "question"
     , "problem"
     , "example"
