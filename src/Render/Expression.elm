@@ -30,9 +30,10 @@ render generation acc settings attrs expr =
             Element.el ([ Events.onClick (SendMeta meta), htmlId meta.id ] ++ attrs) (Element.text string)
 
         Fun name exprList meta ->
-            Element.el [ htmlId meta.id ] (renderMarked name generation acc settings attrs exprList)
+            Element.el [ Events.onClick (SendMeta meta), htmlId meta.id ] (renderMarked name generation acc settings attrs exprList)
 
         VFun name str meta ->
+            -- TODO: Events.onClick (SendMeta meta)?
             renderVerbatim name generation acc settings meta str
 
 
