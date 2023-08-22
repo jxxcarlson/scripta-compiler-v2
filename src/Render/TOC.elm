@@ -34,8 +34,8 @@ viewWithTitle counter acc attr ast =
     prepareTOCWithTitle maximumLevel counter acc Render.Settings.defaultSettings attr ast
 
 
-view : Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element Render.Msg.MarkupMsg)
-view counter acc attr ast =
+view : String -> Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element Render.Msg.MarkupMsg)
+view selectedId counter acc attr ast =
     let
         maximumLevel =
             case Dict.get "contentsdepth" acc.keyValueDict of
@@ -44,12 +44,15 @@ view counter acc attr ast =
 
                 Nothing ->
                     3
+
+        defaultSettings =
+            Render.Settings.defaultSettings
     in
-    prepareTOC maximumLevel counter acc Render.Settings.defaultSettings attr ast
+    prepareTOC maximumLevel counter acc { defaultSettings | selectedId = selectedId } attr ast
 
 
-viewTocItem : Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
-viewTocItem count acc settings attr ({ args, body, properties } as block) =
+viewTocItem : String -> Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+viewTocItem selectedId count acc settings attr ({ args, body, properties } as block) =
     case body of
         Left _ ->
             Element.none
@@ -70,9 +73,16 @@ viewTocItem count acc settings attr ({ args, body, properties } as block) =
                 label : Element MarkupMsg
                 label =
                     Element.paragraph [ tocIndent args ] (sectionNumber :: List.map (Render.Expression.render count acc settings attr) exprs)
+
+                color =
+                    if id == selectedId then
+                        Element.rgb 0.8 0 0.0
+
+                    else
+                        Element.rgb 0 0 0.8
             in
             Element.el [ Events.onClick (SelectId id) ]
-                (Element.link [ Font.color (Element.rgb 0 0 0.8) ] { url = Render.Utility.internalLink id, label = label })
+                (Element.link [ Font.color color ] { url = Render.Utility.internalLink id, label = label })
 
 
 blockLabel : Dict String String -> String
@@ -118,7 +128,7 @@ prepareTOCWithTitle maximumLevel count acc settings attr ast =
 
         toc =
             topItem
-                :: (rawToc |> List.map (viewTocItem count acc settings attr))
+                :: (rawToc |> List.map (viewTocItem settings.selectedId count acc settings attr))
     in
     toc
 
@@ -152,7 +162,7 @@ prepareTOC maximumLevel count acc settings attr ast =
                 |> List.map (Render.Expression.render count acc settings attr)
 
         toc =
-            rawToc |> List.map (viewTocItem count acc settings attr)
+            rawToc |> List.map (viewTocItem settings.selectedId count acc settings attr)
     in
     toc
 
