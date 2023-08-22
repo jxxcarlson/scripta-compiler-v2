@@ -209,7 +209,7 @@ render width selectedId outerCount forest_ =
 
         toc : List (Element MarkupMsg)
         toc =
-            Render.TOC.view outerCount accumulator [] forest
+            Render.TOC.view selectedId outerCount accumulator [] forest
 
         banner : Maybe (Element MarkupMsg)
         banner =
