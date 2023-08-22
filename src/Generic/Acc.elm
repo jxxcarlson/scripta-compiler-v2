@@ -367,8 +367,8 @@ key is defined as in the examples \\label{foo} or [label foo],
 and where value is a record with an id and a "numerical" reference,
 e.g, "2" or "2.3"
 -}
-updateReference : ReferenceDatum -> Accumulator -> Accumulator
-updateReference referenceDatum acc =
+updateReference : Vector -> ReferenceDatum -> Accumulator -> Accumulator
+updateReference headingIndex referenceDatum acc =
     -- Update the accumulator.reference dictionary with new reference data:
     -- Namely, insert a new key-value pair where the key is the tag of the
     -- reference, e.g., "foo" in \\label{foo} or [label foo], and where the
@@ -386,11 +386,17 @@ updateReference referenceDatum acc =
         acc
 
 
+
+-- Simplify this function:
+--   - take the tag from block.properties with key "tag"
+--   - set the numRef to acc.headingIndex . acc.blockCounter
+
+
 updateReferenceWithBlock : ExpressionBlock -> Accumulator -> Accumulator
 updateReferenceWithBlock block acc =
     case getReferenceDatum acc block of
         Just referenceDatum ->
-            updateReference referenceDatum acc
+            updateReference acc.headingIndex referenceDatum acc
 
         Nothing ->
             acc
@@ -451,28 +457,11 @@ getReferenceDatum acc block =
             block.meta.id
 
         tag =
-            -- TODO: REVIEW! (tag/label????)
-            case ( Dict.get "tag" block.properties, Dict.get "label" block.properties ) of
-                ( Just tag_, _ ) ->
-                    tag_
-
-                ( _, Just label ) ->
-                    label
-
-                _ ->
-                    id
-
-        numRef_ =
-            acc.headingIndex |> Vector.toString
+            -- TODO: REVIEW!
+            Dict.get "tag" block.properties |> Maybe.withDefault "no-tag"
 
         numRef =
-            if numRef_ == "" then
-                -- Dict.get "label" (block.properties |> Debug.log "@@BLOCK PROPS") |> Maybe.withDefault "no-numRef"
-                -- TODO: REVIEW!
-                acc.blockCounter |> String.fromInt
-
-            else
-                numRef_
+            (acc.headingIndex |> Vector.toString) ++ "." ++ (acc.blockCounter |> String.fromInt)
     in
     Just { id = id, tag = tag, numRef = numRef }
 
@@ -613,7 +602,7 @@ updateWithOrdinarySectionBlock accumulator name content level id =
 
         sectionTag =
             -- TODO: the below is a bad solution
-            titleWords |> List.map (String.toLower >> Utility.compressWhitespace >> Utility.removeNonAlphaNum >> String.replace " " "-") |> String.join ""
+            titleWords |> List.map (String.toLower >> String.trim >> String.replace " " "-") |> String.join ""
 
         headingIndex =
             Vector.increment (String.toInt level |> Maybe.withDefault 1 |> (\x -> x - 1 + accumulator.deltaLevel)) accumulator.headingIndex
@@ -630,7 +619,7 @@ updateWithOrdinarySectionBlock accumulator name content level id =
         , blockCounter = blockCounter
         , counter = Dict.insert "equation" 0 accumulator.counter --TODO: this is strange!!
     }
-        |> updateReference referenceDatum
+        |> updateReference accumulator.headingIndex referenceDatum
 
 
 updateWithOrdinaryDocumentBlock : Accumulator -> Maybe String -> Either String (List Expression) -> String -> String -> Accumulator
@@ -654,7 +643,7 @@ updateWithOrdinaryDocumentBlock accumulator name content level id =
             makeReferenceDatum id sectionTag (Vector.toString documentIndex)
     in
     -- TODO: take care of numberedItemIndex = 0 here and elsewhere
-    { accumulator | documentIndex = documentIndex } |> updateReference referenceDatum
+    { accumulator | documentIndex = documentIndex } |> updateReference accumulator.headingIndex referenceDatum
 
 
 updateBibItemBlock accumulator args id =
@@ -716,7 +705,7 @@ updateWithOrdinaryBlock block accumulator =
                 , itemVector = itemVector
                 , numberedItemDict = numberedItemDict
             }
-                |> updateReference referenceDatum
+                |> updateReference accumulator.headingIndex referenceDatum
 
         Just "item" ->
             let
@@ -750,7 +739,7 @@ updateWithOrdinaryBlock block accumulator =
                     , itemVector = itemVector
                     , numberedItemDict = numberedItemDict
                 }
-                    |> updateReference referenceDatum
+                    |> updateReference accumulator.headingIndex referenceDatum
 
             else
                 { accumulator | inListState = nextInListState block.heading accumulator.inListState }
@@ -816,7 +805,7 @@ updateWithVerbatimBlock block accumulator =
                     makeReferenceDatum block.meta.id tag (verbatimBlockReference isSimple accumulator.headingIndex name newCounter)
             in
             { accumulator | inListState = nextInListState block.heading accumulator.inListState, counter = newCounter }
-                |> updateReference referenceDatum
+                |> updateReference accumulator.headingIndex referenceDatum
 
 
 verbatimBlockReference : Bool -> Vector -> String -> Dict String Int -> String
