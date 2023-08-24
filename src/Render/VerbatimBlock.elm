@@ -43,7 +43,11 @@ render count acc settings attrs block =
                             Render.Helper.noSuchVerbatimBlock functionName str
 
                         Just f ->
-                            Element.el [ Render.Helper.selectedColor block.meta.id settings ] (f count acc settings attrs block)
+                            Element.el
+                                [ Render.Helper.selectedColor block.meta.id settings
+                                , Render.Helper.htmlId block.meta.id
+                                ]
+                                (f count acc settings attrs block)
 
                 _ ->
                     Element.none
