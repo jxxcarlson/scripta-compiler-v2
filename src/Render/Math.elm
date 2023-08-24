@@ -31,10 +31,6 @@ type DisplayMode
     | DisplayMathMode
 
 
-leftPadding =
-    Element.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }
-
-
 displayedMath : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 displayedMath count acc settings attrs block =
     let
@@ -188,8 +184,8 @@ mathText : Int -> String -> String -> DisplayMode -> String -> Element msg
 mathText generation width id displayMode content =
     -- TODO Track this down at the source.
     Html.Keyed.node "span"
-        [ HA.style "padding-top" "14px"
-        , HA.style "padding-bottom" "14px"
+        [ HA.style "padding-top" "0px"
+        , HA.style "padding-bottom" "0px"
         , HA.id id
         , HA.style "width" width
         ]
