@@ -152,16 +152,27 @@ box count acc settings attr block =
 centered : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 centered count acc settings attr block =
     Element.el
-        [ Element.width (Element.px settings.width) ]
+        --(syncBlock block settings (Element.width (Element.px settings.width) :: attr))
+        ((Element.width (Element.px settings.width) :: attr) |> sync block settings)
         (Element.paragraph [ Element.centerX, Element.width (Element.px (settings.width - 100)) ]
             (Render.Helper.renderWithDefault "indent" count acc settings attr (Generic.Language.getExpressionContent block))
         )
 
 
+syncBlock : ExpressionBlock -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List (Element.Attribute MarkupMsg)
+syncBlock block settings attrs =
+    (Render.Helper.htmlId block.meta.id :: attrs) |> Render.Sync.highlightIfIdSelected block.meta.id settings
+
+
+sync : ExpressionBlock -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List (Element.Attribute MarkupMsg)
+sync block settings attrs =
+    (Render.Helper.htmlId block.meta.id :: attrs) |> Render.Sync.highlightIfIdSelected block.meta.id settings
+
+
 indented : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 indented count acc settings attr block =
     Element.el
-        [ Element.width (Element.px settings.width) ]
+        ([ Element.width (Element.px settings.width) ] |> sync block settings)
         (Element.paragraph [ Element.paddingEach { left = settings.leftIndent, right = 0, top = 0, bottom = 0 } ]
             (Render.Helper.renderWithDefault "indent" count acc settings attr (Generic.Language.getExpressionContent block))
         )
