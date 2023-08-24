@@ -12,6 +12,7 @@ import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings
 
 
+highlightIfIdIsSelected : Int -> Int -> { a | selectedId : String } -> List (Element.Attribute MarkupMsg)
 highlightIfIdIsSelected firstLineNumber numberOfLines settings =
     if String.fromInt firstLineNumber == settings.selectedId then
         [ rightToLeftSyncHelper firstLineNumber (firstLineNumber + numberOfLines)

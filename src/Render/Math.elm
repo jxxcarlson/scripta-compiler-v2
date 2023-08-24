@@ -87,6 +87,7 @@ equation count acc settings attrs block =
         ]
 
 
+highlightMath : RenderSettings -> ExpressionBlock -> List (Element.Attr () msg)
 highlightMath settings block =
     Render.Sync.highlightIfIdSelected block.meta.id
         settings
