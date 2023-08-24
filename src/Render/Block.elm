@@ -51,7 +51,7 @@ renderParagraphBody : Int -> Accumulator -> RenderSettings -> List (Element.Attr
 renderParagraphBody count acc settings attrs block =
     case block.body of
         Right exprs ->
-            Element.paragraph attrs
+            Element.paragraph (Render.Helper.htmlId block.meta.id :: attrs)
                 [ List.map (Render.Expression.render count acc settings attrs) exprs
                     |> clickableParagraph block.meta.lineNumber block.meta.numberOfLines (Render.Helper.selectedColor block.meta.id settings)
                     |> indentParagraph block.indent
