@@ -504,17 +504,33 @@ env count acc settings attr block =
         Right exprs ->
             Element.column ([ Element.spacing 8, Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
                 [ Element.el
-                    [ Font.bold
-                    , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-                    ]
+                    ([ Font.bold
+                     , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
+                     ]
+                        |> Render.Sync.highlightIfIdSelected block.meta.id settings
+                    )
                     (Element.text (blockHeading block))
                 , Element.paragraph
-                    [ Font.italic
-                    , Render.Utility.elementAttribute "id" block.meta.id
-                    , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-                    ]
+                    ([ Font.italic
+
+                     --, Render.Utility.elementAttribute "id" block.meta.id
+                     , Render.Helper.htmlId block.meta.id
+                     , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
+                     ]
+                        |> Render.Sync.highlightIfIdSelected block.meta.id
+                            settings
+                    )
                     (renderWithDefault2 ("??" ++ (Generic.Language.getNameFromHeading block.heading |> Maybe.withDefault "(name)")) count acc settings attr exprs)
                 ]
+
+
+highlightBlock : RenderSettings -> ExpressionBlock -> List (Element.Attr () msg)
+highlightBlock settings block =
+    Render.Sync.highlightIfIdSelected block.meta.id
+        settings
+        (Render.Sync.highlighter block.args
+            []
+        )
 
 
 renderWithDefault2 _ count acc settings attr exprs =
