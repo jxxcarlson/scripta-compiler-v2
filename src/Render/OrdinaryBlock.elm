@@ -21,15 +21,11 @@ import Render.List
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
+import Render.Sync2
 import Render.Table
 import Render.Utility exposing (elementAttribute)
 import String.Extra
 import Tools.Utility as Utility
-
-
-sync : ExpressionBlock -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List (Element.Attribute MarkupMsg)
-sync block settings attrs =
-    (Render.Helper.htmlId block.meta.id :: attrs) |> Render.Sync.highlightIfIdSelected block.meta.id settings
 
 
 render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
@@ -157,7 +153,7 @@ box count acc settings attr block =
 centered : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 centered count acc settings attr block =
     Element.el
-        ((Element.width (Element.px settings.width) :: attr) |> sync block settings)
+        ((Element.width (Element.px settings.width) :: attr) |> Render.Sync2.sync block settings)
         (Element.paragraph [ Element.centerX, Element.width (Element.px (settings.width - 100)) ]
             (Render.Helper.renderWithDefault "indent" count acc settings attr (Generic.Language.getExpressionContent block))
         )
@@ -166,7 +162,7 @@ centered count acc settings attr block =
 indented : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 indented count acc settings attr block =
     Element.el
-        ([ Element.width (Element.px settings.width) ] |> sync block settings)
+        ([ Element.width (Element.px settings.width) ] |> Render.Sync2.sync block settings)
         (Element.paragraph [ Element.paddingEach { left = settings.leftIndent, right = 0, top = 0, bottom = 0 } ]
             (Render.Helper.renderWithDefault "indent" count acc settings attr (Generic.Language.getExpressionContent block))
         )
@@ -185,7 +181,7 @@ comment count acc settings attrs block =
             else
                 author_ ++ ":"
     in
-    Element.column ([ Element.spacing 6 ] |> sync block settings)
+    Element.column ([ Element.spacing 6 ] |> Render.Sync2.sync block settings)
         [ Element.el [ Font.bold, Font.color Color.blue ] (Element.text author)
         , Element.paragraph ([ Font.italic, Font.color Color.blue, Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines, Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
             (Render.Helper.renderWithDefault "| comment" count acc settings attrs (Generic.Language.getExpressionContent block))
@@ -320,7 +316,7 @@ question count acc settings attrs block =
         qId =
             Dict.get block.meta.id acc.qAndADict |> Maybe.withDefault block.meta.id
     in
-    Element.column ([ Element.spacing 12 ] |> sync block settings)
+    Element.column ([ Element.spacing 12 ] |> Render.Sync2.sync block settings)
         -- TODO: clean up?
         [ Element.el [ Font.bold, Font.color Color.blue, Events.onClick (HighlightId qId) ] (Element.text (title_ ++ " " ++ label))
         , Element.paragraph ([ Font.italic, Events.onClick (HighlightId qId), Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
@@ -341,7 +337,7 @@ answer count acc settings attrs block =
             else
                 Events.onClick (ProposeSolution (Render.Msg.Solved block.meta.id))
     in
-    Element.column ([ Element.spacing 12, Element.paddingEach { top = 0, bottom = 24, left = 0, right = 0 } ] |> sync block settings)
+    Element.column ([ Element.spacing 12, Element.paddingEach { top = 0, bottom = 24, left = 0, right = 0 } ] |> Render.Sync2.sync block settings)
         [ Element.el [ Font.bold, Font.color Color.blue, clicker ] (Element.text title_)
         , if settings.selectedId == block.meta.id then
             -- TODO: clean up?
@@ -357,7 +353,7 @@ answer count acc settings attrs block =
 
 quotation : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 quotation count acc settings attrs block =
-    Element.column ([ Element.spacing 12 ] |> sync block settings)
+    Element.column ([ Element.spacing 12 ] |> Render.Sync2.sync block settings)
         [ Element.paragraph
             (Render.Helper.blockAttributes settings block [ Render.Utility.leftPadding settings.leftIndentation, Font.italic ])
             (Render.Helper.renderWithDefault "!!! (quotation)" count acc settings attrs (Generic.Language.getExpressionContent block))
@@ -367,7 +363,7 @@ quotation count acc settings attrs block =
 subheading : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 subheading count acc settings attr block =
     Element.link
-        (sectionBlockAttributes block settings ([ topPadding 10 ] ++ attr) |> sync block settings)
+        (sectionBlockAttributes block settings ([ topPadding 10 ] ++ attr) |> Render.Sync2.sync block settings)
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
         , label = Element.paragraph [] (Render.Helper.renderWithDefault "| subheading" count acc settings attr (Generic.Language.getExpressionContent block))
         }
@@ -396,7 +392,7 @@ section count acc settings attr block =
     Element.link
         (sectionBlockAttributes block settings [ topPadding 20, Font.size fontSize, Font.semiBold ])
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
-        , label = Element.paragraph ([] |> sync block settings) (sectionNumber :: renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
+        , label = Element.paragraph ([] |> Render.Sync2.sync block settings) (sectionNumber :: renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
         }
 
 
