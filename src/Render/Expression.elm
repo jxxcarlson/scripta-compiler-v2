@@ -21,6 +21,7 @@ import Render.Math
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Utility as Utility
+import String.Extra
 
 
 render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> Expression -> Element MarkupMsg
@@ -632,7 +633,7 @@ ref acc exprList =
             Dict.get key acc.reference
 
         val =
-            ref_ |> Maybe.map .numRef |> Maybe.withDefault "no-val"
+            ref_ |> Maybe.map .numRef |> Maybe.withDefault (key |> String.replace "-" " " |> String.Extra.toTitleCase)
 
         id =
             ref_ |> Maybe.map .id |> Maybe.withDefault "no-id"
