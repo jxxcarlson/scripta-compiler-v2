@@ -53,7 +53,9 @@ getHeadingData line_ =
         Nothing ->
             case args1 of
                 [] ->
-                    Err <| HEMissingPrefix
+                    --Err <| HEMissingPrefix
+                    { heading = Paragraph, args = [], properties = Dict.empty }
+                        |> Ok
 
                 prefix :: args ->
                     case prefix of
