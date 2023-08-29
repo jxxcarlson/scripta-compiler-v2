@@ -32,19 +32,32 @@ import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
 
 
-{-| -}
 view : CompilerOutput -> List (Element MarkupMsg)
 view compiled =
+    [ Element.column [] (header compiled)
+    , body compiled
+    ]
+
+
+header : CompilerOutput -> List (Element MarkupMsg)
+header compiled =
     case compiled.banner of
         Nothing ->
-            Element.el [ Font.size 32, bottomPadding 18 ] compiled.title :: compiled.body
+            Element.el [ Font.size 32, bottomPadding 96 ] compiled.title
+                :: Element.column [ Element.spacing 8, bottomPadding 18 ] compiled.toc
+                :: []
 
         Just banner ->
             Element.el [] banner
                 :: (Element.el [ Font.size 32, bottomPadding 18 ] compiled.title
                         :: Element.column [ Element.spacing 8, bottomPadding 18 ] compiled.toc
-                        :: compiled.body
+                        :: []
                    )
+
+
+body : CompilerOutput -> Element MarkupMsg
+body compiled =
+    Element.column [ Element.spacing 18, Element.moveUp 96 ] compiled.body
 
 
 {-| -}
