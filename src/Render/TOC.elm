@@ -151,15 +151,10 @@ prepareTOC maximumLevel count acc settings attr ast =
         rawToc =
             Generic.ASTTools.tableOfContents maximumLevel ast
                 |> List.filter (tocLevel maximumLevel)
+                -- The "xy" line below is needed because we also have the possibility of
+                -- the TOC in the sidebar. We do not want click on a TOC item in the sidebar
+                -- targetting the TOC item in the main text.
                 |> List.map (Generic.Language.updateMetaInBlock (\m -> { m | id = "xy" ++ m.id }))
-
-        headings =
-            getHeadings ast
-
-        title : List (Element MarkupMsg)
-        title =
-            headings.title
-                |> List.map (Render.Expression.render count acc settings attr)
 
         toc =
             rawToc |> List.map (viewTocItem settings.selectedId count acc settings attr)
