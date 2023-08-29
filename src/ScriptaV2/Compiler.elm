@@ -43,14 +43,14 @@ header : CompilerOutput -> List (Element MarkupMsg)
 header compiled =
     case compiled.banner of
         Nothing ->
-            Element.el [ Font.size 32, bottomPadding 96 ] compiled.title
-                :: Element.column [ Element.spacing 8, bottomPadding 18 ] compiled.toc
+            Element.el [ Font.size 32, bottomPadding 18 ] compiled.title
+                :: Element.column [ Element.spacing 8, bottomPadding 72 ] compiled.toc
                 :: []
 
         Just banner ->
             Element.el [] banner
                 :: (Element.el [ Font.size 32, bottomPadding 18 ] compiled.title
-                        :: Element.column [ Element.spacing 8, bottomPadding 18 ] compiled.toc
+                        :: Element.column [ Element.spacing 8, bottomPadding 36 ] compiled.toc
                         :: []
                    )
 
