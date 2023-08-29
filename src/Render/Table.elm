@@ -3,16 +3,12 @@ module Render.Table exposing (render)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Element exposing (Element)
-import Element.Font as Font
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
-import List.Extra
 import Render.Expression
-import Render.Helper
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
-import Render.Sync
-import Render.Utility
+import Render.Sync2
 
 
 render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> Generic.Language.ExpressionBlock -> Element MarkupMsg
@@ -41,7 +37,7 @@ render count acc settings columnFormats block =
                 formats =
                     List.map2 (\x y -> ( x, y )) columnWidths_ formatList_
             in
-            Element.column [ Element.paddingEach { left = 24, right = 0, top = 24, bottom = 24 }, Element.spacing 0 ]
+            Element.column ([ Element.paddingEach { left = 24, right = 0, top = 24, bottom = 24 }, Element.spacing 0 ] |> Render.Sync2.sync block settings)
                 (List.map (renderRow count acc settings formats) rows)
 
         _ ->
