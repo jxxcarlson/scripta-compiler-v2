@@ -260,6 +260,9 @@ document _ _ settings attrs block =
                 Just "-" ->
                     "- "
 
+                Just "" ->
+                    ""
+
                 Just s ->
                     s ++ ". "
 

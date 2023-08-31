@@ -179,6 +179,16 @@ mapper ast_ ( acc_, tree_ ) =
     ( acc_, tree_ :: ast_ )
 
 
+{-|
+
+    This function first updates the Accumulator with information from the ExpressionBlock
+    (for example, the headingIndex, used to number sections), and then transforms the
+    ExpressionBlock with information from the Accumulator (for example, the label property).
+
+    The transformAccumulate block takes an Accumulator and an ExpressionBlock as
+    arguments and returns a pair (Accumulator, ExpressionBlock) of the updated data.
+
+-}
 transformAccumulateBlock : Accumulator -> ExpressionBlock -> ( Accumulator, ExpressionBlock )
 transformAccumulateBlock =
     \acc_ block_ ->
@@ -466,9 +476,19 @@ getReferenceDatum acc block =
     Just { id = id, tag = tag, numRef = numRef }
 
 
+{-|
+
+    Update the accumulator with data from a block, e.g., update the
+    headingIndex, a vector of integers that is used to number the sections
+
+-}
 updateAccumulator : ExpressionBlock -> Accumulator -> Accumulator
 updateAccumulator ({ heading, indent, args, body, meta, properties } as block) accumulator =
     -- Update the accumulator for expression blocks with selected name
+    let
+        _ =
+            Debug.log "@@UPDATE_ACC" heading
+    in
     case heading of
         -- provide numbering for sections
         -- reference : Dict String { id : String, numRef : String }
@@ -622,6 +642,9 @@ updateWithOrdinarySectionBlock accumulator name content level id =
         |> updateReference accumulator.headingIndex referenceDatum
 
 
+{-| Update the accumulator with data from a document block, e.g., update the
+documentIndex, a vector of integers that is used to number the documents in a collection
+-}
 updateWithOrdinaryDocumentBlock : Accumulator -> Maybe String -> Either String (List Expression) -> String -> String -> Accumulator
 updateWithOrdinaryDocumentBlock accumulator name content level id =
     let
@@ -637,7 +660,11 @@ updateWithOrdinaryDocumentBlock accumulator name content level id =
             title |> String.toLower |> String.replace " " "-"
 
         documentIndex =
-            Vector.increment (String.toInt level |> Maybe.withDefault 0) accumulator.documentIndex
+            if List.member (String.toLower title) [ "preface", "introduction", "appendix", "references", "index" ] then
+                accumulator.documentIndex
+
+            else
+                Vector.increment (String.toInt level |> Maybe.withDefault 0) accumulator.documentIndex
 
         referenceDatum =
             makeReferenceDatum id sectionTag (Vector.toString documentIndex)

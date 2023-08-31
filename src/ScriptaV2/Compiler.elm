@@ -32,9 +32,9 @@ import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
 
 
-view : CompilerOutput -> List (Element MarkupMsg)
-view compiled =
-    [ Element.column [] (header compiled)
+view : Int -> CompilerOutput -> List (Element MarkupMsg)
+view width_ compiled =
+    [ Element.column [ Element.width (Element.px (width_ - 60)) ] (header compiled)
     , body compiled
     ]
 
