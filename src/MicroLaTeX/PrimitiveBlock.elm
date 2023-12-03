@@ -172,7 +172,7 @@ nextStep state_ =
                     if List.member mTopLabel (List.map Just [ CBeginBlock "code", CBeginBlock "equation", CBeginBlock "aligned" ]) then
                         Loop state
 
-                    else if List.member label [ "pmatrix" ] then
+                    else if List.member label innerMathBlockNames then
                         Loop state
 
                     else
@@ -180,7 +180,7 @@ nextStep state_ =
 
                 CEndBlock label ->
                     -- TODO: changed, review
-                    if List.member label [ "pmatrix" ] then
+                    if List.member label innerMathBlockNames then
                         Loop state
 
                     else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
@@ -1348,6 +1348,20 @@ statusStarted =
 
 statusFilled =
     Dict.singleton "status" "filled"
+
+
+innerMathBlockNames =
+    [ "matrix"
+    , "bmatrix"
+    , "pmatrix"
+    , "vmatrix"
+    , "Bmatrix"
+    , "cases"
+    , "smallmatrix"
+    , "split"
+    , "align"
+    , "alignat"
+    ]
 
 
 verbatimBlockNames =
