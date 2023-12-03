@@ -138,6 +138,18 @@ nextStep state_ =
     let
         state =
             { state_ | lineNumber = state_.lineNumber + 1, count = state_.count + 1 }
+
+        mTopLabel =
+            List.head state.labelStack |> Maybe.map .classification
+
+        _ =
+            Debug.log "nextStep"
+                { count_ = state.count
+                , lineNumber_ = state.lineNumber
+                , line_ = List.Extra.getAt state.lineNumber state.lines
+                , labelStack_ = state.labelStack
+                , holdingStack_ = state.holdingStack
+                }
     in
     case List.Extra.getAt state.lineNumber state.lines of
         Nothing ->
@@ -157,7 +169,10 @@ nextStep state_ =
             in
             case ClassifyBlock.classify (currentLine.content ++ "\n") of
                 CBeginBlock label ->
-                    if List.member (List.head state.labelStack |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
+                    if List.member mTopLabel (List.map Just [ CBeginBlock "code", CBeginBlock "equation", CBeginBlock "aligned" ]) then
+                        Loop state
+
+                    else if List.member label [ "pmatrix" ] then
                         Loop state
 
                     else
@@ -165,8 +180,17 @@ nextStep state_ =
 
                 CEndBlock label ->
                     -- TODO: changed, review
-                    if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
+                    if List.member label [ "pmatrix" ] then
+                        Loop state
+
+                    else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
                         state |> endBlockOnMatch Nothing (CBeginBlock "code") currentLine |> Loop
+
+                    else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "equation" ] then
+                        state |> endBlockOnMatch Nothing (CBeginBlock "equation") currentLine |> Loop
+
+                    else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "aligned" ] then
+                        state |> endBlockOnMatch Nothing (CBeginBlock "aligned") currentLine |> Loop
 
                     else
                         endBlock (CEndBlock label) currentLine state
@@ -662,8 +686,7 @@ getContent classifier line state =
 
         CEndBlock _ ->
             -- TODO: is this robust?
-            slice (state.firstBlockLine + 1) (line.lineNumber - 1) state.lines
-                |> List.reverse
+            slice (state.firstBlockLine + 1) (line.lineNumber - 1) state.lines |> List.reverse
 
         _ ->
             slice (state.firstBlockLine + 1) (line.lineNumber - 1) state.lines |> List.reverse
