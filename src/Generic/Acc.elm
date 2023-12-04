@@ -233,7 +233,23 @@ transformBlock acc block =
             { block | properties = Dict.insert "figure" (getCounterAsString "figure" acc.counter) block.properties }
 
         ( Ordinary "document", _ ) ->
-            { block | properties = Dict.insert "label" (Vector.toString acc.documentIndex) block.properties }
+            let
+                title =
+                    case block.body of
+                        Left str ->
+                            str
+
+                        Right expr ->
+                            List.map Generic.ASTTools.getText expr |> Maybe.Extra.values |> String.join " "
+
+                label =
+                    if List.member (title |> String.toLower) itemsNotNumbered then
+                        ""
+
+                    else
+                        Vector.toString acc.documentIndex
+            in
+            { block | properties = Dict.insert "label" label block.properties }
 
         ( Verbatim "equation", args ) ->
             let
@@ -642,6 +658,10 @@ updateWithOrdinarySectionBlock accumulator name content level id =
         |> updateReference accumulator.headingIndex referenceDatum
 
 
+itemsNotNumbered =
+    [ "preface", "introduction", "appendix", "references", "index", "scratch" ]
+
+
 {-| Update the accumulator with data from a document block, e.g., update the
 documentIndex, a vector of integers that is used to number the documents in a collection
 -}
@@ -660,14 +680,19 @@ updateWithOrdinaryDocumentBlock accumulator name content level id =
             title |> String.toLower |> String.replace " " "-"
 
         documentIndex =
-            if List.member (String.toLower title) [ "preface", "introduction", "appendix", "references", "index" ] then
+            if List.member (String.toLower title) itemsNotNumbered then
                 accumulator.documentIndex
 
             else
                 Vector.increment (String.toInt level |> Maybe.withDefault 0) accumulator.documentIndex
 
+        referenceDatum : ReferenceDatum
         referenceDatum =
-            makeReferenceDatum id sectionTag (Vector.toString documentIndex)
+            if List.member (String.toLower title) itemsNotNumbered then
+                makeReferenceDatum id sectionTag (Vector.toString documentIndex)
+
+            else
+                makeReferenceDatum id sectionTag ""
     in
     -- TODO: take care of numberedItemIndex = 0 here and elsewhere
     { accumulator | documentIndex = documentIndex } |> updateReference accumulator.headingIndex referenceDatum
