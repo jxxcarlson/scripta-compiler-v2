@@ -1342,6 +1342,9 @@ showStatus status =
 blockFromLine : Int -> String -> Int -> Int -> Line -> PrimitiveBlock
 blockFromLine statePosition idPrefix count level ({ indent, lineNumber, position, prefix, content } as line) =
     { heading = getHeading line.content
+
+    -- @@NOTE: the line below is essential for correctly setting the indentation
+    -- of the blocks, hence to constructing the proper tree structure
     , indent = indent |> Debug.log "11"
     , args = []
     , properties = statusStarted |> Dict.insert "level" (String.fromInt level)
