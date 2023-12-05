@@ -62,21 +62,29 @@ getAttributesForBlock block =
 
 getAttributes : String -> List (Element.Attribute MarkupMsg)
 getAttributes name =
-    case Dict.get name attributeDict of
-        Nothing ->
-            []
+    if name == "box" then
+        [ Background.color (Element.rgb 0.9 0.9 1.0) ]
 
-        Just attrs ->
-            attrs
+    else if List.member name italicNames then
+        [ Font.italic ]
+
+    else
+        []
 
 
-attributeDict : Dict String (List (Element.Attribute MarkupMsg))
-attributeDict =
-    Dict.fromList
-        [ ( "box", [ Background.color (Element.rgb 0.9 0.9 1.0) ] )
-
-        --, ( "theorem", [ Font.italic ] )
-        ]
+italicNames =
+    [ "quotation"
+    , "theorem"
+    , "lemma"
+    , "corollary"
+    , "proposition"
+    , "definition"
+    , "example"
+    , "remark"
+    , "exercise"
+    , "question"
+    , "answer"
+    ]
 
 
 blockDict : Dict String (Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg)

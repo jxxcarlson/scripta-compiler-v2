@@ -201,14 +201,30 @@ nextStep state_ =
             in
             case ClassifyBlock.classify (currentLine.content ++ "\n") of
                 CBeginBlock label ->
+                    let
+                        _ =
+                            Debug.log "CBeginBlock LABEL 0" label
+                    in
                     if List.member mTopLabel (List.map Just [ CBeginBlock "code", CBeginBlock "equation", CBeginBlock "aligned" ]) then
+                        let
+                            _ =
+                                Debug.log "CBeginBlock LABEL 1" label
+                        in
                         Loop { state | label = "CBeginBlock 1" }
 
                     else if List.member label innerMathBlockNames then
+                        let
+                            _ =
+                                Debug.log "CBeginBlock LABEL 2" label
+                        in
                         Loop { state | label = "CBeginBlock 2" }
 
                     else
-                        Loop ({ state | label = "CBeginBlock 3" } |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) currentLine)
+                        let
+                            _ =
+                                Debug.log "CBeginBlock LABEL 3" label
+                        in
+                        Loop ({ state | label = "CBeginBlock 3" } |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) (currentLine |> Debug.log "CB 2, dispatch"))
 
                 CEndBlock label ->
                     -- TODO: changed, review
@@ -801,16 +817,25 @@ plainText state_ currentLine =
                 _ =
                     Debug.log "dispatchBeginBlock" currentLine
             in
-            Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText currentLine state) |> Debug.log "@@dispatchBeginBlock"
+            Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText (currentLine |> Debug.log "plainTEXT_DISPATCH") state) |> Debug.log "@@dispatchBeginBlock"
 
     else
-        case List.head state.labelStack |> Maybe.map .level of
+        case List.head state.labelStack of
             Nothing ->
                 Loop state
 
-            Just topLevel ->
-                if state.level > topLevel then
-                    Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText currentLine state) |> Debug.log "@@2dispatchBeginBlock"
+            Just topLabel ->
+                if
+                    state.level
+                        > topLabel.level
+                        && (not <|
+                                List.member (topLabel.classification |> Debug.log "CLASSIF")
+                                    [ CBeginBlock "equation"
+                                    , CBeginBlock "aligned"
+                                    ]
+                           )
+                then
+                    Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText (currentLine |> Debug.log "plainTEXT_DISPATCH") state) |> Debug.log "@@2dispatchBeginBlock"
 
                 else
                     Loop state
