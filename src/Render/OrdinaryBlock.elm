@@ -359,7 +359,8 @@ quotation count acc settings attrs block =
     Element.column ([ Element.spacing 12 ] |> Render.Sync2.sync block settings)
         [ Element.paragraph
             (Render.Helper.blockAttributes settings block [ Render.Utility.leftPadding settings.leftIndentation, Font.italic ])
-            (Render.Helper.renderWithDefault "!!! (quotation)" count acc settings attrs (Generic.Language.getExpressionContent block))
+            --(Render.Helper.renderWithDefault "!!! (quotation)" count acc settings attrs (Generic.Language.getExpressionContent block))
+            (Render.Helper.renderWithDefault "    " count acc settings attrs (Generic.Language.getExpressionContent block))
         ]
 
 
