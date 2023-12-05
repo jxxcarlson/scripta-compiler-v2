@@ -1,6 +1,22 @@
 module Data.M exposing (text)
 
 
+text =
+    """
+| title
+TEST
+
+| quotation
+  first paragraph
+
+  second paragraph
+
+  — Morton Snodgrass 1777
+
+
+ """
+
+
 text1 =
     """
 . AAA
@@ -20,7 +36,7 @@ text1 =
 """
 
 
-text =
+text2 =
     """
 
 | title

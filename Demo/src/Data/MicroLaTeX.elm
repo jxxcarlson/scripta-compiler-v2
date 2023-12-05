@@ -3,6 +3,33 @@ module Data.MicroLaTeX exposing (text)
 
 text =
     """
+\\title{Test}
+
+\\begin{quotation}
+  first paragraph
+
+  second paragraph
+
+  — Morton Snodgrass 1777
+\\end{quotation}
+
+\\begin{theorem}
+  Assume that $p$ is of the first kind.
+
+  \\begin{equation}
+  p^2 = 23
+  \\end{equation}
+
+  First paragraph
+
+  Second paragraph
+\\end{theorem}
+
+"""
+
+
+text2 =
+    """
 
 
  \\title{Wave Packets and the Dispersion Relation}
