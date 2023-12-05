@@ -323,9 +323,10 @@ beginBlock idPrefix count classifier line state =
         | lineNumber = line.lineNumber
         , blockClassification = newBlockClassifier
         , firstBlockLine = line.lineNumber
-        , indent = line.indent
-        , level = level
-        , labelStack = { classification = classifier, level = level, status = Started, lineNumber = line.lineNumber } :: labelStack
+
+        --, @@X, indent = line.indent |> Debug.log "IN2"
+        , level = level |> Debug.log "13a"
+        , labelStack = { classification = classifier, level = level |> Debug.log "13b", status = Started, lineNumber = line.lineNumber } :: labelStack
         , stack = newBlock :: state.stack
     }
 
