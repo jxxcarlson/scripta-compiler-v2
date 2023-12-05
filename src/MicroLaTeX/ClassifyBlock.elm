@@ -31,7 +31,7 @@ type Classification
 
 type LXSpecial
     = LXItem String
-    | LXNumbered
+    | LXNumbered String
     | LXPseudoBlock
     | LXOrdinaryBlock String
     | LXVerbatimBlock String
@@ -58,6 +58,7 @@ classifierParser =
         , bannerParser
         , contentsParser
         , numberedParser
+        , markdownNumberParser
         ]
 
 
@@ -218,8 +219,14 @@ beginBlockParser =
 
 numberedParser : Parser Classification
 numberedParser =
-    Parser.succeed (CSpecialBlock LXNumbered)
+    Parser.succeed (CSpecialBlock (LXNumbered "\\numbered"))
         |. Parser.symbol "\\numbered"
+
+
+markdownNumberParser : Parser Classification
+markdownNumberParser =
+    Parser.succeed (CSpecialBlock (LXNumbered "."))
+        |. Parser.symbol "."
 
 
 ordinaryBlockParser : Parser Classification

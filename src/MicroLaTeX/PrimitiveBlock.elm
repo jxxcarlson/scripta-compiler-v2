@@ -143,19 +143,34 @@ nextStep : State -> Step State State
 nextStep state_ =
     let
         state =
-            { state_ | lineNumber = state_.lineNumber + 1, count = state_.count + 1 }
+            { state_
+                | lineNumber = state_.lineNumber + 1
+                , count = state_.count + 1
+                , position = newPosition
+            }
 
         mTopLabel =
             List.head state.labelStack |> Maybe.map .classification
 
-        _ =
-            Debug.log "nextStep"
-                { count_ = state.count
-                , lineNumber_ = state.lineNumber
-                , line_ = List.Extra.getAt state.lineNumber state.lines
-                , labelStack_ = state.labelStack
-                , holdingStack_ = state.holdingStack
-                }
+        currentLine__ =
+            List.Extra.getAt state_.lineNumber state_.lines
+
+        newPosition =
+            case currentLine__ of
+                Nothing ->
+                    state_.position
+
+                Just currentLine_ ->
+                    state_.position + String.length currentLine_
+
+        --_ =
+        --    Debug.log "nextStep"
+        --        { count_ = state.count
+        --        , lineNumber_ = state.lineNumber
+        --        , line_ = List.Extra.getAt state.lineNumber state.lines
+        --        , labelStack_ = state.labelStack
+        --        , holdingStack_ = state.holdingStack
+        --        }
     in
     case List.Extra.getAt state.lineNumber state.lines of
         Nothing ->
@@ -172,6 +187,9 @@ nextStep state_ =
             let
                 currentLine =
                     Line.classify (getPosition rawLine state) state.lineNumber rawLine
+
+                _ =
+                    Debug.log "currentLine" currentLine
             in
             case ClassifyBlock.classify (currentLine.content ++ "\n") of
                 CBeginBlock label ->
@@ -283,7 +301,7 @@ beginBlock idPrefix count classifier line state =
             state.level + 1
 
         newBlock =
-            blockFromLine idPrefix count level line |> elaborate line
+            blockFromLine state.position idPrefix count level line |> elaborate line
 
         labelStack =
             case List.Extra.uncons state.labelStack of
@@ -321,7 +339,7 @@ handleSpecial_ classifier line state =
             state.level + 1
 
         newBlock_ =
-            blockFromLine state.idPrefix state.outerCount level line
+            blockFromLine state.position state.idPrefix state.outerCount level line
                 -- TODO: should we add line.content to the body?
                 |> (\b -> { b | body = b.firstLine :: b.body })
                 |> elaborate line
@@ -337,10 +355,16 @@ handleSpecial_ classifier line state =
                         , properties = Dict.fromList [ ( "firstLine", String.replace "\\item" "" line.content ) ]
                     }
 
-                CSpecialBlock LXNumbered ->
+                CSpecialBlock (LXNumbered str) ->
                     { newBlock_
                         | heading = Ordinary "numbered"
-                        , properties = Dict.fromList [ ( "firstLine", String.replace "\\numbered" "" line.content ) ]
+                        , properties = Dict.fromList [ ( "firstLine", String.replace str "" line.content ) ]
+                    }
+
+                CVerbatimBlockDelim ->
+                    { newBlock_
+                        | heading = Ordinary "numbered"
+                        , properties = Dict.fromList [ ( "firstLine", String.replace "```" "" line.content ) ]
                     }
 
                 CSpecialBlock (LXOrdinaryBlock name_) ->
@@ -682,14 +706,16 @@ getContent classifier line state =
             slice state.firstBlockLine (line.lineNumber - 1) state.lines |> List.reverse
 
         CSpecialBlock (LXItem str) ->
+            -- TODO: trim?
             slice state.firstBlockLine line.lineNumber state.lines
                 |> List.reverse
                 |> List.map (\line_ -> String.replace str "" line_ |> String.trim)
 
-        CSpecialBlock LXNumbered ->
+        CSpecialBlock (LXNumbered str) ->
+            -- TODO: trim?
             slice state.firstBlockLine line.lineNumber state.lines
                 |> List.reverse
-                |> List.map (\line_ -> String.replace "\\numbered" "" line_ |> String.trim)
+                |> List.map (\line_ -> String.replace str "" line_ |> String.trim)
 
         CEndBlock _ ->
             -- TODO: is this robust?
@@ -724,7 +750,7 @@ newBlockWithError classifier content block =
 
         CVerbatimBlockDelim ->
             { block
-                | body = List.reverse content
+                | body = List.reverse content |> List.map (String.replace "```" "")
                 , properties = statusFinished
             }
                 |> setError (Just "Missing ``` at end")
@@ -735,7 +761,7 @@ newBlockWithError classifier content block =
                 , properties = statusFinished
             }
 
-        CSpecialBlock LXNumbered ->
+        CSpecialBlock (LXNumbered str) ->
             { block
                 | body = List.reverse content |> List.filter (\line_ -> line_ /= "")
                 , properties = statusFinished
@@ -761,7 +787,7 @@ handleComment : Line -> State -> State
 handleComment line state =
     let
         newBlock =
-            blockFromLine state.idPrefix state.outerCount 0 line
+            blockFromLine state.position state.idPrefix state.outerCount 0 line
                 |> (\b -> { b | heading = Verbatim "texComment" })
                 |> Generic.BlockUtilities.updateMeta
                     (\m -> { m | numberOfLines = 1 })
@@ -1022,8 +1048,8 @@ emptyLine currentLine state =
                 CSpecialBlock (LXItem str) ->
                     endBlock (CSpecialBlock (LXItem str)) currentLine state
 
-                CSpecialBlock LXNumbered ->
-                    endBlock (CSpecialBlock LXNumbered) currentLine state
+                CSpecialBlock (LXNumbered str) ->
+                    endBlock (CSpecialBlock (LXNumbered str)) currentLine state
 
                 CSpecialBlock (LXOrdinaryBlock name) ->
                     endBlock (CSpecialBlock (LXOrdinaryBlock name)) currentLine state
@@ -1060,7 +1086,7 @@ handleMathBlock line state =
                 , indent = line.indent
                 , level = state.level + 1
                 , labelStack = { classification = CMathBlockDelim, level = state.level + 1, status = Started, lineNumber = line.lineNumber } :: state.labelStack
-                , stack = blockFromLine state.idPrefix state.outerCount (state.level + 1) line :: state.stack
+                , stack = blockFromLine state.position state.idPrefix state.outerCount (state.level + 1) line :: state.stack
             }
 
         Just label ->
@@ -1095,7 +1121,7 @@ handleVerbatimBlock line state =
                 , indent = line.indent
                 , level = state.level + 1
                 , labelStack = { classification = CVerbatimBlockDelim, level = state.level + 1, status = Started, lineNumber = line.lineNumber } :: state.labelStack
-                , stack = (blockFromLine state.idPrefix state.outerCount (state.level + 1) line |> elaborate line) :: state.stack
+                , stack = (blockFromLine state.position state.idPrefix state.outerCount (state.level + 1) line |> elaborate line) :: state.stack
             }
 
         Just label ->
@@ -1280,8 +1306,8 @@ showStatus status =
         \begin{equation}
 
 -}
-blockFromLine : String -> Int -> Int -> Line -> PrimitiveBlock
-blockFromLine idPrefix count level ({ indent, lineNumber, position, prefix, content } as line) =
+blockFromLine : Int -> String -> Int -> Int -> Line -> PrimitiveBlock
+blockFromLine statePosition idPrefix count level ({ indent, lineNumber, position, prefix, content } as line) =
     { heading = getHeading line.content
     , indent = level
     , args = []
@@ -1289,7 +1315,13 @@ blockFromLine idPrefix count level ({ indent, lineNumber, position, prefix, cont
     , firstLine = line.content
     , body = []
     , meta =
-        { position = 0
+        { position =
+            if statePosition == 0 then
+                0
+
+            else
+                statePosition + 2
+          -- TODO: GET THIS RIGHT!
         , lineNumber = lineNumber
         , numberOfLines = 0
         , id = Config.idPrefix ++ "-" ++ String.fromInt lineNumber

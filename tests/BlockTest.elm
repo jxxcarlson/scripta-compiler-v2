@@ -18,24 +18,23 @@ lPrimitiveBlocks =
         , contentTest L.parse "l theorem" lt3 lb3
         , contentTest L.parse "l items" items xitems
         , contentTest L.parse "l numbered" numbered xnumbered
+        , contentTest L.parse "l code" code xcode
 
-        --, contentTest L.parse "l code" code xcode
         --
-        , Test.skip <| contentTest M.parse "latex paragraph" lt1 lb1
+        , contentTest M.parse "latex paragraph" lt1 lbb2
         , contentTest M.parse "latex equation with pmatrix" mt2 mb2
-        , contentTest M.parse "latex theorem" lt3 mb3
-        , contentTest M.parse "latex items" items rendered_items2
+        , contentTest M.parse "latex theorem" mt3 mb3
+        , contentTest M.parse "latex items" items rendered_items
+        , contentTest M.parse "latex litems" litems rendered_litems
+        , contentTest M.parse "latex numbered" numbered xnumbered_latex
+        , contentTest M.parse "latex code" code xcode
 
-        --, contentTest M.parse "latex litems" litems rendered_items2
-        --, contentTest M.parse "latex numbered" numbered xnumbered
-        --, contentTest M.parse "latex code" code xitems
         --
         , contentTest X.parse "markdown paragraph" lt1 lb1
         , contentTest X.parse "markdown equation" xt2 xb2
         , contentTest X.parse "markdown items" items xitems
         , contentTest X.parse "markdown numbered" numbered xnumbered
-
-        --, contentTest X.parse "markdown code" code xcode
+        , contentTest X.parse "markdown code" code xcode
         ]
 
 
@@ -86,6 +85,42 @@ lb1 =
             , numberOfLines = 1
             , position = 16
             , sourceText = "So is this"
+            }
+      , properties = Dict.fromList []
+      }
+    ]
+
+
+lbb2 =
+    [ { args = []
+      , body = [ "This is a test" ]
+      , firstLine = "This is a test"
+      , heading = Paragraph
+      , indent = 0
+      , meta =
+            { error = Nothing
+            , id = "@-0"
+            , lineNumber = 0
+            , messages = []
+            , numberOfLines = 3
+            , position = 0
+            , sourceText = "This is a test\nThis is a test\n"
+            }
+      , properties = Dict.fromList []
+      }
+    , { args = []
+      , body = [ "So is this" ]
+      , firstLine = "So is this"
+      , heading = Paragraph
+      , indent = 0
+      , meta =
+            { error = Nothing
+            , id = "@-2"
+            , lineNumber = 2
+            , messages = []
+            , numberOfLines = 3
+            , position = 16
+            , sourceText = "So is this\nSo is this\n"
             }
       , properties = Dict.fromList []
       }
@@ -158,53 +193,6 @@ lb3 =
 
 
 
--- M TEST 1
-
-
-mt1 =
-    """This is a test
-
-So is this
-"""
-
-
-mb1 =
-    [ { args = []
-      , body = [ "This is a test" ]
-      , firstLine = "This is a test"
-      , heading = Paragraph
-      , indent = 0
-      , meta =
-            { error = Nothing
-            , id = "@-0"
-            , lineNumber = 0
-            , messages = []
-            , numberOfLines = 1
-            , position = 0
-            , sourceText = "This is a test\nThis is a test\n"
-            }
-      , properties = Dict.fromList []
-      }
-    , { args = []
-      , body = [ "So is this" ]
-      , firstLine = "So is this"
-      , heading = Paragraph
-      , indent = 0
-      , meta =
-            { error = Nothing
-            , id = "@-2"
-            , lineNumber = 2
-            , messages = []
-            , numberOfLines = 1
-            , position = 16
-            , sourceText = "So is this\nSo is this\n"
-            }
-      , properties = Dict.fromList []
-      }
-    ]
-
-
-
 -- M TEST 2
 
 
@@ -249,18 +237,18 @@ There are infinitely many primes.
 
 mb3 =
     [ { args = []
-      , body = []
-      , firstLine = "| Theorem"
-      , heading = Ordinary "Theorem\n"
+      , body = [ "There are infinitely many primes." ]
+      , firstLine = "\\begin{theorem}"
+      , heading = Ordinary "theorem"
       , indent = 0
       , meta =
             { error = Nothing
             , id = "@-1"
             , lineNumber = 1
             , messages = []
-            , numberOfLines = 0
+            , numberOfLines = 3
             , position = 0
-            , sourceText = ""
+            , sourceText = "\\begin{theorem}\nThere are infinitely many primes.\n\\end{theorem}"
             }
       , properties = Dict.fromList []
       }
@@ -358,7 +346,15 @@ xitems2 =
       , firstLine = "- Apples"
       , heading = Paragraph
       , indent = 0
-      , meta = { error = Nothing, id = "@-1", lineNumber = 1, messages = [], numberOfLines = 4, position = 0, sourceText = "- Apples\n- Apples\n  and Oranges\n" }
+      , meta =
+            { error = Nothing
+            , id = "@-1"
+            , lineNumber = 1
+            , messages = []
+            , numberOfLines = 4
+            , position = 0
+            , sourceText = "- Apples\n- Apples\n  and Oranges\n"
+            }
       , properties = Dict.fromList []
       }
     , { args = []
@@ -372,7 +368,7 @@ xitems2 =
             , lineNumber = 4
             , messages = []
             , numberOfLines = 3
-            , position = 0
+            , position = 23
             , sourceText = "- Pears\n- Pears\n"
             }
       , properties = Dict.fromList []
@@ -387,6 +383,42 @@ numbered =
 
 . Pears
 """
+
+
+xnumbered_latex =
+    [ { args = []
+      , body = [ "Apples", "and Oranges", "" ]
+      , firstLine = ". Apples"
+      , heading = Ordinary "numbered"
+      , indent = 0
+      , meta =
+            { error = Nothing
+            , id = "@-1"
+            , lineNumber = 1
+            , messages = []
+            , numberOfLines = 5
+            , position = 0
+            , sourceText = ". Apples\nApples\nand Oranges\n\n"
+            }
+      , properties = Dict.fromList []
+      }
+    , { args = []
+      , body = [ "Pears", "" ]
+      , firstLine = ". Pears"
+      , heading = Ordinary "numbered"
+      , indent = 0
+      , meta =
+            { error = Nothing
+            , id = "@-4"
+            , lineNumber = 4
+            , messages = []
+            , numberOfLines = 4
+            , position = 23
+            , sourceText = ". Pears\nPears\n\n"
+            }
+      , properties = Dict.fromList []
+      }
+    ]
 
 
 xnumbered =
@@ -427,16 +459,17 @@ xnumbered =
 
 code =
     """
-```yuuk = 1
-   bar = 2
-   foo = 3
+```
+yuuk = 1
+bar = 2
+foo = 3
 ```
 """
 
 
 xcode =
     [ { args = []
-      , body = [ "yuuk = 1", "   bar = 2", "   foo = 3" ]
+      , body = [ "yuuk = 1", "bar = 2", "foo = 3" ]
       , firstLine = "```"
       , heading = Verbatim "code"
       , indent = 0
@@ -447,17 +480,17 @@ xcode =
             , messages = []
             , numberOfLines = 5
             , position = 1
-            , sourceText = "yuuk = 1\n   bar = 2\n   foo = 3"
+            , sourceText = "```\nyuuk = 1\nbar = 2\nfoo = 3"
             }
       , properties = Dict.fromList []
       }
     ]
 
 
-rendered_items =
+rendered_litems =
     [ { args = []
-      , body = [ "- Apples", "and Oranges", "" ]
-      , firstLine = "- Apples"
+      , body = [ "Apples", "and Oranges", "" ]
+      , firstLine = "\\item Apples"
       , heading = Ordinary "item"
       , indent = 0
       , meta =
@@ -467,13 +500,13 @@ rendered_items =
             , messages = []
             , numberOfLines = 5
             , position = 0
-            , sourceText = "- Apples\n- Apples\nand Oranges\n\n"
+            , sourceText = "\\item Apples\nApples\nand Oranges\n\n"
             }
       , properties = Dict.fromList []
       }
     , { args = []
-      , body = [ "- Pears", "" ]
-      , firstLine = "- Pears"
+      , body = [ "Pears", "" ]
+      , firstLine = "\\item Pears"
       , heading = Ordinary "item"
       , indent = 0
       , meta =
@@ -482,15 +515,15 @@ rendered_items =
             , lineNumber = 4
             , messages = []
             , numberOfLines = 4
-            , position = 0
-            , sourceText = "- Pears\n- Pears\n\n"
+            , position = 29
+            , sourceText = "\\item Pears\nPears\n\n"
             }
       , properties = Dict.fromList []
       }
     ]
 
 
-rendered_items2 =
+rendered_items =
     [ { args = []
       , body = [ "Apples", "and Oranges", "" ]
       , firstLine = "- Apples"
@@ -518,7 +551,7 @@ rendered_items2 =
             , lineNumber = 4
             , messages = []
             , numberOfLines = 4
-            , position = 0
+            , position = 23
             , sourceText = "- Pears\nPears\n\n"
             }
       , properties = Dict.fromList []
