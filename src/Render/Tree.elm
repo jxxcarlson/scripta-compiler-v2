@@ -84,28 +84,14 @@ r1 k a s block =
     [ Font.italic ]
 
 
-
---
---renderTreeL : Int -> Accumulator -> RenderSettings -> Tree ExpressionBlock -> Element MarkupMsg
---renderTreeL count accumulator settings tree =
---    let
---        blockName =
---            Generic.BlockUtilities.getExpressionBlockName (Tree.label tree)
---                |> Maybe.withDefault "---"
---    in
---    if List.member blockName Generic.Settings.numberedBlockNames then
---        Element.el [ Font.italic ] ((Tree.map (Render.Block.render count accumulator settings) >> unravelL) tree)
---
---    else
---        (Tree.map (Render.Block.render count accumulator settings) >> unravelL) tree
---
-
-
 renderTreeQ : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> Tree ExpressionBlock -> Element MarkupMsg
 renderTreeQ count accumulator settings attrs_ tree =
     let
         root =
             Tree.label tree
+
+        _ =
+            Debug.log "renderTreeQ" ( root.heading, List.length (Tree.children tree) )
 
         blockAttrs =
             OrdinaryBlock.getAttributesForBlock root
@@ -117,82 +103,29 @@ renderTreeQ count accumulator settings attrs_ tree =
 
         children ->
             Element.column (Element.spacing 18 :: rootAttributes root)
-                (Render.Block.renderBody count accumulator settings (rootAttributes root) root
-                    ++ List.map (renderTreeQ count accumulator settings (attrs_ ++ blockAttrs)) children
+                (Element.text "CHILDREN"
+                    :: (Render.Block.renderBody count accumulator settings (rootAttributes root) root
+                            ++ List.map (renderTreeQ count accumulator settings (attrs_ ++ rootAttributes root ++ blockAttrs)) children
+                       )
+                    ++ [ Element.text "/CHILDREN" ]
                 )
 
 
-
---
---renderTreeQ1 : Int -> Accumulator -> RenderSettings -> Tree ExpressionBlock -> Element MarkupMsg
---renderTreeQ1 count accumulator settings tree =
---    let
---        attr =
---            if Generic.BlockUtilities.getExpressionBlockName root == Just "box" then
---                [ Font.italic, Element.paddingXY 32 12, Background.color (Element.rgb 0.9 0.9 1.0) ]
---
---            else
---                []
---
---        root =
---            Tree.label tree
---    in
---    case Tree.children tree of
---        [] ->
---            Element.column (Render.Block2.renderAttributes count accumulator settings root ++ attr)
---                (Render.Block2.renderBody count accumulator settings root)
---
---        children ->
---            Element.column (Render.Block2.renderAttributes count accumulator settings root ++ attr)
---                (Render.Block2.renderBody count accumulator settings root ++ List.map (renderTreeQ1 count accumulator settings) children)
-
-
 rootAttributes rootBlock =
-    case Generic.BlockUtilities.getExpressionBlockName rootBlock of
-        Just "box" ->
-            [ Element.paddingXY 32 12, Background.color (Element.rgb 0.9 0.9 1.0) ]
+    let
+        blockName =
+            Generic.BlockUtilities.getExpressionBlockName rootBlock
+                |> Maybe.withDefault "---"
+    in
+    if List.member blockName italicBlockNames then
+        [ Font.italic ]
 
-        Just "theorem" ->
-            [ Font.italic ]
+    else if blockName == "box" then
+        [ Font.italic, Element.paddingXY 32 12, Background.color (Element.rgb 0.9 0.9 1.0) ]
 
-        _ ->
-            []
+    else
+        []
 
 
-
---r2 : Int -> Accumulator -> RenderSettings -> ExpressionBlock -> List (Element msg)
---r2 k a s block =
---    -- Debug.todo "r2"
---
---render2 : Int -> Accumulator -> RenderSettings -> Tree ExpressionBlock -> Element MarkupMsg
---render2 count acc settings tree =
---    let
---        children =
---            Tree.children tree
---    in
---    if List.isEmpty children then
---        Tree.label tree |> Render.Block.render count acc settings
---
---    else
---        let
---            root = Tree.label tree
---            attributes =
---                r1 count acc settings root ++ [ Font.italic ]
---
---            elements =
---                r2 count acc settings root
---        in
---        Element.column (r1 count acc settings root)
---            [ root |> Render.Block.render count acc settings
---            , Element.column
---                ([ Element.paddingEach
---                    { top = Render.Settings.defaultSettings.topMarginForChildren
---                    , left = Render.Settings.defaultSettings.leftIndent
---                    , right = 0
---                    , bottom = 0
---                    }
---                 ]
---                    ++ attributes
---                )
---                (List.map (render2 count acc settings) children)
---            ]
+italicBlockNames =
+    [ "quote", "aside", "note", "warning", "exercise", "theorem", "proof", "definition", "lemma", "corollary", "example", "remark" ]
