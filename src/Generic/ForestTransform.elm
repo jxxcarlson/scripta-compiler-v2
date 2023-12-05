@@ -65,12 +65,14 @@ forestFromBlocks defaultNode indentation blocks =
 -}
 fromBlocks : block -> (block -> Int) -> List block -> Result Error (Tree block)
 fromBlocks defaultNode indentation blocks =
-    case init defaultNode indentation blocks of
+    (case init defaultNode indentation blocks of
         Err error ->
             Err error
 
         Ok initialState ->
             Ok <| loop initialState nextStep
+    )
+        |> Debug.log "@@TREE"
 
 
 {-| -}
