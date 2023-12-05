@@ -171,6 +171,14 @@ nextStep state_ =
         --        , labelStack_ = state.labelStack
         --        , holdingStack_ = state.holdingStack
         --        }
+        --_ =
+        --    Debug.log "nextStep YYYY"
+        --        { line_ = List.Extra.getAt state.lineNumber state.lines
+        --        , indent_ = state.indent
+        --        , labelStack_ = state.labelStack
+        --        }
+        _ =
+            Debug.log "nextStep, LEVEL" { level_ = state.level, line_ = List.Extra.getAt state.lineNumber state.lines }
     in
     case List.Extra.getAt state.lineNumber state.lines of
         Nothing ->
@@ -188,8 +196,8 @@ nextStep state_ =
                 currentLine =
                     Line.classify (getPosition rawLine state) state.lineNumber rawLine
 
-                _ =
-                    Debug.log "currentLine" currentLine
+                --_ =
+                --    Debug.log "currentLine" currentLine
             in
             case ClassifyBlock.classify (currentLine.content ++ "\n") of
                 CBeginBlock label ->
