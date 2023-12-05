@@ -779,16 +779,50 @@ newBlockWithError classifier content block =
             { block | body = List.reverse content, properties = statusFinished }
 
 
-plainText state currentLine =
+plainText state_ currentLine =
+    let
+        state =
+            if currentLine.indent > state_.indent then
+                { state_ | indent = currentLine.indent, level = state_.level + 1 }
+
+            else if currentLine.indent < state_.indent then
+                { state_ | indent = currentLine.indent, level = state_.level - 1 }
+
+            else
+                state_
+    in
     if (List.head state.labelStack |> Maybe.map .status) == Just Filled || state.labelStack == [] then
         if String.left 1 currentLine.content == "%" then
             Loop (handleComment currentLine state)
 
         else
+            let
+                _ =
+                    Debug.log "dispatchBeginBlock" currentLine
+            in
             Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText currentLine state)
 
     else
-        Loop state
+        case List.head state.labelStack |> Maybe.map .level of
+            Nothing ->
+                Loop state
+
+            Just topLevel ->
+                if state.level > topLevel then
+                    Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText currentLine state)
+
+                else
+                    Loop state
+
+
+
+--Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText currentLine state)
+--else
+--    let
+--        _ =
+--            Debug.log "handlePlainText, Loop" currentLine
+--    in
+--    Loop state
 
 
 handleComment : Line -> State -> State
@@ -1329,7 +1363,8 @@ blockFromLine statePosition idPrefix count level ({ indent, lineNumber, position
 
             else
                 statePosition + 2
-          -- TODO: GET THIS RIGHT!
+
+        -- TODO: GET THIS RIGHT!
         , lineNumber = lineNumber
         , numberOfLines = 0
         , id = Config.idPrefix ++ "-" ++ String.fromInt lineNumber
