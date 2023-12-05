@@ -12,23 +12,25 @@ print block =
     [ "BLOCK:"
     , "Heading: " ++ displayHeading block.heading
     , "Indent: " ++ String.fromInt block.indent
-    , "Args: " ++ showArgs block.args
-    , "Properties: " ++ showProperties block.properties
+
+    --, "Args: " ++ showArgs block.args
+    --, "Properties: " ++ showProperties block.properties
     , "Content:\n---------\n"
         ++ (block.body
                 |> List.indexedMap (\k s -> String.padLeft 3 ' ' (String.fromInt (k + 1 + block.meta.lineNumber)) ++ ": " ++ s)
                 |> String.join "\n"
            )
-    , "---------    "
-    , "MetaData:"
-    , "    Id: " ++ block.meta.id
-    , "    Position: " ++ String.fromInt block.meta.position
-    , "    Line number: " ++ String.fromInt block.meta.lineNumber
-    , "    Number of lines: " ++ String.fromInt block.meta.numberOfLines
-    , "    messages: " ++ String.join ", " block.meta.messages
-    , "    Error: " ++ showError block.meta.error
-    , "    Source text:\n--------\n" ++ block.meta.sourceText
-    , "--------"
+
+    --, "---------    "
+    --, "MetaData:"
+    --, "    Id: " ++ block.meta.id
+    --, "    Position: " ++ String.fromInt block.meta.position
+    --, "    Line number: " ++ String.fromInt block.meta.lineNumber
+    --, "    Number of lines: " ++ String.fromInt block.meta.numberOfLines
+    --, "    messages: " ++ String.join ", " block.meta.messages
+    --, "    Error: " ++ showError block.meta.error
+    --, "    Source text:\n--------\n" ++ block.meta.sourceText
+    --, "--------"
     ]
         |> String.join "\n"
 
