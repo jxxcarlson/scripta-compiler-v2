@@ -175,7 +175,7 @@ mainColumn model =
         [ column [ width (px <| appWidth model), height (px <| appHeight model), clipY ]
             [ title "Compiler Demo"
             , header model
-            , row [ spacing margin.between, centerX, width (px <| model.windowWidth - 500 - margin.left - margin.right) ]
+            , row [ spacing margin.between, centerX, width (px <| model.windowWidth - 50 - margin.left - margin.right) ]
                 [ inputText model
                 , displayRenderedText model |> Element.map Render
                 ]
@@ -279,6 +279,9 @@ viewToc model compiled =
         toc : List (Element MarkupMsg)
         toc =
             compiled.toc
+
+        tocWidth =
+            panelWidth model - 3 * xPadding
     in
     column [ spacing 8, Font.size 14 ]
         [ el [ fontGray 0.9 ] (text "Table of contents")
