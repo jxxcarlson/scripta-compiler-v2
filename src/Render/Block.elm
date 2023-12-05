@@ -40,10 +40,10 @@ renderBody count acc settings attrs block =
         Paragraph ->
             [ renderParagraphBody count acc settings attrs block ]
 
-        Ordinary name ->
+        Ordinary _ ->
             [ OrdinaryBlock.render count acc settings attrs block ]
 
-        Verbatim name ->
+        Verbatim _ ->
             [ VerbatimBlock.render count acc settings attrs block |> Render.Helper.showError block.meta.error ]
 
 
