@@ -102,8 +102,8 @@ init idPrefix outerCount lines =
     , lines = lines
     , sourceText = ""
     , firstBlockLine = 0
-    , indent = 0
-    , level = -1
+    , indent = 0 |> Debug.log "IN1"
+    , level = -1 |> Debug.log "12"
     , lineNumber = -1
     , position = 0
     , blockClassification = Nothing
@@ -178,7 +178,7 @@ nextStep state_ =
         --        , labelStack_ = state.labelStack
         --        }
         _ =
-            Debug.log "nextStep, LEVEL" { level_ = state.level, line_ = List.Extra.getAt state.lineNumber state.lines }
+            Debug.log "nextStep, LEVEL" { label_ = state.label, level_ = state.level, line_ = List.Extra.getAt state.lineNumber state.lines }
     in
     case List.Extra.getAt state.lineNumber state.lines of
         Nothing ->
@@ -202,30 +202,30 @@ nextStep state_ =
             case ClassifyBlock.classify (currentLine.content ++ "\n") of
                 CBeginBlock label ->
                     if List.member mTopLabel (List.map Just [ CBeginBlock "code", CBeginBlock "equation", CBeginBlock "aligned" ]) then
-                        Loop state
+                        Loop { state | label = "CBeginBlock 1" }
 
                     else if List.member label innerMathBlockNames then
-                        Loop state
+                        Loop { state | label = "CBeginBlock 2" }
 
                     else
-                        Loop (state |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) currentLine)
+                        Loop ({ state | label = "CBeginBlock 3" } |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) currentLine)
 
                 CEndBlock label ->
                     -- TODO: changed, review
                     if List.member label innerMathBlockNames then
-                        Loop state
+                        Loop { state | label = "CEndBlock 1" }
 
                     else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
-                        state |> endBlockOnMatch Nothing (CBeginBlock "code") currentLine |> Loop
+                        { state | label = "CEndBlock 2" } |> endBlockOnMatch Nothing (CBeginBlock "code") currentLine |> Loop
 
                     else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "equation" ] then
-                        state |> endBlockOnMatch Nothing (CBeginBlock "equation") currentLine |> Loop
+                        { state | label = "CEndBlock 3" } |> endBlockOnMatch Nothing (CBeginBlock "equation") currentLine |> Loop
 
                     else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "aligned" ] then
-                        state |> endBlockOnMatch Nothing (CBeginBlock "aligned") currentLine |> Loop
+                        { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "aligned") currentLine |> Loop
 
                     else
-                        endBlock (CEndBlock label) currentLine state
+                        endBlock (CEndBlock label) currentLine { state | label = "CEndBlock 5" }
 
                 CSpecialBlock label ->
                     -- TODO: review all the List.member clauses
@@ -306,10 +306,10 @@ beginBlock idPrefix count classifier line state =
                     Nothing
 
         level =
-            state.level + 1
+            state.level + 1 |> Debug.log "13"
 
         newBlock =
-            blockFromLine state.position idPrefix count level line |> elaborate line
+            blockFromLine state.position idPrefix count level line |> elaborate line |> Debug.log "@@@NEWBLOCK"
 
         labelStack =
             case List.Extra.uncons state.labelStack of
@@ -344,7 +344,7 @@ handleSpecial_ : Classification -> Line -> State -> State
 handleSpecial_ classifier line state =
     let
         level =
-            state.level + 1
+            state.level + 1 |> Debug.log "14"
 
         newBlock_ =
             blockFromLine state.position state.idPrefix state.outerCount level line
@@ -436,9 +436,9 @@ handleSpecial_ classifier line state =
     { state
         | lineNumber = line.lineNumber
         , firstBlockLine = line.lineNumber
-        , indent = line.indent
-        , level = level
-        , labelStack = { classification = classifier, level = level, status = Started, lineNumber = line.lineNumber } :: labelStack
+        , indent = line.indent |> Debug.log "IN3"
+        , level = level |> Debug.log "15a"
+        , labelStack = { classification = classifier, level = level |> Debug.log "15b", status = Started, lineNumber = line.lineNumber } :: labelStack
         , stack = newBlock :: state.stack
     }
 
@@ -612,7 +612,7 @@ endBlockOnMatch labelHead classifier line state =
 
         Just ( block, rest ) ->
             if (labelHead |> Maybe.map .status) == Just Filled then
-                { state | level = state.level - 1, committedBlocks = ({ block | properties = statusFinished } |> addSource line.content) :: state.committedBlocks, stack = rest } |> resolveIfStackEmpty
+                { state | level = state.level - 1 |> Debug.log "1", committedBlocks = ({ block | properties = statusFinished } |> addSource line.content) :: state.committedBlocks, stack = rest } |> resolveIfStackEmpty
 
             else
                 let
@@ -672,7 +672,7 @@ endBlockOnMatch labelHead classifier line state =
                     -- the values block and rest as defined in Just (block, rest) ->
                     , stack = List.drop 1 (changeStatusOfStackTop block rest state)
                     , labelStack = List.drop 1 state.labelStack
-                    , level = state.level - 1
+                    , level = state.level - 1 |> Debug.log "2"
                 }
                     |> resolveIfStackEmpty
 
@@ -783,10 +783,10 @@ plainText state_ currentLine =
     let
         state =
             if currentLine.indent > state_.indent then
-                { state_ | indent = currentLine.indent, level = state_.level + 1 }
+                { state_ | indent = currentLine.indent |> Debug.log "IN4", level = state_.level + 1 |> Debug.log "3" }
 
             else if currentLine.indent < state_.indent then
-                { state_ | indent = currentLine.indent, level = state_.level - 1 }
+                { state_ | indent = currentLine.indent |> Debug.log "IN5", level = state_.level - 1 |> Debug.log "4" }
 
             else
                 state_
@@ -800,7 +800,7 @@ plainText state_ currentLine =
                 _ =
                     Debug.log "dispatchBeginBlock" currentLine
             in
-            Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText currentLine state)
+            Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText currentLine state) |> Debug.log "@@dispatchBeginBlock"
 
     else
         case List.head state.labelStack |> Maybe.map .level of
@@ -809,20 +809,10 @@ plainText state_ currentLine =
 
             Just topLevel ->
                 if state.level > topLevel then
-                    Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText currentLine state)
+                    Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText currentLine state) |> Debug.log "@@2dispatchBeginBlock"
 
                 else
                     Loop state
-
-
-
---Loop (dispatchBeginBlock state.idPrefix state.outerCount CPlainText currentLine state)
---else
---    let
---        _ =
---            Debug.log "handlePlainText, Loop" currentLine
---    in
---    Loop state
 
 
 handleComment : Line -> State -> State
@@ -845,9 +835,9 @@ handleComment line state =
     { state
         | lineNumber = line.lineNumber
         , firstBlockLine = line.lineNumber
-        , indent = line.indent
-        , level = 0
-        , labelStack = { classification = CSpecialBlock (LXVerbatimBlock "texComment"), level = 0, status = Started, lineNumber = line.lineNumber } :: labelStack
+        , indent = line.indent |> Debug.log "IN6"
+        , level = 0 |> Debug.log "16"
+        , labelStack = { classification = CSpecialBlock (LXVerbatimBlock "texComment"), level = 0 |> Debug.log "5", status = Started, lineNumber = line.lineNumber } :: labelStack
         , stack = newBlock :: state.stack
     }
 
@@ -1112,7 +1102,7 @@ emptyLine currentLine state =
 resetLevelIfStackIsEmpty : State -> State
 resetLevelIfStackIsEmpty state =
     if List.isEmpty state.stack then
-        { state | level = -1 }
+        { state | level = -1 |> Debug.log "6" }
 
     else
         state
@@ -1125,9 +1115,9 @@ handleMathBlock line state =
             { state
                 | lineNumber = line.lineNumber
                 , firstBlockLine = line.lineNumber
-                , indent = line.indent
+                , indent = line.indent |> Debug.log "IN8"
                 , level = state.level + 1
-                , labelStack = { classification = CMathBlockDelim, level = state.level + 1, status = Started, lineNumber = line.lineNumber } :: state.labelStack
+                , labelStack = { classification = CMathBlockDelim, level = state.level + 1 |> Debug.log "8", status = Started, lineNumber = line.lineNumber } :: state.labelStack
                 , stack = blockFromLine state.position state.idPrefix state.outerCount (state.level + 1) line :: state.stack
             }
 
@@ -1151,7 +1141,7 @@ handleMathBlock line state =
                                         |> addSource "$$"
                                         |> Generic.BlockUtilities.updateMeta (\m -> { m | numberOfLines = List.length body })
                             in
-                            { state | committedBlocks = newBlock :: state.committedBlocks, labelStack = otherLabels, stack = rest, level = state.level - 1 }
+                            { state | committedBlocks = newBlock :: state.committedBlocks, labelStack = otherLabels, stack = rest, level = state.level - 1 |> Debug.log "9" }
 
 
 handleVerbatimBlock line state =
@@ -1160,9 +1150,9 @@ handleVerbatimBlock line state =
             { state
                 | lineNumber = line.lineNumber
                 , firstBlockLine = line.lineNumber
-                , indent = line.indent
+                , indent = line.indent |> Debug.log "IN9"
                 , level = state.level + 1
-                , labelStack = { classification = CVerbatimBlockDelim, level = state.level + 1, status = Started, lineNumber = line.lineNumber } :: state.labelStack
+                , labelStack = { classification = CVerbatimBlockDelim, level = state.level + 1 |> Debug.log "10", status = Started, lineNumber = line.lineNumber } :: state.labelStack
                 , stack = (blockFromLine state.position state.idPrefix state.outerCount (state.level + 1) line |> elaborate line) :: state.stack
             }
 
@@ -1181,7 +1171,7 @@ handleVerbatimBlock line state =
                                 newBlock =
                                     { block | body = slice (topLabel.lineNumber + 1) (state.lineNumber - 1) state.lines, properties = statusFinished } |> addSource line.content
                             in
-                            { state | committedBlocks = newBlock :: state.committedBlocks, labelStack = otherLabels, stack = rest, level = state.level - 1 }
+                            { state | committedBlocks = newBlock :: state.committedBlocks, labelStack = otherLabels, stack = rest, level = state.level - 1 |> Debug.log "11" }
 
 
 
@@ -1351,7 +1341,7 @@ showStatus status =
 blockFromLine : Int -> String -> Int -> Int -> Line -> PrimitiveBlock
 blockFromLine statePosition idPrefix count level ({ indent, lineNumber, position, prefix, content } as line) =
     { heading = getHeading line.content
-    , indent = level
+    , indent = indent |> Debug.log "11"
     , args = []
     , properties = statusStarted |> Dict.insert "level" (String.fromInt level)
     , firstLine = line.content
