@@ -116,7 +116,7 @@ renderTreeQ count accumulator settings attrs_ tree =
                 (Render.Block.renderBody count accumulator settings attrs_ root)
 
         children ->
-            Element.column (rootAttributes root)
+            Element.column (Element.spacing 18 :: rootAttributes root)
                 (Render.Block.renderBody count accumulator settings (rootAttributes root) root
                     ++ List.map (renderTreeQ count accumulator settings (attrs_ ++ blockAttrs)) children
                 )
