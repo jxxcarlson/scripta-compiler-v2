@@ -30,7 +30,7 @@ type Classification
 
 
 type LXSpecial
-    = LXItem
+    = LXItem String
     | LXNumbered
     | LXPseudoBlock
     | LXOrdinaryBlock String
@@ -47,6 +47,7 @@ classifierParser =
         , ordinaryBlockParser
         , verbatimBlockParser
         , itemParser
+        , markdownItemParser
         , specialOrdinaryBlockParser "section"
         , specialOrdinaryBlockParser "title"
         , specialOrdinaryBlockParser "subsection"
@@ -97,8 +98,14 @@ classify str =
 
 itemParser : Parser Classification
 itemParser =
-    Parser.succeed (CSpecialBlock LXItem)
+    Parser.succeed (CSpecialBlock (LXItem "\\item"))
         |. Parser.symbol "\\item"
+
+
+markdownItemParser : Parser Classification
+markdownItemParser =
+    Parser.succeed (CSpecialBlock (LXItem "-"))
+        |. Parser.symbol "-"
 
 
 contentsParser : Parser Classification

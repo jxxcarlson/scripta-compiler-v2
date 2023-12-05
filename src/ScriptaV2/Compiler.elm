@@ -145,6 +145,16 @@ parseX idPrefix outerCount lines =
     Generic.Compiler.parse_ XMarkdownLang XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
 
 
+{-|
+
+    > pl str = parseL "!!" (String.lines str) |> Result.map (F.map simplifyExpressionBlock)
+
+-}
+parseL : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
+parseL idPrefix outerCount lines =
+    Generic.Compiler.parse_ MicroLaTeXLang MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
+
+
 
 -- M compiler
 
@@ -184,16 +194,6 @@ compileX width outerCount selectedId lines =
 
 
 -- LaTeX compiler
-
-
-{-|
-
-    > pl str = parseL "!!" (String.lines str) |> Result.map (F.map simplifyExpressionBlock)
-
--}
-parseL : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
-parseL idPrefix outerCount lines =
-    Generic.Compiler.parse_ MicroLaTeXLang MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
 
 
 compileL : Int -> Int -> String -> List String -> CompilerOutput

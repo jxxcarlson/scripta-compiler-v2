@@ -77,7 +77,13 @@ parseLoop idPrefix outerCount lines =
 
 finalize : State -> ParserOutput
 finalize state =
-    { blocks = state.committedBlocks |> List.reverse, stack = state.stack, holdingStack = state.holdingStack }
+    { blocks =
+        state.committedBlocks
+            |> List.reverse
+            |> List.map (\b -> { b | properties = Dict.remove "status" b.properties })
+    , stack = state.stack
+    , holdingStack = state.holdingStack
+    }
 
 
 {-|
@@ -322,7 +328,8 @@ handleSpecial_ classifier line state =
 
         newBlock =
             case classifier of
-                CSpecialBlock LXItem ->
+                CSpecialBlock (LXItem str) ->
+                    -- TODO: use str to modify block content
                     { newBlock_
                         | heading = Ordinary "item"
 
@@ -674,10 +681,10 @@ getContent classifier line state =
         CPlainText ->
             slice state.firstBlockLine (line.lineNumber - 1) state.lines |> List.reverse
 
-        CSpecialBlock LXItem ->
+        CSpecialBlock (LXItem str) ->
             slice state.firstBlockLine line.lineNumber state.lines
                 |> List.reverse
-                |> List.map (\line_ -> String.replace "\\item" "" line_ |> String.trim)
+                |> List.map (\line_ -> String.replace str "" line_ |> String.trim)
 
         CSpecialBlock LXNumbered ->
             slice state.firstBlockLine line.lineNumber state.lines
@@ -722,7 +729,7 @@ newBlockWithError classifier content block =
             }
                 |> setError (Just "Missing ``` at end")
 
-        CSpecialBlock LXItem ->
+        CSpecialBlock (LXItem str) ->
             { block
                 | body = List.reverse content |> List.filter (\line_ -> line_ /= "")
                 , properties = statusFinished
@@ -1010,10 +1017,10 @@ emptyLine currentLine state =
                         Loop <| state
 
                 CSpecialBlock LXPseudoBlock ->
-                    endBlock (CSpecialBlock LXItem) currentLine state
+                    endBlock (CSpecialBlock (LXItem "")) currentLine state
 
-                CSpecialBlock LXItem ->
-                    endBlock (CSpecialBlock LXItem) currentLine state
+                CSpecialBlock (LXItem str) ->
+                    endBlock (CSpecialBlock (LXItem str)) currentLine state
 
                 CSpecialBlock LXNumbered ->
                     endBlock (CSpecialBlock LXNumbered) currentLine state
