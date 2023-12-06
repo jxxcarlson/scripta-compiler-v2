@@ -30,8 +30,10 @@ item count acc settings attr block =
         id =
             String.fromInt block.meta.lineNumber
 
+        --level_ =
+        --    Dict.get id acc.numberedItemDict |> Maybe.map .level |> Maybe.withDefault 0
         level_ =
-            Dict.get id acc.numberedItemDict |> Maybe.map .level |> Maybe.withDefault 0
+            block.indent // 2
 
         label_ =
             case modBy 3 level_ of

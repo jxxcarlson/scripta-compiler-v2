@@ -7,17 +7,17 @@ text1 =
 
 !! XMarkdown Test Document
 
-. This
+- Breakfast
 
-. That
+  - Eggs
 
-. Other
+  - Bacon
 
-Another list:
+  - Coffee
 
-. This
+    - Expresso
 
-. That
+    - Latte
 
 
 

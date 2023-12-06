@@ -5,25 +5,18 @@ text =
     """
 \\title{Test}
 
-\\begin{quotation}
-  first paragraph
+- Breakfast
 
-  second paragraph
+  - Eggs
 
-  — Morton Snodgrass 1777
-\\end{quotation}
+  - Bacon
 
-\\begin{theorem}
-  Assume that $p$ is of the first kind.
+  - Coffee
 
-  \\begin{equation}
-  p^2 = 23
-  \\end{equation}
+    - Expresso
 
-  First paragraph
+    - Latte
 
-  Second paragraph
-\\end{theorem}
 
 """
 
