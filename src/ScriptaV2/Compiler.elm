@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
     ( CompilerOutput, compile, parse, parseFromString, render, renderForest, view, viewTOC
-    , p
+    , p, px
     )
 
 {-|
@@ -143,6 +143,10 @@ parseM idPrefix outerCount lines =
 parseX : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
 parseX idPrefix outerCount lines =
     Generic.Compiler.parse_ XMarkdownLang XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
+
+
+px str =
+    parseX "!!" 0 (String.lines str)
 
 
 {-|

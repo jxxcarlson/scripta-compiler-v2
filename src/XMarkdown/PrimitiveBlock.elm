@@ -39,7 +39,7 @@ getHeadingData : String -> Result HeadingError HeadingData
 getHeadingData line_ =
     let
         line =
-            String.trim line_
+            String.trim line_ |> Debug.log "LINE"
 
         ( args1, properties ) =
             KV.argsAndProperties (String.words line)
@@ -58,9 +58,14 @@ getHeadingData line_ =
                 Nothing ->
                     case args1 of
                         [] ->
-                            Err <| HEMissingPrefix
+                            -- Err <| HEMissingPrefix
+                            Ok <| { heading = Paragraph, args = [], properties = Dict.empty }
 
                         prefix :: args ->
+                            let
+                                _ =
+                                    Debug.log "prefix" prefix
+                            in
                             case prefix of
                                 "||" ->
                                     case args of
