@@ -128,7 +128,7 @@ rootAttributes rootBlock =
         [ Font.italic ]
 
     else if blockName == "box" then
-        [ Element.spacing 9, Font.italic, Element.paddingXY 12 12, Background.color (Element.rgb 0.9 0.9 1.0) ]
+        [ Element.spacing 11, Font.italic, Element.paddingXY 12 12, Background.color (Element.rgb 0.9 0.9 1.0) ]
 
     else
         []
