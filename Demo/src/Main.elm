@@ -69,11 +69,11 @@ setSourceText currentLanguage =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { sourceText = Data.MicroLaTeX.text
+    ( { sourceText = Data.M.text
       , count = 0
       , windowWidth = flags.window.windowWidth
       , windowHeight = flags.window.windowHeight
-      , currentLanguage = ScriptaV2.Language.MicroLaTeXLang
+      , currentLanguage = ScriptaV2.Language.L0Lang
       , selectId = "@InitID"
       }
     , Cmd.none

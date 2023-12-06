@@ -7,14 +7,18 @@ text =
 | title
 TEST
 
-| quotation
-abcd
+| box Matrices
 
-  efgh
+  A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool.
 
-  jkilm
+  $$
+  \\begin{pmatrix}
+     a & b \\\\
+     c & d
+  \\end{pmatrix}
+  $$
 
-
+  A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool.
 
  """
 

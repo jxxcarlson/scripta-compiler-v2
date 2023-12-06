@@ -99,10 +99,23 @@ renderTreeQ count accumulator settings attrs_ tree =
                 (Render.Block.renderBody count accumulator settings attrs_ root)
 
         children ->
-            Element.column (Element.spacing 18 :: rootAttributes root)
-                (Render.Block.renderBody count accumulator settings (rootAttributes root) root
-                    ++ List.map (renderTreeQ count accumulator settings (attrs_ ++ rootAttributes root ++ blockAttrs)) children
-                )
+            let
+                settings_ =
+                    { settings | width = settings.width - 100, backgroundColor = Element.rgb 0.9 0.9 1.0 }
+            in
+            if root.heading == Generic.Language.Ordinary "box" then
+                Element.column [ Element.paddingEach { left = 12, right = 12, top = 0, bottom = 0 } ]
+                    [ Element.column (Render.Block.renderAttributes settings_ root ++ rootAttributes root)
+                        (Render.Block.renderBody count accumulator settings_ attrs_ root
+                            ++ List.map (renderTreeQ count accumulator settings_ (attrs_ ++ rootAttributes root ++ blockAttrs)) children
+                        )
+                    ]
+
+            else
+                Element.column (Element.spacing 12 :: rootAttributes root)
+                    (Render.Block.renderBody count accumulator settings (rootAttributes root) root
+                        ++ List.map (renderTreeQ count accumulator settings (attrs_ ++ rootAttributes root ++ blockAttrs)) children
+                    )
 
 
 rootAttributes rootBlock =
@@ -115,7 +128,7 @@ rootAttributes rootBlock =
         [ Font.italic ]
 
     else if blockName == "box" then
-        [ Font.italic, Element.paddingXY 32 12, Background.color (Element.rgb 0.9 0.9 1.0) ]
+        [ Element.spacing 12, Font.italic, Element.paddingXY 12 12, Background.color (Element.rgb 0.9 0.9 1.0) ]
 
     else
         []

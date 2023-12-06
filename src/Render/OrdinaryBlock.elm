@@ -152,11 +152,12 @@ bibitem count acc settings attrs block =
 
 box : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 box count acc settings attr block =
-    Element.paragraph [ Element.height Element.fill ]
+    --Element.paragraph [ Element.height Element.fill ]
+    Element.column [ Element.spacing 8 ]
         [ Element.el [ Font.bold ] (Element.text (blockHeading block))
         , Element.paragraph
             []
-            (Render.Helper.renderWithDefault "box" count acc settings attr (Generic.Language.getExpressionContent block))
+            (Render.Helper.renderWithDefault "" count acc settings attr (Generic.Language.getExpressionContent block))
         ]
 
 
@@ -572,5 +573,5 @@ blockHeading block =
                 (name |> String.Extra.toTitleCase)
                     ++ " "
                     ++ (Dict.get "label" block.properties |> Maybe.withDefault "")
-                    ++ " "
+                    ++ ". "
                     ++ String.join " " block.args
