@@ -3,20 +3,18 @@ module Data.M exposing (text)
 
 text =
     """
+
 | title
 TEST
 
-- Breakfast
+| quotation
+abcd
 
-  - Eggs
+  efgh
 
-  - Bacon
+  jkilm
 
-  - Coffee
 
-    - Expresso
-
-    - Latte
 
  """
 

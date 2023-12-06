@@ -65,6 +65,9 @@ getAttributes name =
     if name == "box" then
         [ Background.color (Element.rgb 0.9 0.9 1.0) ]
 
+    else if name == "quotation" then
+        [ Element.paddingEach { top = 0, bottom = 0, left = 8, right = 0 }, Font.italic ]
+
     else if List.member name italicNames then
         [ Font.italic ]
 
@@ -73,8 +76,7 @@ getAttributes name =
 
 
 italicNames =
-    [ "quotation"
-    , "theorem"
+    [ "theorem"
     , "lemma"
     , "corollary"
     , "proposition"
