@@ -90,9 +90,6 @@ renderTreeQ count accumulator settings attrs_ tree =
         root =
             Tree.label tree
 
-        _ =
-            Debug.log "renderTreeQ" ( root.heading, List.length (Tree.children tree) )
-
         blockAttrs =
             OrdinaryBlock.getAttributesForBlock root
     in

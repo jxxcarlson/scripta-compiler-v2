@@ -134,10 +134,6 @@ blockFromLine : ParserFunctions -> Line -> Result Line.HeadingError PrimitiveBlo
 blockFromLine parserFunctions ({ indent, lineNumber, position, prefix, content } as line) =
     case parserFunctions.getHeadingData content of
         Err err ->
-            let
-                _ =
-                    Debug.log "@@blockFromLine, err" err
-            in
             Ok (bogusBlockFromLine "<= something missing" line)
 
         Ok { heading, args, properties } ->

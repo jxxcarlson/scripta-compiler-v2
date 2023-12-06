@@ -501,10 +501,6 @@ getReferenceDatum acc block =
 updateAccumulator : ExpressionBlock -> Accumulator -> Accumulator
 updateAccumulator ({ heading, indent, args, body, meta, properties } as block) accumulator =
     -- Update the accumulator for expression blocks with selected name
-    let
-        _ =
-            Debug.log "@@UPDATE_ACC" heading
-    in
     case heading of
         -- provide numbering for sections
         -- reference : Dict String { id : String, numRef : String }

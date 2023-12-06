@@ -14,6 +14,7 @@ import Html.Attributes
 import List.Extra
 import Maybe.Extra
 import Render.Color as Color
+import Render.DataTable
 import Render.Expression
 import Render.Graphics
 import Render.Helper
@@ -23,6 +24,7 @@ import Render.Math
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
+import Render.Table
 import Render.Tabular
 import Render.Utility exposing (elementAttribute)
 import String.Extra
@@ -69,8 +71,8 @@ verbatimDict =
         , ( "docinfo", Render.Helper.renderNothing )
         , ( "mathmacros", Render.Helper.renderNothing )
         , ( "textmacros", Render.Helper.renderNothing )
+        , ( "datatable", Render.DataTable.render )
 
-        --, ( "datatable", Render.M.table )
         ----, ( "chart", Render.M.chart )
         , ( "svg", Render.Graphics.svg )
         , ( "quiver", Render.Graphics.quiver )

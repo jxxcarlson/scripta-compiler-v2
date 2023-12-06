@@ -20,11 +20,6 @@ import XMarkdown.Meta exposing (Meta)
 import XMarkdown.ParserTools as PT exposing (Context, Problem)
 
 
-
---fakeDebugLog label =
---    Debug.log label
-
-
 fakeDebugLog =
     \_ -> identity
 
