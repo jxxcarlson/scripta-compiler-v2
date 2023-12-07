@@ -5,18 +5,9 @@ text =
     """
 \\title{Test}
 
-- Breakfast
-
-  - Eggs
-
-  - Bacon
-
-  - Coffee
-
-    - Expresso
-
-    - Latte
-
+\\desc Radial Balancer
+This part \\strong{must} be machined to a tolerance of 0.001%, then
+connected to high-voltage unifier.
 
 """
 

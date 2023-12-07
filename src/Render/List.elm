@@ -21,17 +21,12 @@ indentationScale =
     15
 
 
-
--- item : Int -> Accumulator -> RenderSettings -> ExpressionBlock -> Element MarkupMsg
-
-
+item : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 item count acc settings attr block =
     let
         id =
             String.fromInt block.meta.lineNumber
 
-        --level_ =
-        --    Dict.get id acc.numberedItemDict |> Maybe.map .level |> Maybe.withDefault 0
         level_ =
             block.indent // 2
 
@@ -60,10 +55,7 @@ item count acc settings attr block =
         ]
 
 
-
--- numbered : Int -> Accumulator -> RenderSettings -> ExpressionBlock -> Element MarkupMsg
-
-
+numbered : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 numbered count acc settings attr block =
     let
         id =
@@ -114,14 +106,15 @@ numbered count acc settings attr block =
         ]
 
 
-
--- desc : Int -> Accumulator -> RenderSettings -> ExpressionBlock -> Element MarkupMsg
-
-
+desc : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 desc count acc settings attr block =
     let
+        _ =
+            Debug.log "desc" block
+
         label =
-            Render.Utility.argString block.args
+            -- Render.Utility.argString block.args
+            String.join " " block.args
     in
     Element.row ([ Element.alignTop, Render.Utility.idAttributeFromInt block.meta.lineNumber, Render.Utility.vspace 0 settings.topMarginForChildren ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
         [ Element.el [ Font.bold, Element.alignTop, Element.width (Element.px 100) ] (Element.text label)

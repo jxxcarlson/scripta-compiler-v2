@@ -7,18 +7,9 @@ text =
 | title
 TEST
 
-| box Matrices
-
-  A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool.
-
-  $$
-  \\begin{pmatrix}
-     a & b \\\\
-     c & d
-  \\end{pmatrix}
-  $$
-
-  A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool. A matrix: Matrices are really cool.
+| desc Radial Balancer
+This part [b must] be machined to a tolerance of 0.001%, then
+connected to high-voltage unifier.
 
  """
 

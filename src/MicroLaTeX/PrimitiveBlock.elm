@@ -351,6 +351,13 @@ handleSpecial_ classifier line state =
                         , properties = Dict.fromList [ ( "firstLine", String.replace str "" line.content ) ]
                     }
 
+                CSpecialBlock (LXDescription str) ->
+                    { newBlock_
+                        | heading = Ordinary "desc"
+                        , args = [ String.replace "\\desc " "" line.content ]
+                        , properties = Dict.fromList [ ( "firstLine", String.replace str "" line.content ) ]
+                    }
+
                 CVerbatimBlockDelim ->
                     { newBlock_
                         | heading = Ordinary "numbered"
@@ -1066,6 +1073,9 @@ emptyLine currentLine state =
 
                 CSpecialBlock (LXItem str) ->
                     endBlock (CSpecialBlock (LXItem str)) currentLine state
+
+                CSpecialBlock (LXDescription str) ->
+                    endBlock (CSpecialBlock (LXDescription str)) currentLine state
 
                 CSpecialBlock (LXNumbered str) ->
                     endBlock (CSpecialBlock (LXNumbered str)) currentLine state
