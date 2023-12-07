@@ -13,6 +13,7 @@ import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading
 import Html.Attributes
 import List.Extra
 import Maybe.Extra
+import Render.Chart
 import Render.Color as Color
 import Render.DataTable
 import Render.Expression
@@ -72,8 +73,7 @@ verbatimDict =
         , ( "mathmacros", Render.Helper.renderNothing )
         , ( "textmacros", Render.Helper.renderNothing )
         , ( "datatable", Render.DataTable.render )
-
-        ----, ( "chart", Render.M.chart )
+        , ( "chart", Render.Chart.render )
         , ( "svg", Render.Graphics.svg )
         , ( "quiver", Render.Graphics.quiver )
         , ( "image", Render.Graphics.image2 )
