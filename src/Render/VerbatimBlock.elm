@@ -3,33 +3,20 @@ module Render.VerbatimBlock exposing (render)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Element exposing (Element)
-import Element.Background as Background
-import Element.Events as Events
 import Element.Font as Font
-import Element.Input
-import Generic.ASTTools as ASTTools
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
-import Html.Attributes
-import List.Extra
-import Maybe.Extra
 import Render.Chart
-import Render.Color as Color
+import Render.ChartV2
 import Render.DataTable
-import Render.Expression
 import Render.Graphics
 import Render.Helper
 import Render.IFrame
-import Render.List
 import Render.Math
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
-import Render.Table
-import Render.Tabular
 import Render.Utility exposing (elementAttribute)
-import String.Extra
-import Tools.Utility as Utility
 
 
 render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg

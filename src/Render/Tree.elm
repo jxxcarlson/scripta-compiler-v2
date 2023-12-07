@@ -127,6 +127,9 @@ rootAttributes rootBlock =
     if List.member blockName italicBlockNames then
         [ Font.italic ]
 
+    else if blockName == "indent" then
+        [ Element.spacing 11, Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ]
+
     else if blockName == "box" then
         [ Element.spacing 11, Font.italic, Element.paddingXY 12 12, Background.color (Element.rgb 0.9 0.9 1.0) ]
 

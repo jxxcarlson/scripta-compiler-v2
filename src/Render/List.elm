@@ -109,9 +109,6 @@ numbered count acc settings attr block =
 desc : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 desc count acc settings attr block =
     let
-        _ =
-            Debug.log "desc" block
-
         label =
             -- Render.Utility.argString block.args
             String.join " " block.args

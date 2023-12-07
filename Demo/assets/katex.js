@@ -17,15 +17,15 @@ const init = async function(app) {
 }
 
 function loadMhchem() {
-  var mChemJs = document.createElement('script');
-  mChemJs.type = 'text/javascript';
-  mChemJs.onload = function() {
+  var mhChemJs = document.createElement('script');
+  mhChemJs.type = 'text/javascript';
+  mhChemJs.onload = function() {
     console.log("elm-katex: mhchem loaded");
   };
-  mChemJs.src = "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/mhchem.min.js";
+  mhChemJs.src = "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/mhchem.min.js";
 
-  document.head.appendChild(mChemJs);
-  console.log("elm-katex: I have appended mChemJs to document.head");
+  document.head.appendChild(mhChemJs);
+  console.log("elm-katex: I have appended mhChemJs to document.head");
 }
 
 function initKatex() {
@@ -41,11 +41,15 @@ function initKatex() {
       this.shadowRoot.innerHTML =
         katex.renderToString(
           this.content,
-          { throwOnError: false, displayMode: this.display }
+          {
+            throwOnError: false,
+            displayMode: this.display,
+            trust: true // Allows mhchem to be used
+          }
         );
       let link = document.createElement('link');
       link.setAttribute('rel', 'stylesheet');
-      link.setAttribute('href', 'https://cdn.jsdelivr.net/npm/katex@0.13.3/dist/katex.min.css');
+      link.setAttribute('href', 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css');
       this.shadowRoot.appendChild(link);
     }
   }

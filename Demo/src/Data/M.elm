@@ -7,6 +7,31 @@ text =
 | title
 TEST
 
+|| code
+  | theorem
+  There are infinitely many primes
+
+  [italic Pythagoras] said that $a^2 + b^2 = c^2$.
+
+  In calculus class, we learned this formula:
+
+  || equation
+  \\int_0^1 x^n dx = \\frac{1}{n+1}
+
+
+| indent
+This
+
+  | theorem
+  There are infinitely many primes
+
+  [italic Pythagoras] said that $a^2 + b^2 = c^2$.
+
+  In calculus class, we learned this formula:
+
+  || equation
+  \\int_0^1 x^n dx = \\frac{1}{n+1}
+
 $$
 \\ce{2H + O -> H2O}
 $$
