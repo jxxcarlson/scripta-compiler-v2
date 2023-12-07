@@ -7,9 +7,13 @@ text =
 | title
 TEST
 
-| desc Radial Balancer
-This part [b must] be machined to a tolerance of 0.001%, then
-connected to high-voltage unifier.
+$$
+\\ce{2H + O -> H2O}
+$$
+
+$$
+\\int_0^1 x^2 dx = \\frac{1}{3}
+$$
 
  """
 
