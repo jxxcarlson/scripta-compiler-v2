@@ -6,6 +6,7 @@ import Chart.Svg exposing (Axis)
 import Dict
 import Either exposing (Either(..))
 import Element exposing (Element)
+import Element.Background
 import Element.Font as Font
 import Element.Lazy
 import Generic.Acc exposing (Accumulator)
@@ -16,6 +17,55 @@ import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Stat
 import Tools.KV
+
+
+dWidth =
+    -- TODO: this is a bad hack
+    80
+
+
+render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+render count acc settings attr block =
+    case block.body of
+        Right _ ->
+            Element.text "Oops, Error!"
+
+        Left str ->
+            case String.split "====" str of
+                [ argString, data ] ->
+                    let
+                        args_ =
+                            String.split "\n" argString |> List.map String.trim
+
+                        ( _, properties_ ) =
+                            Tools.KV.argsAndProperties args_
+
+                        kind =
+                            List.head block.args |> Maybe.withDefault "line" |> String.trim
+
+                        properties : Dict.Dict String String
+                        properties =
+                            properties_
+                                |> Dict.insert "width" (String.fromInt (settings.width + dWidth))
+
+                        --|> Debug.log "@PROPERTIES"
+                        backgroundColor =
+                            case Dict.get "dark" properties of
+                                Just "yes" ->
+                                    Element.rgb 0.1 0.1 0.1
+
+                                Just "no" ->
+                                    Element.rgb 1 1 1
+
+                                _ ->
+                                    Element.rgb 1 1 1
+                    in
+                    -- Element.column [ Element.Background.color backgroundColor, Element.width (Element.px settings.width) ]
+                    Element.column [ Element.Background.color backgroundColor, Element.width (Element.px (settings.width + dWidth)) ]
+                        [ chart kind properties data ]
+
+                _ ->
+                    Element.text "Oops, Error! (2)"
 
 
 red =
@@ -42,6 +92,7 @@ type alias Options =
     , domain : Maybe Range
     , range : Maybe Range
     , width : Int
+    , dark : Bool
     }
 
 
@@ -65,7 +116,7 @@ plot2D kind properties_ xyData =
             , columns = Dict.get "columns" properties |> Maybe.map (String.split "," >> List.map String.trim >> List.map String.toInt >> Maybe.Extra.values)
             , rows = Dict.get "rows" properties |> Maybe.map (String.split "," >> List.map String.trim >> twoListToIntPair)
             , separator = Dict.get "separator" properties
-            , reverse = Dict.get "reverse" properties |> toBool
+            , reverse = Dict.get "reverse" properties |> toBool |> Maybe.withDefault False
             , header = Dict.get "header" properties |> Maybe.andThen String.toInt
             , filter = Dict.get "filter" properties
             , lowest = Dict.get "lowest" properties |> Maybe.andThen String.toFloat
@@ -76,6 +127,7 @@ plot2D kind properties_ xyData =
             , domain = Dict.get "domain" properties |> Maybe.andThen getRange
             , range = Dict.get "range" properties |> Maybe.andThen getRange
             , width = Dict.get "width" properties |> Maybe.andThen String.toInt |> Maybe.withDefault 300
+            , dark = Dict.get "dark" properties |> toBool |> Maybe.withDefault False
             }
 
         data : ChartData
@@ -100,68 +152,6 @@ plot2D kind properties_ xyData =
         ]
 
 
-yo =
-    Dict.fromList
-        [ ( "kind", "scatter" )
-        , ( "label", "S&P   Index, 06/14/2021 to 06/10/2022 " )
-        , ( "lowest", "3700 " )
-        , ( "regression", "yes" )
-        , ( "reverse columns", "1 " )
-        ]
-
-
-render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
-render count acc settings attr block =
-    case block.body of
-        Right _ ->
-            Element.text "Oops, Error!"
-
-        Left str ->
-            case String.split "====" str of
-                [ argString, data ] ->
-                    let
-                        args_ =
-                            String.split "\n" argString |> List.map String.trim
-                    in
-                    case List.Extra.uncons args_ of
-                        Nothing ->
-                            Element.text "Oops, Error! (1)"
-
-                        Just ( kind, args ) ->
-                            let
-                                ( _, properties_ ) =
-                                    Tools.KV.argsAndProperties args
-
-                                properties =
-                                    properties_
-                                        |> Dict.insert "kind" (String.trim kind)
-                                        |> Dict.insert "width" (String.fromInt settings.width)
-                            in
-                            chart kind properties data
-
-                _ ->
-                    Element.text "Oops, Error! (2)"
-
-
-ooo =
-    { caption = Just "Hubble_1929_Data_redshift_vs_distance "
-    , columns = Just [ 1, 2 ]
-    , direction = Nothing
-    , domain = Nothing
-    , filter = Nothing
-    , header = Nothing
-    , kind = Just "scatter "
-    , label = Just "1 "
-    , lowest = Nothing
-    , range = Nothing
-    , regression = Just "yes"
-    , reverse = False
-    , rows = Nothing
-    , separator = Nothing
-    , width = 300
-    }
-
-
 chart : String -> Dict.Dict String String -> String -> Element msg
 chart kind properties_ data_ =
     Element.Lazy.lazy3 chart_ kind properties_ data_
@@ -179,7 +169,7 @@ chart_ kind properties_ data_ =
             , columns = Dict.get "columns" properties |> Maybe.map (String.split "," >> List.map String.trim >> List.map String.toInt >> Maybe.Extra.values)
             , rows = Dict.get "rows" properties |> Maybe.map (String.split "," >> List.map String.trim >> twoListToIntPair)
             , separator = Dict.get "separator" properties
-            , reverse = Dict.get "reverse" properties |> toBool
+            , reverse = Dict.get "reverse" properties |> toBool |> Maybe.withDefault False
             , header = Dict.get "header" properties |> Maybe.andThen String.toInt
             , filter = Dict.get "filter" properties
             , lowest = Dict.get "lowest" properties |> Maybe.andThen String.toFloat
@@ -190,14 +180,14 @@ chart_ kind properties_ data_ =
             , domain = Dict.get "domain" properties |> Maybe.andThen getRange
             , range = Dict.get "range" properties |> Maybe.andThen getRange
             , width = Dict.get "width" properties |> Maybe.andThen String.toInt |> Maybe.withDefault 300
+            , dark = Dict.get "dark" properties |> toBool |> Maybe.withDefault False
             }
-                |> Debug.log "@@Options"
 
         data : Maybe ChartData
         data =
             csvToChartData options (data_ |> String.trim |> String.split "\n")
     in
-    Element.column [ Element.width (Element.px (options.width - deltaWidth)), Element.paddingEach { left = 48, right = 0, top = 36, bottom = 72 }, Element.spacing 24 ]
+    Element.column [ Element.width (Element.px (options.width - deltaWidth)), Element.paddingEach { left = 48, right = 0, top = 36, bottom = 36 }, Element.spacing 24 ]
         [ Element.el [ Element.width (Element.px (options.width - deltaWidth)) ]
             (rawLineChart options data)
         , case ( options.label, options.caption ) of
@@ -215,17 +205,17 @@ chart_ kind properties_ data_ =
         ]
 
 
-toBool : Maybe String -> Bool
+toBool : Maybe String -> Maybe Bool
 toBool maybeString =
     case maybeString of
         Just "yes" ->
-            True
+            Just True
 
         Just "no" ->
-            False
+            Just False
 
         _ ->
-            False
+            Nothing
 
 
 getArg : String -> List String -> Maybe String
@@ -562,9 +552,6 @@ rawLineChart2D options data =
 
                 Just range_ ->
                     CA.range (expandRange range_)
-
-        _ =
-            Debug.log "@@kind" options.kind
     in
     Chart.chart
         [ CA.height 200

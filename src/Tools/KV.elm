@@ -108,7 +108,7 @@ type KVStatus
 
 prepareList : List String -> List String
 prepareList strs =
-    strs |> explode |> List.map fix |> List.concat
+    strs |> explode |> List.map fix |> List.concat |> List.filter (\s -> s /= "")
 
 
 fix : List String -> List String
