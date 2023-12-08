@@ -4,11 +4,18 @@ import Chart
 import Chart.Attributes as CA
 import Chart.Svg exposing (Axis)
 import Dict
+import Either exposing (Either(..))
 import Element exposing (Element)
 import Element.Font as Font
+import Element.Lazy
+import Generic.Acc exposing (Accumulator)
+import Generic.Language exposing (ExpressionBlock)
 import List.Extra
 import Maybe.Extra
+import Render.Msg exposing (MarkupMsg(..))
+import Render.Settings exposing (RenderSettings)
 import Stat
+import Tools.KV
 
 
 red =
@@ -93,8 +100,75 @@ plot2D kind properties_ xyData =
         ]
 
 
-render : String -> Dict.Dict String String -> String -> Element msg
-render kind properties_ data_ =
+yo =
+    Dict.fromList
+        [ ( "kind", "scatter" )
+        , ( "label", "S&P   Index, 06/14/2021 to 06/10/2022 " )
+        , ( "lowest", "3700 " )
+        , ( "regression", "yes" )
+        , ( "reverse columns", "1 " )
+        ]
+
+
+render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+render count acc settings attr block =
+    case block.body of
+        Right _ ->
+            Element.text "Oops, Error!"
+
+        Left str ->
+            case String.split "====" str of
+                [ argString, data ] ->
+                    let
+                        args_ =
+                            String.split "\n" argString |> List.map String.trim
+                    in
+                    case List.Extra.uncons args_ of
+                        Nothing ->
+                            Element.text "Oops, Error! (1)"
+
+                        Just ( kind, args ) ->
+                            let
+                                ( _, properties_ ) =
+                                    Tools.KV.argsAndProperties args
+
+                                properties =
+                                    properties_
+                                        |> Dict.insert "kind" (String.trim kind)
+                                        |> Dict.insert "width" (String.fromInt settings.width)
+                            in
+                            chart kind properties data
+
+                _ ->
+                    Element.text "Oops, Error! (2)"
+
+
+ooo =
+    { caption = Just "Hubble_1929_Data_redshift_vs_distance "
+    , columns = Just [ 1, 2 ]
+    , direction = Nothing
+    , domain = Nothing
+    , filter = Nothing
+    , header = Nothing
+    , kind = Just "scatter "
+    , label = Just "1 "
+    , lowest = Nothing
+    , range = Nothing
+    , regression = Just "yes"
+    , reverse = False
+    , rows = Nothing
+    , separator = Nothing
+    , width = 300
+    }
+
+
+chart : String -> Dict.Dict String String -> String -> Element msg
+chart kind properties_ data_ =
+    Element.Lazy.lazy3 chart_ kind properties_ data_
+
+
+chart_ : String -> Dict.Dict String String -> String -> Element msg
+chart_ kind properties_ data_ =
     let
         properties =
             Dict.insert "kind" kind properties_
@@ -117,6 +191,7 @@ render kind properties_ data_ =
             , range = Dict.get "range" properties |> Maybe.andThen getRange
             , width = Dict.get "width" properties |> Maybe.andThen String.toInt |> Maybe.withDefault 300
             }
+                |> Debug.log "@@Options"
 
         data : Maybe ChartData
         data =
@@ -487,6 +562,9 @@ rawLineChart2D options data =
 
                 Just range_ ->
                     CA.range (expandRange range_)
+
+        _ =
+            Debug.log "@@kind" options.kind
     in
     Chart.chart
         [ CA.height 200
@@ -537,7 +615,7 @@ rawLineChart2D options data =
                     data
 
             _ ->
-                Chart.series .x [ Chart.interpolated .y [ CA.color CA.red ] [] ] data
+                Chart.series .x [ Chart.interpolated .y [ CA.color CA.blue ] [] ] data
         ]
         |> Element.html
 

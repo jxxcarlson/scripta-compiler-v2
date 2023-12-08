@@ -60,7 +60,7 @@ verbatimDict =
         , ( "mathmacros", Render.Helper.renderNothing )
         , ( "textmacros", Render.Helper.renderNothing )
         , ( "datatable", Render.DataTable.render )
-        , ( "chart", Render.Chart.render )
+        , ( "chart", Render.ChartV2.render )
         , ( "svg", Render.Graphics.svg )
         , ( "quiver", Render.Graphics.quiver )
         , ( "image", Render.Graphics.image2 )
