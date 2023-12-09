@@ -34,11 +34,8 @@ render count acc settings attr block =
             case String.split "====" str of
                 [ argString, data ] ->
                     let
-                        args_ =
-                            String.split "\n" argString |> List.map String.trim
-
-                        ( _, properties_ ) =
-                            Tools.KV.argsAndProperties args_
+                        properties_ =
+                            Tools.KV.makeDict argString |> Debug.log "@PROPS"
 
                         kind =
                             List.head block.args |> Maybe.withDefault "line" |> String.trim
@@ -48,7 +45,6 @@ render count acc settings attr block =
                             properties_
                                 |> Dict.insert "width" (String.fromInt (settings.width + dWidth))
 
-                        --|> Debug.log "@PROPERTIES"
                         backgroundColor =
                             case Dict.get "dark" properties of
                                 Just "yes" ->
@@ -60,7 +56,6 @@ render count acc settings attr block =
                                 _ ->
                                     Element.rgb 1 1 1
                     in
-                    -- Element.column [ Element.Background.color backgroundColor, Element.width (Element.px settings.width) ]
                     Element.column [ Element.Background.color backgroundColor, Element.width (Element.px (settings.width + dWidth)) ]
                         [ chart kind properties data ]
 
@@ -113,7 +108,7 @@ plot2D kind properties_ xyData =
         options : Options
         options =
             { direction = Dict.get "direction" properties
-            , columns = Dict.get "columns" properties |> Maybe.map (String.split "," >> List.map String.trim >> List.map String.toInt >> Maybe.Extra.values)
+            , columns = Dict.get "columns" properties |> Maybe.map (String.split "," >> List.map String.trim >> List.map String.toInt >> Maybe.Extra.values >> List.map (\x -> x - 1))
             , rows = Dict.get "rows" properties |> Maybe.map (String.split "," >> List.map String.trim >> twoListToIntPair)
             , separator = Dict.get "separator" properties
             , reverse = Dict.get "reverse" properties |> toBool |> Maybe.withDefault False
@@ -166,7 +161,7 @@ chart_ kind properties_ data_ =
         options : Options
         options =
             { direction = Dict.get "direction" properties
-            , columns = Dict.get "columns" properties |> Maybe.map (String.split "," >> List.map String.trim >> List.map String.toInt >> Maybe.Extra.values)
+            , columns = Dict.get "columns" properties |> Maybe.map (String.split "," >> List.map String.trim >> List.map String.toInt >> Maybe.Extra.values >> List.map (\x -> x - 1))
             , rows = Dict.get "rows" properties |> Maybe.map (String.split "," >> List.map String.trim >> twoListToIntPair)
             , separator = Dict.get "separator" properties
             , reverse = Dict.get "reverse" properties |> toBool |> Maybe.withDefault False

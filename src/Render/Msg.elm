@@ -21,6 +21,7 @@ type MarkupMsg
     | RequestCopyOfDocument
     | RequestToggleIndexSize
     | JumpToTop
+    | LoadFile String String
     | MMNoOp
 
 

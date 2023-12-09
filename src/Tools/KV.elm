@@ -1,8 +1,25 @@
-module Tools.KV exposing (argsAndProperties, cleanArgs, prepareKVData, prepareList)
+module Tools.KV exposing (argsAndProperties, cleanArgs, makeDict, prepareKVData, prepareList)
 
 import Dict exposing (Dict)
 import List.Extra
 import Tools.Loop exposing (Step(..), loop)
+
+
+{-|
+
+    > stuff = "source:http://localhost:80/data/hubble.csv\nfoo:bar\nyuuk"
+    > makeDict stuff
+    Dict.fromList [("foo","bar"),("source","http://localhost:80/data/hubble.csv"),("yuuk","")]
+
+-}
+makeDict : String -> Dict String String
+makeDict str =
+    str
+        |> String.lines
+        |> List.map String.trim
+        |> List.filter (\s -> s /= "")
+        |> preparePairs
+        |> Dict.fromList
 
 
 argsAndProperties : List String -> ( List String, Dict String String )
@@ -111,6 +128,11 @@ prepareList strs =
     strs |> explode |> List.map fix |> List.concat |> List.filter (\s -> s /= "")
 
 
+preparePairs : List String -> List ( String, String )
+preparePairs strs =
+    strs |> explode |> List.map makePair |> List.filter (\( k, _ ) -> k /= "")
+
+
 fix : List String -> List String
 fix strs =
     case strs of
@@ -122,6 +144,19 @@ fix strs =
 
         [] ->
             []
+
+
+makePair : List String -> ( String, String )
+makePair strs =
+    case strs of
+        a :: b :: rest ->
+            ( a, String.join ":" (b :: rest) )
+
+        a :: [] ->
+            ( a, "" )
+
+        [] ->
+            ( "", "" )
 
 
 explode : List String -> List (List String)
