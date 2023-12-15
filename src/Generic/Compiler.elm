@@ -6,6 +6,7 @@ module Generic.Compiler exposing
     , parse_
     )
 
+import Dict exposing (Dict)
 import Generic.Acc
 import Generic.Forest exposing (Forest)
 import Generic.ForestTransform exposing (Error)
@@ -71,4 +72,5 @@ type alias DisplaySettings =
     , selectedId : String
     , selectedSlug : Maybe String
     , scale : Float
+    , data : Dict String String
     }

@@ -6,6 +6,8 @@ module ScriptaV2.Settings exposing (RenderSettings, DisplaySettings, defaultSett
 
 -}
 
+import Dict exposing (Dict)
+import Generic.Compiler
 import Render.Settings
 
 
@@ -15,7 +17,7 @@ type alias RenderSettings =
 
 
 {-| -}
-makeSettings : String -> Maybe String -> Float -> Int -> Render.Settings.RenderSettings
+makeSettings : String -> Maybe String -> Float -> Int -> Dict String String -> Render.Settings.RenderSettings
 makeSettings =
     Render.Settings.makeSettings
 
@@ -36,19 +38,13 @@ makeSettings =
 
 -}
 type alias DisplaySettings =
-    { windowWidth : Int
-    , longEquationLimit : Float
-    , counter : Int
-    , selectedId : String
-    , selectedSlug : Maybe String
-    , scale : Float
-    }
+    Generic.Compiler.DisplaySettings
 
 
 {-| -}
 renderSettingsFromDisplaySettings : DisplaySettings -> RenderSettings
 renderSettingsFromDisplaySettings ds =
-    Render.Settings.makeSettings ds.selectedId ds.selectedSlug ds.scale ds.windowWidth
+    Render.Settings.makeSettings ds.selectedId ds.selectedSlug ds.scale ds.windowWidth ds.data
 
 
 {-| -}

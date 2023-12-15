@@ -1,4 +1,4 @@
-module Render.Expression exposing (nonstandardElements, render)
+module Render.Expression exposing (hd, nonstandardElements, render)
 
 import Dict exposing (Dict)
 import Element exposing (Element, column, el, newTabLink, spacing)
@@ -84,6 +84,7 @@ markupDict =
 
         -- STYLE
         , ( "scheme", \g acc s attr exprList -> renderScheme g acc s attr exprList )
+        , ( "dt", \g acc s attr exprList -> renderDataTools g acc s attr exprList )
         , ( "button", \g acc s attr exprList -> renderButton g acc s attr exprList )
         , ( "strong", \g acc s attr exprList -> strong g acc s attr exprList )
         , ( "bold", \g acc s attr exprList -> strong g acc s attr exprList )
@@ -449,6 +450,7 @@ strong g acc s attr exprList =
     simpleElement [ Font.bold ] g acc s attr exprList
 
 
+renderScheme : a -> b -> c -> d -> List Expression -> Element msg
 renderScheme g acc s attr exprList =
     let
         inputText : String
@@ -456,6 +458,128 @@ renderScheme g acc s attr exprList =
             ASTTools.exprListToStringList exprList |> String.join " "
     in
     Element.text (MicroScheme.Interpreter.runProgram ";" inputText)
+
+
+renderDataTools : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
+renderDataTools g acc s attr exprList =
+    let
+        args =
+            ASTTools.exprListToStringList exprList
+                |> String.join " "
+                |> String.split " "
+                |> List.map (\item -> String.trim item)
+    in
+    renderDTValue (eval s.data args)
+
+
+hd =
+    """
+S.Mag,0.032,170
+L.Mag,0.034,290
+NGC.6822,0.214,-130
+NGC.598,0.263,-70
+NGC.221,0.275,-185
+NGC.224,0.275,-220
+NGC.5457,0.45,200
+NGC.4736,0.5,290
+NGC.5194,0.5,270
+NGC.4449,0.63,200
+NGC.4214,0.8,300
+NGC.3031,0.9,-30
+NGC.3627,0.9,650
+NGC.4826,0.9,150
+NGC.5236,0.9,500
+NGC.1068,1.0,920
+NGC.5055,1.1,450
+NGC.7331,1.1,500
+NGC.4258,1.4,500
+NGC.4151,1.7,960
+NGC.4382,2.0,500
+NGC.4472,2.0,850
+NGC.4486,2.0,800
+NGC.4649,2.0,1090
+NGC.3115,2.2,1000
+"""
+
+
+eval : Dict String String -> List String -> DTValue
+eval dict args_ =
+    case List.Extra.uncons args_ of
+        Nothing ->
+            DTError "No data source given"
+
+        Just ( src, args ) ->
+            if String.left 7 src == "source:" then
+                evalAuxDT dict (String.dropLeft 7 src) args
+
+            else
+                DTError "Give source as 'source:SOURCE_NAME'"
+
+
+renderDTValue : DTValue -> Element msg
+renderDTValue dtValue =
+    case dtValue of
+        DTString str ->
+            Element.text str
+
+        DTStringList strList ->
+            Element.column [ Element.spacing 8 ] (List.map (\str -> Element.text str) strList)
+
+        DTInt int ->
+            Element.text <| String.fromInt int
+
+        DTError str ->
+            Element.el [ Font.color (Element.rgb 0.8 0 0) ] (Element.text <| "Error: " ++ str)
+
+
+evalAuxDT : Dict String String -> String -> List String -> DTValue
+evalAuxDT dict src args =
+    case Dict.get src dict of
+        Nothing ->
+            DTError ("No data source named '" ++ src ++ "'")
+
+        Just data ->
+            case args of
+                [] ->
+                    DTError "No arguments given"
+
+                [ "rows" ] ->
+                    List.length (String.lines data) |> DTInt
+
+                [ "columns" ] ->
+                    data
+                        |> String.lines
+                        |> List.map (String.split ",")
+                        |> List.filter (\row -> row /= [ "" ])
+                        |> List.Extra.transpose
+                        |> List.length
+                        |> DTInt
+
+                [ "lines", from_, to_ ] ->
+                    data
+                        |> String.lines
+                        |> List.take (String.toInt to_ |> Maybe.withDefault 2 |> (\x -> x))
+                        |> List.drop (String.toInt from_ |> Maybe.withDefault 1 |> (\x -> x - 1))
+                        |> DTStringList
+
+                [ "header" ] ->
+                    data
+                        |> String.lines
+                        |> List.head
+                        |> Maybe.withDefault ""
+                        |> String.split ","
+                        |> List.indexedMap (\i str -> String.fromInt (i + 1) ++ ": " ++ str)
+                        |> DTStringList
+
+                _ ->
+                    DTError "Invalid arguments given"
+
+
+type DTValue
+    = DTString String
+    | DTStringList (List String)
+    | DTInt Int
+    | DTError String
 
 
 renderButton _ _ _ attr exprList =
@@ -517,6 +641,7 @@ backTick =
     Element.text "`"
 
 
+italic : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
 italic g acc s attr exprList =
     simpleElement [ Font.italic, Element.paddingEach { left = 0, right = 2, top = 0, bottom = 0 } ] g acc s attr exprList
 

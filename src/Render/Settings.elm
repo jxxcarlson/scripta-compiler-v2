@@ -9,6 +9,7 @@ is to be displayed. This is given by the `.width` field.
 
 -}
 
+import Dict exposing (Dict)
 import Element
 
 
@@ -38,6 +39,7 @@ type alias RenderSettings =
     , maxHeadingFontSize : Float
     , redColor : Element.Color
     , topMarginForChildren : Int
+    , data : Dict String String
     }
 
 
@@ -50,18 +52,18 @@ type Display
 {-| -}
 defaultSettings : RenderSettings
 defaultSettings =
-    makeSettings "" Nothing 1 600
+    makeSettings "" Nothing 1 600 Dict.empty
 
 
 {-| -}
 default : String -> Int -> RenderSettings
 default selectedId width =
-    makeSettings selectedId Nothing 1 width
+    makeSettings selectedId Nothing 1 width Dict.empty
 
 
 {-| -}
-makeSettings : String -> Maybe String -> Float -> Int -> RenderSettings
-makeSettings selectedId selectedSlug scale windowWidth =
+makeSettings : String -> Maybe String -> Float -> Int -> Dict String String -> RenderSettings
+makeSettings selectedId selectedSlug scale windowWidth data =
     let
         titleSize =
             32
@@ -87,4 +89,5 @@ makeSettings selectedId selectedSlug scale windowWidth =
     , maxHeadingFontSize = (titleSize |> toFloat) * 0.67
     , redColor = Element.rgb 0.7 0 0
     , topMarginForChildren = 6
+    , data = data
     }

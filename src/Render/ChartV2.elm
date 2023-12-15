@@ -32,10 +32,10 @@ render count acc settings attr block =
 
         Left str ->
             case String.split "====" str of
-                [ argString, data ] ->
+                [ argString, data_ ] ->
                     let
                         properties_ =
-                            Tools.KV.makeDict argString |> Debug.log "@PROPS"
+                            Tools.KV.makeDict argString
 
                         kind =
                             List.head block.args |> Maybe.withDefault "line" |> String.trim
@@ -55,6 +55,23 @@ render count acc settings attr block =
 
                                 _ ->
                                     Element.rgb 1 1 1
+
+                        data =
+                            if data_ == "" then
+                                case Dict.get "source" properties of
+                                    Just tag ->
+                                        case Dict.get tag settings.data of
+                                            Just data__ ->
+                                                data__
+
+                                            Nothing ->
+                                                ""
+
+                                    _ ->
+                                        ""
+
+                            else
+                                data_
                     in
                     Element.column [ Element.Background.color backgroundColor, Element.width (Element.px (settings.width + dWidth)) ]
                         [ chart kind properties data ]
