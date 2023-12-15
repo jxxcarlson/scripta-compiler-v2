@@ -72,6 +72,7 @@ verbatimDict =
         , ( "tikz", Render.Graphics.tikz )
         , ( "load-files", Render.Helper.renderNothing )
         , ( "include", Render.Helper.renderNothing )
+        , ( "setup", Render.Helper.renderNothing )
         , ( "iframe", Render.IFrame.render )
         ]
 
