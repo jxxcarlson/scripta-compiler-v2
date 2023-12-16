@@ -59,6 +59,7 @@ verbatimDict =
 
         --, ( "tabular", Render.Tabular.render )
         , ( "load", renderLoad )
+        , ( "load-data", Render.Helper.renderNothing )
         , ( "hide", Render.Helper.renderNothing )
         , ( "texComment", Render.Helper.renderNothing )
         , ( "docinfo", Render.Helper.renderNothing )
@@ -75,6 +76,16 @@ verbatimDict =
         , ( "setup", Render.Helper.renderNothing )
         , ( "iframe", Render.IFrame.render )
         ]
+
+
+renderLoadData : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+renderLoadData _ _ _ _ block =
+    Element.none
+
+
+setup : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+setup _ _ _ _ block =
+    Element.none
 
 
 renderLoad : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg

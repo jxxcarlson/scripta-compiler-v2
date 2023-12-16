@@ -208,7 +208,7 @@ languageToString lang =
             "M"
 
         ScriptaV2.Language.XMarkdownLang ->
-            "XMarkdown"
+            "SMarkdown"
 
         ScriptaV2.Language.MicroLaTeXLang ->
             "MicroLaTeX"
