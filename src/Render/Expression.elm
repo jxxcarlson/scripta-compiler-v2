@@ -84,7 +84,7 @@ markupDict =
 
         -- STYLE
         , ( "scheme", \g acc s attr exprList -> renderScheme g acc s attr exprList )
-        , ( "dt", \g acc s attr exprList -> renderDataTools g acc s attr exprList )
+        , ( "data", \g acc s attr exprList -> renderDataTools g acc s attr exprList )
         , ( "button", \g acc s attr exprList -> renderButton g acc s attr exprList )
         , ( "strong", \g acc s attr exprList -> strong g acc s attr exprList )
         , ( "bold", \g acc s attr exprList -> strong g acc s attr exprList )
