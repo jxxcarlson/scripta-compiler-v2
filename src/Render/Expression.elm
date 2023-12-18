@@ -509,11 +509,9 @@ eval dict args_ =
             DTError "No data source given"
 
         Just ( src, args ) ->
-            if String.left 7 src == "source:" then
-                evalAuxDT dict (String.dropLeft 7 src) args
-
-            else
-                DTError "Give source as 'source:SOURCE_NAME'"
+            --if String.left 7 src == "source:" then
+            --    evalAuxDT dict (String.dropLeft 7 src) args
+            evalAuxDT dict src args
 
 
 renderDTValue : DTValue -> Element msg
