@@ -61,29 +61,23 @@ editRecordToCompilerOutput displaySettings editRecord =
 
         counter =
             displaySettings.counter
-    in
-    forestToCompilerOutput counter renderSettings editRecord.accumulator editRecord.tree
 
-
-forestToCompilerOutput : Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> Forest ExpressionBlock -> ScriptaV2.Compiler.CompilerOutput
-forestToCompilerOutput outerCount renderSettings accumulator forest =
-    let
         toc : List (Element MarkupMsg)
         toc =
-            Render.TOC.view renderSettings.selectedId outerCount accumulator [] forest
+            Render.TOC.view renderSettings.selectedId counter editRecord.accumulator [] editRecord.tree
 
         banner : Maybe (Element MarkupMsg)
         banner =
-            Generic.ASTTools.banner forest
-                |> Maybe.map (Render.Block.renderBody outerCount accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
+            Generic.ASTTools.banner editRecord.tree
+                |> Maybe.map (Render.Block.renderBody counter editRecord.accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
                 |> Maybe.map (Element.row [ Element.height (Element.px 40) ])
 
         title : Element MarkupMsg
         title =
-            Element.paragraph [] [ Element.text <| Generic.ASTTools.title forest ]
+            Element.paragraph [] [ Element.text <| Generic.ASTTools.title editRecord.tree ]
     in
     { body =
-        ScriptaV2.Compiler.renderForest outerCount renderSettings accumulator forest
+        ScriptaV2.Compiler.renderForest counter renderSettings editRecord.accumulator editRecord.tree
     , banner = banner
     , toc = toc
     , title = title
