@@ -30,17 +30,6 @@ toExpressionBlock lang parser block =
 
 toPrimitiveBlockForest : List PrimitiveBlock -> Result Error (Forest PrimitiveBlock)
 toPrimitiveBlockForest blocks =
-    let
-        input : List PrimitiveBlock
-        input =
-            blocks
-
-        output =
-            Generic.ForestTransform.forestFromBlocks emptyBlock .indent input
-
-        mapperF =
-            Generic.Forest.map (Generic.Language.simplifyBlock (\c -> ()))
-    in
     Generic.ForestTransform.forestFromBlocks { emptyBlock | indent = -2 } .indent blocks
 
 
@@ -137,11 +126,6 @@ fixTable_ : List Expression -> List Expression
 fixTable_ exprs =
     case List.head exprs of
         Just (Fun "table" innerExprs meta) ->
-            let
-                foo2 : List Expression
-                foo2 =
-                    fixInner innerExprs
-            in
             [ Fun "table" (fixInner innerExprs |> List.map fixRow) meta ]
 
         _ ->
@@ -176,21 +160,6 @@ fixRow expr =
             expr
 
 
-fixTableLaTeX : List Expression -> List Expression
-fixTableLaTeX exprs =
-    case List.head exprs of
-        Just (Fun "table" innerExprs meta) ->
-            let
-                foo2 : List Expression
-                foo2 =
-                    fixInnerLaTeX innerExprs
-            in
-            [ Fun "table" (fixInnerLaTeX innerExprs |> List.map fixRowLaTeX) meta ]
-
-        _ ->
-            exprs
-
-
 fixInnerLaTeX : List Expression -> List Expression
 fixInnerLaTeX exprs =
     List.filter
@@ -207,16 +176,6 @@ fixInnerLaTeX exprs =
                     True
         )
         exprs
-
-
-fixRowLaTeX : Expression -> Expression
-fixRowLaTeX expr =
-    case expr of
-        Fun "row" innerExprs meta ->
-            Fun "row" (fixInnerLaTeX innerExprs) meta
-
-        _ ->
-            expr
 
 
 prepareTableLaTeX : (String -> List Expression) -> String -> List Expression
@@ -238,10 +197,6 @@ prepareTableLaTeX parse str =
                 |> (\rows -> "\\table{" ++ String.join "" rows ++ "}")
     in
     parse cells
-
-
-
---|> fixTable
 
 
 prepareTable1 : (String -> List Expression) -> String -> List Expression
