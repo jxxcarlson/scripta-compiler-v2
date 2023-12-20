@@ -56,6 +56,7 @@ renderEditRecord displaySettings editRecord =
 editRecordToCompilerOutput : Generic.Compiler.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
 editRecordToCompilerOutput displaySettings editRecord =
     let
+        renderSettings : ScriptaV2.Settings.RenderSettings
         renderSettings =
             ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings
 
