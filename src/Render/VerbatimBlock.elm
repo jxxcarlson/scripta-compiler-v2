@@ -154,7 +154,11 @@ renderVerbatim _ _ _ attrs block =
 
 
 renderVerbatimLine : String -> String -> Element msg
-renderVerbatimLine lang str =
+renderVerbatimLine lang str_ =
+    let
+        str =
+            String.replace "\\bt" "`" str_
+    in
     if String.trim str == "" then
         Element.el [ Element.height (Element.px 11) ] (Element.text "")
 
