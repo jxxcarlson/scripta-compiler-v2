@@ -4,6 +4,8 @@ module Tools.Utility exposing
     , keyValueDict
     , removeNonAlphaNum
     , removeNonAlphaNumExceptHyphen
+    , replaceLeadingDashSpace
+    , replaceLeadingDotSpace
     , truncateString
     , userReplace
     )
@@ -11,6 +13,24 @@ module Tools.Utility exposing
 import Dict exposing (Dict)
 import Maybe.Extra
 import Regex
+
+
+replaceLeadingDotSpace : String -> String
+replaceLeadingDotSpace str =
+    let
+        regex =
+            Regex.fromString "^\\. " |> Maybe.withDefault Regex.never
+    in
+    Regex.replace regex (\_ -> "") str
+
+
+replaceLeadingDashSpace : String -> String
+replaceLeadingDashSpace str =
+    let
+        regex =
+            Regex.fromString "^- " |> Maybe.withDefault Regex.never
+    in
+    Regex.replace regex (\_ -> "") str
 
 
 truncateString : Int -> String -> String

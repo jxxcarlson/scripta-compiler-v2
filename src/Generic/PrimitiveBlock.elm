@@ -17,6 +17,7 @@ import Generic.Language exposing (BlockMeta, Heading(..), PrimitiveBlock, emptyB
 import Generic.Line as Line exposing (HeadingData, HeadingError, Line)
 import List.Extra
 import Tools.Loop exposing (Step(..), loop)
+import Tools.Utility
 
 
 {-| Parse a list of strings into a list of primitive blocks given
@@ -379,10 +380,10 @@ transformBlock findTitlePrefix block =
             { block | properties = Dict.insert "level" "4" block.properties, heading = Ordinary "section" }
 
         Just "item" ->
-            { block | body = String.replace "- " "" block.firstLine :: block.body }
+            { block | body = (block.firstLine |> String.trim |> Tools.Utility.replaceLeadingDashSpace) :: block.body }
 
         Just "numbered" ->
-            { block | body = String.replace ". " "" block.firstLine :: block.body }
+            { block | body = (block.firstLine |> String.trim |> Tools.Utility.replaceLeadingDotSpace) :: block.body }
 
         _ ->
             block

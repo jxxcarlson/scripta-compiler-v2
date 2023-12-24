@@ -1,4 +1,4 @@
-module XMarkdown.PrimitiveBlock exposing (..)
+module XMarkdown.PrimitiveBlock exposing (parse)
 
 import Dict exposing (Dict)
 import Generic.Language exposing (Heading(..), PrimitiveBlock)
@@ -6,10 +6,25 @@ import Generic.Line exposing (HeadingData, HeadingError(..), Line)
 import Generic.PrimitiveBlock exposing (ParserFunctions)
 import Regex
 import Tools.KV as KV
+import Tools.Utility
+
+
+example =
+    """
+. One. Two. Three.
+Four. Five . Six.
+"""
+
+
+example2 =
+    """
+- One- Two- Three-
+Four - Five - Six-
+"""
 
 
 {-| Parse a list of strings into a list of primitive blocks given
-a function for determining when a string is the first line
+a function for determexaining when a string is the first line
 of a verbatim block
 
 NOTE (TODO) for the moment we assume that the input ends with
@@ -101,7 +116,7 @@ getHeadingData line_ =
                                 "-" ->
                                     let
                                         reducedLine =
-                                            String.replace "- " "" line
+                                            line |> String.trim |> Tools.Utility.replaceLeadingDashSpace
                                     in
                                     if String.isEmpty reducedLine then
                                         Err HENoContent
@@ -110,13 +125,14 @@ getHeadingData line_ =
                                         Ok <|
                                             { heading = Ordinary "item"
                                             , args = []
-                                            , properties = Dict.singleton "firstLine" (String.replace "- " "" line)
+                                            , properties = Dict.singleton "firstLine" reducedLine
                                             }
 
                                 "." ->
                                     let
                                         reducedLine =
-                                            String.replace ". " "" line
+                                            -- String.replace ". " "" line
+                                            line |> String.trim |> Tools.Utility.replaceLeadingDotSpace |> Debug.log "REDUCED LINE"
                                     in
                                     if String.isEmpty reducedLine then
                                         Err HENoContent
@@ -125,7 +141,7 @@ getHeadingData line_ =
                                         Ok <|
                                             { heading = Ordinary "numbered"
                                             , args = []
-                                            , properties = Dict.singleton "firstLine" (String.replace ". " "" line)
+                                            , properties = Dict.singleton "firstLine" reducedLine
                                             }
 
                                 "$$" ->
