@@ -1,4 +1,11 @@
-module MicroLaTeX.PrimitiveBlock exposing (getLevel, parse, parseLoop, print, printErr)
+module MicroLaTeX.PrimitiveBlock exposing
+    ( example
+    , getLevel
+    , parse
+    , parseLoop
+    , print
+    , printErr
+    )
 
 {-|
 
@@ -29,6 +36,7 @@ import ScriptaV2.Config as Config
 type alias State =
     { committedBlocks : List PrimitiveBlock
     , stack : List PrimitiveBlock
+    , inVerbatimBlock : Bool
     , holdingStack : List PrimitiveBlock
     , labelStack : List Label
     , lines : List String
@@ -64,6 +72,15 @@ type alias ParserOutput =
     { blocks : List PrimitiveBlock, stack : List PrimitiveBlock, holdingStack : List PrimitiveBlock }
 
 
+example =
+    """\\begin{equation}
+-\\frac{\\hbar^2 }{2m} 
+nabla^2 \\psi  + V\\psi = E\\psi
+\\end{equation}
+
+"""
+
+
 parse : String -> Int -> List String -> List PrimitiveBlock
 parse idPrefix outerCount lines =
     -- TODO: idPrefix must be used
@@ -97,6 +114,7 @@ init : String -> Int -> List String -> State
 init idPrefix outerCount lines =
     { committedBlocks = []
     , stack = []
+    , inVerbatimBlock = False
     , holdingStack = []
     , labelStack = []
     , lines = lines
@@ -181,68 +199,82 @@ nextStep state_ =
             let
                 currentLine =
                     Line.classify (getPosition rawLine state) state.lineNumber rawLine
+
+                _ =
+                    Debug.log "nextStep" ( state.inVerbatimBlock, ClassifyBlock.classify (currentLine.content ++ "\n"), currentLine.content )
             in
-            case ClassifyBlock.classify (currentLine.content ++ "\n") of
-                CBeginBlock label ->
-                    if List.member mTopLabel (List.map Just [ CBeginBlock "code", CBeginBlock "equation", CBeginBlock "aligned" ]) then
-                        Loop { state | label = "CBeginBlock 1" }
+            if state.inVerbatimBlock then
+                case ClassifyBlock.classify (currentLine.content ++ "\n") of
+                    -- DOO
+                    CEndBlock label ->
+                        if List.member label [ "code", "equation", "aligned" ] then
+                            Loop (state |> handleVerbatimBlock currentLine)
 
-                    else if List.member label innerMathBlockNames then
-                        Loop { state | label = "CBeginBlock 2" }
+                        else
+                            { state | label = "XXX" } |> Loop
 
-                    else
-                        Loop ({ state | label = "CBeginBlock 3" } |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) currentLine)
+                    _ ->
+                        { state | label = "XXX" } |> Loop
 
-                CEndBlock label ->
-                    -- TODO: changed, review
-                    if List.member label innerMathBlockNames then
-                        Loop { state | label = "CEndBlock 1" }
+            else
+                nexStepAux currentLine mTopLabel state
 
-                    else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
-                        { state | label = "CEndBlock 2" } |> endBlockOnMatch Nothing (CBeginBlock "code") currentLine |> Loop
 
-                    else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "equation" ] then
-                        { state | label = "CEndBlock 3" } |> endBlockOnMatch Nothing (CBeginBlock "equation") currentLine |> Loop
+nexStepAux currentLine mTopLabel state =
+    case ClassifyBlock.classify (currentLine.content ++ "\n") of
+        CBeginBlock label ->
+            if List.member label [ "code", "equation", "aligned" ] then
+                Loop ({ state | inVerbatimBlock = True, label = "CBeginBlock 3" } |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) currentLine)
 
-                    else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "aligned" ] then
-                        { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "aligned") currentLine |> Loop
+            else
+                Loop ({ state | label = "CBeginBlock 3" } |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) currentLine)
 
-                    else
-                        endBlock (CEndBlock label) currentLine { state | label = "CEndBlock 5" }
+        CEndBlock label ->
+            -- TODO: changed, review
+            if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
+                { state | label = "CEndBlock 2" } |> endBlockOnMatch Nothing (CBeginBlock "code") currentLine |> Loop
 
-                CSpecialBlock label ->
-                    -- TODO: review all the List.member clauses
-                    if List.member (List.head state.labelStack |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
+            else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "equation" ] then
+                { state | label = "CEndBlock 3" } |> endBlockOnMatch Nothing (CBeginBlock "equation") currentLine |> Loop
+
+            else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "aligned" ] then
+                { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "aligned") currentLine |> Loop
+
+            else
+                endBlock (CEndBlock label) currentLine { state | label = "CEndBlock 5" }
+
+        CSpecialBlock label ->
+            -- TODO: review all the List.member clauses
+            if List.member (List.head state.labelStack |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
+                Loop state
+
+            else
+                Loop <| handleSpecialBlock (CSpecialBlock label) currentLine state
+
+        CMathBlockDelim ->
+            -- TODO: changed, review
+            case List.head state.labelStack of
+                Nothing ->
+                    Loop (state |> dispatchBeginBlock state.idPrefix state.outerCount CMathBlockDelim currentLine)
+
+                Just label ->
+                    if List.member label.classification [ CBeginBlock "code" ] then
                         Loop state
 
+                    else if label.classification == CMathBlockDelim then
+                        state |> endBlockOnMatch (Just label) CMathBlockDelim currentLine |> Loop
+
                     else
-                        Loop <| handleSpecialBlock (CSpecialBlock label) currentLine state
+                        Loop (state |> dispatchBeginBlock state.idPrefix state.outerCount CMathBlockDelim currentLine)
 
-                CMathBlockDelim ->
-                    -- TODO: changed, review
-                    -- Loop (state |> handleMathBlock currentLine)
-                    case List.head state.labelStack of
-                        Nothing ->
-                            Loop (state |> dispatchBeginBlock state.idPrefix state.outerCount CMathBlockDelim currentLine)
+        CVerbatimBlockDelim ->
+            Loop (state |> handleVerbatimBlock currentLine)
 
-                        Just label ->
-                            if List.member label.classification [ CBeginBlock "code" ] then
-                                Loop state
+        CPlainText ->
+            plainText state currentLine
 
-                            else if label.classification == CMathBlockDelim then
-                                state |> endBlockOnMatch (Just label) CMathBlockDelim currentLine |> Loop
-
-                            else
-                                Loop (state |> dispatchBeginBlock state.idPrefix state.outerCount CMathBlockDelim currentLine)
-
-                CVerbatimBlockDelim ->
-                    Loop (state |> handleVerbatimBlock currentLine)
-
-                CPlainText ->
-                    plainText state currentLine
-
-                CEmpty ->
-                    emptyLine currentLine state
+        CEmpty ->
+            emptyLine currentLine state
 
 
 
@@ -594,18 +626,37 @@ finishBlock lastLine state =
 -}
 endBlockOnMatch : Maybe Label -> Classification -> Line -> State -> State
 endBlockOnMatch labelHead classifier line state =
+    let
+        _ =
+            Debug.log "endBlockOnMatch (labelHead, classifier)" ( labelHead, classifier )
+    in
     case List.Extra.uncons state.stack of
         Nothing ->
+            let
+                _ =
+                    Debug.log "endBlockOnMatch" 1
+            in
             -- TODO: error state!
             state
 
         Just ( block, rest ) ->
             if (labelHead |> Maybe.map .status) == Just Filled then
+                let
+                    _ =
+                        Debug.log "endBlockOnMatch" 2
+                in
                 { state | level = state.level - 1, committedBlocks = ({ block | properties = statusFinished } |> addSource line.content) :: state.committedBlocks, stack = rest } |> resolveIfStackEmpty
 
             else
                 let
+                    _ =
+                        Debug.log "endBlockOnMatch" 3
+
                     newBlock =
+                        let
+                            _ =
+                                Debug.log "endBlockOnMatch, CLASSIFIER" classifier
+                        in
                         case classifier of
                             CSpecialBlock (LXVerbatimBlock "texComment") ->
                                 newBlockWithError
@@ -639,7 +690,7 @@ endBlockOnMatch labelHead classifier line state =
                                 if List.member classifier (List.map CEndBlock verbatimBlockNames) then
                                     let
                                         sourceText =
-                                            getSource line state
+                                            getSource line state |> Debug.log "ENDING VERBATIM BLOCK"
                                     in
                                     newBlockWithError classifier
                                         (getContent classifier line state)
@@ -678,6 +729,7 @@ addSource lastLine block =
             )
 
 
+getError : { a | classification : Classification } -> Classification -> Maybe { error : String }
 getError label classifier =
     if label.classification == CPlainText then
         Nothing
@@ -926,15 +978,6 @@ getArgs mstr =
             List.filter (\t -> not <| String.contains ":" t) strs
 
 
-
---case List.Extra.findIndex (\t -> String.contains ":" t) strs of
---    Nothing ->
---        strs
---
---    Just k ->
---        List.take k strs
-
-
 explode : List String -> List (List String)
 explode txt =
     List.map (String.split ":") txt
@@ -1142,33 +1185,21 @@ handleMathBlock line state =
 
 
 handleVerbatimBlock line state =
-    case List.head state.labelStack of
+    case List.Extra.uncons state.stack of
         Nothing ->
-            { state
-                | lineNumber = line.lineNumber
-                , firstBlockLine = line.lineNumber
-                , indent = line.indent
-                , level = state.level + 1
-                , labelStack = { classification = CVerbatimBlockDelim, level = state.level + 1, status = Started, lineNumber = line.lineNumber } :: state.labelStack
-                , stack = (blockFromLine state.position state.idPrefix state.outerCount (state.level + 1) line |> elaborate line) :: state.stack
-            }
+            state
 
-        Just label ->
-            case List.Extra.uncons state.stack of
+        Just ( block, rest ) ->
+            case List.Extra.uncons state.labelStack of
                 Nothing ->
                     state
 
-                Just ( block, rest ) ->
-                    case List.Extra.uncons state.labelStack of
-                        Nothing ->
-                            state
-
-                        Just ( topLabel, otherLabels ) ->
-                            let
-                                newBlock =
-                                    { block | body = slice (topLabel.lineNumber + 1) (state.lineNumber - 1) state.lines, properties = statusFinished } |> addSource line.content
-                            in
-                            { state | committedBlocks = newBlock :: state.committedBlocks, labelStack = otherLabels, stack = rest, level = state.level - 1 }
+                Just ( topLabel, otherLabels ) ->
+                    let
+                        newBlock =
+                            { block | body = slice (topLabel.lineNumber + 1) (state.lineNumber - 1) state.lines, properties = statusFinished } |> addSource line.content
+                    in
+                    { state | inVerbatimBlock = False, committedBlocks = newBlock :: state.committedBlocks, labelStack = otherLabels, stack = rest, level = state.level - 1 }
 
 
 
@@ -1420,20 +1451,6 @@ statusStarted =
 
 statusFilled =
     Dict.singleton "status" "filled"
-
-
-innerMathBlockNames =
-    [ "matrix"
-    , "bmatrix"
-    , "pmatrix"
-    , "vmatrix"
-    , "Bmatrix"
-    , "cases"
-    , "smallmatrix"
-    , "split"
-    , "align"
-    , "alignat"
-    ]
 
 
 verbatimBlockNames =
