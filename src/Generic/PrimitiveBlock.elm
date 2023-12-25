@@ -380,10 +380,26 @@ transformBlock findTitlePrefix block =
             { block | properties = Dict.insert "level" "4" block.properties, heading = Ordinary "section" }
 
         Just "item" ->
-            { block | body = (block.firstLine |> String.trim |> Tools.Utility.replaceLeadingDashSpace) :: block.body }
+            { block
+                | body =
+                    (block.firstLine
+                        |> String.trim
+                        |> String.replace "| item" ""
+                        |> Tools.Utility.replaceLeadingDashSpace
+                    )
+                        :: block.body
+            }
 
         Just "numbered" ->
-            { block | body = (block.firstLine |> String.trim |> Tools.Utility.replaceLeadingDotSpace) :: block.body }
+            { block
+                | body =
+                    (block.firstLine
+                        |> String.trim
+                        |> String.replace "| numbered" ""
+                        |> Tools.Utility.replaceLeadingDotSpace
+                    )
+                        :: block.body
+            }
 
         _ ->
             block

@@ -6,6 +6,7 @@ module Tools.Utility exposing
     , removeNonAlphaNumExceptHyphen
     , replaceLeadingDashSpace
     , replaceLeadingDotSpace
+    , replaceLeadingVertBarItem
     , truncateString
     , userReplace
     )
@@ -29,6 +30,15 @@ replaceLeadingDashSpace str =
     let
         regex =
             Regex.fromString "^- " |> Maybe.withDefault Regex.never
+    in
+    Regex.replace regex (\_ -> "") str
+
+
+replaceLeadingVertBarItem : String -> String
+replaceLeadingVertBarItem str =
+    let
+        regex =
+            Regex.fromString "^| item" |> Maybe.withDefault Regex.never
     in
     Regex.replace regex (\_ -> "") str
 
