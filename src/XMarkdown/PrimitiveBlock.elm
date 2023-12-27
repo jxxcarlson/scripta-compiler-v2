@@ -9,20 +9,6 @@ import Tools.KV as KV
 import Tools.Utility
 
 
-example =
-    """
-. One. Two. Three.
-Four. Five . Six.
-"""
-
-
-example2 =
-    """
-- One- Two- Three-
-Four - Five - Six-
-"""
-
-
 {-| Parse a list of strings into a list of primitive blocks given
 a function for determexaining when a string is the first line
 of a verbatim block
@@ -78,6 +64,23 @@ getHeadingData line_ =
 
                         prefix :: args ->
                             case prefix of
+                                ">" ->
+                                    --Ok <| { heading = Ordinary "quote", args = args, properties = properties }
+                                    let
+                                        reducedLine =
+                                            -- String.replace ". " "" line
+                                            line |> String.trim |> Tools.Utility.replaceLeadingGreaterThanSign |> Debug.log "REDUCED LINE"
+                                    in
+                                    if String.isEmpty reducedLine then
+                                        Err HENoContent
+
+                                    else
+                                        Ok <|
+                                            { heading = Ordinary "quotation"
+                                            , args = []
+                                            , properties = Dict.singleton "firstLine" reducedLine
+                                            }
+
                                 "||" ->
                                     case args of
                                         [] ->
