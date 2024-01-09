@@ -79,6 +79,16 @@ parse lineNumber str =
         |> Tools.forklogCyan "LENGTH" forkLogWidth List.length
 
 
+parseTokens : Int -> List Token -> List Expression
+parseTokens lineNumber tokens =
+    tokens
+        |> Tools.forklogCyan "TOKENS" forkLogWidth Token.toString2
+        |> initWithTokens lineNumber
+        |> run
+        |> .committed
+        |> Tools.forklogCyan "LENGTH" forkLogWidth List.length
+
+
 parseToState : Int -> String -> State
 parseToState lineNumber str =
     str
@@ -257,11 +267,18 @@ reduceState state =
         state
 
 
-takeMiddle : List a -> List a
-takeMiddle list =
+takeMiddleReversed : List a -> List a
+takeMiddleReversed list =
     list
         |> List.drop 1
         |> List.reverse
+        |> List.drop 1
+
+
+takeMiddle : List a -> List a
+takeMiddle list =
+    list
+        |> List.take (List.length list - 1)
         |> List.drop 1
 
 
@@ -387,16 +404,17 @@ handleS state =
 
 handleItalicSymbol : List Symbol -> State -> State
 handleItalicSymbol symbols state =
-    if symbols == [ SItalic, SItalic ] then
+    if List.head symbols == Just SItalic && List.Extra.last symbols == Just SItalic then
         let
-            content =
-                takeMiddle state.stack |> Token.toString2
-
             meta =
                 { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
 
+            innerExprs : List Expression
+            innerExprs =
+                takeMiddle state.stack |> parseTokens 0
+
             expr =
-                Fun "italic" [ Text content meta ] meta
+                Fun "italic" innerExprs meta
         in
         { state | stack = [], committed = expr :: state.committed }
 
@@ -406,16 +424,17 @@ handleItalicSymbol symbols state =
 
 handleBoldSymbol : List Symbol -> State -> State
 handleBoldSymbol symbols state =
-    if symbols == [ SBold, SBold ] then
+    if List.head symbols == Just SBold && List.Extra.last symbols == Just SBold then
         let
-            content =
-                takeMiddle state.stack |> Token.toString2
-
             meta =
                 { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
 
+            innerExprs : List Expression
+            innerExprs =
+                takeMiddle state.stack |> parseTokens 0
+
             expr =
-                Fun "bold" [ Text content meta ] meta
+                Fun "bold" innerExprs meta
         in
         { state | stack = [], committed = expr :: state.committed }
 
@@ -427,7 +446,7 @@ handleBoldItalic : State -> State
 handleBoldItalic state =
     let
         content =
-            state.stack |> takeMiddle |> takeMiddle |> Token.toString2
+            state.stack |> takeMiddleReversed |> takeMiddleReversed |> Token.toString2
 
         meta =
             { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
@@ -443,7 +462,7 @@ handleMathSymbol symbols state =
     if symbols == [ M, M ] then
         let
             content =
-                takeMiddle state.stack |> Token.toString2
+                takeMiddleReversed state.stack |> Token.toString2
 
             expr =
                 VFun "math" content { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
@@ -459,7 +478,7 @@ handleCodeSymbol symbols state =
     if symbols == [ C, C ] then
         let
             content =
-                takeMiddle state.stack |> Token.toString2
+                takeMiddleReversed state.stack |> Token.toString2
 
             expr =
                 VFun "code" content { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
