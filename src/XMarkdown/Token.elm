@@ -8,7 +8,7 @@ module XMarkdown.Token exposing
     , imageParser
     , init
     , run
-:wq    , toSimpleToken
+    , toSimpleToken
     , toString
     , toString2
     , type_
