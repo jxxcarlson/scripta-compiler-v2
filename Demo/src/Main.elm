@@ -57,13 +57,13 @@ type alias Flags =
 
 setSourceText currentLanguage =
     case currentLanguage of
-        ScriptaV2.Language.L0Lang ->
+        ScriptaV2.Language.EnclosureLang ->
             Data.M.text
 
         ScriptaV2.Language.MicroLaTeXLang ->
             Data.MicroLaTeX.text
 
-        ScriptaV2.Language.XMarkdownLang ->
+        ScriptaV2.Language.SMarkdownLang ->
             Data.XMarkdown.text
 
 
@@ -73,7 +73,7 @@ init flags =
       , count = 0
       , windowWidth = flags.window.windowWidth
       , windowHeight = flags.window.windowHeight
-      , currentLanguage = ScriptaV2.Language.L0Lang
+      , currentLanguage = ScriptaV2.Language.EnclosureLang
       , selectId = "@InitID"
       }
     , Cmd.none
@@ -192,10 +192,10 @@ type Language
 languageToString : ScriptaV2.Language.Language -> String
 languageToString lang =
     case lang of
-        ScriptaV2.Language.L0Lang ->
+        ScriptaV2.Language.EnclosureLang ->
             "M"
 
-        ScriptaV2.Language.XMarkdownLang ->
+        ScriptaV2.Language.SMarkdownLang ->
             "SMarkdown"
 
         ScriptaV2.Language.MicroLaTeXLang ->
@@ -299,9 +299,9 @@ viewToc model compiled =
 
 header model =
     Element.row [ Element.spacing 32, Element.centerX, paddingEach { left = 0, right = 0, top = 0, bottom = 12 } ]
-        [ languageButton model.currentLanguage ScriptaV2.Language.L0Lang
+        [ languageButton model.currentLanguage ScriptaV2.Language.EnclosureLang
         , languageButton model.currentLanguage ScriptaV2.Language.MicroLaTeXLang
-        , languageButton model.currentLanguage ScriptaV2.Language.XMarkdownLang
+        , languageButton model.currentLanguage ScriptaV2.Language.SMarkdownLang
         ]
 
 

@@ -276,10 +276,10 @@ chunker lang str =
         MicroLaTeXLang ->
             MicroLaTeX.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
 
-        L0Lang ->
+        EnclosureLang ->
             M.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
 
-        XMarkdownLang ->
+        SMarkdownLang ->
             XMarkdown.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
 
 
@@ -289,8 +289,8 @@ toExprBlock lang =
         MicroLaTeXLang ->
             Generic.Pipeline.toExpressionBlock MicroLaTeXLang MicroLaTeX.Expression.parse
 
-        L0Lang ->
-            Generic.Pipeline.toExpressionBlock L0Lang M.Expression.parse
+        EnclosureLang ->
+            Generic.Pipeline.toExpressionBlock EnclosureLang M.Expression.parse
 
-        XMarkdownLang ->
-            Generic.Pipeline.toExpressionBlock XMarkdownLang XMarkdown.Expression.parse
+        SMarkdownLang ->
+            Generic.Pipeline.toExpressionBlock SMarkdownLang XMarkdown.Expression.parse

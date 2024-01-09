@@ -79,13 +79,13 @@ bottomPadding k =
 compile : Language -> Int -> Int -> String -> List String -> CompilerOutput
 compile lang width outerCount selectedId lines =
     case lang of
-        L0Lang ->
+        EnclosureLang ->
             compileM width outerCount selectedId lines
 
         MicroLaTeXLang ->
             compileL width outerCount selectedId lines
 
-        XMarkdownLang ->
+        SMarkdownLang ->
             compileX width outerCount selectedId lines
 
 
@@ -125,24 +125,24 @@ parseFromString lang str =
 parse : Language -> String -> Int -> List String -> Result Error (Forest ExpressionBlock)
 parse lang idPrefix outerCount lines =
     case lang of
-        L0Lang ->
+        EnclosureLang ->
             parseM idPrefix outerCount lines
 
         MicroLaTeXLang ->
             parseL idPrefix outerCount lines
 
-        XMarkdownLang ->
+        SMarkdownLang ->
             parseX idPrefix outerCount lines
 
 
 parseM : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
 parseM idPrefix outerCount lines =
-    Generic.Compiler.parse_ L0Lang M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ EnclosureLang M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
 
 
 parseX : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
 parseX idPrefix outerCount lines =
-    Generic.Compiler.parse_ XMarkdownLang XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ SMarkdownLang XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
 
 
 px str =

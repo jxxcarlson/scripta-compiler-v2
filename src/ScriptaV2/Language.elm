@@ -13,8 +13,8 @@ import Generic.Language
 {-| -}
 type Language
     = MicroLaTeXLang
-    | L0Lang
-    | XMarkdownLang
+    | EnclosureLang
+    | SMarkdownLang
 
 
 {-| -}

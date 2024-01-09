@@ -123,7 +123,7 @@ microLaTeXTitleParser =
 parseTitle : Language -> String -> Maybe String
 parseTitle lang src =
     case lang of
-        L0Lang ->
+        EnclosureLang ->
             case Parser.run l0TitleParser src of
                 Ok title ->
                     Just title

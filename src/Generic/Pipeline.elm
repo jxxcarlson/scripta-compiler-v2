@@ -126,10 +126,10 @@ fixTable block lang parse =
                 MicroLaTeXLang ->
                     prepareTableLaTeX parse (String.join "\n" block.body)
 
-                L0Lang ->
+                EnclosureLang ->
                     prepareTableL0 parse (String.join "\n" block.body)
 
-                XMarkdownLang ->
+                SMarkdownLang ->
                     prepareTableL0 (M.Expression.parse 0) (String.join "\n" block.body)
     in
     Right t1
