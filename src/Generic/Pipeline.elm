@@ -10,9 +10,11 @@ import Generic.Forest exposing (Forest)
 import Generic.ForestTransform exposing (Error)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..), PrimitiveBlock)
 import List.Extra
+import M.Expression
 import M.PrimitiveBlock
 import ScriptaV2.Language exposing (Language(..))
 import Tools.Utility
+import XMarkdown.Expression
 
 
 toExpressionBlockForestFromStringlist : Language -> String -> Int -> (Int -> String -> List Expression) -> List String -> Result Error (Forest ExpressionBlock)
@@ -25,7 +27,8 @@ toExpressionBlockForestFromStringlist lang idPrefix outerCount parser lines =
 
 toExpressionBlock : Language -> (Int -> String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
 toExpressionBlock lang parser block =
-    toExpressionBlock_ lang (parser block.meta.lineNumber) block |> Generic.Language.boostBlock
+    toExpressionBlock_ lang (parser block.meta.lineNumber) block
+        |> Generic.Language.boostBlock
 
 
 toPrimitiveBlockForest : List PrimitiveBlock -> Result Error (Forest PrimitiveBlock)
@@ -60,6 +63,9 @@ toExpressionBlock_ lang parse block =
             Ordinary "tabular" ->
                 fixTableProperties block
 
+            Verbatim "table" ->
+                fixTableProperties block
+
             _ ->
                 block.properties |> Dict.insert "id" block.meta.id
     , firstLine = block.firstLine
@@ -69,6 +75,9 @@ toExpressionBlock_ lang parse block =
                 Right (String.join "\n" block.body |> parse)
 
             Ordinary "table" ->
+                fixTable block lang parse
+
+            Verbatim "table" ->
                 fixTable block lang parse
 
             Ordinary "tabular" ->
@@ -108,6 +117,7 @@ fixTableProperties block =
         |> Dict.insert "id" block.meta.id
 
 
+fixTable : PrimitiveBlock -> Language -> (String -> List Expression) -> Either a (List Expression)
 fixTable block lang parse =
     let
         t1 : List Expression
@@ -116,8 +126,11 @@ fixTable block lang parse =
                 MicroLaTeXLang ->
                     prepareTableLaTeX parse (String.join "\n" block.body)
 
-                _ ->
-                    prepareTable1 parse (String.join "\n" block.body)
+                L0Lang ->
+                    prepareTableL0 parse (String.join "\n" block.body)
+
+                XMarkdownLang ->
+                    prepareTableL0 (M.Expression.parse 0) (String.join "\n" block.body)
     in
     Right t1
 
@@ -185,7 +198,7 @@ prepareTableLaTeX parse str =
         inner row =
             String.split "&" row
                 |> List.filter (\s -> compress s /= "")
-                |> List.map (\cell -> "\\cell{" ++ cell ++ "}")
+                |> List.map (\cell -> "\\cell{" ++ String.trim cell ++ "}")
                 |> String.join ""
 
         cells : String
@@ -199,14 +212,14 @@ prepareTableLaTeX parse str =
     parse cells
 
 
-prepareTable1 : (String -> List Expression) -> String -> List Expression
-prepareTable1 parse str =
+prepareTableL0 : (String -> List Expression) -> String -> List Expression
+prepareTableL0 parse str =
     let
         inner : String -> String
         inner row =
             String.split "&" row
                 |> List.filter (\s -> compress s /= "")
-                |> List.map (\cell -> "[cell " ++ cell ++ "]")
+                |> List.map (\cell -> "[cell " ++ String.trim cell ++ "]")
                 |> String.join " "
 
         cells : String
@@ -216,6 +229,28 @@ prepareTable1 parse str =
                 |> List.filter (\s -> compress s /= "")
                 |> List.map (\r -> "[row " ++ inner r ++ " ]")
                 |> (\rows -> "[table " ++ String.join " " rows ++ "]")
+    in
+    parse cells
+        |> fixTable_
+
+
+prepareTableSMarkdown : (String -> List Expression) -> String -> List Expression
+prepareTableSMarkdown parse str =
+    let
+        inner : String -> String
+        inner row =
+            String.split "&" row
+                |> List.filter (\s -> compress s /= "")
+                |> List.map (\cell -> "@[cell " ++ String.trim cell ++ "]")
+                |> String.join " "
+
+        cells : String
+        cells =
+            str
+                |> String.split "\\\\\n"
+                |> List.filter (\s -> compress s /= "")
+                |> List.map (\r -> "@[row " ++ inner r ++ " ]")
+                |> (\rows -> "@[table " ++ String.join " " rows ++ "]")
     in
     parse cells
         |> fixTable_

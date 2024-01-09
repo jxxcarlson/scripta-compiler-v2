@@ -1,34 +1,16 @@
 module Render.Footnote exposing (endnotes, index)
 
 import Dict exposing (Dict)
-import Either exposing (Either(..))
 import Element exposing (Element)
-import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
-import Element.Input
-import Generic.ASTTools as ASTTools
 import Generic.Acc exposing (Accumulator)
-import Generic.BlockUtilities
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
-import Html.Attributes
 import List.Extra
-import Maybe.Extra
-import Render.Color as Color
-import Render.Expression
-import Render.Graphics
 import Render.Helper
-import Render.IFrame
-import Render.List
-import Render.Math
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
-import Render.Sync
-import Render.Tabular
 import Render.Utility exposing (elementAttribute)
-import Render.VerbatimBlock as VerbatimBlock
-import String.Extra
-import Tools.Utility as Utility
 
 
 index : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg

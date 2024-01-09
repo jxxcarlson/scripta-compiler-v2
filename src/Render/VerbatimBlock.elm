@@ -20,6 +20,7 @@ import Render.Math
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
+import Render.Table
 import Render.Utility exposing (elementAttribute)
 
 
@@ -74,6 +75,7 @@ verbatimDict =
         , ( "load-files", Render.Helper.renderNothing )
         , ( "include", Render.Helper.renderNothing )
         , ( "setup", Render.Helper.renderNothing )
+        , ( "table", Render.Table.render )
         , ( "iframe", Render.IFrame.render )
         ]
 
@@ -131,10 +133,12 @@ renderCode count acc settings attr block =
         )
         (case List.head block.args of
             Just arg ->
-                List.map (renderVerbatimLine arg) (String.lines (String.trim (Render.Utility.getVerbatimContent block)))
+                --List.map (renderVerbatimLine arg) (String.lines (String.trim (Render.Utility.getVerbatimContent block)))
+                List.map (renderVerbatimLine arg) (String.lines (Render.Utility.getVerbatimContent block))
 
             Nothing ->
-                List.map (renderVerbatimLine "plain") (String.lines (String.trim (Render.Utility.getVerbatimContent block)))
+                --List.map (renderVerbatimLine "plain") (String.lines (String.trim (Render.Utility.getVerbatimContent block)))
+                List.map (renderVerbatimLine "plain") (String.lines (Render.Utility.getVerbatimContent block))
         )
 
 

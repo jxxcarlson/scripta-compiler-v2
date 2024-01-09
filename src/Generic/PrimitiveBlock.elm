@@ -313,7 +313,7 @@ commitBlock state currentLine =
                                         |> finalize
                                         |> transformBlock state.parserFunctions.findSectionPrefix
 
-                        Verbatim _ ->
+                        Verbatim str ->
                             if List.head block_.body == Just "```" then
                                 { block_ | body = List.filter (\l -> l /= "```") block_.body }
                                     |> finalize
@@ -387,7 +387,6 @@ transformBlock findTitlePrefix block =
                         |> Tools.Utility.replaceLeadingGreaterThanSign
                     )
                         :: block.body
-                        |> Debug.log "@@QUOTATION"
             }
 
         Just "item" ->

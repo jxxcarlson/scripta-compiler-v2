@@ -19,11 +19,10 @@ render count acc settings columnFormats block =
                 formatList_ =
                     Dict.get "format" block.properties
                         |> Maybe.withDefault ""
-                        |> String.dropLeft 1
-                        |> String.dropRight 1
+                        |> String.trim
                         |> String.split " "
                         |> List.map String.trim
-                        |> List.map (\c -> Dict.get c formatDict |> Maybe.withDefault Element.centerX)
+                        |> List.map (\c -> Dict.get (String.trim c) formatDict |> Maybe.withDefault Element.centerX)
 
                 columnWidths_ =
                     Dict.get "columnWidths" block.properties
@@ -40,8 +39,11 @@ render count acc settings columnFormats block =
             Element.column ([ Element.paddingEach { left = 24, right = 0, top = 24, bottom = 24 }, Element.spacing 0 ] |> Render.Sync2.sync block settings)
                 (List.map (renderRow count acc settings formats) rows)
 
-        _ ->
+        Right _ ->
             Element.none
+
+        Left data ->
+            Element.text data
 
 
 renderRow : Int -> Accumulator -> RenderSettings -> List ( Int, Element.Attribute MarkupMsg ) -> Generic.Language.Expr Generic.Language.ExprMeta -> Element MarkupMsg
@@ -52,7 +54,7 @@ renderRow count acc settings columnFormats row =
                 list =
                     List.map2 (renderCell count acc settings) columnFormats cells
             in
-            Element.row [ Element.height (Element.px 20) ] list
+            Element.row [ Element.height (Element.px 20), Element.spacing 12 ] list
 
         _ ->
             Element.none

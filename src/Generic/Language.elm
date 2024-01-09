@@ -14,6 +14,7 @@ module Generic.Language exposing
     , expressionBlockEmpty
     , getExpressionContent
     , getFunctionName
+    , getMeta
     , getName
     , getNameFromHeading
     , getVerbatimContent

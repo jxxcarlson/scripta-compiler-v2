@@ -82,7 +82,7 @@ type alias Accumulator =
     , inListState : InListState
     , reference : Dict String { id : String, numRef : String }
     , terms : Dict String TermLoc
-    , footnotes : Dict String TermLoc
+    , footnotes : Dict String TermLoc2
     , footnoteNumbers : Dict String Int
     , mathMacroDict : Generic.MathMacro.MathMacroDict
     , textMacroDict : Dict String Macro
@@ -869,6 +869,7 @@ verbatimBlockReference isSimple headingIndex name newCounter =
         a ++ "." ++ (getCounter (reduceName name) newCounter |> String.fromInt)
 
 
+updateWithParagraph : ExpressionBlock -> Accumulator -> Accumulator
 updateWithParagraph block accumulator =
     let
         ( footnotes, footnoteNumbers ) =
@@ -876,8 +877,6 @@ updateWithParagraph block accumulator =
     in
     { accumulator
         | inListState = nextInListState block.heading accumulator.inListState
-
-        --, terms = addTermsFromContent block.meta.id block.body accumulator.terms
         , footnotes = footnotes
         , footnoteNumbers = footnoteNumbers
     }
@@ -891,8 +890,16 @@ type alias TermLoc =
     { begin : Int, end : Int, id : String }
 
 
+type alias TermLoc2 =
+    { begin : Int, end : Int, id : String, mSourceId : Maybe String }
+
+
 type alias TermData =
     { term : String, loc : TermLoc }
+
+
+type alias TermData2 =
+    { term : String, loc : TermLoc2 }
 
 
 getTerms : String -> Either String (List Expression) -> List TermData
@@ -929,37 +936,27 @@ addTerm termData dict =
     Dict.insert termData.term termData.loc dict
 
 
-addTerms : List TermData -> Dict String TermLoc -> Dict String TermLoc
-addTerms termDataList dict =
-    List.foldl addTerm dict termDataList
-
-
-addTermsFromContent : String -> Either String (List Expression) -> Dict String TermLoc -> Dict String TermLoc
-addTermsFromContent id content dict =
-    addTerms (getTerms id content) dict
-
-
 
 -- FOOTNOTES
 
 
-getFootnotes : String -> Either String (List Expression) -> List TermData
-getFootnotes id content_ =
+getFootnotes : Maybe String -> String -> Either String (List Expression) -> List TermData2
+getFootnotes mBlockId id content_ =
     case content_ of
         Right expressionList ->
             Generic.ASTTools.filterExpressionsOnName_ "footnote" expressionList
-                |> List.map (extractFootnote id)
+                |> List.map (extractFootnote mBlockId id)
                 |> Maybe.Extra.values
 
         Left _ ->
             []
 
 
-extractFootnote : String -> Expression -> Maybe TermData
-extractFootnote id_ expr =
+extractFootnote : Maybe String -> String -> Expression -> Maybe TermData2
+extractFootnote mSourceId id_ expr =
     case expr of
         Fun "footnote" [ Text content { begin, end, index, id } ] _ ->
-            Just { term = content, loc = { begin = begin, end = end, id = id } }
+            Just { term = content, loc = { begin = begin, end = end, id = id, mSourceId = mSourceId } } |> Debug.log ("@@TermData " ++ id ++ ", " ++ id_)
 
         _ ->
             Nothing
@@ -969,24 +966,33 @@ extractFootnote id_ expr =
 -- EXTRACT ??
 
 
-addFootnote : TermData -> Dict String TermLoc -> Dict String TermLoc
+addFootnote : TermData2 -> Dict String TermLoc2 -> Dict String TermLoc2
 addFootnote footnoteData dict =
     Dict.insert footnoteData.term footnoteData.loc dict
 
 
-addFootnoteLabel : TermData -> Dict String Int -> Dict String Int
+addFootnoteLabel : TermData2 -> Dict String Int -> Dict String Int
 addFootnoteLabel footnoteData dict =
     Dict.insert footnoteData.loc.id (Dict.size dict + 1) dict
 
 
-addFootnotes : List TermData -> ( Dict String TermLoc, Dict String Int ) -> ( Dict String TermLoc, Dict String Int )
+addFootnotes : List TermData2 -> ( Dict String TermLoc2, Dict String Int ) -> ( Dict String TermLoc2, Dict String Int )
 addFootnotes termDataList ( dict1, dict2 ) =
     List.foldl (\data ( d1, d2 ) -> ( addFootnote data d1, addFootnoteLabel data d2 )) ( dict1, dict2 ) termDataList
 
 
-addFootnotesFromContent : ExpressionBlock -> ( Dict String TermLoc, Dict String Int ) -> ( Dict String TermLoc, Dict String Int )
+addFootnotesFromContent : ExpressionBlock -> ( Dict String TermLoc2, Dict String Int ) -> ( Dict String TermLoc2, Dict String Int )
 addFootnotesFromContent block ( dict1, dict2 ) =
-    addFootnotes (getFootnotes block.meta.id block.body) ( dict1, dict2 )
+    let
+        blockId =
+            case block.body of
+                Left _ ->
+                    Nothing
+
+                Right expr ->
+                    List.map Generic.Language.getMeta expr |> List.head |> Maybe.map .id
+    in
+    addFootnotes (getFootnotes blockId block.meta.id block.body) ( dict1, dict2 )
 
 
 
