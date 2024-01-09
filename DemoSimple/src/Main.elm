@@ -57,13 +57,13 @@ type alias Flags =
 
 setSourceText currentLanguage =
     case currentLanguage of
-        ScriptaV2.Language.L0Lang ->
+        ScriptaV2.Language.EnclosureLang ->
             Data.M.text
 
         ScriptaV2.Language.MicroLaTeXLang ->
             Data.MicroLaTeX.text
 
-        ScriptaV2.Language.XMarkdownLang ->
+        ScriptaV2.Language.SMarkdownLang ->
             Data.XMarkdown.text
 
 
@@ -204,10 +204,10 @@ type Language
 languageToString : ScriptaV2.Language.Language -> String
 languageToString lang =
     case lang of
-        ScriptaV2.Language.L0Lang ->
+        ScriptaV2.Language.EnclosureLang ->
             "M"
 
-        ScriptaV2.Language.XMarkdownLang ->
+        ScriptaV2.Language.SMarkdownLang ->
             "SMarkdown"
 
         ScriptaV2.Language.MicroLaTeXLang ->
@@ -280,9 +280,9 @@ htmlId str =
 header model =
     Element.row [ Element.spacing 32, Element.centerX, paddingEach { left = 0, right = 0, top = 0, bottom = 12 } ]
         [ Element.el [ Font.color (Element.rgb 1 1 1) ] (Element.text "Compiler Demo 1")
-        , languageButton model.currentLanguage ScriptaV2.Language.L0Lang
+        , languageButton model.currentLanguage ScriptaV2.Language.EnclosureLang
         , languageButton model.currentLanguage ScriptaV2.Language.MicroLaTeXLang
-        , languageButton model.currentLanguage ScriptaV2.Language.XMarkdownLang
+        , languageButton model.currentLanguage ScriptaV2.Language.SMarkdownLang
         ]
 
 
