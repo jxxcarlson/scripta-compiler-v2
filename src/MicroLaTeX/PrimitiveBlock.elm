@@ -180,9 +180,6 @@ nextStep state_ =
 
                 Just currentLine_ ->
                     state_.position + String.length currentLine_
-
-        --_ =
-        --    Debug.log "nextStep, LEVEL" { label_ = state.label, level_ = state.level, line_ = List.Extra.getAt state.lineNumber state.lines }
     in
     case List.Extra.getAt state.lineNumber state.lines of
         Nothing ->
@@ -199,9 +196,6 @@ nextStep state_ =
             let
                 currentLine =
                     Line.classify (getPosition rawLine state) state.lineNumber rawLine
-
-                _ =
-                    Debug.log "nextStep" ( state.inVerbatimBlock, ClassifyBlock.classify (currentLine.content ++ "\n"), currentLine.content )
             in
             if state.inVerbatimBlock then
                 case ClassifyBlock.classify (currentLine.content ++ "\n") of
@@ -626,37 +620,18 @@ finishBlock lastLine state =
 -}
 endBlockOnMatch : Maybe Label -> Classification -> Line -> State -> State
 endBlockOnMatch labelHead classifier line state =
-    let
-        _ =
-            Debug.log "endBlockOnMatch (labelHead, classifier)" ( labelHead, classifier )
-    in
     case List.Extra.uncons state.stack of
         Nothing ->
-            let
-                _ =
-                    Debug.log "endBlockOnMatch" 1
-            in
             -- TODO: error state!
             state
 
         Just ( block, rest ) ->
             if (labelHead |> Maybe.map .status) == Just Filled then
-                let
-                    _ =
-                        Debug.log "endBlockOnMatch" 2
-                in
                 { state | level = state.level - 1, committedBlocks = ({ block | properties = statusFinished } |> addSource line.content) :: state.committedBlocks, stack = rest } |> resolveIfStackEmpty
 
             else
                 let
-                    _ =
-                        Debug.log "endBlockOnMatch" 3
-
                     newBlock =
-                        let
-                            _ =
-                                Debug.log "endBlockOnMatch, CLASSIFIER" classifier
-                        in
                         case classifier of
                             CSpecialBlock (LXVerbatimBlock "texComment") ->
                                 newBlockWithError
@@ -690,7 +665,7 @@ endBlockOnMatch labelHead classifier line state =
                                 if List.member classifier (List.map CEndBlock verbatimBlockNames) then
                                     let
                                         sourceText =
-                                            getSource line state |> Debug.log "ENDING VERBATIM BLOCK"
+                                            getSource line state
                                     in
                                     newBlockWithError classifier
                                         (getContent classifier line state)

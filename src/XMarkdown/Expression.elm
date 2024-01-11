@@ -236,8 +236,13 @@ reduceState state =
 
             Just SBold ->
                 case symbols of
-                    [ SBold, SItalic, SItalic, SBold ] ->
-                        handleBoldItalic state
+                    SBold :: SItalic :: _ ->
+                        case List.reverse symbols of
+                            SBold :: SItalic :: _ ->
+                                handleBoldItalic state
+
+                            _ ->
+                                state
 
                     _ ->
                         handleBoldSymbol symbols state
@@ -445,14 +450,20 @@ handleBoldSymbol symbols state =
 handleBoldItalic : State -> State
 handleBoldItalic state =
     let
-        content =
-            state.stack |> takeMiddleReversed |> takeMiddleReversed |> Token.toString2
+        n =
+            List.length state.stack
+
+        inner =
+            state.stack |> List.take (n - 2) |> List.drop 2
+
+        exprs =
+            parseTokens 0 inner
 
         meta =
             { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
 
         expr =
-            Fun "bold" [ Fun "italic" [ Text content meta ] meta ] meta
+            Fun "bold" [ Fun "italic" exprs meta ] meta
     in
     { state | stack = [], committed = expr :: state.committed }
 
