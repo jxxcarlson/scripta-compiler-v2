@@ -2,6 +2,7 @@ module Render.Block exposing (renderAttributes, renderBody)
 
 import Either exposing (Either(..))
 import Element exposing (Element)
+import Element.Background
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Render.Expression
@@ -14,17 +15,22 @@ import Render.Utility
 import Render.VerbatimBlock as VerbatimBlock
 
 
+focusedAttribute : Element.Attribute msg
+focusedAttribute =
+    Element.focused [ Element.Background.color (Element.rgb 0.89 0.89 1.0) ]
+
+
 renderAttributes : RenderSettings -> ExpressionBlock -> List (Element.Attribute MarkupMsg)
 renderAttributes settings block =
     case block.heading of
         Paragraph ->
-            standardAttributes settings block
+            focusedAttribute :: standardAttributes settings block
 
         Ordinary name ->
-            standardAttributes settings block ++ OrdinaryBlock.getAttributes name
+            standardAttributes settings block ++ focusedAttribute :: OrdinaryBlock.getAttributes name
 
         Verbatim _ ->
-            standardAttributes settings block
+            focusedAttribute :: standardAttributes settings block
 
 
 standardAttributes settings block =
