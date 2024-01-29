@@ -14,6 +14,8 @@ type MarkupMsg
     | SendLineNumber { begin : Int, end : Int }
     | SelectId String
     | HighlightId String
+      --| RequestAnchorOffset_
+      --| ReceiveAnchorOffset_ (Maybe Int)
     | GetPublicDocument Handling String
     | GetPublicDocumentFromAuthor Handling String String
     | GetDocumentWithSlug Handling String
