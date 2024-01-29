@@ -133,6 +133,17 @@ filterBlocksOnName name blocks =
     List.filter (matchBlockName name) blocks
 
 
+filterNotBlocksOnName : String -> List ExpressionBlock -> List ExpressionBlock
+filterNotBlocksOnName name blocks =
+    List.filter (matchBlockName name >> not) blocks
+
+
+
+--filterForestOnBlockNames : String -> Forest ExpressionBlock -> Forest ExpressionBlock
+--filterForestOnBlockNames name forest =
+--    List.filter (\tree -> predicate (labelName tree)) forest
+
+
 blockNameInList : ExpressionBlock -> List String -> Bool
 blockNameInList block names =
     Bool.Extra.any (List.map (\name -> matchBlockName name block) names)
@@ -141,11 +152,6 @@ blockNameInList block names =
 filterBlocks : (ExpressionBlock -> Bool) -> List ExpressionBlock -> List ExpressionBlock
 filterBlocks predicate blocks =
     List.filter predicate blocks
-
-
-filterNotBlocksOnName : String -> List ExpressionBlock -> List ExpressionBlock
-filterNotBlocksOnName name blocks =
-    List.filter (matchBlockName name >> not) blocks
 
 
 filterForestOnLabelNames : (Maybe String -> Bool) -> Forest ExpressionBlock -> Forest ExpressionBlock
