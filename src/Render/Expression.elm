@@ -154,6 +154,7 @@ markupDict =
         , ( "cite", \_ acc _ attr exprList -> cite acc attr exprList )
         , ( "table", \g acc s attr exprList -> table g acc s attr exprList )
         , ( "image", \_ _ s attr exprList -> Render.Graphics.image s attr exprList )
+        , ( "inlineimage", \_ _ s attr exprList -> Render.Graphics.inlineimage s attr exprList )
         , ( "tags", \_ _ _ _ _ -> Element.none )
         , ( "vspace", vspace )
         , ( "par", vspace )

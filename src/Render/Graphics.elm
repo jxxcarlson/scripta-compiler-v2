@@ -1,4 +1,4 @@
-module Render.Graphics exposing (image, image2, quiver, svg, tikz)
+module Render.Graphics exposing (image, image2, inlineimage, quiver, svg, tikz)
 
 import Dict exposing (Dict)
 import Either exposing (Either(..))
@@ -55,6 +55,28 @@ image settings attrs body =
         { url = params.url
         , label = inner
         }
+
+
+inlineimage : Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
+inlineimage settings attrs body =
+    let
+        params =
+            body |> argumentsFromAST |> imageParameters settings
+
+        ypadding =
+            case params.yPadding of
+                Nothing ->
+                    0
+
+                Just k ->
+                    k
+
+        inner =
+            --el [ Element.width (px settings.width), params.placement, Element.paddingXY 0 ypadding ]
+            Element.image [ Element.width params.width, params.placement ]
+                { src = params.url, description = params.description }
+    in
+    inner
 
 
 {-| For \\image and [image ...]
