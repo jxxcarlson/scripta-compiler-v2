@@ -53,8 +53,8 @@ renderEditRecord displaySettings editRecord =
 
 
 {-| -}
-editRecordToCompilerOutput : Generic.Compiler.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
-editRecordToCompilerOutput displaySettings editRecord =
+editRecordToCompilerOutput : ScriptaV2.Compiler.Filter -> Generic.Compiler.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
+editRecordToCompilerOutput filter displaySettings editRecord =
     let
         renderSettings : ScriptaV2.Settings.RenderSettings
         renderSettings =
@@ -78,7 +78,7 @@ editRecordToCompilerOutput displaySettings editRecord =
             Element.paragraph [] [ Element.text <| Generic.ASTTools.title editRecord.tree ]
     in
     { body =
-        ScriptaV2.Compiler.renderForest counter renderSettings editRecord.accumulator editRecord.tree
+        ScriptaV2.Compiler.renderForest counter renderSettings editRecord.accumulator (ScriptaV2.Compiler.filterForest filter editRecord.tree)
     , banner = banner
     , toc = toc
     , title = title

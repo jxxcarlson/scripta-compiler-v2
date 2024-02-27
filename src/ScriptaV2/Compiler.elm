@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
     ( CompilerOutput, compile, parse, parseFromString, render, renderForest, view, viewTOC
-    , p, px
+    , Filter(..), filterForest, p, px
     )
 
 {-|
@@ -76,17 +76,17 @@ bottomPadding k =
     Used only in View.Phone (twice)
 
 -}
-compile : Language -> Int -> Int -> String -> List String -> CompilerOutput
-compile lang width outerCount selectedId lines =
+compile : Filter -> Language -> Int -> Int -> String -> List String -> CompilerOutput
+compile filter lang width outerCount selectedId lines =
     case lang of
         EnclosureLang ->
-            compileM width outerCount selectedId lines
+            compileM filter width outerCount selectedId lines
 
         MicroLaTeXLang ->
-            compileL width outerCount selectedId lines
+            compileL filter width outerCount selectedId lines
 
         SMarkdownLang ->
-            compileX width outerCount selectedId lines
+            compileX filter width outerCount selectedId lines
 
 
 {-|
@@ -176,38 +176,54 @@ p str =
     parseM Config.idPrefix 0 (String.lines str)
 
 
-compileM : Int -> Int -> String -> List String -> CompilerOutput
-compileM width outerCount selectedId lines =
+type Filter
+    = NoFilter
+    | SuppressDocumentBlocks
+
+
+filterForest : Filter -> Forest ExpressionBlock -> Forest ExpressionBlock
+filterForest filter forest =
+    case filter of
+        NoFilter ->
+            forest
+
+        SuppressDocumentBlocks ->
+            forest
+                |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "document")
+
+
+compileM : Filter -> Int -> Int -> String -> List String -> CompilerOutput
+compileM filter width outerCount selectedId lines =
     case parseM Config.idPrefix outerCount lines of
         Err err ->
             { body = [ Element.text "Oops something went wrong" ], banner = Nothing, toc = [], title = Element.text "Oops! (Error)" }
 
         Ok forest_ ->
-            render width selectedId outerCount forest_
+            render width selectedId outerCount (filterForest filter forest_)
 
 
-compileX : Int -> Int -> String -> List String -> CompilerOutput
-compileX width outerCount selectedId lines =
+compileX : Filter -> Int -> Int -> String -> List String -> CompilerOutput
+compileX filter width outerCount selectedId lines =
     case parseX Config.idPrefix outerCount lines of
         Err err ->
             { body = [ Element.text "Oops something went wrong" ], banner = Nothing, toc = [], title = Element.text "Oops! (Error)" }
 
         Ok forest_ ->
-            render width selectedId outerCount forest_
+            render width selectedId outerCount (filterForest filter forest_)
 
 
 
 -- LaTeX compiler
 
 
-compileL : Int -> Int -> String -> List String -> CompilerOutput
-compileL width outerCount selectedId lines =
+compileL : Filter -> Int -> Int -> String -> List String -> CompilerOutput
+compileL filter width outerCount selectedId lines =
     case parseL Config.idPrefix outerCount lines of
         Err err ->
             { body = [ Element.text "Oops something went wrong" ], banner = Nothing, toc = [], title = Element.text "Oops! (Error)" }
 
         Ok forest_ ->
-            render width selectedId outerCount forest_
+            render width selectedId outerCount (filterForest filter forest_)
 
 
 {-|
