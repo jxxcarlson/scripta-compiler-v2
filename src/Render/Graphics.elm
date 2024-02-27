@@ -63,16 +63,7 @@ inlineimage settings attrs body =
         params =
             body |> argumentsFromAST |> imageParameters settings
 
-        ypadding =
-            case params.yPadding of
-                Nothing ->
-                    0
-
-                Just k ->
-                    k
-
         inner =
-            --el [ Element.width (px settings.width), params.placement, Element.paddingXY 0 ypadding ]
             Element.image [ Element.width params.width, params.placement ]
                 { src = params.url, description = params.description }
     in

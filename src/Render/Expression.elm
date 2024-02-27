@@ -239,7 +239,7 @@ link _ _ _ attr exprList =
                 in
                 newTabLink []
                     { url = url
-                    , label = el [ Font.color linkColor ] (Element.text label)
+                    , label = el [ Font.color linkColor, Font.underline ] (Element.text label)
                     }
 
             else
@@ -252,7 +252,7 @@ link _ _ _ attr exprList =
                 in
                 newTabLink []
                     { url = url
-                    , label = el [ Font.color linkColor ] (Element.text label)
+                    , label = el [ Font.color linkColor, Font.underline ] (Element.text label)
                     }
 
 
@@ -301,7 +301,7 @@ ilink _ _ _ attr exprList =
             in
             Input.button attr
                 { onPress = Just (GetDocumentWithSlug Render.Msg.MHStandard slug)
-                , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
+                , label = Element.el [ Element.centerX, Element.centerY, Font.underline, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
                 }
 
 
