@@ -1,4 +1,7 @@
-module ScriptaV2.Language exposing (Language(..), ExpressionBlock)
+module ScriptaV2.Language exposing
+    ( Language(..), ExpressionBlock
+    , toString
+    )
 
 {-|
 
@@ -20,3 +23,16 @@ type Language
 {-| -}
 type alias ExpressionBlock =
     Generic.Language.ExpressionBlock
+
+
+toString : Language -> String
+toString lang =
+    case lang of
+        MicroLaTeXLang ->
+            "MicroLaTeX"
+
+        EnclosureLang ->
+            "Enclosure"
+
+        SMarkdownLang ->
+            "SMarkdown"
