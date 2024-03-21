@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
     ( CompilerOutput, compile, parse, parseFromString, render, renderForest, view, viewTOC
-    , Filter(..), filterForest, p, px
+    , Filter(..), filterForest, p, px, viewBody
     )
 
 {-|
@@ -37,6 +37,28 @@ view width_ compiled =
     [ Element.column [ Element.width (Element.px (width_ - 60)) ] (header compiled)
     , body compiled
     ]
+
+
+viewBody : Int -> CompilerOutput -> List (Element MarkupMsg)
+viewBody width_ compiled =
+    [ Element.column [ Element.width (Element.px (width_ - 60)) ]
+        (header_ compiled)
+    , body compiled
+    ]
+
+
+header_ : CompilerOutput -> List (Element MarkupMsg)
+header_ compiled =
+    case compiled.banner of
+        Nothing ->
+            Element.el [ Font.size 32, bottomPadding 86 ] compiled.title
+                :: []
+
+        Just banner ->
+            Element.el [] banner
+                :: (Element.el [ Font.size 32, bottomPadding 86 ] compiled.title
+                        :: []
+                   )
 
 
 header : CompilerOutput -> List (Element MarkupMsg)
