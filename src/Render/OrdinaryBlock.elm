@@ -405,7 +405,17 @@ section count acc settings attr block =
             Generic.Language.getExpressionContent block
     in
     Element.link
-        (sectionBlockAttributes block settings [ topPadding 20, Font.size fontSize ])
+        (sectionBlockAttributes block
+            settings
+            [ topPadding 20
+            , Font.size fontSize
+            , if headingLevel > 1 then
+                Font.semiBold
+
+              else
+                Font.regular
+            ]
+        )
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
         , label = Element.paragraph ([] |> Render.Sync2.sync block settings) (sectionNumber :: renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
         }
