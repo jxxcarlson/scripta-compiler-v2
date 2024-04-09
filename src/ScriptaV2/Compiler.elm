@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
     ( CompilerOutput, compile, parse, parseFromString, render, renderForest, view, viewTOC
-    , Filter(..), filterForest, p, px, viewBody
+    , Filter(..), cenc, filterForest, p, px, viewBody
     )
 
 {-|
@@ -222,6 +222,10 @@ compileM filter width outerCount selectedId lines =
 
         Ok forest_ ->
             render width selectedId outerCount (filterForest filter forest_)
+
+
+cenc str =
+    compileM NoFilter 800 0 "!!" (String.lines str)
 
 
 compileX : Filter -> Int -> Int -> String -> List String -> CompilerOutput

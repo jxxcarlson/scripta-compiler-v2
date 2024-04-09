@@ -9,6 +9,10 @@ import Parser exposing ((|.), (|=), Parser)
 import Tools.KV as KV
 
 
+p str =
+    parse "0" 0 (String.lines str)
+
+
 {-| Parse a list of strings into a list of primitive blocks given
 a function for determining when a string is the first line
 of a verbatim block

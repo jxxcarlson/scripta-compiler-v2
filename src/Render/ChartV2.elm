@@ -518,19 +518,6 @@ expandRange { lowest, highest } =
     [ low, high ]
 
 
-foo : List (Axis -> Axis)
-foo =
-    [ CA.lowest -5 CA.orLower
-
-    -- Makes sure that your x-axis begins at -5 or lower, no matter
-    -- what your data is like.
-    , CA.highest 10 CA.orHigher
-
-    -- Makes sure that your x-axis ends at 10 or higher, no matter
-    -- what your data is like.
-    ]
-
-
 regressionLine : List { x : Float, y : Float } -> Maybe (Float -> Float)
 regressionLine points =
     let
