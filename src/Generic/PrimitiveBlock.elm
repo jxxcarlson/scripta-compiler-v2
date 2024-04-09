@@ -379,16 +379,6 @@ transformBlock findTitlePrefix block =
         Just "subheading" ->
             { block | properties = Dict.insert "level" "4" block.properties, heading = Ordinary "section" }
 
-        Just "quotation" ->
-            { block
-                | body =
-                    (block.firstLine
-                        |> String.trim
-                        |> Tools.Utility.replaceLeadingGreaterThanSign
-                    )
-                        :: block.body
-            }
-
         Just "item" ->
             { block
                 | body =
