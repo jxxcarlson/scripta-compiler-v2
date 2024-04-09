@@ -240,47 +240,51 @@ rawLineChart options mChartData =
             Element.el [ Font.size 14, Font.color red ] (Element.text "Line chart: Error, can only handle 2D data")
 
 
-expandRange : { a | lowest : Maybe Float, highest : Maybe Float } -> List (Axis -> Axis)
-expandRange { lowest, highest } =
-    let
-        low =
-            case lowest of
-                Nothing ->
-                    CA.lowest 0 CA.orLower
 
-                Just u ->
-                    CA.lowest u CA.exactly
-
-        high =
-            case highest of
-                Nothing ->
-                    CA.highest 100 CA.orHigher
-
-                Just u ->
-                    CA.highest u CA.exactly
-    in
-    [ low, high ]
+--
+--expandRange : { a | lowest : Maybe Float, highest : Maybe Float } -> List (Axis -> Axis)
+--expandRange { lowest, highest } =
+--    let
+--        low : Axis -> Axis
+--        low =
+--            case lowest of
+--                Nothing ->
+--                    CA.lowest 0 CA.orLower
+--
+--                Just u ->
+--                    CA.lowest u CA.exactly
+--
+--        high : Axis -> Axis
+--        high =
+--            case highest of
+--                Nothing ->
+--                    CA.highest 100 CA.orHigher
+--
+--                Just u ->
+--                    CA.highest u CA.exactly
+--    in
+--    [ low, high ]
 
 
 rawLineChart2D : Options -> List { x : Float, y : Float } -> Element msg
 rawLineChart2D options data =
-    let
-        domain =
-            case options.domain of
-                Nothing ->
-                    CA.domain []
-
-                Just range_ ->
-                    CA.domain (expandRange range_)
-
-        range =
-            case options.range of
-                Nothing ->
-                    CA.range []
-
-                Just range_ ->
-                    CA.range (expandRange range_)
-    in
+    --let
+    --domain =
+    --    case options.domain of
+    --        Nothing ->
+    --            CA.domain []
+    --
+    --        Just range_ ->
+    --            CA.domain (expandRange range_)
+    --
+    --range =
+    --    case options.range of
+    --        Nothing ->
+    --            CA.range []
+    --
+    --        Just range_ ->
+    --            CA.range (expandRange range_)
+    --in
     Chart.chart
         [ CA.height 200
         , CA.width 400
