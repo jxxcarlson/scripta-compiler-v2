@@ -2,6 +2,34 @@ module Data.M exposing (text)
 
 
 text =
+    """| title 
+Quotation Test
+
+| quotation
+  aaa
+
+  bbb
+
+  ccc
+
+| theorem
+There are infinitely many primes
+$p \\equiv 1 \\text{ mod } 4$
+
+
+| quotation
+aaa  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx
+xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx
+
+  bbb xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx
+xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx
+
+  ccc xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx
+xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx  xxx
+"""
+
+
+text22 =
     """| title
 Table Test
 

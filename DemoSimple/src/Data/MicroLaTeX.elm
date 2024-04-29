@@ -10,7 +10,10 @@ One: \\(x^2\\)
 
 Two: \\(x^2 Ho ho ho!
 
-
+\\begin{theorem}
+There are infinitely many primes
+$p \\equiv 1 \\text{ mod } 4$
+\\end{theorem}
 """
 
 

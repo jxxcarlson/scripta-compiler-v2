@@ -176,12 +176,14 @@ headerHeight =
 mainColumn : Model -> Element Msg
 mainColumn model =
     let
+        -- compile filter lang width outerCount selectedId lines =
         compiled =
             ScriptaV2.Compiler.compile
+                ScriptaV2.Compiler.NoFilter
                 model.currentLanguage
-                (panelWidth model - 3 * xPadding)
+                400
                 model.count
-                model.selectId
+                "--"
                 (String.lines model.sourceText)
     in
     column mainColumnStyle
@@ -264,6 +266,7 @@ displayRenderedText model =
             , scrollbarY
             ]
             (ScriptaV2.API.compile
+                ScriptaV2.Compiler.NoFilter
                 model.currentLanguage
                 (panelWidth model - 3 * xPadding)
                 model.count
