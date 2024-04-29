@@ -35,6 +35,28 @@ toExpressionBlock lang parser block =
 toPrimitiveBlockForest : List PrimitiveBlock -> Result Error (Forest PrimitiveBlock)
 toPrimitiveBlockForest blocks =
     Generic.ForestTransform.forestFromBlocks { emptyBlock | indent = -2 } .indent blocks
+        |> Result.map primitiveBlockForestTransform
+
+
+primitiveBlockForestTransform : Forest PrimitiveBlock -> Forest PrimitiveBlock
+primitiveBlockForestTransform forest =
+    forest |> List.map primitiveBlockTreeTransform
+
+
+primitiveBlockTreeTransform : Tree PrimitiveBlock -> Tree PrimitiveBlock
+primitiveBlockTreeTransform tree =
+    case (Tree.label tree).heading of
+        Ordinary "quotation" ->
+            let
+                changeHeading : Heading -> PrimitiveBlock -> PrimitiveBlock
+                changeHeading heading block =
+                    { block | heading = heading }
+            in
+            tree
+                |> Tree.mapChildren (List.map (Tree.mapLabel (changeHeading (Ordinary "quotation"))))
+
+        _ ->
+            tree
 
 
 emptyBlock : PrimitiveBlock
