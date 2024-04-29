@@ -14,6 +14,7 @@ import M.Expression
 import M.PrimitiveBlock
 import ScriptaV2.Language exposing (Language(..))
 import Tools.Utility
+import Tree exposing (Tree)
 import XMarkdown.Expression
 
 
