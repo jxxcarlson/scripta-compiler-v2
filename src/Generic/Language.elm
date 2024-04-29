@@ -195,16 +195,16 @@ updateMetaInBlock updater block =
     { block | body = newBody }
 
 
-{-| A block whose content is a list of expressions.
--}
-type alias ExpressionBlock =
-    Block (Either String (List Expression)) BlockMeta
-
-
 {-| A block whose content is a list of strings.
 -}
 type alias PrimitiveBlock =
     Block (List String) BlockMeta
+
+
+{-| A block whose content is a list of expressions.
+-}
+type alias ExpressionBlock =
+    Block (Either String (List Expression)) BlockMeta
 
 
 
