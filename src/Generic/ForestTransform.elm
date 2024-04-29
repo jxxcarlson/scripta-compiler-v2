@@ -59,7 +59,7 @@ forestFromBlocks defaultNode indentation blocks =
 
 {-|
 
-    Trasnform a list of blocks to a tree of blocks based
+    Transform a list of blocks to a tree of blocks based
     on the indentation of the blocks.
 
 -}
@@ -95,7 +95,7 @@ init defaultNode indentation blocks =
         Nothing ->
             Err EmptyBlocks
 
-        Just rootBlock ->
+        Just _ ->
             Ok
                 { blocks = List.drop 1 blocks
                 , zipper = Zipper.fromTree <| Tree.tree defaultNode []
