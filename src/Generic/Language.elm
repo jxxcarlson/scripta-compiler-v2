@@ -33,6 +33,7 @@ import Dict exposing (Dict)
 import Either exposing (Either(..))
 import List.Extra
 import Tools.Utility
+import Tree exposing (Tree)
 
 
 
@@ -71,15 +72,20 @@ import Tools.Utility
 
 
 type Expr metaData
-    = Fun String (List (Expr metaData)) metaData
+    = Text String metaData
+    | Fun String (List (Expr metaData)) metaData
     | VFun String String metaData
-    | Text String metaData
+
+
+type ScriptaExpressions metaData
+    = List (Tree (Expr metaData))
 
 
 {-|
 
     PrimitiveBlocks, content = String
-    ExpressionBlocks, content = Either String (List Expression)
+    ExpressionBlocks, content = Eith
+    er String (List Expression)
 
 -}
 type alias Block content blockMetaData =
