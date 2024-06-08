@@ -329,9 +329,32 @@ commitBlock state currentLine =
                 , blocks = block :: state.blocks
                 , inBlock = False
                 , inVerbatim = state.parserFunctions.isVerbatimBlock currentLine.content
-                , currentBlock = Nothing
-            }
+                , currentBlock = Just block
+            } |> raiseBlockLevelsIfNeeded
 
+
+--type alias PrimitiveBlock =
+--    Block (List String) BlockMeta
+
+
+raiseBlockLevelsIfNeeded : State -> State
+raiseBlockLevelsIfNeeded state =
+  case state.currentBlock of
+      Nothing -> state
+      Just block ->
+       case Tools.Utility.findOrdinaryTagAtEnd (lastLine block) of
+         Nothing -> let _ = Debug.log "@@TAG" Nothing
+            in { state | currentBlock = Nothing }
+         Just tag ->
+            let _ = Debug.log "@@TAG" tag in
+            { state | currentBlock = Nothing }
+
+lastLine : PrimitiveBlock -> String
+lastLine primitiveBlock  =
+    primitiveBlock.body |> List.Extra.last |> Maybe.withDefault ""
+
+
+--findMatchingBlock : List PrimitiveBlock
 
 fixMarkdownTitleBlock : (String -> Maybe String) -> PrimitiveBlock -> PrimitiveBlock
 fixMarkdownTitleBlock findTitlePrefix block =

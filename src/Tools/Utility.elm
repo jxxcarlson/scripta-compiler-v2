@@ -10,11 +10,26 @@ module Tools.Utility exposing
     , replaceLeadingVertBarItem
     , truncateString
     , userReplace
+    , findOrdinaryTagAtEnd
     )
 
 import Dict exposing (Dict)
 import Maybe.Extra
 import Regex
+
+ordinaryTagAtEndRegex : Regex.Regex
+ordinaryTagAtEndRegex =
+    Maybe.withDefault Regex.never <|
+        Regex.fromString ".*\n| .*$"
+
+
+findOrdinaryTagAtEnd : String -> Maybe String
+findOrdinaryTagAtEnd string =
+    Regex.find ordinaryTagAtEndRegex string
+        |> List.map .match
+        |> List.reverse
+        |> List.head
+        |> Maybe.map String.trim
 
 
 replaceLeadingDotSpace : String -> String
