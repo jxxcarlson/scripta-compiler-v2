@@ -1,6 +1,6 @@
 module Generic.PrimitiveBlock exposing
     ( empty, parse
-    , ParserFunctions, bogusBlockFromLine, eq, length, listLength
+    , ParserFunctions, bogusBlockFromLine, eq, length, listLength, raiseBlockLevelsIfNeeded_
     )
 
 {-| The main function is
@@ -290,6 +290,9 @@ commitBlock state currentLine =
 
         Just block__ ->
             let
+                _ =
+                    Debug.log "COMMIT_BLOCK" True
+
                 block_ =
                     block__
                         |> Generic.BlockUtilities.updateMeta (\m -> { m | id = state.idPrefix ++ "-" ++ String.fromInt state.blocksCommitted })
@@ -326,35 +329,73 @@ commitBlock state currentLine =
                 , lineNumber = state.lineNumber + 1
                 , count = state.count + 1
                 , blocksCommitted = state.blocksCommitted + 1
-                , blocks = block :: state.blocks
+                , blocks = block :: state.blocks |> raiseBlockLevelsIfNeeded_ block
                 , inBlock = False
                 , inVerbatim = state.parserFunctions.isVerbatimBlock currentLine.content
-                , currentBlock = Just block
-            } |> raiseBlockLevelsIfNeeded
+                , currentBlock = Nothing
+            }
 
 
---type alias PrimitiveBlock =
---    Block (List String) BlockMeta
+raiseBlockLevelsIfNeeded__ : PrimitiveBlock -> List PrimitiveBlock -> List PrimitiveBlock
+raiseBlockLevelsIfNeeded__ lastBlock blocks =
+    blocks
 
 
-raiseBlockLevelsIfNeeded : State -> State
-raiseBlockLevelsIfNeeded state =
-  case state.currentBlock of
-      Nothing -> state
-      Just block ->
-       case Tools.Utility.findOrdinaryTagAtEnd (lastLine block) of
-         Nothing -> let _ = Debug.log "@@TAG" Nothing
-            in { state | currentBlock = Nothing }
-         Just tag ->
-            let _ = Debug.log "@@TAG" tag in
-            { state | currentBlock = Nothing }
+raiseBlockLevelsIfNeeded_ : PrimitiveBlock -> List PrimitiveBlock -> List PrimitiveBlock
+raiseBlockLevelsIfNeeded_ lastBlock blocks =
+    case findOrdinaryTagAtEnd lastBlock of
+        Nothing ->
+            blocks
 
-lastLine : PrimitiveBlock -> String
-lastLine primitiveBlock  =
-    primitiveBlock.body |> List.Extra.last |> Maybe.withDefault ""
+        Just tag ->
+            if not <| List.member tag [ "quotation" ] then
+                blocks
+
+            else
+                let
+                    candidateBlocksToRaise =
+                        List.Extra.takeWhile (acceptBlock tag) blocks
+                            |> Debug.log ("@##@ CANDIDATES (" ++ tag ++ ")")
+
+                    _ =
+                        Debug.log "@##@ N CANDIDATES" (List.length candidateBlocksToRaise)
+
+                    raisedBlocks_ =
+                        List.map (\b -> { b | indent = b.indent + 2 }) candidateBlocksToRaise
+
+                    raisedBlocks =
+                        case List.Extra.uncons raisedBlocks_ of
+                            Nothing ->
+                                raisedBlocks_
+
+                            Just ( first, rest ) ->
+                                { first | body = first.body } :: rest
+
+                    n =
+                        List.length raisedBlocks_
+
+                    tail =
+                        List.drop n blocks
+                in
+                raisedBlocks ++ tail
+
+
+findOrdinaryTagAtEnd : PrimitiveBlock -> Maybe String
+findOrdinaryTagAtEnd primitiveBlock =
+    primitiveBlock.body
+        |> List.Extra.last
+        |> Maybe.withDefault ""
+        |> Tools.Utility.findOrdinaryTagAtEnd
+
+
+acceptBlock : String -> PrimitiveBlock -> Bool
+acceptBlock tag block =
+    not <| block.heading == Ordinary tag
+
 
 
 --findMatchingBlock : List PrimitiveBlock
+
 
 fixMarkdownTitleBlock : (String -> Maybe String) -> PrimitiveBlock -> PrimitiveBlock
 fixMarkdownTitleBlock findTitlePrefix block =

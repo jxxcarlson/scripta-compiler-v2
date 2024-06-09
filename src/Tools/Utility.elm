@@ -1,6 +1,7 @@
 module Tools.Utility exposing
     ( compressWhitespace
     , compressWhitespaces
+    , findOrdinaryTagAtEnd
     , keyValueDict
     , removeNonAlphaNum
     , removeNonAlphaNumExceptHyphen
@@ -10,12 +11,12 @@ module Tools.Utility exposing
     , replaceLeadingVertBarItem
     , truncateString
     , userReplace
-    , findOrdinaryTagAtEnd
     )
 
 import Dict exposing (Dict)
 import Maybe.Extra
 import Regex
+
 
 ordinaryTagAtEndRegex : Regex.Regex
 ordinaryTagAtEndRegex =
