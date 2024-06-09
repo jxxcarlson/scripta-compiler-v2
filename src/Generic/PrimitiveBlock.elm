@@ -348,7 +348,7 @@ raiseBlockLevelsIfNeeded_ lastBlock blocks =
             blocks
 
         Just tag ->
-            if not <| List.member tag [ "quotation" ] then
+            if not <| List.member tag [ "quotation", "indent", "theorem" ] then
                 blocks
 
             else
@@ -369,7 +369,11 @@ raiseBlockLevelsIfNeeded_ lastBlock blocks =
                                 raisedBlocks_
 
                             Just ( first, rest ) ->
-                                { first | body = first.body } :: rest
+                                let
+                                    m =
+                                        List.length first.body
+                                in
+                                { first | body = List.take (m - 1) first.body } :: rest
 
                     n =
                         List.length raisedBlocks_

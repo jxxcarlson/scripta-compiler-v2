@@ -174,17 +174,16 @@ indented : Int -> Accumulator -> RenderSettings -> List (Element.Attribute Marku
 indented count acc settings attr block =
     Element.el
         ([ Element.width (Element.px settings.width) ] |> Render.Sync2.sync block settings)
-        (Element.paragraph [ Element.paddingEach { left = settings.leftIndent, right = 0, top = 0, bottom = 0 } ]
+        (Element.paragraph [ Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
             (Render.Helper.renderWithDefault "indent" count acc settings attr (Generic.Language.getExpressionContent block))
         )
 
 
 quotation : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 quotation count acc settings attrs block =
-    Element.column ([ Element.spacing 12 ] |> Render.Sync2.sync block settings)
+    Element.column ([ Element.spacing 12] |> Render.Sync2.sync block settings)
         [ Element.paragraph
-            (Render.Helper.blockAttributes settings block [ Render.Utility.leftPadding settings.leftIndentation, Font.italic ])
-            --(Render.Helper.renderWithDefault "!!! (quotation)" count acc settings attrs (Generic.Language.getExpressionContent block))
+            (Render.Helper.blockAttributes settings block [  ])
             (Render.Helper.renderWithDefault "quotation" count acc settings attrs (Generic.Language.getExpressionContent block))
         ]
 

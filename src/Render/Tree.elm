@@ -90,6 +90,7 @@ renderTreeQ count accumulator settings attrs_ tree =
         root =
             Tree.label tree
 
+        blockAttrs : List (Element.Attribute MarkupMsg)
         blockAttrs =
             OrdinaryBlock.getAttributesForBlock root
     in
@@ -126,9 +127,18 @@ rootAttributes rootBlock =
     in
     if List.member blockName italicBlockNames then
         [ Font.italic ]
+        --else if List.member blockName ["quotation"] then
+        --    [Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0}]
 
     else if blockName == "indent" then
-        [ Element.spacing 11, Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ]
+        -- re left indent see also Render.OrdingaryBlock.indented.  The value there must
+        -- be the same.
+        [ Element.spacing 11, Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
+
+    else if blockName == "quotation" then
+            -- re left indent see also Render.OrdingaryBlock.indented.  The value there must
+            -- be the same.
+            [ Font.italic, Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
 
     else if blockName == "box" then
         [ Element.spacing 11, Font.italic, Element.paddingXY 12 12, Background.color (Element.rgb 0.9 0.9 1.0) ]
@@ -154,4 +164,4 @@ innerAttributes rootBlock =
 
 
 italicBlockNames =
-    [ "quote", "aside", "note", "warning", "exercise", "theorem", "proof", "definition", "lemma", "corollary", "example", "remark" ]
+    [ "quote",  "aside", "note", "warning", "exercise", "theorem", "proof", "definition", "lemma", "corollary", "example", "remark" ]
