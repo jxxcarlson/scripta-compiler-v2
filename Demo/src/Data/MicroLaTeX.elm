@@ -3,11 +3,22 @@ module Data.MicroLaTeX exposing (text)
 
 text =
     """
+$$
+\\int_0^1 x^n dx = \\frac{1}{n+1n
+@@
+"""
+
+
+text1 =
+    """
 \\title{Test}
 
 \\desc Radial Balancer
 This part \\strong{must} be machined to a tolerance of 0.001%, then
 connected to high-voltage unifier.
+
+
+ml
 
 """
 

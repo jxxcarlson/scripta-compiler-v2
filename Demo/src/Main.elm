@@ -14,7 +14,7 @@ import Html exposing (Html)
 import Html.Attributes
 import Render.Msg exposing (MarkupMsg)
 import ScriptaV2.API
-import ScriptaV2.Compiler
+import ScriptaV2.Compiler exposing (Filter(..))
 import ScriptaV2.Language
 import Task
 
@@ -252,6 +252,7 @@ displayRenderedText model =
             , scrollbarY
             ]
             (ScriptaV2.API.compile
+                NoFilter
                 model.currentLanguage
                 (panelWidth model - 3 * xPadding)
                 model.count
