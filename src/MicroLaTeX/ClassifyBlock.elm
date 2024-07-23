@@ -24,6 +24,8 @@ type Classification
     | CEndBlock String
     | CSpecialBlock LXSpecial
     | CMathBlockDelim
+    | CMathBlockBegin
+    | CMathBlockEnd
     | CVerbatimBlockDelim
     | CPlainText
     | CEmpty
@@ -44,6 +46,8 @@ classifierParser =
         [ beginBlockParser
         , endBlockParser
         , mathBlockDelimParser
+        , mathBlockBeginParser
+        , mathBlockEndParser
         , verbatimBlockDelimParser
         , ordinaryBlockParser
         , verbatimBlockParser
@@ -180,6 +184,9 @@ match c1 c2 =
         ( CSpecialBlock _, _ ) ->
             True
 
+        ( CMathBlockBegin, CMathBlockEnd ) ->
+            True
+
         _ ->
             False
 
@@ -192,6 +199,12 @@ classificationString classification =
 
         CEndBlock name ->
             name
+
+        CMathBlockBegin ->
+            "\\["
+
+        CMathBlockEnd ->
+            "\\]"
 
         _ ->
             "??"
@@ -270,3 +283,15 @@ endBlockParser =
         |= Parser.getSource
     )
         |> Parser.map CEndBlock
+
+
+mathBlockBeginParser : Parser Classification
+mathBlockBeginParser =
+    Parser.succeed CMathBlockBegin
+        |. Parser.symbol "\\["
+
+
+mathBlockEndParser : Parser Classification
+mathBlockEndParser =
+    Parser.succeed CMathBlockEnd
+        |. Parser.symbol "\\]"

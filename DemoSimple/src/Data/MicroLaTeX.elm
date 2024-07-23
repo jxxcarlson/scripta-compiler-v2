@@ -3,17 +3,18 @@ module Data.MicroLaTeX exposing (text)
 
 text =
     """
-
 \\title{Test}
 
-One: \\(x^2\\)
+$$
+\\int_0^1 x^n dx = \\frac{1}{n+1}
+$$
 
-Two: \\(x^2 Ho ho ho!
+\\[
+\\int_0^1 x^n dx = \\frac{1}{n+1}
+\\]
 
-\\begin{theorem}
-There are infinitely many primes
-$p \\equiv 1 \\text{ mod } 4$
-\\end{theorem}
+$a^2 + b^2 = c^2$
+
 """
 
 

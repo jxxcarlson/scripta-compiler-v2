@@ -149,6 +149,8 @@ init idPrefix outerCount lines =
                 | CEndBlock String
                 | CSpecialBlock LXSpecial
                 | CMathBlockDelim
+                | CMathBlockBegin
+                | CMathBlockEnd
                 | CVerbatimBlockDelim
                 | CPlainText
                 | CEmpty
@@ -260,6 +262,19 @@ nexStepAux currentLine mTopLabel state =
 
                     else
                         Loop (state |> dispatchBeginBlock state.idPrefix state.outerCount CMathBlockDelim currentLine)
+
+        CMathBlockBegin ->
+                    Loop (state |> dispatchBeginBlock state.idPrefix state.outerCount CMathBlockBegin currentLine)
+
+        CMathBlockEnd ->
+                    case List.head state.labelStack of
+                        Just label ->
+                            if label.classification == CMathBlockBegin then
+                                state |> endBlockOnMatch (Just label) CMathBlockEnd currentLine |> Loop
+                            else
+                                Loop state
+                        Nothing ->
+                            Loop state
 
         CVerbatimBlockDelim ->
             Loop (state |> handleVerbatimBlock currentLine)
@@ -1076,6 +1091,15 @@ emptyLine currentLine state =
                 CMathBlockDelim ->
                     Loop <| endBlockOnMismatch label CMathBlockDelim currentLine state
 
+                CMathBlockBegin ->
+                                    -- For math blocks, we'll keep the block open on empty lines
+                                    Loop state
+
+                CMathBlockEnd ->
+                                    -- This case shouldn't occur, but we'll handle it just in case
+                                    Loop (resetLevelIfStackIsEmpty state)
+
+
                 CBeginBlock name ->
                     if List.member name [ "equation", "aligned" ] then
                         -- equation and aligned blocks are terminated if an empty line is encountered
@@ -1466,6 +1490,12 @@ getHeading str =
 
         CVerbatimBlockDelim ->
             Verbatim "code"
+
+        CMathBlockBegin ->
+            Verbatim "math"
+
+        CMathBlockEnd ->
+            Verbatim "math"
 
         _ ->
             Paragraph
