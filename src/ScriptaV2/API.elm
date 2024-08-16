@@ -12,9 +12,17 @@ import ScriptaV2.Compiler
 import ScriptaV2.Language exposing (Language)
 
 
+settings : { filter : ScriptaV2.Compiler.Filter, lang : Language, width : Int }
+settings =
+    { filter = ScriptaV2.Compiler.NoFilter
+    , lang = ScriptaV2.Language.MicroLaTeXLang
+    , width = 800
+    }
+
+
 {-| -}
-compile : ScriptaV2.Compiler.Filter -> Language -> Int -> Int -> String -> List String -> List (Element MarkupMsg)
-compile filter lang width outerCount selectedId lines =
+compile : { filter : ScriptaV2.Compiler.Filter, lang : Language, width : Int } -> Int -> String -> List String -> List (Element MarkupMsg)
+compile { filter, lang, width } outerCount selectedId lines =
     ScriptaV2.Compiler.compile filter lang width outerCount selectedId lines |> ScriptaV2.Compiler.view width
 
 
