@@ -3,17 +3,21 @@ module Data.MicroLaTeX exposing (text)
 
 text =
     """
+
 \\title{Test}
 
 $$
-\\int_0^1 x^n dx = \\frac{1}{n+1}
+- \\int_0^1 x^n dx = \\frac{1}{n+1}
 $$
 
 
 \\[
-\\int_0^1 x^n dx = \\frac{1}{n+1}
+- \\int_0^1 x^n dx = \\frac{1}{n+1}
 \\]
 
+\\begin{equation}
+- \\int_0^1 x^n dx = \\frac{1}{n+1}
+\\end{equation}
 """
 
 

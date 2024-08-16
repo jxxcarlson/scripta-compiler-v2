@@ -252,14 +252,16 @@ displayRenderedText model =
             , scrollbarY
             ]
             (ScriptaV2.API.compile
-                NoFilter
-                model.currentLanguage
-                (panelWidth model - 3 * xPadding)
+                { filter = NoFilter, lang = model.currentLanguage, width = panelWidth model - 3 * xPadding }
                 model.count
                 model.selectId
                 (String.lines model.sourceText)
             )
         ]
+
+
+
+-- compile { filter, lang, width } outerCount selectedId lines =
 
 
 bottomPadding k =
