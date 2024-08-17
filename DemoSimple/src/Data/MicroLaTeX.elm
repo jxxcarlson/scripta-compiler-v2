@@ -5,6 +5,8 @@ text =
     """
 \\title{Test}
 
+\\section{OK}
+
 $$
 \\int_0^1 x^n dx = \\frac{1}{n+1}
 $$
@@ -13,7 +15,19 @@ $$
 \\int_0^1 x^n dx = \\frac{1}{n+1}
 \\]
 
-$a^2 + b^2 = c^2$
+Old style: $a^2 + b^2 = c^2$
+
+New style: \\(a^2 + b^2 = c^2\\)
+
+\\section{Not OK}
+
+$$
+- \\int_0^1 x^n dx = \\frac{1}{n+1}
+$$
+
+\\[
+- \\int_0^1 x^n dx = \\frac{1}{n+1}
+\\]
 
 """
 
