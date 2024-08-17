@@ -207,7 +207,7 @@ languageToString : ScriptaV2.Language.Language -> String
 languageToString lang =
     case lang of
         ScriptaV2.Language.EnclosureLang ->
-            "M"
+            "Enclosure"
 
         ScriptaV2.Language.SMarkdownLang ->
             "SMarkdown"

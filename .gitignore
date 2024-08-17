@@ -5,3 +5,4 @@ Demo/elm-stuff/
 Demo/assets/main.js
 CLI/*.txt
 CLI/*.txt*
+.DS_Store
