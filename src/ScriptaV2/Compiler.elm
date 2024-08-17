@@ -1,11 +1,8 @@
-module ScriptaV2.Compiler exposing
-    ( CompilerOutput, compile, parse, parseFromString, render, renderForest, view, viewTOC
-    , Filter(..), cenc, filterForest, p, px, viewBody
-    )
+module ScriptaV2.Compiler exposing (CompilerOutput, Filter(..), compile, parse, parseFromString, render, renderForest, view, viewTOC, filterForest, p, px, viewBody)
 
 {-|
 
-@docs CompilerOutput, compile, parse, parseFromString, render, renderForest, view, viewTOC
+@docs CompilerOutput, Filter, compile, parse, parseFromString, render, renderForest, view, viewTOC, filterForest, p, px, viewBody
 
 -}
 
@@ -32,6 +29,13 @@ import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
 
 
+{-| -}
+type Filter
+    = NoFilter
+    | SuppressDocumentBlocks
+
+
+{-| -}
 view : Int -> CompilerOutput -> List (Element MarkupMsg)
 view width_ compiled =
     [ Element.column [ Element.width (Element.px (width_ - 60)) ] (header compiled)
@@ -39,6 +43,7 @@ view width_ compiled =
     ]
 
 
+{-| -}
 viewBody : Int -> CompilerOutput -> List (Element MarkupMsg)
 viewBody width_ compiled =
     [ Element.column [ Element.width (Element.px (width_ - 60)) ]
@@ -61,6 +66,7 @@ header_ compiled =
                    )
 
 
+{-| -}
 header : CompilerOutput -> List (Element MarkupMsg)
 header compiled =
     case compiled.banner of
@@ -77,6 +83,7 @@ header compiled =
                    )
 
 
+{-| -}
 body : CompilerOutput -> Element MarkupMsg
 body compiled =
     Element.column [ Element.spacing 18, Element.moveUp 96 ] compiled.body
@@ -167,6 +174,9 @@ parseX idPrefix outerCount lines =
     Generic.Compiler.parse_ SMarkdownLang XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
 
 
+{-| =
+-}
+px : String -> Result Error (Forest ExpressionBlock)
 px str =
     parseX "!!" 0 (String.lines str)
 
@@ -194,15 +204,13 @@ type alias CompilerOutput =
     }
 
 
+{-| -}
+p : String -> Result Error (Forest ExpressionBlock)
 p str =
     parseM Config.idPrefix 0 (String.lines str)
 
 
-type Filter
-    = NoFilter
-    | SuppressDocumentBlocks
-
-
+{-| -}
 filterForest : Filter -> Forest ExpressionBlock -> Forest ExpressionBlock
 filterForest filter forest =
     case filter of
@@ -222,10 +230,6 @@ compileM filter width outerCount selectedId lines =
 
         Ok forest_ ->
             render width selectedId outerCount (filterForest filter forest_)
-
-
-cenc str =
-    compileM NoFilter 800 0 "!!" (String.lines str)
 
 
 compileX : Filter -> Int -> Int -> String -> List String -> CompilerOutput

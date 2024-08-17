@@ -1,11 +1,8 @@
-module ScriptaV2.Language exposing
-    ( Language(..), ExpressionBlock
-    , toString
-    )
+module ScriptaV2.Language exposing (Language(..), ExpressionBlock, toString)
 
 {-|
 
-@docs Language, ExpressionBlock
+@docs Language, ExpressionBlock, toString
 
 -}
 
@@ -25,6 +22,7 @@ type alias ExpressionBlock =
     Generic.Language.ExpressionBlock
 
 
+{-| -}
 toString : Language -> String
 toString lang =
     case lang of
