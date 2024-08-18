@@ -27,12 +27,12 @@ import M.PrimitiveBlock
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
-import Render.Msg exposing (MarkupMsg)
 import Render.Settings
 import Render.TOC
 import ScriptaV2.Compiler
 import ScriptaV2.Config
 import ScriptaV2.Language exposing (Language(..))
+import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.Settings
 import Tree exposing (Tree)
 import XMarkdown.Expression

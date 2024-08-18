@@ -1,6 +1,6 @@
-module Render.Msg exposing (MarkupMsg(..), SolutionState(..), Handling(..))
+module ScriptaV2.Msg exposing (MarkupMsg(..), SolutionState(..), Handling(..))
 
-{-| The Render.Msg.MarkupMsg type is need for synchronization of the source and rendered
+{-| The ScriptaV2.Msg.MarkupMsg type is need for synchronization of the source and rendered
 text when using the Codemirror editor.
 
 @docs MarkupMsg, SolutionState, Handling

@@ -17,11 +17,11 @@ import Render.Graphics
 import Render.Helper
 import Render.IFrame
 import Render.Math
-import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Table
 import Render.Utility exposing (elementAttribute)
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
 render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg

@@ -1,5 +1,7 @@
 module Main exposing (main)
 
+-- import ScriptaV2.Compiler exposing (Filter(..))
+
 import Browser
 import Browser.Dom
 import Browser.Events
@@ -12,10 +14,9 @@ import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
-import Render.Msg exposing (MarkupMsg)
-import ScriptaV2.API
-import ScriptaV2.Compiler exposing (Filter(..))
+import ScriptaV2.APISimple
 import ScriptaV2.Language
+import ScriptaV2.Msg exposing (MarkupMsg)
 import Task
 
 
@@ -53,6 +54,10 @@ type Msg
 
 type alias Flags =
     { window : { windowWidth : Int, windowHeight : Int } }
+
+
+inputData lang =
+    { lang = lang, docWidth = 800, editCount = 0 }
 
 
 setSourceText currentLanguage =
@@ -102,14 +107,14 @@ update msg model =
 
         Render msg_ ->
             case msg_ of
-                Render.Msg.SelectId id ->
+                ScriptaV2.Msg.SelectId id ->
                     if id == "title" then
                         ( { model | selectId = id }, jumpToTopOf "rendered-text" )
 
                     else
                         ( { model | selectId = id }, Cmd.none )
 
-                Render.Msg.SendLineNumber line ->
+                ScriptaV2.Msg.SendLineNumber line ->
                     ( model, Cmd.none )
 
                 _ ->
@@ -251,53 +256,15 @@ displayRenderedText model =
             , htmlId "rendered-text"
             , scrollbarY
             ]
-            (ScriptaV2.API.compile
-                { filter = NoFilter, lang = model.currentLanguage, width = panelWidth model - 3 * xPadding }
-                model.count
-                model.selectId
-                (String.lines model.sourceText)
+            (ScriptaV2.APISimple.compile
+                { lang = model.currentLanguage, docWidth = panelWidth model - 3 * xPadding, editCount = model.count }
+                model.sourceText
             )
         ]
 
 
-
--- compile { filter, lang, width } outerCount selectedId lines =
-
-
-bottomPadding k =
-    Element.paddingEach { left = 0, right = 0, top = 0, bottom = k }
-
-
 htmlId str =
     Element.htmlAttribute (Html.Attributes.id str)
-
-
-viewToc : Model -> ScriptaV2.Compiler.CompilerOutput -> Element MarkupMsg
-viewToc model compiled =
-    let
-        title_ : Element MarkupMsg
-        title_ =
-            compiled.title
-
-        toc : List (Element MarkupMsg)
-        toc =
-            compiled.toc
-
-        tocWidth =
-            panelWidth model - 3 * xPadding
-    in
-    column [ spacing 8, Font.size 14 ]
-        [ el [ fontGray 0.9 ] (text "Table of contents")
-        , column
-            [ spacing 18
-            , Background.color (Element.rgb 1.0 1.0 1.0)
-            , width (px tocWidth)
-            , panelHeight model
-            , paddingXY 16 32
-            , scrollbarY
-            ]
-            (Element.el [ Font.size 16 ] title_ :: toc)
-        ]
 
 
 header model =

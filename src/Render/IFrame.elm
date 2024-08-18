@@ -7,11 +7,11 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
 import Html
 import Html.Attributes
-import Render.Msg exposing (MarkupMsg(..))
 import Render.PUtility
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
 render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg

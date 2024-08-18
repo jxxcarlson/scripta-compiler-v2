@@ -24,10 +24,10 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Html.Attributes
 import Render.Expression
-import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
 

@@ -7,9 +7,9 @@ Below is how you would render MicroLaTeX source text in a window 500 pixels wide
 The `lang` parameter can be set to `SMarkdown` or `Enclosure` to render text in those languages.
 
 ```elm
-ScriptaV2.API.compile
-    { defaultSettings | lang = MicroLaTex, width = 500 } 
-    sourceText |> Element.map Render
+ScriptaV2.APISimple.compile
+    { lang = MicroLaTex, width = 500 }  sourceText 
+       |> Element.map Render
 ```
 where  you have
 
@@ -25,8 +25,9 @@ type Msg
 and you also have
 
 ```elm
-import ScriptaV2.API exposing (..)
-import Element exposing (..)
+import ScriptaV2.Msg exposing (MarkupMsg)
+import ScriptaV2.APISimple
+import ScriptaV2.Language
 ```
 
 See XX for a demo.  The source code for the demo is at XXX.

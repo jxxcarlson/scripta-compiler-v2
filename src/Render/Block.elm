@@ -7,12 +7,12 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Render.Expression
 import Render.Helper
-import Render.Msg exposing (MarkupMsg(..))
 import Render.OrdinaryBlock as OrdinaryBlock
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
 import Render.VerbatimBlock as VerbatimBlock
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
 focusedAttribute : Element.Attribute msg

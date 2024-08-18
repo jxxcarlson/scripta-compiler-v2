@@ -18,12 +18,12 @@ import Render.Expression
 import Render.Footnote
 import Render.Helper
 import Render.List
-import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Sync2
 import Render.Table
 import Render.Utility exposing (elementAttribute)
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 import String.Extra
 import Tools.Utility as Utility
 
@@ -181,9 +181,9 @@ indented count acc settings attr block =
 
 quotation : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 quotation count acc settings attrs block =
-    Element.column ([ Element.spacing 12] |> Render.Sync2.sync block settings)
+    Element.column ([ Element.spacing 12 ] |> Render.Sync2.sync block settings)
         [ Element.paragraph
-            (Render.Helper.blockAttributes settings block [  ])
+            (Render.Helper.blockAttributes settings block [])
             (Render.Helper.renderWithDefault "quotation" count acc settings attrs (Generic.Language.getExpressionContent block))
         ]
 
@@ -309,7 +309,7 @@ document _ _ settings attrs block =
 ilink : String -> String -> Maybe String -> String -> Element MarkupMsg
 ilink docTitle selectedId selecteSlug docId =
     Element.Input.button []
-        { onPress = Just (GetPublicDocument Render.Msg.MHStandard docId)
+        { onPress = Just (GetPublicDocument ScriptaV2.Msg.MHStandard docId)
 
         -- { onPress = Just (GetDocumentById docId)
         , label =
@@ -355,16 +355,16 @@ answer count acc settings attrs block =
 
         clicker =
             if settings.selectedId == block.meta.id then
-                Events.onClick (ProposeSolution Render.Msg.Unsolved)
+                Events.onClick (ProposeSolution ScriptaV2.Msg.Unsolved)
 
             else
-                Events.onClick (ProposeSolution (Render.Msg.Solved block.meta.id))
+                Events.onClick (ProposeSolution (ScriptaV2.Msg.Solved block.meta.id))
     in
     Element.column ([ Element.spacing 12, Element.paddingEach { top = 0, bottom = 24, left = 0, right = 0 } ] |> Render.Sync2.sync block settings)
         [ Element.el [ Font.bold, Font.color Color.blue, clicker ] (Element.text title_)
         , if settings.selectedId == block.meta.id then
             -- TODO: clean up?
-            Element.el [ Events.onClick (ProposeSolution Render.Msg.Unsolved) ]
+            Element.el [ Events.onClick (ProposeSolution ScriptaV2.Msg.Unsolved) ]
                 (Element.paragraph ([ Font.italic, Render.Utility.idAttributeFromInt block.meta.lineNumber, Element.paddingXY 8 8 ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
                     (Render.Helper.renderWithDefault "..." count acc settings attrs (Generic.Language.getExpressionContent block))
                 )

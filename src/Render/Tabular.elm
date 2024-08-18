@@ -7,10 +7,10 @@ import Generic.Language exposing (Expression, ExpressionBlock)
 import List.Extra
 import M.Expression
 import Render.Expression
-import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 import Tools.Utility as Utility
 
 

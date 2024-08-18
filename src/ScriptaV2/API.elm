@@ -7,9 +7,9 @@ module ScriptaV2.API exposing (compile, compileString)
 -}
 
 import Element exposing (Element)
-import Render.Msg exposing (MarkupMsg)
 import ScriptaV2.Compiler
 import ScriptaV2.Language exposing (Language)
+import ScriptaV2.Msg exposing (MarkupMsg)
 
 
 settings : { filter : ScriptaV2.Compiler.Filter, lang : Language, width : Int }

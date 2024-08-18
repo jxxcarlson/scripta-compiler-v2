@@ -13,14 +13,14 @@ import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExprMeta, Expression, ExpressionBlock)
 import List.Extra
 import Render.Expression
-import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings
 import Render.Utility
 import ScriptaV2.Config as Config
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 import Tree
 
 
-viewWithTitle : Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element Render.Msg.MarkupMsg)
+viewWithTitle : Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
 viewWithTitle counter acc attr ast =
     let
         maximumLevel =
@@ -34,7 +34,7 @@ viewWithTitle counter acc attr ast =
     prepareTOCWithTitle maximumLevel counter acc Render.Settings.defaultSettings attr ast
 
 
-view : String -> Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element Render.Msg.MarkupMsg)
+view : String -> Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
 view selectedId counter acc attr ast =
     let
         maximumLevel =

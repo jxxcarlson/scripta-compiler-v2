@@ -8,8 +8,8 @@ module Render.Sync exposing
 import Element exposing (Element, paddingEach)
 import Element.Background as Background
 import Element.Events as Events
-import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
 highlightIfIdIsSelected : Int -> Int -> { a | selectedId : String } -> List (Element.Attribute MarkupMsg)

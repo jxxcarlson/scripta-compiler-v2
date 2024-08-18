@@ -5,16 +5,11 @@
     "license": "MIT",
     "version": "1.0.0",
     "exposed-modules": [
+        "ScriptaV2.APISimple",
         "ScriptaV2.Compiler",
-        "ScriptaV2.DifferentialCompiler",
-        "ScriptaV2.Helper",
         "ScriptaV2.Language",
         "ScriptaV2.API",
-        "ScriptaV2.Settings",
-        "Render.Settings",
-        "Render.Export.Check",
-        "Render.Export.LaTeX",
-        "Render.Msg"
+        "ScriptaV2.Msg"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {

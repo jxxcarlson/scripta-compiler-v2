@@ -18,9 +18,9 @@ import Maybe.Extra
 import MicroScheme.Interpreter
 import Render.Graphics
 import Render.Math
-import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Utility as Utility
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 import String.Extra
 
 
@@ -300,7 +300,7 @@ ilink _ _ _ attr exprList =
                     List.take (n - 1) args |> String.join " "
             in
             Input.button attr
-                { onPress = Just (GetDocumentWithSlug Render.Msg.MHStandard slug)
+                { onPress = Just (GetDocumentWithSlug ScriptaV2.Msg.MHStandard slug)
                 , label = Element.el [ Element.centerX, Element.centerY, Font.underline, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
                 }
 
@@ -328,7 +328,7 @@ ulink _ _ _ attr exprList =
                     String.split ":" fragment |> List.head |> Maybe.withDefault "---"
             in
             Input.button attr
-                { onPress = Just (GetPublicDocumentFromAuthor Render.Msg.MHStandard username fragment)
+                { onPress = Just (GetPublicDocumentFromAuthor ScriptaV2.Msg.MHStandard username fragment)
                 , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
                 }
 
@@ -356,7 +356,7 @@ cslink _ _ _ attr exprList =
                     String.split ":" fragment |> List.head |> Maybe.withDefault "---"
             in
             Input.button attr
-                { onPress = Just (GetPublicDocumentFromAuthor Render.Msg.MHAsCheatSheet username fragment)
+                { onPress = Just (GetPublicDocumentFromAuthor ScriptaV2.Msg.MHAsCheatSheet username fragment)
                 , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
                 }
 

@@ -42,9 +42,9 @@ import Maybe.Extra
 import Render.Block
 import Render.Export.Check
 import Render.Export.LaTeX
-import Render.Msg exposing (MarkupMsg)
 import Render.Settings
 import Render.TOC
+import ScriptaV2.Msg exposing (MarkupMsg)
 import Time
 import Tools.Utility
 import Tree

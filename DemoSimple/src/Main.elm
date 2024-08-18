@@ -12,7 +12,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
-import Render.Msg exposing (MarkupMsg)
+import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.API
 import ScriptaV2.Compiler
 import ScriptaV2.Language
@@ -102,14 +102,14 @@ update msg model =
 
         Render msg_ ->
             case msg_ of
-                Render.Msg.SelectId id ->
+                ScriptaV2.Msg.SelectId id ->
                     if id == "title" then
                         ( { model | selectId = id }, jumpToTopOf "rendered-text" )
 
                     else
                         ( { model | selectId = id }, Cmd.none )
 
-                Render.Msg.SendLineNumber line ->
+                ScriptaV2.Msg.SendLineNumber line ->
                     ( model, Cmd.none )
 
                 _ ->

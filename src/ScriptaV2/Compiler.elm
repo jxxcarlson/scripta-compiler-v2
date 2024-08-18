@@ -19,12 +19,12 @@ import M.PrimitiveBlock
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
-import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings
 import Render.TOC
 import Render.Tree
 import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language(..))
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
 

@@ -7,10 +7,10 @@ import Element.Font as Font
 import Generic.ASTTools as ASTTools
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expression, ExpressionBlock)
-import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
+import ScriptaV2.Msg exposing (MarkupMsg(..))
 import SvgParser
 import Tools.Utility as Utility
 
