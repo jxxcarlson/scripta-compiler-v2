@@ -209,6 +209,9 @@ nextStep state_ =
                         else
                             { state | label = "XXX" } |> Loop
 
+                    CMathBlockEnd ->
+                        Loop (state |> handleVerbatimBlock currentLine)
+
                     _ ->
                         { state | label = "XXX" } |> Loop
 
@@ -216,6 +219,7 @@ nextStep state_ =
                 nexStepAux currentLine mTopLabel state
 
 
+nexStepAux : { indent : Int, prefix : String, content : String, lineNumber : Int, position : Int } -> b -> { committedBlocks : List PrimitiveBlock, stack : List PrimitiveBlock, inVerbatimBlock : Bool, holdingStack : List PrimitiveBlock, labelStack : List Label, lines : List String, sourceText : String, firstBlockLine : Int, indent : Int, level : Int, lineNumber : Int, position : Int, blockClassification : Maybe Classification, count : Int, outerCount : Int, idPrefix : String, label : String } -> Step State State
 nexStepAux currentLine mTopLabel state =
     case ClassifyBlock.classify (currentLine.content ++ "\n") of
         CBeginBlock label ->
@@ -241,7 +245,7 @@ nexStepAux currentLine mTopLabel state =
 
         CSpecialBlock label ->
             -- TODO: review all the List.member clauses
-            if List.member (List.head state.labelStack |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
+            if List.member (List.head state.labelStack |> Maybe.map .classification) [ Just <| CBeginBlock "code", Just CMathBlockDelim ] then
                 Loop state
 
             else
@@ -264,17 +268,19 @@ nexStepAux currentLine mTopLabel state =
                         Loop (state |> dispatchBeginBlock state.idPrefix state.outerCount CMathBlockDelim currentLine)
 
         CMathBlockBegin ->
-                    Loop (state |> dispatchBeginBlock state.idPrefix state.outerCount CMathBlockBegin currentLine)
+            Loop ({ state | inVerbatimBlock = True } |> dispatchBeginBlock state.idPrefix state.outerCount CMathBlockBegin currentLine)
 
         CMathBlockEnd ->
-                    case List.head state.labelStack of
-                        Just label ->
-                            if label.classification == CMathBlockBegin then
-                                state |> endBlockOnMatch (Just label) CMathBlockEnd currentLine |> Loop
-                            else
-                                Loop state
-                        Nothing ->
-                            Loop state
+            case List.head state.labelStack of
+                Just label ->
+                    if label.classification == CMathBlockBegin then
+                        { state | inVerbatimBlock = False } |> endBlockOnMatch (Just label) CMathBlockEnd currentLine |> Loop
+
+                    else
+                        Loop state
+
+                Nothing ->
+                    Loop state
 
         CVerbatimBlockDelim ->
             Loop (state |> handleVerbatimBlock currentLine)
@@ -1092,13 +1098,12 @@ emptyLine currentLine state =
                     Loop <| endBlockOnMismatch label CMathBlockDelim currentLine state
 
                 CMathBlockBegin ->
-                                    -- For math blocks, we'll keep the block open on empty lines
-                                    Loop state
+                    -- For math blocks, we'll keep the block open on empty lines
+                    Loop state
 
                 CMathBlockEnd ->
-                                    -- This case shouldn't occur, but we'll handle it just in case
-                                    Loop (resetLevelIfStackIsEmpty state)
-
+                    -- This case shouldn't occur, but we'll handle it just in case
+                    Loop (resetLevelIfStackIsEmpty state)
 
                 CBeginBlock name ->
                     if List.member name [ "equation", "aligned" ] then
