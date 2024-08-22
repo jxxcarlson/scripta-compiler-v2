@@ -41,7 +41,13 @@ item count acc settings attr block =
                 _ ->
                     "◊"
     in
-    Element.row [ Element.moveRight (indentationScale * level_ |> toFloat), Element.alignTop, Render.Utility.idAttributeFromInt block.meta.lineNumber, Render.Utility.vspace 0 settings.topMarginForChildren ]
+    Element.row
+        [ Element.moveRight (indentationScale * level_ |> toFloat)
+        , Element.alignTop
+        , Render.Utility.idAttributeFromInt block.meta.lineNumber
+        , Render.Utility.vspace 0 settings.topMarginForChildren
+        , Element.width (Element.px <| settings.width - 50)
+        ]
         [ Element.el
             [ Font.size 14
             , Element.alignTop
@@ -93,7 +99,13 @@ numbered count acc settings attr block =
                 _ ->
                     String.fromInt index_
     in
-    Element.row [ Element.moveRight (indentationScale * level |> toFloat), Element.alignTop, Render.Utility.idAttributeFromInt block.meta.lineNumber, Render.Utility.vspace 0 settings.topMarginForChildren ]
+    Element.row
+        [ Element.moveRight (indentationScale * level |> toFloat)
+        , Element.alignTop
+        , Render.Utility.idAttributeFromInt block.meta.lineNumber
+        , Render.Utility.vspace 0 settings.topMarginForChildren
+        , Element.width (Element.px <| settings.width - 50)
+        ]
         [ Element.el
             [ Font.size 14
             , Element.alignTop

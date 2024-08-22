@@ -43,7 +43,15 @@ render count acc settings attr block =
                                 |> indentOrdinaryBlock block.indent (String.fromInt block.meta.lineNumber) settings
 
                         Just f ->
-                            f count acc settings attr block
+                            let
+                                newSettings =
+                                    if List.member block.heading [ Ordinary "item", Ordinary "numbered" ] then
+                                        { settings | width = settings.width - 6 * block.indent }
+
+                                    else
+                                        settings
+                            in
+                            f count acc newSettings attr block
                                 |> indentOrdinaryBlock block.indent (String.fromInt block.meta.lineNumber) settings
 
                 _ ->
