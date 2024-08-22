@@ -290,9 +290,6 @@ commitBlock state currentLine =
 
         Just block__ ->
             let
-                _ =
-                    Debug.log "COMMIT_BLOCK" True
-
                 block_ =
                     block__
                         |> Generic.BlockUtilities.updateMeta (\m -> { m | id = state.idPrefix ++ "-" ++ String.fromInt state.blocksCommitted })
