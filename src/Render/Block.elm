@@ -44,7 +44,7 @@ renderBody : Int -> Accumulator -> RenderSettings -> List (Element.Attribute Mar
 renderBody count acc settings attrs block =
     case block.heading of
         Paragraph ->
-            [ renderParagraphBody count acc (settings |> Debug.log "RB.P.sett") attrs block ]
+            [ renderParagraphBody count acc settings attrs block ]
 
         Ordinary _ ->
             [ OrdinaryBlock.render count acc settings attrs block ]
