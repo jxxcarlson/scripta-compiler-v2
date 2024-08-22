@@ -5,6 +5,20 @@ text =
     """
 \\title{Test}
 
+\\section{Not OK}
+
+\\begin{aligned}
+\\bra x_1x_2 \\ket &= \\int\\kern-4pt\\int x_1x_2 |\\psi_a(x_1)|^2 |\\psi_a(x_2)|^2 dx_1 dx_2 \\\\
+&= \\bra x \\ket_a \\bra x \\ket_b
+\\end{aligned}
+
+\\begin{aligned}
+\\bra x_1x_2 \\ket &= \\int\\kern-4pt\\int x_1x_2 |\\psi_a(x_1)|^2 |\\psi_a(x_2)|^2 dx_1 dx_2 \\\\
+&= \\bra x \\ket_a \\bra x \\ket_b
+\\end{aligned}
+
+
+
 \\section{OK}
 
 $$
@@ -19,15 +33,6 @@ Old style: $a^2 + b^2 = c^2$
 
 New style: \\(a^2 + b^2 = c^2\\)
 
-\\section{Not OK}
-
-$$
-- \\int_0^1 x^n dx = \\frac{1}{n+1}
-$$
-
-\\[
-- \\int_0^1 x^n dx = \\frac{1}{n+1}
-\\]
 
 """
 
