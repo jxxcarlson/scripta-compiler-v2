@@ -17,7 +17,7 @@ import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 focusedAttribute : Element.Attribute msg
 focusedAttribute =
-    Element.focused [ Element.Background.color (Element.rgb 0.89 0.89 1.0) ]
+    Element.focused []
 
 
 renderAttributes : RenderSettings -> ExpressionBlock -> List (Element.Attribute MarkupMsg)
