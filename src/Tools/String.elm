@@ -1,4 +1,4 @@
-module Tools.String exposing (makeSlug)
+module Tools.String exposing (..)
 
 import Regex
 
@@ -11,6 +11,11 @@ compressWhitespace string =
 alphanumOnly : String -> String
 alphanumOnly string =
     userReplace "[^a-z0-9 ]+" (\_ -> " ") string
+
+
+compressSpaces : String -> String
+compressSpaces string =
+    userReplace " +" (\_ -> " ") string
 
 
 makeSlug : String -> String

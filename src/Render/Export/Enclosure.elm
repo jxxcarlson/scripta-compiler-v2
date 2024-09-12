@@ -1,4 +1,7 @@
-module Render.Export.Enclosure exposing (exportExpr, rawExport)
+module Render.Export.Enclosure exposing
+    ( exportExpr, rawExport
+    , WrapOption(..)
+    )
 
 {-|
 
@@ -15,23 +18,24 @@ import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading
 import Generic.TextMacro
 import List.Extra
 import MicroLaTeX.Util
-import Render.Data
 import Render.Export.Image
 import Render.Export.Util
 import Render.Settings exposing (RenderSettings)
 import Render.Utility as Utility
+import String.Extra
 import Tools.Loop exposing (Step(..), loop)
+import Tools.String
 import Tree exposing (Tree)
 
 
 {-| -}
-rawExport : List (Tree ExpressionBlock) -> String
-rawExport ast =
+rawExport : WrapOption -> List (Tree ExpressionBlock) -> String
+rawExport wrapOption ast =
     ast
         |> Generic.Forest.map Generic.BlockUtilities.condenseUrls
         |> encloseLists
         |> Generic.Forest.map (counterValue ast |> oneOrTwo |> shiftSection)
-        |> List.map exportTree
+        |> List.map (exportTree wrapOption)
         |> String.join "\n\n"
 
 
@@ -86,22 +90,22 @@ shiftSection delta block =
         block
 
 
-exportTree : Tree ExpressionBlock -> String
-exportTree tree =
+exportTree : WrapOption -> Tree ExpressionBlock -> String
+exportTree wrapOption tree =
     case Tree.children tree of
         [] ->
-            exportBlock (Tree.label tree)
+            exportBlock wrapOption (Tree.label tree)
 
         children ->
             let
                 renderedChildren : List String
                 renderedChildren =
-                    List.map exportTree children
+                    List.map (exportTree wrapOption) children
                         |> List.map String.lines
                         |> List.concat
 
                 root =
-                    exportBlock (Tree.label tree) |> String.lines
+                    exportBlock wrapOption (Tree.label tree) |> String.lines
             in
             case List.Extra.unconsLast root of
                 Nothing ->
@@ -279,16 +283,16 @@ nextState tree state =
             { state | output = tree :: state.output, input = List.drop 1 state.input }
 
 
-exportBlock : ExpressionBlock -> String
-exportBlock block =
+exportBlock : WrapOption -> ExpressionBlock -> String
+exportBlock wrapOption block =
     case block.heading of
         Paragraph ->
             case block.body of
                 Left str ->
-                    mapChars2 str
+                    mapChars2 str |> wrap wrapOption
 
                 Right exprs_ ->
-                    exportExprList exprs_
+                    exportExprList NoWrap exprs_ |> wrap wrapOption
 
         Ordinary "table" ->
             case block.body of
@@ -320,7 +324,7 @@ exportBlock block =
                                 exportCell expr =
                                     case expr of
                                         Fun "cell" exprs2 _ ->
-                                            exportExprList exprs2
+                                            exportExprList wrapOption exprs2
 
                                         _ ->
                                             "error constructing table cell"
@@ -354,7 +358,7 @@ exportBlock block =
                     ""
 
                 Right exprs_ ->
-                    environment name (exportExprList exprs_)
+                    environment name (exportExprList wrapOption exprs_)
 
         Verbatim name ->
             case block.body of
@@ -395,9 +399,10 @@ fixChars str =
     str |> String.replace "{" "\\{" |> String.replace "}" "\\}"
 
 
-renderDefs settings exprs =
-    "%% Macro definitions from Markup text:\n"
-        ++ exportExprList exprs
+
+--renderDefs settings exprs =
+--    "%% Macro definitions from Markup text:\n"
+--        ++ exportExprList exprs
 
 
 mapChars1 : String -> String
@@ -459,8 +464,8 @@ dontRender _ _ =
 -- BLOCKDICT
 
 
-blockDict : Dict String (RenderSettings -> List String -> String -> String)
-blockDict =
+blockDict : WrapOption -> Dict String (RenderSettings -> List String -> String -> String)
+blockDict wrapOption =
     Dict.fromList
         [ ( "title", \_ _ _ -> "" )
         , ( "subtitle", \_ _ _ -> "" )
@@ -477,12 +482,12 @@ blockDict =
         , ( "index", \_ _ _ -> "Index: not implemented" )
 
         --
-        , ( "section", \settings_ args body -> section settings_ args body )
-        , ( "subheading", \settings_ args body -> subheading settings_ args body )
-        , ( "item", \_ _ body -> macro1 "item" body )
-        , ( "descriptionItem", \_ args body -> descriptionItem args body )
-        , ( "numbered", \_ _ body -> macro1 "item" body )
-        , ( "desc", \_ args body -> descriptionItem args body )
+        , ( "section", \settings_ args body -> section settings_ args (wrap wrapOption body) )
+        , ( "subheading", \settings_ args body -> subheading settings_ args (wrap wrapOption body) )
+        , ( "item", \_ _ body -> macro1 "item" (wrap wrapOption (wrap wrapOption body)) )
+        , ( "descriptionItem", \_ args body -> descriptionItem args (wrap wrapOption body) )
+        , ( "numbered", \_ _ body -> macro1 "item" (wrap wrapOption body) )
+        , ( "desc", \_ args body -> descriptionItem args (wrap wrapOption body) )
         , ( "beginBlock", \_ _ _ -> "\\begin{itemize}" )
         , ( "endBlock", \_ _ _ -> "\\end{itemize}" )
         , ( "beginNumberedBlock", \_ _ _ -> "\\begin{enumerate}" )
@@ -492,6 +497,21 @@ blockDict =
         , ( "mathmacros", \_ _ body -> body ++ "\nHa ha ha!" )
         , ( "setcounter", \_ _ _ -> "" )
         ]
+
+
+wrap : WrapOption -> String -> String
+wrap option str =
+    case option of
+        NoWrap ->
+            str
+
+        Wrap n ->
+            String.Extra.softWrapWith n " \n" str
+
+
+type WrapOption
+    = NoWrap
+    | Wrap Int
 
 
 verbatimExprDict =
@@ -731,29 +751,39 @@ macro1 name arg =
                 "\\" ++ fName ++ "{" ++ mapChars2 (String.trimLeft arg) ++ "}"
 
 
-exportExprList : List Expression -> String
-exportExprList exprs =
-    List.map exportExpr exprs |> String.join "" |> mapChars1
+exportExprList : WrapOption -> List Expression -> String
+exportExprList wrapOption exprs =
+    List.map (exportExpr wrapOption) exprs
+        |> String.join ""
+        --|> wrap wrapOption
+        |> Tools.String.compressSpaces
+        |> mapChars1
+
+
+exportExprList22 : WrapOption -> List Expression -> String
+exportExprList22 wrapOption exprs =
+    List.map (exportExpr wrapOption) exprs
+        |> String.join ""
 
 
 {-| -}
-exportExpr : Expression -> String
-exportExpr expr =
+exportExpr : WrapOption -> Expression -> String
+exportExpr wrapOption expr =
     case expr of
         Fun name exps_ _ ->
             if name == "lambda" then
                 case Generic.TextMacro.extract expr of
                     Just lambda ->
-                        Generic.TextMacro.toString exportExpr lambda
+                        Generic.TextMacro.toString (exportExpr NoWrap) lambda
 
                     Nothing ->
                         "Error extracting lambda"
 
             else
-                "[" ++ unalias name ++ " " ++ (List.map exportExpr exps_ |> String.join " ") ++ "]"
+                "[" ++ unalias name ++ " " ++ (List.map (exportExpr NoWrap) exps_ |> String.join " ") ++ "]"
 
         Text str _ ->
-            mapChars2 str
+            mapChars2 str |> String.replace "\n" " " |> wrap wrapOption
 
         VFun name body _ ->
             renderVerbatim name body
