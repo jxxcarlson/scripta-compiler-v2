@@ -150,6 +150,12 @@ markupDict =
         , ( "large", \g acc s attr exprList -> large g acc s attr exprList )
         , ( "mdash", \_ _ _ _ _ -> Element.el [] (Element.text "—") )
         , ( "ndash", \_ _ _ _ _ -> Element.el [] (Element.text "–") )
+        , ( "box", \_ _ _ _ _ -> Element.el [ Font.size 20 ] (Element.text (Utility.unicodeFromHex 0x2610)) )
+        , ( "cbox", \_ _ _ _ _ -> Element.el [ Font.size 20 ] (Element.text (Utility.unicodeFromHex 0x2611)) )
+        , ( "rbox", \_ _ _ _ _ -> Element.el [ Font.size 20, Font.color (Element.rgb 0.7 0 0) ] (Element.text (Utility.unicodeFromHex 0x2610)) )
+        , ( "crbox", \_ _ _ _ _ -> Element.el [ Font.size 20, Font.color (Element.rgb 0.7 0 0) ] (Element.text (Utility.unicodeFromHex 0x2611)) )
+        , ( "fbox", \_ _ _ _ _ -> Element.el [ Font.size 24 ] (Element.text (Utility.unicodeFromHex 0x25A0)) )
+        , ( "frbox", \_ _ _ _ _ -> Element.el [ Font.size 24, Font.color (Element.rgb 0.7 0 0) ] (Element.text (Utility.unicodeFromHex 0x25A0)) )
         , ( "label", \_ _ _ _ _ -> Element.none )
         , ( "cite", \_ acc _ attr exprList -> cite acc attr exprList )
         , ( "table", \g acc s attr exprList -> table g acc s attr exprList )
@@ -158,6 +164,8 @@ markupDict =
         , ( "tags", \_ _ _ _ _ -> Element.none )
         , ( "vspace", vspace )
         , ( "par", vspace )
+        , ( "break", vspace )
+        , ( "//", vspace )
 
         -- , ( "par", par )
         -- MiniLaTeX stuff

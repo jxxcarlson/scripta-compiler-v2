@@ -11,6 +11,7 @@ module Render.Utility exposing
     , makeId
     , textWidth
     , textWidthWithPixelsPerCharacter
+    , unicodeFromHex
     , vspace
     )
 
@@ -23,6 +24,10 @@ import Html.Attributes
 import List.Extra
 import Render.Settings
 import Tools.Utility as Utility
+
+
+unicodeFromHex hex =
+    String.fromChar (Char.fromCode hex)
 
 
 argString : List String -> String

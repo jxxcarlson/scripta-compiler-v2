@@ -53,6 +53,13 @@ text1 =
  | title
  Lists
 
+abc [box] [cbox] [rbox]  [crbox] [fbox] [frbox] abc
+
+| indent
+[box] Get groceries [//]
+[cbox] Get gas for car
+
+
 
 [b center]
 
@@ -133,8 +140,6 @@ bbb
 
 | theorem
 foo bar blah
-
-
 
 
 """
