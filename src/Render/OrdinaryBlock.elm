@@ -106,6 +106,11 @@ blockDict =
         , ( "quotation", quotation )
         , ( "set-key", \_ _ _ _ _ -> Element.none )
         , ( "comment", comment )
+        , ( "compact", compact )
+        , ( "identity", identity )
+        , ( "blue", blue )
+        , ( "red", red )
+        , ( "red2", red2 )
         , ( "q", question ) -- xx
         , ( "a", answer ) -- xx
         , ( "document", document )
@@ -174,7 +179,70 @@ centered count acc settings attr block =
     Element.el
         ((Element.width (Element.px settings.width) :: attr) |> Render.Sync2.sync block settings)
         (Element.paragraph [ Element.centerX, Element.width (Element.px (settings.width - 100)) ]
+            (Render.Helper.renderWithDefault "centered" count acc settings attr (Generic.Language.getExpressionContent block))
+        )
+
+
+compact : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+compact count acc settings attr block =
+    Element.el
+        ((Element.width (Element.px settings.width) :: attr) |> Render.Sync2.sync block settings)
+        (Element.column [ Element.spacing 0, Element.width (Element.px (settings.width - 0)) ]
+            (Render.Helper.renderWithDefaultNarrow "compact" count acc settings attr (Generic.Language.getExpressionContent block))
+        )
+
+
+identity : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+identity count acc settings attr block =
+    Element.el
+        ((Element.width (Element.px settings.width) :: attr) |> Render.Sync2.sync block settings)
+        (Element.column [ Element.spacing 0, Element.width (Element.px (settings.width - 0)) ]
+            (Render.Helper.renderWithDefault "identity" count acc settings attr (Generic.Language.getExpressionContent block))
+        )
+
+
+red : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+red count acc settings attr block =
+    Element.el
+        ((Element.width (Element.px settings.width) :: attr) |> Render.Sync2.sync block settings)
+        (Element.column
+            [ Element.width (Element.px (settings.width - 0))
+            , Font.color (Element.rgb 0.8 0 0)
+            ]
+            (Render.Helper.renderWithDefaultNarrow "red" count acc settings attr (Generic.Language.getExpressionContent block))
+        )
+
+
+red2 : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+red2 count acc settings attr block =
+    Element.el
+        ([ Element.width (Element.px settings.width) ] |> Render.Sync2.sync block settings)
+        (Element.column
+            [ Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 }
+            , Font.color (Element.rgb 0.8 0 0)
+            ]
+            (Render.Helper.renderWithDefault "red2" count acc settings attr (Generic.Language.getExpressionContent block))
+        )
+
+
+indented2 : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+indented2 count acc settings attr block =
+    Element.el
+        ([ Element.width (Element.px settings.width) ] |> Render.Sync2.sync block settings)
+        (Element.paragraph [ Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
             (Render.Helper.renderWithDefault "indent" count acc settings attr (Generic.Language.getExpressionContent block))
+        )
+
+
+blue : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+blue count acc settings attr block =
+    Element.el
+        ((Element.width (Element.px settings.width) :: attr) |> Render.Sync2.sync block settings)
+        (Element.column
+            [ Element.width (Element.px (settings.width - 0))
+            , Font.color (Element.rgb 0 0 0.8)
+            ]
+            (Render.Helper.renderWithDefaultNarrow "blue" count acc settings attr (Generic.Language.getExpressionContent block))
         )
 
 

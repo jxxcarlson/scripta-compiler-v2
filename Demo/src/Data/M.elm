@@ -2,6 +2,10 @@ module Data.M exposing (text)
 
 
 text =
+    text1
+
+
+text0 =
     """
 
 | title
@@ -45,19 +49,93 @@ $$
 
 text1 =
     """
-. AAA
 
-. BBB
+ | title
+ Lists
 
-. CCC
 
-. DDD
+[b center]
 
-. EEE
+| center
+fff
 
-. FFF
+[b red]
 
-. GGG
+
+
+[b Identity]
+
+| identity
+  aaa
+
+  bbb
+
+| red
+  aaa
+
+  bbb
+
+[b red]
+
+| red
+  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa  aaa
+
+  bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb bbb
+
+[b red2]
+
+| red2
+  aaa
+
+  bbb
+
+| blue
+  aaa
+
+  bbb
+
+| indent
+  1, 2, 3
+
+  4, 5, 6
+
+  | blue
+  aaa
+
+  bbb
+
+  | red
+  aaa
+
+  bbb
+
+
+[b red, list]
+
+| red
+
+  - aaa
+
+  - bbb
+
+[b compact]
+
+| compact
+  aaa
+
+  bbb
+
+[b top level]
+
+aaa
+
+bbb
+
+| theorem
+foo bar blah
+
+
+
 
 """
 

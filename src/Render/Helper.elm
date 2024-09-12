@@ -11,6 +11,7 @@ module Render.Helper exposing
     , nonExportableVerbatimBlocks
     , renderNothing
     , renderWithDefault
+    , renderWithDefaultNarrow
     , selectedColor
     , showError
     , topPaddingForIndentedElements
@@ -148,3 +149,12 @@ renderWithDefault default count acc settings attr exprs =
 
     else
         List.map (Render.Expression.render count acc settings attr) exprs
+
+
+renderWithDefaultNarrow : String -> Int -> Generic.Acc.Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> List (Element MarkupMsg)
+renderWithDefaultNarrow default count acc settings attr exprs =
+    if List.isEmpty exprs then
+        [ Element.el [ Font.color settings.redColor, Font.size 14 ] (Element.text default) ]
+
+    else
+        List.map (Render.Expression.render count acc { settings | paragraphSpacing = 0 } attr) exprs
