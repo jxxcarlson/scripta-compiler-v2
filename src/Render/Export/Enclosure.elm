@@ -1,6 +1,6 @@
 module Render.Export.Enclosure exposing
     ( exportExpr, rawExport
-    , WrapOption(..), rawExportValidate, rawExportValidateSimple
+    , ExportError(..), WrapOption(..), rawExportSafe, rawExportValidate, rawExportValidateSimple, rawExport_
     )
 
 {-|
@@ -41,21 +41,39 @@ rawExport wrapOption ast =
         |> String.join "\n\n"
 
 
-rawExportValidate : WrapOption -> List (Tree ExpressionBlock) -> Bool
-rawExportValidate wrapOption ast =
-    let
-        prettyText =
-            rawExport wrapOption ast
-
-        ast2_ =
-            ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines prettyText)
-    in
-    case ast2_ of
+rawExport_ : WrapOption -> String -> Result String String
+rawExport_ wrapOption source =
+    case ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source) of
         Err _ ->
-            False
+            Err "Error parsing source"
 
-        Ok ast2 ->
-            Generic.Language.simplifyForest ast == Generic.Language.simplifyForest ast2
+        Ok ast ->
+            ast
+                |> Generic.Forest.map Generic.BlockUtilities.condenseUrls
+                |> encloseLists
+                |> Generic.Forest.map (counterValue ast |> oneOrTwo |> shiftSection)
+                |> List.map (exportTree wrapOption)
+                |> String.join "\n\n"
+                |> Ok
+
+
+type ExportError
+    = ExportFailure
+    | ExportMismatch String
+
+
+rawExportSafe : WrapOption -> String -> Result ExportError String
+rawExportSafe wrapOption source =
+    case rawExport_ wrapOption source of
+        Err _ ->
+            Err ExportFailure
+
+        Ok textToExport ->
+            if rawExportValidateSimple wrapOption source then
+                Ok textToExport
+
+            else
+                Err (ExportMismatch textToExport)
 
 
 rawExportValidateSimple : WrapOption -> String -> Bool
@@ -72,6 +90,23 @@ rawExportValidateSimple wrapOption source =
                     rawExport wrapOption ast
     in
     source == source2
+
+
+rawExportValidate : WrapOption -> List (Tree ExpressionBlock) -> Bool
+rawExportValidate wrapOption ast =
+    let
+        prettyText =
+            rawExport wrapOption ast
+
+        ast2_ =
+            ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines prettyText)
+    in
+    case ast2_ of
+        Err _ ->
+            False
+
+        Ok ast2 ->
+            Generic.Language.simplifyForest ast == Generic.Language.simplifyForest ast2
 
 
 counterValue : Forest ExpressionBlock -> Maybe Int
