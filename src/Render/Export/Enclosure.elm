@@ -1,6 +1,6 @@
 module Render.Export.Enclosure exposing
     ( exportExpr, rawExport
-    , WrapOption(..)
+    , WrapOption(..), rawExportValidate, rawExportValidateSimple
     )
 
 {-|
@@ -22,6 +22,8 @@ import Render.Export.Image
 import Render.Export.Util
 import Render.Settings exposing (RenderSettings)
 import Render.Utility as Utility
+import ScriptaV2.Compiler
+import ScriptaV2.Language
 import String.Extra
 import Tools.Loop exposing (Step(..), loop)
 import Tools.String
@@ -37,6 +39,39 @@ rawExport wrapOption ast =
         |> Generic.Forest.map (counterValue ast |> oneOrTwo |> shiftSection)
         |> List.map (exportTree wrapOption)
         |> String.join "\n\n"
+
+
+rawExportValidate : WrapOption -> List (Tree ExpressionBlock) -> Bool
+rawExportValidate wrapOption ast =
+    let
+        prettyText =
+            rawExport wrapOption ast
+
+        ast2_ =
+            ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines prettyText)
+    in
+    case ast2_ of
+        Err _ ->
+            False
+
+        Ok ast2 ->
+            Generic.Language.simplifyForest ast == Generic.Language.simplifyForest ast2
+
+
+rawExportValidateSimple : WrapOption -> String -> Bool
+rawExportValidateSimple wrapOption source =
+    let
+        --prettyText =
+        --    rawExport wrapOption ast
+        source2 =
+            case ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source) of
+                Err _ ->
+                    "((error))"
+
+                Ok ast ->
+                    rawExport wrapOption ast
+    in
+    source == source2
 
 
 counterValue : Forest ExpressionBlock -> Maybe Int

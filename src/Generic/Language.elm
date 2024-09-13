@@ -24,13 +24,16 @@ module Generic.Language exposing
     , simplifyBlock
     , simplifyExpr
     , simplifyExpressionBlock
+    , simplifyForest
     , simplifyPrimitiveBlock
+    , simplifyTree
     , updateMeta
     , updateMetaInBlock
     )
 
 import Dict exposing (Dict)
 import Either exposing (Either(..))
+import Generic.Forest exposing (Forest)
 import List.Extra
 import Tools.Utility
 import Tree exposing (Tree)
@@ -256,6 +259,16 @@ simplifyExpr expr =
 
 
 -- CONCRETE SIMPLIFIERS
+
+
+simplifyForest : Forest ExpressionBlock -> Forest SimpleExpressionBlock
+simplifyForest forest =
+    List.map simplifyTree forest
+
+
+simplifyTree : Tree ExpressionBlock -> Tree SimpleExpressionBlock
+simplifyTree tree =
+    Tree.map simplifyExpressionBlock tree
 
 
 simplifyExpressionBlock : ExpressionBlock -> SimpleExpressionBlock
