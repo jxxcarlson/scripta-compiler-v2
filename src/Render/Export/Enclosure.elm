@@ -69,7 +69,7 @@ rawExportSafe wrapOption source =
             Err ExportFailure
 
         Ok textToExport ->
-            if rawExportValidateSimple wrapOption source then
+            if rawExportValidateS wrapOption source then
                 Ok textToExport
 
             else
@@ -88,8 +88,31 @@ rawExportValidateSimple wrapOption source =
 
                 Ok ast ->
                     rawExport wrapOption ast
+
+        compress str =
+            String.replace " " "" str |> String.replace "\n" "" |> String.replace "\t" ""
     in
-    source == source2
+    compress source == compress source2 |> Debug.log "!@:rawExportValidateSimple"
+
+
+rawExportValidateS : WrapOption -> String -> Bool
+rawExportValidateS wrapOption source =
+    let
+        astResult1 =
+            ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source)
+
+        prettyText =
+            Result.map (rawExport wrapOption) astResult1
+
+        astResult2 =
+            Result.andThen (\ast -> ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines ast)) prettyText
+    in
+    case ( astResult1, astResult2 ) of
+        ( Ok ast1, Ok ast2 ) ->
+            ast1 == ast2
+
+        _ ->
+            False
 
 
 rawExportValidate : WrapOption -> List (Tree ExpressionBlock) -> Bool

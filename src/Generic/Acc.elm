@@ -2,6 +2,7 @@ module Generic.Acc exposing
     ( Accumulator
     , InListState(..)
     , InitialAccumulatorData
+    , TermLoc
     , getMacroArg
     , initialData
     , transformAccumulate
@@ -879,7 +880,22 @@ updateWithParagraph block accumulator =
         | inListState = nextInListState block.heading accumulator.inListState
         , footnotes = footnotes
         , footnoteNumbers = footnoteNumbers
+        , terms = addTermsFromContent block accumulator.terms
     }
+
+
+addTermsFromContent : ExpressionBlock -> Dict String TermLoc -> Dict String TermLoc
+addTermsFromContent block_ dict =
+    let
+        newTerms : List TermData
+        newTerms =
+            getTerms block_.meta.id block_.body
+
+        folder : TermData -> Dict String TermLoc -> Dict String TermLoc
+        folder termData dict_ =
+            addTerm termData dict_
+    in
+    List.foldl folder dict newTerms
 
 
 

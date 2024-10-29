@@ -15,6 +15,16 @@ import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 index : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 index _ acc _ attrs block =
+    acc.terms
+        |> Dict.toList
+        |> List.map (\( name, item_ ) -> ( String.trim name, item_ ))
+        |> List.sortBy (\( name, _ ) -> name)
+        |> List.map indexItem_
+        |> Element.column [ Element.alignTop, Element.spacing 6, Element.width (Element.px 150) ]
+
+
+indexGrouped : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+indexGrouped _ acc _ attrs block =
     let
         groupItemList : List GroupItem
         groupItemList =
