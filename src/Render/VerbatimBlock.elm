@@ -128,6 +128,8 @@ renderCode count acc settings attr block =
          , Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 }
          , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
          , Render.Utility.idAttributeFromInt block.meta.lineNumber
+         , Element.width (Element.px settings.width)
+         , Element.scrollbarX
          ]
             ++ attr
         )
