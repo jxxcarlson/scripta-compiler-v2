@@ -67,11 +67,23 @@ equation count acc settings attrs block =
         w =
             String.fromInt settings.width ++ "px"
 
+        evalMacro line =
+            if String.right 2 line == "\\\\" then
+                line
+                    |> String.dropRight 2
+                    |> Generic.MathMacro.evalStr acc.mathMacroDict
+                    |> (\str -> str ++ "\\\\")
+
+            else
+                line |> Generic.MathMacro.evalStr acc.mathMacroDict
+
         filteredLines =
             -- lines of math text to be rendered: filter stuff out
             String.lines (getContent block)
+                |> List.map String.trimRight
                 |> List.filter (\line -> not (String.left 2 line == "$$") && not (String.left 6 line == "[label") && not (line == "end"))
-                |> List.map (Generic.MathMacro.evalStr acc.mathMacroDict)
+                -- |> List.map (Generic.MathMacro.evalStr acc.mathMacroDict)
+                |> List.map evalMacro
 
         content =
             String.join "\n" filteredLines

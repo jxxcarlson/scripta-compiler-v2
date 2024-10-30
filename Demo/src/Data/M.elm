@@ -2,7 +2,7 @@ module Data.M exposing (text)
 
 
 text =
-    text1
+    text0
 
 
 text0 =
@@ -22,6 +22,11 @@ TEST
   || equation
   \\int_0^1 x^n dx = \\frac{1}{n+1}
 
+|| equation
+\\by = \\begin{pmatrix}
+  \\ba_1\\cdot \\bx  \\
+  {\\ba}_2\\cdot \\bx
+\\end{pmatrix}
 
 | indent
 This
