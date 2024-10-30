@@ -80,7 +80,7 @@ indexItem groupItem =
 indexItem_ : Item -> Element MarkupMsg
 indexItem_ ( name, loc ) =
     Element.link [ Font.color (Element.rgb 0 0 0.8), Events.onClick (SelectId loc.id) ]
-        { url = Render.Utility.internalLink loc.id, label = Element.el [] (Element.text (String.toLower name)) }
+        { url = Render.Utility.internalLink loc.id, label = Element.el [] (Element.text name) }
 
 
 
