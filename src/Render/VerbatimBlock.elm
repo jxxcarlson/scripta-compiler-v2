@@ -129,6 +129,7 @@ renderCode count acc settings attr block =
          , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
          , Render.Utility.idAttributeFromInt block.meta.lineNumber
          , Element.width (Element.px settings.width)
+         , Element.width (Element.px settings.width)
          , Element.scrollbarX
          ]
             ++ attr

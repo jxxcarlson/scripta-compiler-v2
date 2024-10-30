@@ -142,7 +142,11 @@ aligned count acc settings attrs block =
             String.lines str
                 |> List.filter (\line -> not (String.left 6 line == "[label") && not (line == ""))
 
-        deleteTrailingSlashes str_ =
+        deleteTrailingSlashes inputString =
+            let
+                str_ =
+                    String.trim inputString
+            in
             if String.right 2 str_ == "\\\\" then
                 String.dropRight 2 str_
 
@@ -150,15 +154,18 @@ aligned count acc settings attrs block =
                 str_
 
         adjustedLines_ =
+            -- delete trailing slashes before evaluating macros
             List.map (deleteTrailingSlashes >> Generic.MathMacro.evalStr acc.mathMacroDict) filteredLines
+                -- remove bank lines
                 |> List.filter (\line -> line /= "")
-                |> List.map (\line -> line ++ "\\\\")
 
-        adjustedLines =
-            "\\begin{aligned}" :: adjustedLines_ ++ [ "\\end{aligned}" ]
+        innerContent =
+            -- restore trailing slashes
+            adjustedLines_
+                |> String.join "\\\\\n"
 
         content =
-            String.join "\n" adjustedLines
+            "\\begin{aligned}\n" ++ innerContent ++ "\n\\end{aligned}"
 
         label =
             equationLabel settings block.properties content
