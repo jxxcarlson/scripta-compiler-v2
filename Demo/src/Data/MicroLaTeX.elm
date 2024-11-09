@@ -5,7 +5,34 @@ text =
     """
 \\title{Test}
 
+\\hrule
+
+$$
+  a^2 + b^2 = c^2
+$$
+
+\\hrule
+
+
+
+"""
+
+text1 =
+    """
+\\title{Test}
+
+
 \\section{Not OK}
+
+\\hrule
+
+Pythagorean theorem:
+
+$$
+  a^2 + b^2 = c^2
+$$
+
+\\hrule
 
 \\begin{aligned}
 \\bra x_1x_2 \\ket &= \\int\\kern-4pt\\int x_1x_2 |\\psi_a(x_1)|^2 |\\psi_a(x_2)|^2 dx_1 dx_2 \\\\
@@ -20,6 +47,22 @@ text =
 
 
 \\section{OK}
+
+\\hrule
+
+Pythagorean theorem:
+
+$$
+a^2 + b^2 = c^2
+$$
+
+\\hrule
+
+
+\\begin{aligned}
+a &= b \\
+c &= d
+\\end{aligned}
 
 $$
 \\int_0^1 x^n dx = \\frac{1}{n+1}

@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
-    ( CompilerOutput, Filter(..), compile, parse, parseFromString, render, renderForest, view, viewTOC, filterForest, p, px, viewBody
-    , pm
+    ( CompilerOutput, Filter(..), compile, parse, parseFromString, render, renderForest, view, viewTOC, filterForest, px, viewBody
+    , pl, pm, ps
     )
 
 {-|
@@ -208,9 +208,14 @@ type alias CompilerOutput =
 
 
 {-| -}
-p : String -> Result Error (Forest ExpressionBlock)
-p str =
+ps : String -> Result Error (Forest ExpressionBlock)
+ps str =
     parseM Config.idPrefix 0 (String.lines str)
+
+
+pl : String -> Result Error (Forest ExpressionBlock)
+pl str =
+    parseL Config.idPrefix 0 (String.lines str)
 
 
 {-| -}

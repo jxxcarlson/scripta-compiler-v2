@@ -40,10 +40,13 @@ displayedMath count acc settings attrs block =
         filteredLines =
             -- lines of math text to be rendered: filter stuff out
             String.lines (getContent block)
+                |> Debug.log "filteredLines (IN)"
                 |> List.filter (\line -> not (String.left 2 (String.trim line) == "$$"))
                 |> List.filter (\line -> not (String.left 6 line == "[label"))
                 |> List.filter (\line -> line /= "")
+                --|> List.map String.trimLeft
                 |> List.map (Generic.MathMacro.evalStr acc.mathMacroDict)
+                |> Debug.log "filteredLines (OUT)"
     in
     Element.column attrs
         [ Element.el (Render.Sync.highlighter block.args [ Element.centerX ])

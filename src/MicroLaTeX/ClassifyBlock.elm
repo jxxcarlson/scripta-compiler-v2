@@ -23,8 +23,8 @@ type Classification
     = CBeginBlock String
     | CEndBlock String
     | CSpecialBlock LXSpecial
-    | CMathBlockDelim
-    | CMathBlockBegin
+    | CMathBlockDelim -- $$
+    | CMathBlockBegin -- \\[
     | CMathBlockEnd
     | CVerbatimBlockDelim
     | CPlainText

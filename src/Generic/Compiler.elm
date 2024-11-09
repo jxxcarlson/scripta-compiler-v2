@@ -35,6 +35,7 @@ parse_ :
 parse_ lang primitiveBlockParser exprParser idPrefix outerCount lines =
     lines
         |> primitiveBlockParser idPrefix outerCount
+        |> Debug.log "primitiveBlockParser"
         |> Generic.Pipeline.toPrimitiveBlockForest
         |> Result.map (Generic.Forest.map (Generic.Pipeline.toExpressionBlock lang exprParser))
 
