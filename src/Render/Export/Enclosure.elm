@@ -59,7 +59,7 @@ rawExport_ wrapOption source =
 
 type ExportError
     = ExportFailure
-    | ExportMismatch String
+    | ExportMismatch String String
 
 
 rawExportSafe : WrapOption -> String -> Result ExportError String
@@ -73,7 +73,7 @@ rawExportSafe wrapOption source =
                 Ok textToExport
 
             else
-                Err (ExportMismatch textToExport)
+                Err (ExportMismatch source textToExport)
 
 
 rawExportValidateSimple : WrapOption -> String -> Bool
@@ -451,8 +451,14 @@ exportBlock wrapOption block =
                     ""
 
                 Right exprs_ ->
+                    --case name of
+                    --    "section" ->
+                    --        "# " ++ name ++ "\n" ++ exportBlock wrapOption block
+                    --
+                    --    _ ->
                     environment name (exportExprList wrapOption exprs_)
 
+        -- environment name (exportExprList wrapOption exprs_)
         Verbatim name ->
             case block.body of
                 Left str ->
