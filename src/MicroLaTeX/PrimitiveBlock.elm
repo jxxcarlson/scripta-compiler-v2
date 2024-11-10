@@ -347,10 +347,6 @@ nexStepAux currentLine mTopLabel state =
 
 dispatchBeginBlock : String -> Int -> Classification -> Line -> State -> State
 dispatchBeginBlock idPrefix count classifier line state =
-    let
-        _ =
-            Debug.log "!!@@!! dispatchingBeginBlock, STATE" state
-    in
     case List.Extra.uncons state.stack of
         -- stack is empty; begin block
         Nothing ->
@@ -387,9 +383,6 @@ beginBlock idPrefix count classifier line state =
 
                 _ ->
                     Nothing
-
-        _ =
-            Debug.log "!!@@!! beginBlock (2)" newBlockClassifier
 
         level =
             state.level + 1

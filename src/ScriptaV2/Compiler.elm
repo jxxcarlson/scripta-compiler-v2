@@ -192,6 +192,7 @@ px str =
 parseL : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
 parseL idPrefix outerCount lines =
     Generic.Compiler.parse_ MicroLaTeXLang MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
+        |> Debug.log "@@:parseL"
 
 
 

@@ -287,7 +287,7 @@ toExprBlock : Language -> PrimitiveBlock -> ExpressionBlock
 toExprBlock lang =
     case lang of
         MicroLaTeXLang ->
-            Generic.Pipeline.toExpressionBlock MicroLaTeXLang MicroLaTeX.Expression.parse
+            Generic.Pipeline.toExpressionBlock MicroLaTeXLang MicroLaTeX.Expression.parse |> Debug.log "@@:toExprBlock"
 
         EnclosureLang ->
             Generic.Pipeline.toExpressionBlock EnclosureLang M.Expression.parse
