@@ -5,55 +5,14 @@ text =
     """
 \\title{Test}
 
+\\begin{equation}
+a^2 + b^2 = c^2
+\\end{equation}
+
 \\begin{array}{ccc}
 a & b & c \\\\
 1 & 2 & 3
 \\end{array}
-
-\\begin{table}{c c c}
-a & b & c \\\\
-1 & 2 & 3
-\\end{table}
-
-\\begin{table}{c c c}
-$ a = 2$ \\\\
-1 & 2
-\\end{table}
-
-\\begin{table}{c c c}
-a & b & c \\\\
-1 & 2 & 3
-\\end{table}
-
-\\begin{table}{c c c}
-$ a = 2$ & c \\\\
-1 & 2
-\\end{table}
-
-\\hrule
-
-\\begin{table}{l l l}
-$A_1$ & $| + | = ||$ & AXIOM \\\\
-$A_2$ & $|| + | = |||$ & R1 \\\\
-$A_3$ & $| + || = |||$ & R2 \\\\
-$A_4$ & $|| + || = ||||$ & R1
-\\end{table}
-
-
-\\begin{tabular}{l l l}
-$A_1$ & $| + | = ||$ & AXIOM \\\\
-$A_2$ & $|| + | = |||$ & R1 \\\\
-$A_3$ & $| + || = |||$ & R2 \\\\
-$A_4$ & $|| + || = ||||$ & R1
-\\end{tabular}
-
-
-\\begin{tabular}{l l l}
-$A_1$ & $| + | = ||$ & AXIOM \\\\
-$A_2$ & $|| + | = |||$ & R1 \\\\
-$A_3$ & $| + || = |||$ & R2 \\\\
-$A_4$ & $|| + || = ||||$ & R1
-\\end{tabular}
 
 \\hrule
 

@@ -204,7 +204,7 @@ nextStep state_ =
                 case ClassifyBlock.classify (currentLine.content ++ "\n") of
                     -- DOO
                     CEndBlock label ->
-                        if List.member label [ "textarray", "array", "code", "aligned", "verbatim" ] then
+                        if List.member label [ "textarray", "equation", "array", "code", "aligned", "verbatim" ] then
                             Loop (state |> handleVerbatimBlock currentLine)
 
                         else
