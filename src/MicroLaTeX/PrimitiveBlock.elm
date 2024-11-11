@@ -228,7 +228,7 @@ nexStepAux currentLine mTopLabel state =
                 _ =
                     Debug.log "1." ( label, currentLine.lineNumber )
             in
-            if List.member label [ "code", "equation", "aligned" ] then
+            if List.member label [ "code", "equation", "aligned", "verbatim" ] then
                 Loop ({ state | inVerbatimBlock = True, label = "CBeginBlock 3" } |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) currentLine)
 
             else
