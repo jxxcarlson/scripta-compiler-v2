@@ -204,7 +204,7 @@ nextStep state_ =
                 case ClassifyBlock.classify (currentLine.content ++ "\n") of
                     -- DOO
                     CEndBlock label ->
-                        if List.member label [ "code", "equation", "aligned" ] then
+                        if List.member label [ "code", "equation", "aligned", "verbatim" ] then
                             Loop (state |> handleVerbatimBlock currentLine)
 
                         else
@@ -248,6 +248,9 @@ nexStepAux currentLine mTopLabel state =
 
             else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "aligned" ] then
                 { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "aligned") currentLine |> Loop
+
+            else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "aligned" ] then
+                { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "verbatim") currentLine |> Loop
 
             else
                 endBlock (CEndBlock label) currentLine { state | label = "CEndBlock 5" }
@@ -609,7 +612,7 @@ endBlockOnMismatch label_ classifier line state =
                                     ( Ordinary name_, name_ )
 
                                 Verbatim name_ ->
-                                    if List.member name_ [ "math", "equation", "aligned" ] then
+                                    if List.member name_ [ "math", "equation", "aligned", "verbatim" ] then
                                         ( Verbatim "code", "code" )
 
                                     else
