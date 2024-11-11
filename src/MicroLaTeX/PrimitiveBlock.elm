@@ -204,7 +204,7 @@ nextStep state_ =
                 case ClassifyBlock.classify (currentLine.content ++ "\n") of
                     -- DOO
                     CEndBlock label ->
-                        if List.member label [ "code", "equation", "aligned", "verbatim" ] then
+                        if List.member label [ "textarray", "array", "code", "aligned", "verbatim" ] then
                             Loop (state |> handleVerbatimBlock currentLine)
 
                         else
@@ -228,7 +228,7 @@ nexStepAux currentLine mTopLabel state =
                 _ =
                     Debug.log "1." ( label, currentLine.lineNumber )
             in
-            if List.member label [ "code", "equation", "aligned", "verbatim" ] then
+            if List.member label [ "textarray", "array", "code", "equation", "aligned", "verbatim" ] then
                 Loop ({ state | inVerbatimBlock = True, label = "CBeginBlock 3" } |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) currentLine)
 
             else
@@ -249,7 +249,13 @@ nexStepAux currentLine mTopLabel state =
             else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "aligned" ] then
                 { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "aligned") currentLine |> Loop
 
-            else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "aligned" ] then
+            else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "array" ] then
+                { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "array") currentLine |> Loop
+
+            else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "textarray" ] then
+                { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "textarray") currentLine |> Loop
+
+            else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "verbatim" ] then
                 { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "verbatim") currentLine |> Loop
 
             else
@@ -612,7 +618,7 @@ endBlockOnMismatch label_ classifier line state =
                                     ( Ordinary name_, name_ )
 
                                 Verbatim name_ ->
-                                    if List.member name_ [ "math", "equation", "aligned", "verbatim" ] then
+                                    if List.member name_ [ "textarray", "array", "math", "equation", "aligned", "verbatim" ] then
                                         ( Verbatim "code", "code" )
 
                                     else
@@ -899,6 +905,8 @@ plainText state_ currentLine =
                         && (not <|
                                 List.member topLabel.classification
                                     [ CBeginBlock "equation"
+                                    , CBeginBlock "array"
+                                    , CBeginBlock "textarray"
                                     , CBeginBlock "aligned"
                                     ]
                            )
@@ -1158,7 +1166,7 @@ emptyLine currentLine state =
                     Loop (resetLevelIfStackIsEmpty state)
 
                 CBeginBlock name ->
-                    if List.member name [ "equation", "aligned" ] then
+                    if List.member name [ "textarray", "array", "equation", "aligned" ] then
                         -- equation and aligned blocks are terminated if an empty line is encountered
                         Loop <| endBlockOnMismatch label (CBeginBlock name) currentLine state
 
@@ -1511,6 +1519,8 @@ statusFilled =
 
 verbatimBlockNames =
     [ "equation"
+    , "array"
+    , "textarray"
     , "aligned"
     , "math"
     , "code"

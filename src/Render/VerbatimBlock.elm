@@ -54,6 +54,8 @@ verbatimDict =
         [ ( "math", Render.Math.displayedMath )
         , ( "equation", Render.Math.equation )
         , ( "aligned", Render.Math.aligned )
+        , ( "array", Render.Math.array )
+        , ( "textarray", Render.Math.textarray )
         , ( "code", renderCode )
         , ( "verse", renderVerse )
         , ( "verbatim", renderVerbatim )

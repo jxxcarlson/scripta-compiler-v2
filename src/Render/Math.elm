@@ -1,9 +1,11 @@
 module Render.Math exposing
     ( DisplayMode(..)
     , aligned
+    , array
     , displayedMath
     , equation
     , mathText
+    , textarray
     )
 
 import Dict exposing (Dict)
@@ -181,6 +183,140 @@ aligned count acc settings attrs block =
 
         content =
             "\\begin{aligned}\n" ++ innerContent ++ "\n\\end{aligned}"
+
+        label =
+            equationLabel settings block.properties content
+    in
+    Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
+        [ Element.row
+            (Element.width (Element.px settings.width) :: rightToLeftSyncHelper block label)
+            [ Element.el
+                (Element.centerX :: highlightMath settings block)
+                (mathText count str block.meta.id DisplayMathMode content)
+            ]
+        ]
+
+
+array : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+array count acc settings attrs block =
+    let
+        _ =
+            Debug.log "@@:Array" block
+
+        args : String
+        args =
+            block.args |> List.head |> Maybe.withDefault "" |> Debug.log "@@:Array,Args"
+
+        -- |> String.replace " " ""
+        str =
+            case block.body of
+                Left str_ ->
+                    str_
+
+                Right _ ->
+                    ""
+
+        filteredLines =
+            -- filter stuff out of lines of math text to be rendered:
+            String.lines str
+                |> List.filter (\line -> not (String.left 6 line == "[label") && not (line == ""))
+
+        deleteTrailingSlashes inputString =
+            let
+                str_ =
+                    String.trim inputString
+            in
+            if String.right 2 str_ == "\\\\" then
+                String.dropRight 2 str_
+
+            else
+                str_
+
+        adjustedLines_ =
+            -- delete trailing slashes before evaluating macros
+            List.map (deleteTrailingSlashes >> Generic.MathMacro.evalStr acc.mathMacroDict) filteredLines
+                -- remove bank lines
+                |> List.filter (\line -> line /= "")
+
+        innerContent =
+            -- restore trailing slashes
+            adjustedLines_
+                |> String.join "\\\\\n"
+
+        content =
+            "\\begin{array}{" ++ args ++ "}\n" ++ innerContent ++ "\n\\end{array}"
+
+        label =
+            equationLabel settings block.properties content
+    in
+    Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
+        [ Element.row
+            (Element.width (Element.px settings.width) :: rightToLeftSyncHelper block label)
+            [ Element.el
+                (Element.centerX :: highlightMath settings block)
+                (mathText count str block.meta.id DisplayMathMode content)
+            ]
+        ]
+
+
+textarray : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+textarray count acc settings attrs block =
+    let
+        _ =
+            Debug.log "@@:Array" block
+
+        args : String
+        args =
+            block.args |> List.head |> Maybe.withDefault "" |> Debug.log "@@:Array,Args"
+
+        -- |> String.replace " " ""
+        str =
+            case block.body of
+                Left str_ ->
+                    str_
+
+                Right _ ->
+                    ""
+
+        filteredLines =
+            -- filter stuff out of lines of math text to be rendered:
+            String.lines str
+                |> List.filter (\line -> not (String.left 6 line == "[label") && not (line == ""))
+                |> Debug.log "@@:TextArray,FilteredLines"
+                |> List.map fixrow
+
+        fixrow : String -> String
+        fixrow str_ =
+            str_
+                |> String.split "&"
+                |> List.map String.trim
+                |> List.map (\s -> "\\text{" ++ s ++ "}")
+                |> String.join " & "
+
+        deleteTrailingSlashes inputString =
+            let
+                str_ =
+                    String.trim inputString
+            in
+            if String.right 2 str_ == "\\\\" then
+                String.dropRight 2 str_
+
+            else
+                str_
+
+        adjustedLines_ =
+            -- delete trailing slashes before evaluating macros
+            List.map (deleteTrailingSlashes >> Generic.MathMacro.evalStr acc.mathMacroDict) filteredLines
+                -- remove bank lines
+                |> List.filter (\line -> line /= "")
+
+        innerContent =
+            -- restore trailing slashes
+            adjustedLines_
+                |> String.join "\\\\\n"
+
+        content =
+            "\\begin{array}{" ++ args ++ "}\n" ++ innerContent ++ "\n\\end{array}"
 
         label =
             equationLabel settings block.properties content
