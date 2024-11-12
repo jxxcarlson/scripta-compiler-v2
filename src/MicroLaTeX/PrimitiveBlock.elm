@@ -132,6 +132,10 @@ init idPrefix outerCount lines =
     }
 
 
+verbatimBlocks =
+    [ "table", "textarray", "array", "code", "equation", "aligned", "verbatim" ]
+
+
 {-|
 
     This is the driver function for the parser's functional loop.
@@ -204,7 +208,7 @@ nextStep state_ =
                 case ClassifyBlock.classify (currentLine.content ++ "\n") of
                     -- DOO
                     CEndBlock label ->
-                        if List.member label [ "textarray", "equation", "array", "code", "aligned", "verbatim" ] then
+                        if List.member label verbatimBlocks then
                             Loop (state |> handleVerbatimBlock currentLine)
 
                         else
@@ -228,7 +232,7 @@ nexStepAux currentLine mTopLabel state =
                 _ =
                     Debug.log "1." ( label, currentLine.lineNumber )
             in
-            if List.member label [ "textarray", "array", "code", "equation", "aligned", "verbatim" ] then
+            if List.member label verbatimBlocks then
                 Loop ({ state | inVerbatimBlock = True, label = "CBeginBlock 3" } |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) currentLine)
 
             else
@@ -618,7 +622,7 @@ endBlockOnMismatch label_ classifier line state =
                                     ( Ordinary name_, name_ )
 
                                 Verbatim name_ ->
-                                    if List.member name_ [ "textarray", "array", "math", "equation", "aligned", "verbatim" ] then
+                                    if List.member name_ verbatimBlocks then
                                         ( Verbatim "code", "code" )
 
                                     else
@@ -1166,7 +1170,7 @@ emptyLine currentLine state =
                     Loop (resetLevelIfStackIsEmpty state)
 
                 CBeginBlock name ->
-                    if List.member name [ "textarray", "array", "equation", "aligned" ] then
+                    if List.member name verbatimBlocks then
                         -- equation and aligned blocks are terminated if an empty line is encountered
                         Loop <| endBlockOnMismatch label (CBeginBlock name) currentLine state
 
@@ -1519,6 +1523,7 @@ statusFilled =
 
 verbatimBlockNames =
     [ "equation"
+    , "table"
     , "array"
     , "textarray"
     , "aligned"

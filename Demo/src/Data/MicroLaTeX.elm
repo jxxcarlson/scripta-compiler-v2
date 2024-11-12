@@ -5,6 +5,16 @@ text =
     """
 \\title{Test}
 
+\\begin{textarray}{rrr}
+a & $x^2$ &55 \\\\
+foo & bar & baz
+\\end{textarray}
+
+\\begin{table}{rrr}
+a & $x^2$ &55 \\\\
+foo & bar & baz
+\\end{table}
+
 \\begin{equation}
 a^2 + b^2 = c^2
 \\end{equation}
