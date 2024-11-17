@@ -42,13 +42,10 @@ displayedMath count acc settings attrs block =
         filteredLines =
             -- lines of math text to be rendered: filter stuff out
             String.lines (getContent block)
-                |> Debug.log "filteredLines (IN)"
                 |> List.filter (\line -> not (String.left 2 (String.trim line) == "$$"))
                 |> List.filter (\line -> not (String.left 6 line == "[label"))
                 |> List.filter (\line -> line /= "")
-                --|> List.map String.trimLeft
                 |> List.map (Generic.MathMacro.evalStr acc.mathMacroDict)
-                |> Debug.log "filteredLines (OUT)"
     in
     Element.column attrs
         [ Element.el (Render.Sync.highlighter block.args [ Element.centerX ])
@@ -200,12 +197,14 @@ aligned count acc settings attrs block =
 array : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 array count acc settings attrs block =
     let
-        _ =
-            Debug.log "@@:Array" block
-
         args : String
         args =
-            block.args |> List.head |> Maybe.withDefault "" |> Debug.log "@@:Array,Args"
+            block.args
+                |> List.head
+                |> Maybe.withDefault ""
+                -- TODO: remove bad hack in next two lines
+                |> String.replace "{" ""
+                |> String.replace "}" ""
 
         -- |> String.replace " " ""
         str =
@@ -262,12 +261,13 @@ array count acc settings attrs block =
 textarray : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 textarray count acc settings attrs block =
     let
-        _ =
-            Debug.log "@@:Array" block
-
         args : String
         args =
-            block.args |> List.head |> Maybe.withDefault "" |> Debug.log "@@:Array,Args"
+            block.args
+                |> List.head
+                |> Maybe.withDefault ""
+                |> String.replace "{" ""
+                |> String.replace "}" ""
 
         -- |> String.replace " " ""
         str =
@@ -282,7 +282,6 @@ textarray count acc settings attrs block =
             -- filter stuff out of lines of math text to be rendered:
             String.lines str
                 |> List.filter (\line -> not (String.left 6 line == "[label") && not (line == ""))
-                |> Debug.log "@@:TextArray,FilteredLines"
                 |> List.map fixrow
 
         fixrow : String -> String
@@ -316,7 +315,11 @@ textarray count acc settings attrs block =
                 |> String.join "\\\\\n"
 
         content =
-            "\\begin{array}{" ++ args ++ "}\n" ++ innerContent ++ "\n\\end{array}"
+            "\\begin{array}{"
+                ++ args
+                ++ "}\n"
+                ++ innerContent
+                ++ "\n\\end{array}"
 
         label =
             equationLabel settings block.properties content

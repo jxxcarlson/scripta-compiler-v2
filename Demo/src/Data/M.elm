@@ -10,6 +10,17 @@ text0 =
 
 | title
 TEST
+|| textarray
+777 & $x^2$ & foo \\
+bar & yada & $\\int x^2 dx$
+
+[hrule]
+
+|| table
+666 & $x^2$ & foo \\
+bar & yada & $\\int x^2 dx$
+
+
 
 || code
   | theorem

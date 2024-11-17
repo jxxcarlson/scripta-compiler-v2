@@ -6,14 +6,18 @@ text =
 \\title{Test}
 
 \\begin{textarray}{rrr}
-a & $x^2$ &55 \\\\
+a & $x^2$ &777\\\\
 foo & bar & baz
 \\end{textarray}
 
+\\hrule
+
 \\begin{table}{rrr}
-a & $x^2$ &55 \\\\
+a & $x^2$ &666 \\\\
 foo & bar & baz
 \\end{table}
+
+\\hrule
 
 \\begin{equation}
 a^2 + b^2 = c^2

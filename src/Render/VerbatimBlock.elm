@@ -32,7 +32,15 @@ render count acc settings attrs block =
 
         Left str ->
             case block.heading of
-                Verbatim functionName ->
+                Verbatim functionName_ ->
+                    let
+                        functionName =
+                            if functionName_ == "table" then
+                                "textarray"
+
+                            else
+                                functionName_
+                    in
                     case Dict.get functionName verbatimDict of
                         Nothing ->
                             Render.Helper.noSuchVerbatimBlock functionName str
@@ -56,11 +64,12 @@ verbatimDict =
         , ( "aligned", Render.Math.aligned )
         , ( "array", Render.Math.array )
         , ( "textarray", Render.Math.textarray )
+        , ( "table", Render.Math.textarray )
         , ( "code", renderCode )
         , ( "verse", renderVerse )
         , ( "verbatim", renderVerbatim )
 
-        --, ( "tabular", Render.Tabular.render )
+        -- , ( "tabular", Render.Tabular.render )
         , ( "load", renderLoad )
         , ( "load-data", Render.Helper.renderNothing )
         , ( "hide", Render.Helper.renderNothing )

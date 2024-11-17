@@ -1,6 +1,8 @@
 module MicroLaTeX.PrimitiveBlock exposing
     ( example
+    , example2
     , getLevel
+    , p
     , parse
     , parseLoop
     , print
@@ -73,12 +75,23 @@ type alias ParserOutput =
 
 
 example =
-    """\\begin{equation}
--\\frac{\\hbar^2 }{2m} 
-nabla^2 \\psi  + V\\psi = E\\psi
-\\end{equation}
-
+    """\\begin{table}
+1 & $x^2$ \\\\
+$x^3$ & 666
+\\end{table}
 """
+
+
+example2 =
+    """\\begin{textarray}
+1 & $x^2$ \\\\
+$x^3$ & 666
+\\end{textarray}
+"""
+
+
+p str =
+    parse "!!" 0 (String.lines str)
 
 
 parse : String -> Int -> List String -> List PrimitiveBlock

@@ -79,32 +79,12 @@ toExpressionBlock_ lang parse block =
     , indent = block.indent
     , args = block.args
     , properties =
-        case block.heading of
-            Ordinary "table" ->
-                fixTableProperties block
-
-            Ordinary "tabular" ->
-                fixTableProperties block
-
-            Verbatim "table" ->
-                fixTableProperties block
-
-            _ ->
-                block.properties |> Dict.insert "id" block.meta.id
+        block.properties |> Dict.insert "id" block.meta.id
     , firstLine = block.firstLine
     , body =
         case block.heading of
             Paragraph ->
                 Right (String.join "\n" block.body |> parse)
-
-            Ordinary "table" ->
-                fixTable block lang parse
-
-            Verbatim "table" ->
-                fixTable block lang parse
-
-            Ordinary "tabular" ->
-                fixTable block lang parse
 
             Ordinary _ ->
                 Right (String.join "\n" block.body |> parse)
