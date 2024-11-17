@@ -26,6 +26,7 @@ import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
 import ScriptaV2.Msg exposing (MarkupMsg(..))
+import String.Extra
 
 
 type DisplayMode
@@ -33,18 +34,39 @@ type DisplayMode
     | DisplayMathMode
 
 
-displayedMath : Accumulator -> RenderSettings -> String -> String
-displayedMath acc settings content =
+displayedMath1 : Accumulator -> RenderSettings -> String -> String -> String
+displayedMath1 acc settings content id =
+    "(???)"
+
+
+displayedMath : Accumulator -> RenderSettings -> String -> String -> String
+displayedMath acc settings content id =
     let
         w =
             String.fromInt settings.width ++ "px"
+
+        escapedContent =
+            String.replace "\n" " " (Generic.MathMacro.evalStr acc.mathMacroDict content)
+                |> String.replace "\"" "\\\""
     in
-    --"""<span id="mykatex1">...</span>
-    --   <script>
-    --   katex.render(""" ++ Generic.MathMacro.evalStr acc.mathMacroDict content ++ """), mykatex1);
-    --   </script>
-    --"""
-    "???"
+    String.concat
+        [ --"<span id="
+          --, String.Extra.quote id
+          --, ">...</span>"
+          "FOO"
+
+        --, "<script>"
+        --, "katex.render(\""
+        --, "a^2 + b^2 = c^2"
+        --, "\", document.getElementById(\""
+        --, id
+        --, "\"));"
+        --, "</script>"
+        ]
+
+
+
+-- Uncaught SyntaxError: '' literal not terminated before end of script
 
 
 getContent : ExpressionBlock -> String

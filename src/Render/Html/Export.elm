@@ -191,7 +191,7 @@ exportBlock settings acc block =
                             -- TODO: This should be fixed upstream
                             [ "$$", fix_ str, "$$" ]
                                 |> String.join "\n"
-                                |> Render.Html.Math.displayedMath acc settings
+                                |> Render.Html.Math.displayedMath acc settings block.meta.id
 
                         _ ->
                             exportBlock1 settings block
