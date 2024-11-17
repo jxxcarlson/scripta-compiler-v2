@@ -2,7 +2,6 @@ module Render.Export.Html exposing (export)
 
 import Dict exposing (Dict)
 import Either exposing (Either(..))
-import Elm.Kernel.VirtualDom
 import File.Download
 import Generic.ASTTools as ASTTools
 import Generic.BlockUtilities
