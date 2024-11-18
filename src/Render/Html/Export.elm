@@ -57,6 +57,7 @@ export currentTime settings acc ast =
 -- template : String -> String -> String
 
 
+template : Time.Posix -> RenderSettings -> Generic.Acc.Accumulator -> Forest ExpressionBlock -> String
 template currentTime settings acc ast =
     """<!DOCTYPE html>
        <html lang="en">
@@ -64,15 +65,41 @@ template currentTime settings acc ast =
            <meta charset="UTF-8">
            <meta name="viewport" content="width=device-width, initial-scale=1.0">
            <title>Scripta.io</title>
+           <link href="https://cdn.jsdelivr.net/npm/katex@0.16.3/dist/katex.min.css" rel="stylesheet">
+    """
+        ++ katexScript
+        ++ """
        </head>
        <body>
           """
+        ++ katexCSS
         ++ frontMatter currentTime acc ast
         ++ documentBody currentTime settings acc ast
         ++ """
        </body>
        </html>
     """
+
+
+
+-- <script src="https://cdn.jsdelivr.net/npm/katex@0.16.3/dist/katex.min.js"></script>
+
+
+katexScript =
+    String.concat
+        [ """<script src="https://cdn.jsdelivr.net/npm/katex@0.16.3/dist/katex.min.js">"""
+        , "</scri" ++ "pt>"
+        ]
+
+
+katexCSS : String
+katexCSS =
+    HS.node "link"
+        [ Html.String.Attributes.attribute "rel" "stylesheet"
+        , Html.String.Attributes.attribute "href" "https://cdn.jsdelivr.net/npm/katex@0.16.3/dist/katex.min.css"
+        ]
+        []
+        |> HS.toString 4
 
 
 frontMatter : Time.Posix -> Generic.Acc.Accumulator -> Forest ExpressionBlock -> String
@@ -168,9 +195,8 @@ exportBlock settings acc block =
                     "LEFT " ++ str
 
                 Right exprs_ ->
-                    "RIGHT"
+                    exportExprList settings exprs_
 
-        -- exportExprList settings exprs_
         Ordinary x ->
             "ORDINARY " ++ x
 
@@ -189,7 +215,7 @@ exportBlock settings acc block =
                                         |> MicroLaTeX.Util.transformLabel
                             in
                             -- TODO: This should be fixed upstream
-                            [ "$$", fix_ str, "$$" ]
+                            [ fix_ str ]
                                 |> String.join "\n"
                                 |> Render.Html.Math.displayedMath acc settings block.meta.id
 
@@ -715,6 +741,7 @@ section1 args body =
             body
                 |> String.words
                 |> MicroLaTeX.Util.normalizedWord
+                |> Debug.log "@@:SECTION 1"
 
         label =
             " \\label{" ++ tag ++ "}"
@@ -754,6 +781,7 @@ section2 args body =
             body
                 |> String.words
                 |> MicroLaTeX.Util.normalizedWord
+                |> Debug.log "@@:SECTION 2"
 
         label =
             " \\label{" ++ tag ++ "}"
@@ -805,7 +833,7 @@ macro1 name arg =
 
 exportExprList : RenderSettings -> List Expression -> String
 exportExprList settings exprs =
-    List.map (exportExpr settings) exprs |> String.join "" |> mapChars1
+    "ExprList: ((" ++ (List.map (exportExpr settings) exprs |> String.join "") ++ "))" |> mapChars1
 
 
 {-| -}

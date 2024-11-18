@@ -2,8 +2,10 @@ module Render.Html.Math exposing
     ( DisplayMode(..)
     , aligned
     , array
+    , bar
     , displayedMath
     , equation
+    , foo
     , mathText
     , textarray
     )
@@ -40,7 +42,7 @@ displayedMath1 acc settings content id =
 
 
 displayedMath : Accumulator -> RenderSettings -> String -> String -> String
-displayedMath acc settings content id =
+displayedMath acc settings id content =
     let
         w =
             String.fromInt settings.width ++ "px"
@@ -50,18 +52,35 @@ displayedMath acc settings content id =
                 |> String.replace "\"" "\\\""
     in
     String.concat
-        [ --"<span id="
-          --, String.Extra.quote id
-          --, ">...</span>"
-          "FOO"
+        [ "<span id="
+        , String.Extra.quote id
+        , ">...</span>"
+        , "<script>"
+        , "katex.render(\""
+        , content
+        , "\", document.getElementById(\""
+        , id
+        , "\"));"
+        , "</scr" ++ "ipt>" -- Split to prevent early script termination
+        ]
 
-        --, "<script>"
-        --, "katex.render(\""
-        --, "a^2 + b^2 = c^2"
-        --, "\", document.getElementById(\""
-        --, id
-        --, "\"));"
-        --, "</script>"
+
+bar id content =
+    "BAR " ++ id ++ ": " ++ content
+
+
+foo id content =
+    String.concat
+        [ "<span id="
+        , String.Extra.quote id
+        , ">...</span>"
+        , "<script>"
+        , "katex.render(\""
+        , content
+        , "\", document.getElementById(\""
+        , id
+        , "\"));"
+        , "</script>"
         ]
 
 
