@@ -10,55 +10,17 @@ text0 =
 
 | title
 TEST
-|| textarray
-777 & $x^2$ & foo \\
-bar & yada & $\\int x^2 dx$
 
-[hrule]
+|| mathmacros
+
+\\newcommand{\\foo}{y^3}
+
+$\\foo$
 
 || table
-666 & $x^2$ & foo \\
-bar & yada & $\\int x^2 dx$
+$x^2$ & \\foo  \\
+c & d
 
-
-
-|| code
-  | theorem
-  There are infinitely many primes
-
-  [italic Pythagoras] said that $a^2 + b^2 = c^2$.
-
-  In calculus class, we learned this formula:
-
-  || equation
-  \\int_0^1 x^n dx = \\frac{1}{n+1}
-
-|| equation
-\\by = \\begin{pmatrix}
-  \\ba_1\\cdot \\bx  \\
-  {\\ba}_2\\cdot \\bx
-\\end{pmatrix}
-
-| indent
-This
-
-  | theorem
-  There are infinitely many primes
-
-  [italic Pythagoras] said that $a^2 + b^2 = c^2$.
-
-  In calculus class, we learned this formula:
-
-  || equation
-  \\int_0^1 x^n dx = \\frac{1}{n+1}
-
-$$
-\\ce{2H + O -> H2O}
-$$
-
-$$
-\\int_0^1 x^2 dx = \\frac{1}{3}
-$$
 
  """
 
