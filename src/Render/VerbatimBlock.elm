@@ -129,14 +129,15 @@ renderLoad _ _ _ _ block =
 renderCode : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 renderCode count acc settings attr block =
     Element.column
-        ([ Font.color settings.codeColor
+        ([ Font.color (Element.rgb 0 0 0)
          , Font.family
             [ Font.typeface "Inconsolata"
             , Font.monospace
             ]
 
          --, Element.spacing 8
-         , Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 }
+         , Background.color (Element.rgb 0.95 0.95 0.95)
+         , Element.paddingEach { left = 24, right = 0, top = 18, bottom = 12 }
          , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
          , Render.Utility.idAttributeFromInt block.meta.lineNumber
          , Element.width (Element.px settings.width)

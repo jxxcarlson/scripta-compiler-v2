@@ -441,9 +441,8 @@ transformBlock findTitlePrefix block =
         Just "subsubsection" ->
             { block | properties = Dict.insert "level" "3" block.properties, heading = Ordinary "section" }
 
-        Just "subheading" ->
-            { block | properties = Dict.insert "level" "4" block.properties, heading = Ordinary "section" }
-
+        --Just "subheading" ->
+        --    { block | properties = Dict.insert "level" "4" block.properties, heading = Ordinary "section" }
         Just "item" ->
             { block
                 | body =
