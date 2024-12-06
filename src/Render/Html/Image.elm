@@ -20,7 +20,7 @@ exportBlock settings block =
         options =
             [ params.fractionalWidth, ",keepaspectratio" ] |> String.join ""
     in
-    exportCenteredFigure params.url options params.caption
+    exportCenteredFigure params.url params options params.caption
 
 
 fixWidth : String -> String
@@ -38,6 +38,7 @@ export s exprs =
         args =
             Render.Export.Util.getOneArg exprs |> String.words
 
+        params : ImageParameters
         params =
             imageParameters s exprs
 
@@ -50,23 +51,37 @@ export s exprs =
 
         Just url_ ->
             if params.placement == "C" then
-                exportCenteredFigure url_ options params.caption
+                exportCenteredFigure url_ params options params.caption
 
             else
-                exportWrappedFigure params.placement url_ params.fractionalWidth params.caption
+                -- exportWrappedFigure params.placement url_ params.fractionalWidth params.caption
+                exportCenteredFigure url_ params options params.caption
 
 
-exportCenteredFigure url options caption =
+
+-- exportCenteredFigure params.url options params.caption
+
+
+exportCenteredFigure url params options caption =
     if caption == "none" then
-        [ "\\imagecenter{", url, "}{" ++ options ++ "}" ] |> String.join ""
+        "<img src=" ++ params.url ++ " width=" ++ params.width ++ " >"
+        --[ "\\imagecenter{", url, "}{" ++ options ++ "}" ] |> String.join ""
 
     else
-        [ "\\imagecentercaptioned{", url, "}{" ++ options ++ "}{" ++ caption ++ "}" ] |> String.join ""
+        "<img src=" ++ url ++ " width=" ++ params.width ++ " >"
 
 
-exportWrappedFigure placement url options caption =
-    [ "\\imagefloat{", url, "}{" ++ options ++ "}{" ++ caption ++ "}{" ++ placement ++ "}" ]
-        |> String.join ""
+
+--  [ "\\imagecentercaptioned{", url, "}{" ++ options ++ "}{" ++ caption ++ "}" ] |> String.join ""
+
+
+exportWrappedFigure placement url params options caption =
+    "<img src=" ++ url ++ " width=" ++ params.width ++ " >"
+
+
+
+--[ "\\imagefloat{", url, "}{" ++ options ++ "}{" ++ caption ++ "}{" ++ placement ++ "}" ]
+-- string.join ""
 
 
 type alias ImageParameters =
@@ -243,7 +258,7 @@ imageParametersForBlock settings block =
 
 rescale : Int -> Int -> String
 rescale displayWidth k =
-    (toFloat k * (6.0 / toFloat displayWidth) |> String.fromFloat) ++ "truein"
+    toFloat k * (600.0 / toFloat displayWidth) |> String.fromFloat
 
 
 fractionaRescale : Int -> String

@@ -453,7 +453,7 @@ answer count acc settings attrs block =
 subheading : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 subheading count acc settings attr block =
     Element.link
-        (sectionBlockAttributes block settings ([ topPadding 10 ] ++ attr) |> Render.Sync2.sync block settings)
+        (sectionBlockAttributes block settings ([ topPadding 10, Font.size 18 ] ++ attr) |> Render.Sync2.sync block settings)
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
         , label = Element.paragraph [] (Render.Helper.renderWithDefault "| subheading" count acc settings attr (Generic.Language.getExpressionContent block))
         }
@@ -471,7 +471,7 @@ section count acc settings attr block =
                     String.toFloat n |> Maybe.withDefault 3
 
         fontSize =
-            settings.maxHeadingFontSize / sqrt headingLevel |> round
+            1.5 * (settings.maxHeadingFontSize / sqrt headingLevel) |> round
 
         sectionNumber =
             Element.el [ Font.size fontSize ] (Element.text (Render.Helper.blockLabel block.properties ++ ". "))
@@ -484,11 +484,12 @@ section count acc settings attr block =
             settings
             [ topPadding 20
             , Font.size fontSize
-            , if headingLevel > 1 then
-                Font.semiBold
 
-              else
-                Font.regular
+            --, if headingLevel > 1 then
+            --    Font.semiBold
+            --
+            --  else
+            --    Font.regular
             ]
         )
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")

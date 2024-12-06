@@ -9,8 +9,10 @@ import Generic.BlockUtilities
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Generic.TextMacro
-import Html.String as HS exposing (Html, div, span, text)
-import Html.String.Attributes exposing (style)
+import Html
+import Html.String as HS exposing (Html, div, node, span, text)
+import Html.String.Attributes exposing (property, style)
+import Json.Encode as JE
 import List.Extra
 import Maybe.Extra
 import MicroLaTeX.Util
@@ -18,6 +20,7 @@ import Render.Data
 import Render.Export.Image
 import Render.Export.Preamble
 import Render.Export.Util
+import Render.Html.Image
 import Render.Html.Math
 import Render.Settings exposing (RenderSettings)
 import Render.Utility as Utility
@@ -66,6 +69,13 @@ template currentTime settings acc ast =
            <meta name="viewport" content="width=device-width, initial-scale=1.0">
            <title>Scripta.io</title>
            <link href="https://cdn.jsdelivr.net/npm/katex@0.16.3/dist/katex.min.css" rel="stylesheet">
+           <style>
+              body {
+                  max-width: 800px;
+                  margin: 0 auto;
+                  padding: 1rem;
+              }
+          </style>
     """
         ++ katexScript
         ++ """
@@ -73,7 +83,6 @@ template currentTime settings acc ast =
        <body>
           """
         ++ katexCSS
-        ++ frontMatter currentTime acc ast
         ++ documentBody currentTime settings acc ast
         ++ """
        </body>
@@ -102,40 +111,41 @@ katexCSS =
         |> HS.toString 4
 
 
-frontMatter : Time.Posix -> Generic.Acc.Accumulator -> Forest ExpressionBlock -> String
-frontMatter currentTime acc ast =
-    let
-        dict =
-            ASTTools.frontMatterDict ast
 
-        author1 =
-            Dict.get "author1" dict
-
-        author2 =
-            Dict.get "author2" dict
-
-        author3 =
-            Dict.get "author3" dict
-
-        author4 =
-            Dict.get "author4" dict
-
-        authors : String
-        authors =
-            [ author1, author2, author3, author4 ]
-                |> Maybe.Extra.values
-                |> String.join "\n\\and\n"
-                |> (\s -> "\\author{\n" ++ s ++ "\n}")
-
-        title : String
-        title =
-            ASTTools.title ast
-
-        date : String
-        date =
-            Dict.get "date" dict |> Maybe.map (\date_ -> "\\date{" ++ date_ ++ "}") |> Maybe.withDefault ""
-    in
-    topmatter title date authors
+--frontMatter : Time.Posix -> Generic.Acc.Accumulator -> Forest ExpressionBlock -> String
+--frontMatter currentTime acc ast =
+--    let
+--        dict =
+--            ASTTools.frontMatterDict ast
+--
+--        author1 =
+--            Dict.get "author1" dict
+--
+--        author2 =
+--            Dict.get "author2" dict
+--
+--        author3 =
+--            Dict.get "author3" dict
+--
+--        author4 =
+--            Dict.get "author4" dict
+--
+--        authors : String
+--        authors =
+--            [ author1, author2, author3, author4 ]
+--                |> Maybe.Extra.values
+--                |> String.join "\n\\and\n"
+--                |> (\s -> "\\author{\n" ++ s ++ "\n}")
+--
+--        title : String
+--        title =
+--            ASTTools.title ast
+--
+--        date : String
+--        date =
+--            Dict.get "date" dict |> Maybe.map (\date_ -> "\\date{" ++ date_ ++ "}") |> Maybe.withDefault ""
+--    in
+--    topmatter title date authors
 
 
 documentBody : Time.Posix -> RenderSettings -> Generic.Acc.Accumulator -> Forest ExpressionBlock -> String
@@ -192,13 +202,27 @@ exportBlock settings acc block =
         Paragraph ->
             case block.body of
                 Left str ->
-                    "LEFT " ++ str
+                    "LEFT " ++ str |> divBlock
 
                 Right exprs_ ->
-                    exportExprList settings exprs_
+                    exportExprList settings exprs_ |> divBlock
 
-        Ordinary x ->
-            "ORDINARY " ++ x
+        Ordinary name ->
+            case block.body of
+                Left _ ->
+                    ""
+
+                Right exprs_ ->
+                    let
+                        _ =
+                            Debug.log "@@:ORDINARY" name
+                    in
+                    case Dict.get name blockDict of
+                        Just f ->
+                            f settings block.args (exportExprList settings exprs_) |> divBlock
+
+                        Nothing ->
+                            environment name (exportExprList settings exprs_)
 
         Verbatim name ->
             case block.body of
@@ -218,12 +242,28 @@ exportBlock settings acc block =
                             [ fix_ str ]
                                 |> String.join "\n"
                                 |> Render.Html.Math.displayedMath acc settings block.meta.id
+                                |> divBlock
 
                         _ ->
                             exportBlock1 settings block
 
                 Right x ->
-                    "(VERBATIM RIGHT " ++ Debug.toString x ++ ")"
+                    "(VERBATIM RIGHT " ++ "????" ++ ")"
+
+
+rawHtml : String -> String
+rawHtml str =
+    str
+
+
+divBlock : String -> String
+divBlock str =
+    String.concat
+        [ "<div style=\"padding-top: 18px\">\n"
+        , "    "
+        , str
+        , "\n</div>"
+        ]
 
 
 exportBlock1 : RenderSettings -> ExpressionBlock -> String
@@ -448,18 +488,11 @@ exportBlock1 settings block =
                     "???(13)"
 
 
-title_ : String -> Html msg
-title_ str =
+title_ : RenderSettings -> List String -> String -> String
+title_ settings attrs str =
     div
         []
         [ div [ style "font-size" "36px" ] [ text str ] ]
-
-
-topmatter : String -> String -> String -> String
-topmatter title date authors =
-    div
-        [ style "text-align" "center" ]
-        [ title_ title ]
         |> HS.toString 4
 
 
@@ -533,10 +566,14 @@ functionDict =
 macroDict : Dict String (RenderSettings -> List Expression -> String)
 macroDict =
     Dict.fromList
-        [ ( "link", \_ -> link )
+        [ ( "i", \_ -> italic )
+        , ( "italic", \_ -> italic )
+        , ( "b", \_ -> bold )
+        , ( "bold", \_ -> bold )
+        , ( "link", \_ -> link )
         , ( "ilink", \_ -> ilink )
         , ( "index_", \_ _ -> blindIndex )
-        , ( "image", Render.Export.Image.export )
+        , ( "image", Render.Html.Image.export )
         , ( "vspace", \_ -> vspace )
         , ( "bolditalic", \_ -> bolditalic )
         , ( "brackets", \_ -> brackets )
@@ -546,6 +583,24 @@ macroDict =
         , ( "underscore", \_ -> underscore )
         , ( "tags", dontRender )
         ]
+
+
+italic : List Expression -> String
+italic exprs =
+    let
+        args =
+            Render.Export.Util.getArgs exprs |> String.join " "
+    in
+    span [ style "font-style" "italic" ] [ text args ] |> HS.toString 4
+
+
+bold : List Expression -> String
+bold exprs =
+    let
+        args =
+            Render.Export.Util.getArgs exprs |> String.join " "
+    in
+    span [ style "font-weight" "bold" ] [ text args ] |> HS.toString 4
 
 
 dontRender : RenderSettings -> List Expression -> String
@@ -560,7 +615,7 @@ dontRender _ _ =
 blockDict : Dict String (RenderSettings -> List String -> String -> String)
 blockDict =
     Dict.fromList
-        [ ( "title", \_ _ _ -> "" )
+        [ ( "title", \settings attrs str -> title_ settings attrs str )
         , ( "subtitle", \_ _ _ -> "" )
         , ( "author", \_ _ _ -> "" )
         , ( "date", \_ _ _ -> "" )
@@ -727,15 +782,6 @@ argString args =
 
 section : RenderSettings -> List String -> String -> String
 section settings args body =
-    if settings.isStandaloneDocument then
-        section1 args body
-
-    else
-        section2 args body
-
-
-section1 : List String -> String -> String
-section1 args body =
     let
         tag =
             body
@@ -756,59 +802,22 @@ section1 args body =
 
                 Just _ ->
                     ""
+
+        attrs =
+            case Utility.getArg "4" 0 args of
+                "1" ->
+                    [ style "font-size" "28px" ]
+
+                "2" ->
+                    [ style "font-size" "20px" ]
+
+                "3" ->
+                    [ style "font-size" "14px" ]
+
+                _ ->
+                    [ style "font-size" "12px" ]
     in
-    case Utility.getArg "4" 0 args of
-        "1" ->
-            macro1 ("title" ++ suffix) body ++ label
-
-        "2" ->
-            macro1 ("section" ++ suffix) body ++ label
-
-        "3" ->
-            macro1 ("subsection" ++ suffix) body ++ label
-
-        "4" ->
-            macro1 ("subsubsection" ++ suffix) body ++ label
-
-        _ ->
-            macro1 ("subheading" ++ suffix) body ++ label
-
-
-section2 : List String -> String -> String
-section2 args body =
-    let
-        tag =
-            body
-                |> String.words
-                |> MicroLaTeX.Util.normalizedWord
-                |> Debug.log "@@:SECTION 2"
-
-        label =
-            " \\label{" ++ tag ++ "}"
-
-        suffix =
-            case List.Extra.getAt 1 args of
-                Nothing ->
-                    ""
-
-                Just "-" ->
-                    "*"
-
-                Just _ ->
-                    ""
-    in
-    case Utility.getArg "4" 0 args of
-        "1" ->
-            macro1 ("section" ++ suffix) body ++ label
-
-        "2" ->
-            macro1 ("subsection" ++ suffix) body ++ label
-
-        "3" ->
-            macro1 ("subsubsection" ++ suffix) body ++ label
-
-        _ ->
-            macro1 ("subheading" ++ suffix) body ++ label
+    div attrs [ text body ] |> HS.toString 4
 
 
 macro1 : String -> String -> String
@@ -833,7 +842,15 @@ macro1 name arg =
 
 exportExprList : RenderSettings -> List Expression -> String
 exportExprList settings exprs =
-    "ExprList: ((" ++ (List.map (exportExpr settings) exprs |> String.join "") ++ "))" |> mapChars1
+    let
+        output =
+            List.map (exportExpr settings) exprs |> String.join ""
+    in
+    if output == "" then
+        "Empty Expression LIst"
+
+    else
+        (List.map (exportExpr settings) exprs |> String.join "") |> mapChars1
 
 
 {-| -}

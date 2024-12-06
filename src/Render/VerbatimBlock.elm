@@ -137,7 +137,7 @@ renderCode count acc settings attr block =
 
          --, Element.spacing 8
          , Background.color (Element.rgb 0.95 0.95 0.95)
-         , Element.paddingEach { left = 24, right = 0, top = 18, bottom = 12 }
+         , Element.paddingEach { left = 24, right = 24, top = 18, bottom = 12 }
          , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
          , Render.Utility.idAttributeFromInt block.meta.lineNumber
          , Element.width (Element.px settings.width)

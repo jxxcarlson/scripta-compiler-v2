@@ -59,12 +59,12 @@ header_ : CompilerOutput -> List (Element MarkupMsg)
 header_ compiled =
     case compiled.banner of
         Nothing ->
-            Element.el [ Font.size 32, bottomPadding 86 ] compiled.title
+            Element.el [ Font.size 48, bottomPadding 86 ] compiled.title
                 :: []
 
         Just banner ->
             Element.el [] banner
-                :: (Element.el [ Font.size 32, bottomPadding 86 ] compiled.title
+                :: (Element.el [ Font.size 48, bottomPadding 86 ] compiled.title
                         :: []
                    )
 

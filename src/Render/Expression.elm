@@ -90,6 +90,7 @@ markupDict =
         , ( "bold", \g acc s attr exprList -> strong g acc s attr exprList )
         , ( "textbf", \g acc s attr exprList -> strong g acc s attr exprList )
         , ( "b", \g acc s attr exprList -> strong g acc s attr exprList )
+        , ( "subheading", \g acc s attr exprList -> subheading g acc s attr exprList )
         , ( "var", \g acc s attr exprList -> var g acc s attr exprList )
         , ( "italic", \g acc s attr exprList -> italic g acc s attr exprList )
         , ( "textit", \g acc s attr exprList -> italic g acc s attr exprList )
@@ -218,6 +219,14 @@ abstract g acc s attr exprList =
 large : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
 large g acc s attr exprList =
     simpleElement [ Font.size 18 ] g acc s attr exprList
+
+
+subheading : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
+subheading g acc s attr exprList =
+    Element.column []
+        [ Element.el [ Font.size 18, Element.paddingEach { top = 18, bottom = 0, left = 0, right = 0 } ]
+            (Element.paragraph [] (List.map (render g acc s attr) exprList))
+        ]
 
 
 link : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
