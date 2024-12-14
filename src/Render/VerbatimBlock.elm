@@ -153,7 +153,7 @@ renderCode count acc settings attr block =
 
             Nothing ->
                 --List.map (renderVerbatimLine "plain") (String.lines (String.trim (Render.Utility.getVerbatimContent block)))
-                List.map (renderVerbatimLine "plain") (String.lines (Render.Utility.getVerbatimContent block))
+                List.indexedMap (\k str -> renderIndexedVerbatimLine k "plain" str) (String.lines (Render.Utility.getVerbatimContent block))
         )
 
 
@@ -186,6 +186,25 @@ renderVerbatimLine lang str_ =
 
     else
         Element.paragraph [ Element.height (Element.px 22) ] (renderedColoredLine lang str)
+
+
+renderIndexedVerbatimLine : Int -> String -> String -> Element msg
+renderIndexedVerbatimLine k lang str_ =
+    let
+        str =
+            String.replace "\\bt" "`" str_
+
+        index k_ =
+            Element.text <| String.fromInt (k_ + 1)
+    in
+    if String.trim str == "" then
+        Element.row [ Element.spacing 12 ] [ index k, Element.el [ Element.height (Element.px 11) ] (Element.text "") ]
+
+    else if lang == "plain" then
+        Element.row [ Element.spacing 12 ] [ index k, Element.el [ Element.height (Element.px 22) ] (Element.text str) ]
+
+    else
+        Element.row [ Element.spacing 12 ] [ index k, Element.paragraph [ Element.height (Element.px 22) ] (renderedColoredLine lang str) ]
 
 
 renderVerse : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
