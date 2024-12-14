@@ -739,6 +739,7 @@ blockDict =
         --
         , ( "section", \settings_ args body -> section settings_ args body )
         , ( "subheading", \settings_ args body -> subheading settings_ args body )
+        , ( "smallsubheading", \settings_ args body -> smallsubheading settings_ args body )
         , ( "item", \_ _ body -> macro1 "item" body )
         , ( "descriptionItem", \_ args body -> descriptionItem args body )
         , ( "numbered", \_ _ body -> macro1 "item" body )
@@ -805,9 +806,9 @@ vspace exprs =
                 |> Maybe.withDefault 0
                 |> (\x -> x / 4.0)
                 |> String.fromFloat
-                |> (\x -> x ++ "mm")
+                |> (\x -> x ++ "pt")
     in
-    [ "\\vspace{", arg, "}" ] |> String.join ""
+    [ "\\par\\vspace{", arg, "}" ] |> String.join ""
 
 
 ilink : List Expression -> String
@@ -865,7 +866,12 @@ setcounter args =
 
 subheading : RenderSettings -> List String -> String -> String
 subheading settings args body =
-    "\\subheading{" ++ body ++ "}"
+    "\\vspace{8pt{\\Large{" ++ body ++ "}"
+
+
+smallsubheading : RenderSettings -> List String -> String -> String
+smallsubheading settings args body =
+    "\\vspace{4pt{\\large{" ++ body ++ "}"
 
 
 descriptionItem : List String -> String -> String
