@@ -471,7 +471,7 @@ section count acc settings attr block =
                     String.toFloat n |> Maybe.withDefault 3
 
         fontSize =
-            1.5 * (settings.maxHeadingFontSize / sqrt headingLevel) |> round
+            1.4 * (settings.maxHeadingFontSize / sqrt headingLevel) |> round
 
         sectionNumber =
             Element.el [ Font.size fontSize ] (Element.text (Render.Helper.blockLabel block.properties ++ ". "))

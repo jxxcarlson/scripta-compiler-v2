@@ -224,7 +224,7 @@ large g acc s attr exprList =
 subheading : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
 subheading g acc s attr exprList =
     Element.column []
-        [ Element.el [ Font.size 18, Element.paddingEach { top = 18, bottom = 0, left = 0, right = 0 } ]
+        [ Element.el [ Font.size 16, Element.paddingEach { top = 18, bottom = 0, left = 0, right = 0 } ]
             (Element.paragraph [] (List.map (render g acc s attr) exprList))
         ]
 
