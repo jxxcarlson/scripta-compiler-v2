@@ -91,6 +91,7 @@ markupDict =
         , ( "textbf", \g acc s attr exprList -> strong g acc s attr exprList )
         , ( "b", \g acc s attr exprList -> strong g acc s attr exprList )
         , ( "subheading", \g acc s attr exprList -> subheading g acc s attr exprList )
+        , ( "smallsubheading", \g acc s attr exprList -> smallsubheading g acc s attr exprList )
         , ( "var", \g acc s attr exprList -> var g acc s attr exprList )
         , ( "italic", \g acc s attr exprList -> italic g acc s attr exprList )
         , ( "textit", \g acc s attr exprList -> italic g acc s attr exprList )
@@ -224,8 +225,16 @@ large g acc s attr exprList =
 subheading : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
 subheading g acc s attr exprList =
     Element.column []
-        [ Element.el [ Font.size 16, Element.paddingEach { top = 18, bottom = 0, left = 0, right = 0 } ]
-            (Element.paragraph [] (List.map (render g acc s attr) exprList))
+        [ Element.el [ Element.paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ]
+            (Element.paragraph [ Font.size 18 ] (List.map (render g acc s attr) exprList))
+        ]
+
+
+smallsubheading : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
+smallsubheading g acc s attr exprList =
+    Element.column []
+        [ Element.el [ Element.paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ]
+            (Element.paragraph [ Font.size 16, Font.italic ] (List.map (render g acc s attr) exprList))
         ]
 
 

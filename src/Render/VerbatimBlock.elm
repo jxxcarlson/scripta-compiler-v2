@@ -148,12 +148,15 @@ renderCode count acc settings attr block =
         )
         (case List.head block.args of
             Just arg ->
-                --List.map (renderVerbatimLine arg) (String.lines (String.trim (Render.Utility.getVerbatimContent block)))
-                List.map (renderVerbatimLine arg) (String.lines (Render.Utility.getVerbatimContent block))
+                if arg == "numbered" then
+                    List.indexedMap (\k str -> renderIndexedVerbatimLine k "plain" str) (String.lines (Render.Utility.getVerbatimContent block))
+
+                else
+                    List.map (renderVerbatimLine arg) (String.lines (Render.Utility.getVerbatimContent block))
 
             Nothing ->
-                --List.map (renderVerbatimLine "plain") (String.lines (String.trim (Render.Utility.getVerbatimContent block)))
-                List.indexedMap (\k str -> renderIndexedVerbatimLine k "plain" str) (String.lines (Render.Utility.getVerbatimContent block))
+                List.map (renderVerbatimLine "") (String.lines (Render.Utility.getVerbatimContent block))
+         -- List.indexedMap (\k str -> renderIndexedVerbatimLine k "plain" str) (String.lines (Render.Utility.getVerbatimContent block))
         )
 
 
@@ -195,7 +198,7 @@ renderIndexedVerbatimLine k lang str_ =
             String.replace "\\bt" "`" str_
 
         index k_ =
-            Element.text <| String.fromInt (k_ + 1)
+            Element.el [ Element.paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ] (Element.text <| String.fromInt (k_ + 1))
     in
     if String.trim str == "" then
         Element.row [ Element.spacing 12 ] [ index k, Element.el [ Element.height (Element.px 11) ] (Element.text "") ]
