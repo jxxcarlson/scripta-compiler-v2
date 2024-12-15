@@ -156,7 +156,6 @@ renderCode count acc settings attr block =
 
             Nothing ->
                 List.map (renderVerbatimLine "") (String.lines (Render.Utility.getVerbatimContent block))
-         -- List.indexedMap (\k str -> renderIndexedVerbatimLine k "plain" str) (String.lines (Render.Utility.getVerbatimContent block))
         )
 
 
@@ -180,15 +179,22 @@ renderVerbatimLine lang str_ =
     let
         str =
             String.replace "\\bt" "`" str_
+
+        spacer s =
+            let
+                n =
+                    String.length s - String.length (String.trimLeft s)
+            in
+            Element.paddingEach { top = 0, bottom = 0, left = n * 8, right = 0 }
     in
     if String.trim str == "" then
-        Element.el [ Element.height (Element.px 11) ] (Element.text "")
+        Element.row [ spacer str, Element.spacing 12 ] [ Element.el [ Element.height (Element.px 11) ] (Element.text "") ]
 
     else if lang == "plain" then
-        Element.el [ Element.height (Element.px 22) ] (Element.text str)
+        Element.row [ spacer str, Element.spacing 12 ] [ Element.el [ Element.height (Element.px 22) ] (Element.text str) ]
 
     else
-        Element.paragraph [ Element.height (Element.px 22) ] (renderedColoredLine lang str)
+        Element.row [ spacer str, Element.spacing 12 ] [ Element.paragraph [ Element.height (Element.px 22) ] (renderedColoredLine lang str) ]
 
 
 renderIndexedVerbatimLine : Int -> String -> String -> Element msg
