@@ -164,4 +164,4 @@ innerAttributes rootBlock =
 
 
 italicBlockNames =
-    [ "quote", "aside", "note", "warning", "exercise", "theorem", "proof", "definition", "lemma", "corollary", "example", "remark" ]
+    [ "quote", "aside", "note", "warning", "exercise", "problem", "note", "theorem", "proof", "definition", "lemma", "corollary", "example", "remark" ]
