@@ -94,6 +94,7 @@ markupDict =
         , ( "smallsubheading", \g acc s attr exprList -> smallsubheading g acc s attr exprList )
         , ( "var", \g acc s attr exprList -> var g acc s attr exprList )
         , ( "italic", \g acc s attr exprList -> italic g acc s attr exprList )
+        , ( "qed", \g acc s attr exprList -> qed g acc s attr exprList )
         , ( "textit", \g acc s attr exprList -> italic g acc s attr exprList )
         , ( "bi", \g acc s attr exprList -> boldItalic g acc s attr exprList )
         , ( "i", \g acc s attr exprList -> italic g acc s attr exprList )
@@ -165,11 +166,10 @@ markupDict =
         , ( "inlineimage", \_ _ s attr exprList -> Render.Graphics.inlineimage s attr exprList )
         , ( "tags", \_ _ _ _ _ -> Element.none )
         , ( "vspace", vspace )
-        , ( "par", vspace )
         , ( "break", vspace )
-        , ( "//", vspace )
+        , ( "//", par )
+        , ( "par", par )
 
-        -- , ( "par", par )
         -- MiniLaTeX stuff
         , ( "term", \g acc s attr exprList -> term g acc s attr exprList )
         , ( "term_", \_ _ _ _ _ -> Element.none )
@@ -469,8 +469,8 @@ vspace _ _ _ _ exprList =
     Element.column [ Element.height (Element.px h) ] [ Element.text "" ]
 
 
-par _ _ _ _ attr =
-    Element.column ([ Element.height (Element.px 15) ] ++ attr) [ Element.text "" ]
+par _ _ _ _ _ =
+    Element.column [ Element.height (Element.px 5) ] [ Element.text "" ]
 
 
 strong g acc s attr exprList =
@@ -669,6 +669,10 @@ backTick =
 italic : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
 italic g acc s attr exprList =
     simpleElement [ Font.italic, Element.paddingEach { left = 0, right = 2, top = 0, bottom = 0 } ] g acc s attr exprList
+
+
+qed _ _ _ _ _ =
+    Element.el [ Font.bold, Element.paddingEach { left = 0, right = 2, top = 0, bottom = 0 } ] (Element.text "Q.E.D.")
 
 
 boldItalic g acc s attr exprList =
