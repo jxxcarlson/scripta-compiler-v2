@@ -9,6 +9,7 @@ import Element.Font as Font
 import Element.Input
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
+import Html exposing (Html, text)
 import Html.Events as Event
 import Render.Chart
 import Render.ChartV2
@@ -22,6 +23,7 @@ import Render.Sync
 import Render.Table
 import Render.Utility exposing (elementAttribute)
 import ScriptaV2.Msg exposing (MarkupMsg(..))
+import SyntaxHighlight exposing (gitHub, monokai, toBlockHtml, useTheme)
 
 
 render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
@@ -129,22 +131,14 @@ renderLoad _ _ _ _ block =
 renderCode : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 renderCode count acc settings attr block =
     Element.column
-        ([ Font.color (Element.rgb 0 0 0)
-         , Font.family
-            [ Font.typeface "Inconsolata"
-            , Font.monospace
-            ]
-
-         --, Element.spacing 8
-         , Background.color (Element.rgb 0.95 0.95 0.95)
-         , Element.paddingEach { left = 24, right = 24, top = 18, bottom = 12 }
+        ([ Background.color (Element.rgb 0.955 0.95 0.95)
+         , Element.paddingEach { left = 24, right = 24, top = 8, bottom = 8 }
          , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
          , Render.Utility.idAttributeFromInt block.meta.lineNumber
          , Element.width (Element.px settings.width)
-         , Element.width (Element.px settings.width)
          , Element.scrollbarX
          ]
-            ++ attr
+         -- ++ attr
         )
         (case List.head block.args of
             Just arg ->
@@ -152,11 +146,76 @@ renderCode count acc settings attr block =
                     List.indexedMap (\k str -> renderIndexedVerbatimLine k "plain" str) (String.lines (Render.Utility.getVerbatimContent block))
 
                 else
-                    List.map (renderVerbatimLine arg) (String.lines (Render.Utility.getVerbatimContent block))
+                    --List.map (renderVerbatimLine arg) (String.lines (Render.Utility.getVerbatimContent block))
+                    viewCodeWithHighlight arg (Render.Utility.getVerbatimContent block)
 
             Nothing ->
-                List.map (renderVerbatimLine "") (String.lines (Render.Utility.getVerbatimContent block))
+                --List.map (renderVerbatimLine "") (String.lines (Render.Utility.getVerbatimContent block))
+                viewCodeWithHighlight "noLang" (Render.Utility.getVerbatimContent block)
         )
+
+
+viewCodeWithHighlight : String -> String -> List (Element msg)
+viewCodeWithHighlight language code =
+    [ --useTheme gitHub |> Element.html
+      ghCSS2
+    , viewCodeWithHighlight_ language code |> Element.html
+    ]
+
+
+
+-- ghTheme =
+--".elmsh {color: #24292e;background: #eeeeee;}.elmsh-hl {background: #fffbdd;}.elmsh-add {background: #eaffea;}.elmsh-del {background: #ffecec;}.elmsh-comm {color: #969896;}.elmsh1 {color: #005cc5;}.elmsh2 {color: #df5000;}.elmsh3 {color: #d73a49;}.elmsh4 {color: #0086b3;}.elmsh5 {color: #63a35c;}.elmsh6 {color: #005cc5;}.elmsh7 {color: #795da3;}"
+
+
+ghTheme =
+    ".elmsh {color: #24292e;background: #eeeeee;line-height: 1.5;}.elmsh-hl {background: #fffbdd;}.elmsh-add {background: #eaffea;}.elmsh-del {background: #ffecec;}.elmsh-comm {color: #969896;}.elmsh1 {color: #005cc5;}.elmsh2 {color: #df5000;}.elmsh3 {color: #d73a49;}.elmsh4 {color: #0086b3;}.elmsh5 {color: #63a35c;}.elmsh6 {color: #005cc5;}.elmsh7 {color: #795da3;}"
+
+
+ghCSS2 : Element msg
+ghCSS2 =
+    Element.html <|
+        Html.node "style"
+            []
+            [ Html.text ghTheme ]
+
+
+
+-- githubTheme = .elmsh {color: #24292e;background: #ffffff;}.elmsh-hl {background: #fffbdd;}.elmsh-add {background: #eaffea;}.elmsh-del {background: #ffecec;}.elmsh-comm {color: #969896;}.elmsh1 {color: #005cc5;}.elmsh2 {color: #df5000;}.elmsh3 {color: #d73a49;}.elmsh4 {color: #0086b3;}.elmsh5 {color: #63a35c;}.elmsh6 {color: #005cc5;}.elmsh7 {color: #795da3;}
+
+
+viewCodeWithHighlight_ : String -> String -> Html msg
+viewCodeWithHighlight_ language code =
+    case language of
+        "python" ->
+            code
+                |> SyntaxHighlight.python
+                |> Result.map (toBlockHtml (Just 1))
+                |> Result.withDefault (text code)
+
+        "javascript" ->
+            code
+                |> SyntaxHighlight.javascript
+                |> Result.map (toBlockHtml (Just 1))
+                |> Result.withDefault (text code)
+
+        "elm" ->
+            code
+                |> SyntaxHighlight.elm
+                |> Result.map (toBlockHtml (Just 1))
+                |> Result.withDefault (text code)
+
+        "noLang" ->
+            code
+                |> SyntaxHighlight.elm
+                |> Result.map (toBlockHtml (Just 1))
+                |> Result.withDefault (text code)
+
+        _ ->
+            code
+                |> SyntaxHighlight.noLang
+                |> Result.map (toBlockHtml (Just 1))
+                |> Result.withDefault (text code)
 
 
 renderVerbatim : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
