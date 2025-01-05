@@ -185,7 +185,24 @@ ghCSS2 =
 
 
 viewCodeWithHighlight_ : String -> String -> Html msg
-viewCodeWithHighlight_ language code =
+viewCodeWithHighlight_ language code_ =
+    let
+        lines_ =
+            String.lines code_
+
+        code =
+            case List.head lines_ of
+                Just firstLine ->
+                    if String.left 2 firstLine == "  " then
+                        List.map (\line -> String.dropLeft 2 line) lines_
+                            |> String.join "\n"
+
+                    else
+                        code_
+
+                Nothing ->
+                    code_
+    in
     case language of
         "python" ->
             code
