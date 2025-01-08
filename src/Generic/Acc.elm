@@ -507,6 +507,8 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
         -- reference : Dict String { id : String, numRef : String }
         Ordinary "q" ->
             { accumulator
+              -- push the pair (id, "??") onto the qAndAList
+              -- where id is the id of the question block
                 | qAndAList = ( block.meta.id, "??" ) :: accumulator.qAndAList
                 , blockCounter = accumulator.blockCounter + 1
             }
@@ -514,10 +516,27 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
 
         Ordinary "a" ->
             case List.Extra.uncons accumulator.qAndAList of
-                Just ( ( q, _ ), rest ) ->
+                Just ( ( idQ, _ ), rest ) ->
+                    -- Assumption: the head of the qAndAList is from the question
+                    -- which precedes it in the document. That element is
+                    -- (q, "??") where q is the id of the question block.
+                    -- We update the qAndAList by replacing the "??"
+                    -- in the head element with the id of the answer block.
+                    -- Now the answer block is associated with the question block:
+                    -- (i) the head element of the qAndAList is now
+                    --     (idQ, idA) = (id of the question block, id of the answer block)
+                    -- (ii) the pair (idQ, idA) is added to the qAndADict
+                    --      by  truly monstrous bit of code that that needs to
+                    --      be revised (along with the code for qAndAList)
+                    -- PROPOSED CHANGES:
+                    -- Update the qAndADict by inserting the pair (q, block.meta.id)
+                    -- When this is done, clear the qAndAList
+                    -- Also, this case should be ( q, "??), [])
+                    -- And moreover in Ordinary "q", we should simply set
+                    -- qAndAList = [block.meta.id, "??"]
                     { accumulator
-                        | qAndAList = ( q, block.meta.id ) :: rest
-                        , qAndADict = Dict.fromList (( q, block.meta.id ) :: rest)
+                        | qAndAList = ( idQ, block.meta.id ) :: rest
+                        , qAndADict = Dict.fromList (( idQ, block.meta.id ) :: rest)
                     }
                         |> updateReferenceWithBlock block
 
