@@ -113,6 +113,7 @@ blockDict =
         , ( "red2", red2 )
         , ( "q", question ) -- xx
         , ( "a", answer ) -- xx
+        , ( "reveal", reveal ) -- xx
         , ( "document", document )
         , ( "collection", collection )
         , ( "bibitem", bibitem )
@@ -442,6 +443,45 @@ answer count acc settings attrs block =
             -- TODO: clean up?
             Element.el [ Events.onClick (ProposeSolution ScriptaV2.Msg.Unsolved) ]
                 (Element.paragraph ([ Font.italic, Render.Utility.idAttributeFromInt block.meta.lineNumber, Element.paddingXY 8 8 ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
+                    (Render.Helper.renderWithDefault "..." count acc settings attrs (Generic.Language.getExpressionContent block))
+                )
+
+          else
+            Element.none
+        ]
+
+
+reveal : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+reveal count acc settings attrs block =
+    let
+        title_ =
+            String.join " " block.args
+
+        label =
+            " " ++ Render.Helper.getLabel block.properties
+
+        clicker =
+            if settings.selectedId == block.meta.id then
+                Events.onClick (ProposeSolution ScriptaV2.Msg.Unsolved)
+
+            else
+                Events.onClick (ProposeSolution (ScriptaV2.Msg.Solved block.meta.id))
+    in
+    Element.column [ Element.spacing 6 ]
+        [ Element.el
+            [ Font.bold
+            , Font.color Color.blue
+            , clicker
+            ]
+            (Element.text (title_ ++ " " ++ label))
+        , if settings.selectedId == block.meta.id then
+            Element.el []
+                (Element.paragraph
+                    ([ Font.italic
+                     , Element.paddingXY 8 8
+                     ]
+                        |> Render.Sync2.sync block settings
+                    )
                     (Render.Helper.renderWithDefault "..." count acc settings attrs (Generic.Language.getExpressionContent block))
                 )
 
