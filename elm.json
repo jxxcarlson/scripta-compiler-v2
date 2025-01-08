@@ -25,6 +25,7 @@
         "elmcraft/core-extra": "2.0.0 <= v < 3.0.0",
         "jinjor/elm-diff": "1.0.6 <= v < 2.0.0",
         "jxxcarlson/elm-stat": "6.0.2 <= v < 7.0.0",
+        "maca/elm-rose-tree": "1.2.1 <= v < 2.0.0",
         "mdgriffith/elm-ui": "1.1.8 <= v < 2.0.0",
         "pablohirafuji/elm-syntax-highlight": "3.5.0 <= v < 4.0.0",
         "rtfeldman/console-print": "1.0.1 <= v < 2.0.0",

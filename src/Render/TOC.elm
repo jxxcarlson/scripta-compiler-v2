@@ -51,8 +51,19 @@ view selectedId counter acc attr ast =
     prepareTOC maximumLevel counter acc { defaultSettings | selectedId = selectedId } attr ast
 
 
+
+-- NEW TOC CODE
+-- Need function
+-- List ExpressionBlock ->  RoseTree.Tree ExpressionBlock
+-- where the depth in the tree is determined by the level
+
+
 viewTocItem : String -> Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 viewTocItem selectedId count acc settings attr ({ args, body, properties } as block) =
+    let
+        maximumNumberedTocLevel =
+            1
+    in
     case body of
         Left _ ->
             Element.none
@@ -68,7 +79,16 @@ viewTocItem selectedId count acc settings attr ({ args, body, properties } as bl
                             Element.none
 
                         _ ->
-                            Element.el [] (Element.text (blockLabel properties ++ ". "))
+                            case tocLevel block of
+                                Just level ->
+                                    if level <= maximumNumberedTocLevel then
+                                        Element.el [] (Element.text (blockLabel properties ++ ". "))
+
+                                    else
+                                        Element.none
+
+                                Nothing ->
+                                    Element.none
 
                 label : Element MarkupMsg
                 label =
@@ -90,8 +110,8 @@ blockLabel properties =
     Dict.get "label" properties |> Maybe.withDefault "??"
 
 
-tocLevel : Int -> ExpressionBlock -> Bool
-tocLevel k { args } =
+tocLevelAtMost : Int -> ExpressionBlock -> Bool
+tocLevelAtMost k { args } =
     case List.Extra.getAt 0 args of
         Nothing ->
             True
@@ -100,13 +120,18 @@ tocLevel k { args } =
             (String.toInt level |> Maybe.withDefault 4) <= k
 
 
+tocLevel : ExpressionBlock -> Maybe Int
+tocLevel { args } =
+    List.Extra.getAt 0 args |> Maybe.andThen String.toInt
+
+
 prepareTOCWithTitle : Int -> Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
 prepareTOCWithTitle maximumLevel count acc settings attr ast =
     let
         rawToc : List ExpressionBlock
         rawToc =
             Generic.ASTTools.tableOfContents maximumLevel ast
-                |> List.filter (tocLevel maximumLevel)
+                |> List.filter (tocLevelAtMost maximumLevel)
 
         headings =
             getHeadings ast
@@ -150,7 +175,7 @@ prepareTOC maximumLevel count acc settings attr ast =
         rawToc : List ExpressionBlock
         rawToc =
             Generic.ASTTools.tableOfContents maximumLevel ast
-                |> List.filter (tocLevel maximumLevel)
+                |> List.filter (tocLevelAtMost maximumLevel)
                 -- The "xy" line below is needed because we also have the possibility of
                 -- the TOC in the sidebar. We do not want click on a TOC item in the sidebar
                 -- targetting the TOC item in the main text.

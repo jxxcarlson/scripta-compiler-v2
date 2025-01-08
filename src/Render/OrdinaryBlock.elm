@@ -502,6 +502,10 @@ subheading count acc settings attr block =
 section count acc settings attr block =
     -- level 1 is reserved for titles
     let
+        maxNumberedLevel =
+            1
+
+        headingLevel : Float
         headingLevel =
             case Dict.get "level" block.properties of
                 Nothing ->
@@ -514,7 +518,11 @@ section count acc settings attr block =
             1.4 * (settings.maxHeadingFontSize / sqrt headingLevel) |> round
 
         sectionNumber =
-            Element.el [ Font.size fontSize ] (Element.text (Render.Helper.blockLabel block.properties ++ ". "))
+            if headingLevel <= maxNumberedLevel then
+                Element.el [ Font.size fontSize ] (Element.text (Render.Helper.blockLabel block.properties ++ ". "))
+
+            else
+                Element.none
 
         exprs =
             Generic.Language.getExpressionContent block
