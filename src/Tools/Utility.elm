@@ -9,6 +9,7 @@ module Tools.Utility exposing
     , replaceLeadingDotSpace
     , replaceLeadingGreaterThanSign
     , replaceLeadingVertBarItem
+    , substituteForITEM
     , truncateString
     , userReplace
     )
@@ -141,10 +142,45 @@ removeNonAlphaNumExceptHyphen string =
 
 
 userReplace : String -> (Regex.Match -> String) -> String -> String
-userReplace userRegex replacer string =
-    case Regex.fromString userRegex of
+userReplace regexString replacer string =
+    case Regex.fromString regexString of
         Nothing ->
             string
 
         Just regex ->
             Regex.replace regex replacer string
+
+
+substituteForITEM : String -> String -> String -> String
+substituteForITEM regexString source target =
+    case firstMatch regexString source of
+        Nothing ->
+            target
+
+        Just match ->
+            String.replace "ITEM" match target
+
+
+
+-- > firstMatch "\\[subheading (.+?)\\]" "[subheading Intro]"
+-- Just "Intro" : Maybe String
+
+
+firstMatch : String -> String -> Maybe String
+firstMatch regexString src =
+    Regex.find (userRegex regexString) src
+        |> List.map .submatches
+        |> List.map (List.filterMap identity)
+        |> List.concat
+        |> List.head
+
+
+matchToString : Regex.Match -> String
+matchToString match =
+    match.match
+
+
+userRegex : String -> Regex.Regex
+userRegex str =
+    Maybe.withDefault Regex.never <|
+        Regex.fromString str

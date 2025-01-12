@@ -178,7 +178,7 @@ prepareTOC maximumLevel count acc settings attr ast =
                 |> List.filter (tocLevelAtMost maximumLevel)
                 -- The "xy" line below is needed because we also have the possibility of
                 -- the TOC in the sidebar. We do not want click on a TOC item in the sidebar
-                -- targetting the TOC item in the main text.
+                -- targeting the TOC item in the main text.
                 |> List.map (Generic.Language.updateMetaInBlock (\m -> { m | id = "xy" ++ m.id }))
 
         toc =
