@@ -14,6 +14,7 @@ import Generic.Language exposing (ExprMeta, Expression, ExpressionBlock)
 import List.Extra
 import Render.Expression
 import Render.Settings
+import Render.TOCTree
 import Render.Utility
 import ScriptaV2.Config as Config
 import ScriptaV2.Msg exposing (MarkupMsg(..))
@@ -48,7 +49,8 @@ view selectedId counter acc attr ast =
         defaultSettings =
             Render.Settings.defaultSettings
     in
-    prepareTOC maximumLevel counter acc { defaultSettings | selectedId = selectedId } attr ast
+    --prepareTOC maximumLevel counter acc { defaultSettings | selectedId = selectedId } attr ast
+    Render.TOCTree.view [] selectedId counter acc attr ast
 
 
 
