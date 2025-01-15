@@ -68,6 +68,7 @@ view viewParameters acc documentAst =
             -- False
             Debug.log "@@:TOC_COMPARE 3. (fApp == fRepl)" (fApp == fRepl)
 
+        nodesRepl : List TOCNodeValue
         nodesRepl =
             -- FROM REPL
             -- for the test document, nodes == nodeData : True
@@ -157,9 +158,29 @@ view viewParameters acc documentAst =
 viewTOCTree : ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
 viewTOCTree viewParameters acc depth indentation maybeFoundIds tocTree =
     let
+        level =
+            indentation + 1
+
+        --_ =
+        --    Debug.log "@@:idsOfOpenNodes!!1" ( val.block.firstLine, level, viewParameters.idsOfOpenNodes )
+        _ =
+            Debug.log "@@:idsOfOpenNodes!!2" ( ( val.block.firstLine, level == 1, List.member val.block.meta.id viewParameters.idsOfOpenNodes ), viewParameters.idsOfOpenNodes, val.block.meta.id )
+
         children : List (Tree TOCNodeValue)
         children =
-            Tree.children tocTree
+            let
+                _ =
+                    Debug.log "@@:idsOfOpenNodes!!SHOW_CHILDREN" (List.member (Generic.Language.getIdFromBlock val.block) (List.map Just viewParameters.idsOfOpenNodes))
+            in
+            if level == 1 && List.member (Generic.Language.getIdFromBlock val.block) (List.map Just viewParameters.idsOfOpenNodes) then
+                Tree.children tocTree
+
+            else
+                []
+
+        block : ExpressionBlock
+        block =
+            val.block
 
         val : TOCNodeValue
         val =
@@ -218,10 +239,6 @@ makeNodeValue idsOfOpenNodes block =
             Generic.Language.updateMetaInBlock (\m -> { m | id = "xy" ++ m.id }) block
     in
     { block = newBlock, visible = visibility }
-
-
-
--- viewTocItem_ viewParameters acc node.block
 
 
 viewTocItem_ : ViewParameters -> Accumulator -> ExpressionBlock -> Element MarkupMsg
