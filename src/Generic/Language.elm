@@ -14,7 +14,9 @@ module Generic.Language exposing
     , expressionBlockEmpty
     , getExpressionContent
     , getFunctionName
+    , getIdFromBlock
     , getMeta
+    , getMetaFromBlock
     , getName
     , getNameFromHeading
     , getVerbatimContent
@@ -214,6 +216,23 @@ type alias PrimitiveBlock =
 -}
 type alias ExpressionBlock =
     Block (Either String (List Expression)) BlockMeta
+
+
+getMetaFromBlock : ExpressionBlock -> Maybe ExprMeta
+getMetaFromBlock block =
+    case block.body of
+        Left _ ->
+            Nothing
+
+        Right exprList ->
+            List.head exprList
+                |> Maybe.map getMeta
+
+
+getIdFromBlock : ExpressionBlock -> Maybe String
+getIdFromBlock block =
+    getMetaFromBlock block
+        |> Maybe.map .id
 
 
 
