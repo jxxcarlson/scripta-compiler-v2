@@ -269,6 +269,14 @@ compileL filter width outerCount selectedId lines =
 
     render width selectedId counter forest
 
+type alias ViewParameters =
+{ idsOfOpenNodes : List String
+, selectedId : String
+, counter : Int
+, attr : List (Element.Attribute MarkupMsg)
+, settings : Render.Settings.RenderSettings
+}
+
 -}
 render : Int -> String -> Int -> Forest ExpressionBlock -> CompilerOutput
 render width selectedId outerCount forest_ =
@@ -279,11 +287,19 @@ render width selectedId outerCount forest_ =
         ( accumulator, forest ) =
             Generic.Acc.transformAccumulate Generic.Acc.initialData forest_
 
+        viewParameters =
+            { idsOfOpenNodes = []
+            , selectedId = selectedId
+            , counter = outerCount
+            , attr = []
+            , settings = renderSettings
+            }
+
         toc : List (Element MarkupMsg)
         toc =
             -- TODO: decide what to do with this code.  Is it correct?
             -- Render.TOC.view selectedId outerCount accumulator [] forest
-            Render.TOCTree.view [] selectedId outerCount accumulator [] forest_
+            Render.TOCTree.view viewParameters accumulator forest_
 
         banner : Maybe (Element MarkupMsg)
         banner =

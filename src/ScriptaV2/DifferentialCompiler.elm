@@ -63,9 +63,17 @@ editRecordToCompilerOutput filter displaySettings editRecord =
         counter =
             displaySettings.counter
 
+        viewParameters =
+            { idsOfOpenNodes = []
+            , selectedId = ""
+            , counter = counter
+            , attr = []
+            , settings = renderSettings
+            }
+
         toc : List (Element MarkupMsg)
         toc =
-            Render.TOC.view renderSettings.selectedId counter editRecord.accumulator [] editRecord.tree
+            Render.TOC.view viewParameters editRecord.accumulator editRecord.tree
 
         banner : Maybe (Element MarkupMsg)
         banner =

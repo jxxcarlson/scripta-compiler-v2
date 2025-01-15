@@ -35,8 +35,8 @@ viewWithTitle counter acc attr ast =
     prepareTOCWithTitle maximumLevel counter acc Render.Settings.defaultSettings attr ast
 
 
-view : String -> Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
-view selectedId counter acc attr ast =
+view : Render.TOCTree.ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
+view viewParameters acc ast =
     let
         maximumLevel =
             case Dict.get "contentsdepth" acc.keyValueDict of
@@ -50,7 +50,7 @@ view selectedId counter acc attr ast =
             Render.Settings.defaultSettings
     in
     --prepareTOC maximumLevel counter acc { defaultSettings | selectedId = selectedId } attr ast
-    Render.TOCTree.view [] selectedId counter acc attr ast
+    Render.TOCTree.view viewParameters acc ast
 
 
 

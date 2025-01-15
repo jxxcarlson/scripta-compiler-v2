@@ -1,4 +1,4 @@
-module Render.TOCTree exposing (view)
+module Render.TOCTree exposing (ViewParameters, view)
 
 import Array
 import Dict exposing (Dict)
@@ -20,27 +20,23 @@ import ScriptaV2.Config as Config
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
-
---view : String -> Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
---view selectedId counter acc attr ast =
-
-
 type alias ViewParameters =
     { idsOfOpenNodes : List String
     , selectedId : String
     , counter : Int
     , attr : List (Element.Attribute MarkupMsg)
+    , settings : Render.Settings.RenderSettings
     }
 
 
-view : List String -> String -> Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
-view idsOfOpenNodes selectedId counter acc attr documentAst =
+view : ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element MarkupMsg)
+view viewParameters acc documentAst =
     let
         defaultSettings =
             Render.Settings.defaultSettings
 
         settings =
-            { defaultSettings | selectedId = selectedId }
+            { defaultSettings | selectedId = viewParameters.selectedId }
 
         rawTOC : List ExpressionBlock
         rawTOC =
@@ -54,7 +50,7 @@ view idsOfOpenNodes selectedId counter acc attr documentAst =
         nodesApp : List TOCNodeValue
         nodesApp =
             -- List.map (makeNodeValue idsOfOpenNodes) rawTOC
-            List.map (makeNodeValue idsOfOpenNodes) (Generic.ASTTools.tableOfContents 8 documentAst)
+            List.map (makeNodeValue viewParameters.idsOfOpenNodes) (Generic.ASTTools.tableOfContents 8 documentAst)
 
         _ =
             -- OK: [1,1,2,2]
@@ -155,11 +151,11 @@ view idsOfOpenNodes selectedId counter acc attr documentAst =
     in
     --documentAst
     --    |> tocForest idsOfOpenNodes
-    fRepl |> List.map (viewTOCTree idsOfOpenNodes settings counter acc attr 4 0 Nothing)
+    fRepl |> List.map (viewTOCTree viewParameters acc 4 0 Nothing)
 
 
-viewTOCTree : List String -> Render.Settings.RenderSettings -> Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
-viewTOCTree idsOfOpenNodes settings count acc attr depth indentation maybeFoundIds tocTree =
+viewTOCTree : ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
+viewTOCTree viewParameters acc depth indentation maybeFoundIds tocTree =
     let
         children : List (Tree TOCNodeValue)
         children =
@@ -173,19 +169,19 @@ viewTOCTree idsOfOpenNodes settings count acc attr depth indentation maybeFoundI
         Element.none
 
     else if List.isEmpty children then
-        viewNode count acc settings attr indentation val
+        viewNode viewParameters acc indentation val
 
     else
         Element.column [ Element.spacing 8 ]
-            (viewNode count acc settings attr indentation val
-                :: List.map (viewTOCTree idsOfOpenNodes settings count acc attr (depth - 1) (indentation + 1) maybeFoundIds)
+            (viewNode viewParameters acc indentation val
+                :: List.map (viewTOCTree viewParameters acc (depth - 1) (indentation + 1) maybeFoundIds)
                     children
             )
 
 
-viewNode : Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> Int -> TOCNodeValue -> Element MarkupMsg
-viewNode count acc settings attr indentation node =
-    viewTocItem_ settings.selectedId count acc settings attr node.block
+viewNode : ViewParameters -> Accumulator -> Int -> TOCNodeValue -> Element MarkupMsg
+viewNode viewParameters acc indentation node =
+    viewTocItem_ viewParameters acc node.block
 
 
 tocForest : List String -> Forest ExpressionBlock -> List (Tree TOCNodeValue)
@@ -224,8 +220,12 @@ makeNodeValue idsOfOpenNodes block =
     { block = newBlock, visible = visibility }
 
 
-viewTocItem_ : String -> Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
-viewTocItem_ selectedId count acc settings attr ({ args, body, properties } as block) =
+
+-- viewTocItem_ viewParameters acc node.block
+
+
+viewTocItem_ : ViewParameters -> Accumulator -> ExpressionBlock -> Element MarkupMsg
+viewTocItem_ viewParameters acc ({ args, body, properties } as block) =
     let
         maximumNumberedTocLevel =
             1
@@ -236,10 +236,6 @@ viewTocItem_ selectedId count acc settings attr ({ args, body, properties } as b
 
         Right exprs ->
             let
-                foo : List Generic.Language.Expression
-                foo =
-                    exprs
-
                 id =
                     Config.expressionIdPrefix ++ String.fromInt block.meta.lineNumber ++ ".0"
 
@@ -262,10 +258,10 @@ viewTocItem_ selectedId count acc settings attr ({ args, body, properties } as b
 
                 content : Element MarkupMsg
                 content =
-                    Element.paragraph [ tocIndent args ] (sectionNumber :: List.map (Render.Expression.render count acc settings attr) exprs)
+                    Element.paragraph [ tocIndent args ] (sectionNumber :: List.map (Render.Expression.render viewParameters.counter acc viewParameters.settings viewParameters.attr) exprs)
 
                 color =
-                    if id == selectedId then
+                    if id == viewParameters.selectedId then
                         Element.rgb 0.8 0 0.0
 
                     else
