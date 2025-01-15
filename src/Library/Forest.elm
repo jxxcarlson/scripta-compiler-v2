@@ -1,7 +1,21 @@
-module Library.Forest exposing (makeForest, print, test1, test2)
+module Library.Forest exposing
+    ( data
+    , fRepl
+    , lev
+    , makeForest
+    , nodesRepl
+    , print
+    , test1
+    , test2
+    , test3
+    , test4
+    )
 
+import Dict
+import Either exposing (Either(..))
+import Generic.Language exposing (Expr(..), Heading(..))
 import Library.Tree
-import RoseTree.Tree as T exposing (Tree)
+import RoseTree.Tree exposing (Tree)
 
 
 
@@ -39,7 +53,7 @@ type alias State a =
 
 init : List a -> State a
 init input =
-    { currentLevel = 0
+    { currentLevel = 1
     , input = input
     , currentList = []
     , output = []
@@ -66,13 +80,19 @@ nextStep getLevel state =
                 level =
                     getLevel x
             in
-            if level == 1 && state.currentLevel == 0 then
-                -- start new currentList
-                Loop { state | input = xs, currentLevel = level, currentList = [ x ] }
+            if level == 1 && state.currentLevel >= 1 then
+                Loop
+                    { state
+                        | input = xs
+                        , currentLevel = 1
+                        , currentList = [ x ]
+                        , output =
+                            if state.currentList == [] then
+                                state.output
 
-            else if level == 1 && state.currentLevel > 1 then
-                -- new level one item: initialize currentList with it, push reversed currentList onto output
-                Loop { state | input = xs, currentLevel = 0, currentList = [ x ], output = List.reverse state.currentList :: state.output }
+                            else
+                                List.reverse state.currentList :: state.output
+                    }
 
             else
                 -- new item, push it onto the current list
@@ -108,12 +128,23 @@ test2 =
         |> print .name
 
 
+test3 =
+    makeForest .level testData3
+        |> print .name
+
+
+test4 =
+    makeForest .level testData4
+        |> print .name
+
+
 testData1 =
     [ { level = 1, name = "I" }
     , { level = 2, name = "A" }
     , { level = 2, name = "B" }
     , { level = 1, name = "II" }
     , { level = 2, name = "A" }
+    , { level = 2, name = "B" }
     ]
 
 
@@ -129,3 +160,42 @@ testData2 =
     , { level = 2, name = "B" }
     , { level = 2, name = "C" }
     ]
+
+
+testData3 =
+    [ { level = 1, name = "A" }
+    , { level = 1, name = "B" }
+    ]
+
+
+testData4 =
+    [ { level = 1, name = "A" }
+    , { level = 1, name = "B" }
+    , { level = 1, name = "C" }
+    ]
+
+
+data =
+    [ { block = { args = [ "1" ], body = Right [ Text " Intro" { begin = 46, end = 51, id = "xye-6.0", index = 0 } ], firstLine = "# Intro", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-2", lineNumber = 6, messages = [], numberOfLines = 1, position = 46, sourceText = "# Intro" }, properties = Dict.fromList [ ( "id", "@-2" ), ( "label", "1" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "intro" ) ] }, visible = True }, { block = { args = [ "1" ], body = Right [ Text " Particles" { begin = 67, end = 76, id = "xye-10.0", index = 0 } ], firstLine = "# Particles", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-4", lineNumber = 10, messages = [], numberOfLines = 1, position = 67, sourceText = "# Particles" }, properties = Dict.fromList [ ( "id", "@-4" ), ( "label", "2" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "particles" ) ] }, visible = True }, { block = { args = [ "2" ], body = Right [ Text " Fermions" { begin = 80, end = 88, id = "xye-12.0", index = 0 } ], firstLine = "## Fermions", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-5", lineNumber = 12, messages = [], numberOfLines = 1, position = 80, sourceText = "## Fermions" }, properties = Dict.fromList [ ( "id", "@-5" ), ( "label", "2.1" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "fermions" ) ] }, visible = True }, { block = { args = [ "2" ], body = Right [ Text " Bosons" { begin = 93, end = 99, id = "xye-14.0", index = 0 } ], firstLine = "## Bosons", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-6", lineNumber = 14, messages = [], numberOfLines = 1, position = 93, sourceText = "## Bosons" }, properties = Dict.fromList [ ( "id", "@-6" ), ( "label", "2.2" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "bosons" ) ] }, visible = True } ]
+
+
+lev : { a | block : { b | properties : Dict.Dict String String } } -> Int
+lev { block } =
+    case Dict.get "level" block.properties of
+        Just level ->
+            String.toInt level |> Maybe.withDefault 0
+
+        Nothing ->
+            0
+
+
+nodesRepl =
+    [ { block = { args = [ "1" ], body = Right [ Text " Intro " { begin = 46, end = 52, id = "xye-6.0", index = 0 } ], firstLine = "# Intro ", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-2", lineNumber = 6, messages = [], numberOfLines = 1, position = 46, sourceText = "# Intro " }, properties = Dict.fromList [ ( "id", "@-2" ), ( "label", "1" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "intro" ) ] }, visible = True }
+    , { block = { args = [ "1" ], body = Right [ Text " Particles" { begin = 56, end = 65, id = "xye-8.0", index = 0 } ], firstLine = "# Particles", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-3", lineNumber = 8, messages = [], numberOfLines = 1, position = 56, sourceText = "# Particles" }, properties = Dict.fromList [ ( "id", "@-3" ), ( "label", "2" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "particles" ) ] }, visible = True }
+    , { block = { args = [ "2" ], body = Right [ Text " Bosons" { begin = 69, end = 75, id = "xye-10.0", index = 0 } ], firstLine = "## Bosons", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-4", lineNumber = 10, messages = [], numberOfLines = 1, position = 69, sourceText = "## Bosons" }, properties = Dict.fromList [ ( "id", "@-4" ), ( "label", "2.1" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "bosons" ) ] }, visible = True }
+    , { block = { args = [ "2" ], body = Right [ Text " Fermions" { begin = 80, end = 88, id = "xye-12.0", index = 0 } ], firstLine = "## Fermions", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-5", lineNumber = 12, messages = [], numberOfLines = 1, position = 80, sourceText = "## Fermions" }, properties = Dict.fromList [ ( "id", "@-5" ), ( "label", "2.2" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "fermions" ) ] }, visible = True }
+    ]
+
+
+fRepl =
+    makeForest lev nodesRepl
