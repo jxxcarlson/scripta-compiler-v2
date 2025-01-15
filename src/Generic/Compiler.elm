@@ -73,4 +73,5 @@ type alias DisplaySettings =
     , selectedSlug : Maybe String
     , scale : Float
     , data : Dict String String
+    , idsOfOpenNodes : List String
     }
