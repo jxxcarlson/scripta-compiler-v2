@@ -23,7 +23,7 @@ import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
 import Render.Settings
-import Render.TOC
+import Render.TOCTree
 import Render.Tree
 import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language(..))
@@ -281,7 +281,9 @@ render width selectedId outerCount forest_ =
 
         toc : List (Element MarkupMsg)
         toc =
-            Render.TOC.view selectedId outerCount accumulator [] forest
+            -- TODO: decide what to do with this code.  Is it correct?
+            -- Render.TOC.view selectedId outerCount accumulator [] forest
+            Render.TOCTree.view [] selectedId outerCount accumulator [] forest_
 
         banner : Maybe (Element MarkupMsg)
         banner =
@@ -296,7 +298,7 @@ render width selectedId outerCount forest_ =
     { body =
         renderForest outerCount renderSettings accumulator forest
     , banner = banner
-    , toc = toc
+    , toc = [] -- toc
     , title = title
     }
 
