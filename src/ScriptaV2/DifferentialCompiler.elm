@@ -60,13 +60,10 @@ editRecordToCompilerOutput filter displaySettings editRecord =
         renderSettings =
             ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings
 
-        counter =
-            displaySettings.counter
-
         viewParameters =
-            { idsOfOpenNodes = []
-            , selectedId = ""
-            , counter = counter
+            { idsOfOpenNodes = displaySettings.idsOfOpenNodes |> Debug.log "@@:idsOfOpenNodes"
+            , selectedId = displaySettings.selectedId
+            , counter = displaySettings.counter
             , attr = []
             , settings = renderSettings
             }
@@ -78,7 +75,7 @@ editRecordToCompilerOutput filter displaySettings editRecord =
         banner : Maybe (Element MarkupMsg)
         banner =
             Generic.ASTTools.banner editRecord.tree
-                |> Maybe.map (Render.Block.renderBody counter editRecord.accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
+                |> Maybe.map (Render.Block.renderBody displaySettings.counter editRecord.accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
                 |> Maybe.map (Element.row [ Element.height (Element.px 40) ])
 
         title : Element MarkupMsg
@@ -86,9 +83,9 @@ editRecordToCompilerOutput filter displaySettings editRecord =
             Element.paragraph [] [ Element.text <| Generic.ASTTools.title editRecord.tree ]
     in
     { body =
-        ScriptaV2.Compiler.renderForest counter renderSettings editRecord.accumulator (ScriptaV2.Compiler.filterForest filter editRecord.tree)
+        ScriptaV2.Compiler.renderForest displaySettings.counter renderSettings editRecord.accumulator (ScriptaV2.Compiler.filterForest filter editRecord.tree)
     , banner = banner
-    , toc = toc
+    , toc = toc -- THIS IS WHERE THE SIDEBAR TOC IS COMPUTED
     , title = title
     }
 
