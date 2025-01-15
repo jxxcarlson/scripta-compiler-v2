@@ -1,4 +1,4 @@
-module Library.Tree exposing (makeTree, print, test1, test2)
+module Library.Tree exposing (depth, makeTree, print, test1, test2)
 
 import RoseTree.Tree as T exposing (Tree)
 
@@ -10,6 +10,16 @@ makeTree getLevel input =
             initTree input
     in
     loop initialState (nextStepTree getLevel)
+
+
+depth : Tree a -> Int
+depth tree =
+    case T.children tree of
+        [] ->
+            1
+
+        children ->
+            (List.maximum (List.map depth children) |> Maybe.withDefault 0) + 1
 
 
 
