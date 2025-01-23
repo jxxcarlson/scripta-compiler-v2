@@ -297,7 +297,7 @@ renderVerse _ _ _ attrs block =
     Element.column
         (verbatimBlockAttributes block.meta.lineNumber
             block.meta.numberOfLines
-            [ Element.paddingEach { left = 18, right = 0, top = 0, bottom = 0 } ]
+            [ Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
             ++ attrs
         )
         (List.map (renderVerbatimLine "plain") (String.lines (String.trim (Render.Utility.getVerbatimContent block))))
