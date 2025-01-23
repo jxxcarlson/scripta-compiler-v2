@@ -32,127 +32,42 @@ type alias ViewParameters =
 view : ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element MarkupMsg)
 view viewParameters acc documentAst =
     let
-        defaultSettings =
-            Render.Settings.defaultSettings
-
-        settings =
-            { defaultSettings | selectedId = viewParameters.selectedId }
-
-        rawTOC : List ExpressionBlock
-        rawTOC =
-            -- = Generic.ASTTools.tableOfContents 8 documentAst
-            [ { args = [ "1" ], body = Right [ Text " Intro " { begin = 46, end = 52, id = "e-6.0", index = 0 } ], firstLine = "# Intro ", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-2", lineNumber = 6, messages = [], numberOfLines = 1, position = 46, sourceText = "# Intro " }, properties = Dict.fromList [ ( "id", "@-2" ), ( "label", "1" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "intro" ) ] }
-            , { args = [ "1" ], body = Right [ Text " Particles" { begin = 56, end = 65, id = "e-8.0", index = 0 } ], firstLine = "# Particles", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-3", lineNumber = 8, messages = [], numberOfLines = 1, position = 56, sourceText = "# Particles" }, properties = Dict.fromList [ ( "id", "@-3" ), ( "label", "2" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "particles" ) ] }
-            , { args = [ "2" ], body = Right [ Text " Bosons" { begin = 69, end = 75, id = "e-10.0", index = 0 } ], firstLine = "## Bosons", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-4", lineNumber = 10, messages = [], numberOfLines = 1, position = 69, sourceText = "## Bosons" }, properties = Dict.fromList [ ( "id", "@-4" ), ( "label", "2.1" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "bosons" ) ] }
-            , { args = [ "2" ], body = Right [ Text " Fermions" { begin = 80, end = 88, id = "e-12.0", index = 0 } ], firstLine = "## Fermions", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-5", lineNumber = 12, messages = [], numberOfLines = 1, position = 80, sourceText = "## Fermions" }, properties = Dict.fromList [ ( "id", "@-5" ), ( "label", "2.2" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "fermions" ) ] }
-            ]
-
+        -- I. The raw data: List TOCNodeValue
         nodesApp : List TOCNodeValue
         nodesApp =
-            -- List.map (makeNodeValue idsOfOpenNodes) rawTOC
+            -- Levels: [1,1,2,2]
             List.map (makeNodeValue viewParameters.idsOfOpenNodes) (Generic.ASTTools.tableOfContents 8 documentAst)
-
-        _ =
-            -- OK: [1,1,2,2]
-            Debug.log "@@:TOC_NODES_LEVELS" (List.map Library.Forest.lev nodesApp)
-
-        _ =
-            -- True
-            Debug.log "@@:TOC_COMPARE 1. (nodeRepl == nodesApp)" (nodesRepl == nodesApp)
-
-        _ =
-            -- True
-            Debug.log "@@:TOC_COMPARE 2. (fX == fApp)" (fX == fApp)
-
-        _ =
-            -- False
-            Debug.log "@@:TOC_COMPARE 3. (fApp == fRepl)" (fApp == fRepl)
 
         nodesRepl : List TOCNodeValue
         nodesRepl =
-            -- FROM REPL
-            -- for the test document, nodes == nodeData : True
-            --> List.map nodeLevel nodeData
-            --  [1,1,2,2] : List Int
-            [ { block = { args = [ "1" ], body = Right [ Text " Intro " { begin = 46, end = 52, id = "xye-6.0", index = 0 } ], firstLine = "# Intro ", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-2", lineNumber = 6, messages = [], numberOfLines = 1, position = 46, sourceText = "# Intro " }, properties = Dict.fromList [ ( "id", "@-2" ), ( "label", "1" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "intro" ) ] }, visible = True }
-            , { block = { args = [ "1" ], body = Right [ Text " Particles" { begin = 56, end = 65, id = "xye-8.0", index = 0 } ], firstLine = "# Particles", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-3", lineNumber = 8, messages = [], numberOfLines = 1, position = 56, sourceText = "# Particles" }, properties = Dict.fromList [ ( "id", "@-3" ), ( "label", "2" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "particles" ) ] }, visible = True }
-            , { block = { args = [ "2" ], body = Right [ Text " Bosons" { begin = 69, end = 75, id = "xye-10.0", index = 0 } ], firstLine = "## Bosons", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-4", lineNumber = 10, messages = [], numberOfLines = 1, position = 69, sourceText = "## Bosons" }, properties = Dict.fromList [ ( "id", "@-4" ), ( "label", "2.1" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "bosons" ) ] }, visible = True }
-            , { block = { args = [ "2" ], body = Right [ Text " Fermions" { begin = 80, end = 88, id = "xye-12.0", index = 0 } ], firstLine = "## Fermions", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-5", lineNumber = 12, messages = [], numberOfLines = 1, position = 80, sourceText = "## Fermions" }, properties = Dict.fromList [ ( "id", "@-5" ), ( "label", "2.2" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "fermions" ) ] }, visible = True }
-            ]
+            -- Levels: [1,1,2,2]
+            Library.Forest.nodesRepl
 
         _ =
-            -- @@:TOC_DEPTHS (f3 == f4REPL): ([1,2],[1,1],False)
-            -- Something very odd here.  f3 and f4REPL are different
-            -- However, nodeData == nodes, where nodeData is taken from the repl
-            -- and nodes is derived from documentAst by applying 'makeForest nodeLevel_'
-            -- But both are made in the same way from data that is the same: nodeData and nodes
-            Debug.log "@@:TOC_DEPTHS (f3 == f4REPL)!!!" ( List.map Library.Tree.depth f3, List.map Library.Tree.depth fX, f3 == fX )
+            -- TRUE
+            Debug.log "@@:TOC_COMPARE 1. (nodeRepl == nodesApp)" (nodesRepl == nodesApp)
 
-        fX =
-            Library.Forest.makeForest Library.Forest.lev nodesRepl
+        -- II. The Forests of TOCNodeValue
+        forestReplSTATIC : List (Tree TOCNodeValue)
+        forestReplSTATIC =
+            Library.Forest.forestReplSTATIC
 
-        fApp =
+        forestApp : List (Tree TOCNodeValue)
+        forestApp =
             Library.Forest.makeForest Library.Forest.lev nodesApp
 
-        fRepl =
-            -- rRepl COMES FROM REPL, where the import statements are:
-            -- import Dict
-            -- import Either exposing (Either(..))
-            -- import Generic.Language exposing (Expr(..), Heading(..))
-            -- import Library.Tree
-            -- import RoseTree.Tree exposing (Tree)
-            --
-            -- NOTE: in the repl, we did
-            -- fRepl = makeForest lev nodesRepl
-            -- to get the following:
-            [ Tree.Tree
-                { block = { args = [ "1" ], body = Right [ Text " Intro " { begin = 46, end = 52, id = "xye-6.0", index = 0 } ], firstLine = "# Intro ", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-2", lineNumber = 6, messages = [], numberOfLines = 1, position = 46, sourceText = "# Intro " }, properties = Dict.fromList [ ( "id", "@-2" ), ( "label", "1" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "intro" ) ] }
-                , visible = True
-                }
-                (Array.fromList [])
-            , Tree.Tree
-                { block = { args = [ "1" ], body = Right [ Text " Particles" { begin = 56, end = 65, id = "xye-8.0", index = 0 } ], firstLine = "# Particles", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-3", lineNumber = 8, messages = [], numberOfLines = 1, position = 56, sourceText = "# Particles" }, properties = Dict.fromList [ ( "id", "@-3" ), ( "label", "2" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "particles" ) ] }
-                , visible = True
-                }
-                (Array.fromList
-                    [ Tree.Tree
-                        { block = { args = [ "2" ], body = Right [ Text " Bosons" { begin = 69, end = 75, id = "xye-10.0", index = 0 } ], firstLine = "## Bosons", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-4", lineNumber = 10, messages = [], numberOfLines = 1, position = 69, sourceText = "## Bosons" }, properties = Dict.fromList [ ( "id", "@-4" ), ( "label", "2.1" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "bosons" ) ] }
-                        , visible = True
-                        }
-                        (Array.fromList [])
-                    , Tree.Tree
-                        { block = { args = [ "2" ], body = Right [ Text " Fermions" { begin = 80, end = 88, id = "xye-12.0", index = 0 } ], firstLine = "## Fermions", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-5", lineNumber = 12, messages = [], numberOfLines = 1, position = 80, sourceText = "## Fermions" }, properties = Dict.fromList [ ( "id", "@-5" ), ( "label", "2.2" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "fermions" ) ] }
-                        , visible = True
-                        }
-                        (Array.fromList [])
-                    ]
-                )
-            ]
+        _ =
+            -- FALSE
+            Debug.log "@@:TOC_COMPARE 2. (forestReplSTATIC == forestApp)" (forestReplSTATIC == forestApp)
 
-        f3 =
-            -- Renders correct TOC
-            -- f3 = makeForest nodeLevel nodeData
-            -- ^^^ IN REPL, nodeData is defined in repl
-            -- nodeData == nodes : True,
-            [ Tree.Tree
-                { block = { args = [ "1" ], body = Right [ Text " Intro " { begin = 46, end = 52, id = "xye-6.0", index = 0 } ], firstLine = "# Intro ", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-2", lineNumber = 6, messages = [], numberOfLines = 1, position = 46, sourceText = "# Intro " }, properties = Dict.fromList [ ( "id", "@-2" ), ( "label", "1" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "intro" ) ] }
-                , visible = True
-                }
-                (Array.fromList [])
-            , Tree.Tree
-                { block = { args = [ "1" ], body = Right [ Text " Particles" { begin = 56, end = 65, id = "xye-8.0", index = 0 } ], firstLine = "# Particles", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-3", lineNumber = 8, messages = [], numberOfLines = 1, position = 56, sourceText = "# Particles" }, properties = Dict.fromList [ ( "id", "@-3" ), ( "label", "2" ), ( "level", "1" ), ( "section-type", "markdown" ), ( "tag", "particles" ) ] }
-                , visible = True
-                }
-                (Array.fromList
-                    [ Tree.Tree { block = { args = [ "2" ], body = Right [ Text " Bosons" { begin = 69, end = 75, id = "xye-10.0", index = 0 } ], firstLine = "## Bosons", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-4", lineNumber = 10, messages = [], numberOfLines = 1, position = 69, sourceText = "## Bosons" }, properties = Dict.fromList [ ( "id", "@-4" ), ( "label", "2.1" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "bosons" ) ] }, visible = True } (Array.fromList [])
-                    , Tree.Tree { block = { args = [ "2" ], body = Right [ Text " Fermions" { begin = 80, end = 88, id = "xye-12.0", index = 0 } ], firstLine = "## Fermions", heading = Ordinary "section", indent = 0, meta = { error = Nothing, id = "@-5", lineNumber = 12, messages = [], numberOfLines = 1, position = 80, sourceText = "## Fermions" }, properties = Dict.fromList [ ( "id", "@-5" ), ( "label", "2.2" ), ( "level", "2" ), ( "section-type", "markdown" ), ( "tag", "fermions" ) ] }, visible = True } (Array.fromList [])
-                    ]
-                )
-            ]
+        _ =
+            Debug.log "@@:TOC_COMPARE 3. (depth: repl, app)" ( List.map Library.Tree.depth forestReplSTATIC, List.map Library.Tree.depth forestApp )
+
+        _ =
+            -- "@@::fListListAppp_DEPTHS: [1,1] - INCORRECT!!
+            List.map Library.Tree.depth forestApp |> Debug.log "@@::fListListApp_DEPTHS"
     in
-    --documentAst
-    --    |> tocForest idsOfOpenNodes
-    fRepl |> List.map (viewTOCTree viewParameters acc 4 0 Nothing)
+    forestApp |> List.map (viewTOCTree viewParameters acc 4 0 Nothing)
 
 
 viewTOCTree : ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
@@ -161,26 +76,13 @@ viewTOCTree viewParameters acc depth indentation maybeFoundIds tocTree =
         level =
             indentation + 1
 
-        --_ =
-        --    Debug.log "@@:idsOfOpenNodes!!1" ( val.block.firstLine, level, viewParameters.idsOfOpenNodes )
-        _ =
-            Debug.log "@@:idsOfOpenNodes!!2" ( ( val.block.firstLine, level == 1, List.member val.block.meta.id viewParameters.idsOfOpenNodes ), viewParameters.idsOfOpenNodes, val.block.meta.id )
-
         children : List (Tree TOCNodeValue)
         children =
-            let
-                _ =
-                    Debug.log "@@:idsOfOpenNodes!!SHOW_CHILDREN" (List.member (Generic.Language.getIdFromBlock val.block) (List.map Just viewParameters.idsOfOpenNodes))
-            in
             if level == 1 && List.member (Generic.Language.getIdFromBlock val.block) (List.map Just viewParameters.idsOfOpenNodes) then
                 Tree.children tocTree
 
             else
                 []
-
-        block : ExpressionBlock
-        block =
-            val.block
 
         val : TOCNodeValue
         val =
