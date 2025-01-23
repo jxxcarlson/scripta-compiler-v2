@@ -119,6 +119,7 @@ blockDict =
         , ( "bibitem", bibitem )
         , ( "section", section ) -- xx
         , ( "subheading", subheading )
+        , ( "sh", subheading )
         , ( "runninghead_", \_ _ _ _ _ -> Element.none )
         , ( "banner", \_ _ _ _ _ -> Element.none )
         , ( "visibleBanner", visibleBanner )
