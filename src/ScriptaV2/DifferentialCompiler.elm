@@ -22,19 +22,19 @@ import Generic.ForestTransform
 import Generic.Language exposing (ExpressionBlock, PrimitiveBlock)
 import Generic.Pipeline
 import Generic.PrimitiveBlock
+import Library.Forest
 import M.Expression
 import M.PrimitiveBlock
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
-import Render.Settings
 import Render.TOC
+import RoseTree.Tree as Tree exposing (Tree)
 import ScriptaV2.Compiler
 import ScriptaV2.Config
 import ScriptaV2.Language exposing (Language(..))
 import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.Settings
-import Tree exposing (Tree)
 import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
 
@@ -107,7 +107,7 @@ indentation block =
 forestFromBlocks : List ExpressionBlock -> List (Tree ExpressionBlock)
 forestFromBlocks blocks =
     -- TODO: alternative for expressionBlockEmpty?
-    Generic.ForestTransform.forestFromBlocks Generic.Language.expressionBlockEmpty indentation blocks |> Result.withDefault []
+    Generic.ForestTransform.forestFromBlocks indentation blocks
 
 
 {-| -}
@@ -197,7 +197,7 @@ messagesFromForest forest =
 
 messagesFromTree : Tree.Tree ExpressionBlock -> List String
 messagesFromTree tree =
-    List.map Generic.BlockUtilities.getMessages (Tree.flatten tree) |> List.concat
+    List.map Generic.BlockUtilities.getMessages (Library.Forest.flatten tree) |> List.concat
 
 
 changeLineNumber : Int -> ExpressionBlock -> ExpressionBlock

@@ -42,24 +42,23 @@ module Generic.Acc exposing
 
 -}
 
+import Array exposing (Array)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Generic.ASTTools
 import Generic.BlockUtilities
-import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Generic.MathMacro
 import Generic.Settings
 import Generic.TextMacro exposing (Macro)
 import Generic.Vector as Vector exposing (Vector)
-import List.Extra
 import Maybe.Extra
 import Parser exposing ((|.), (|=), Parser)
+import RoseTree.Tree as Tree exposing (Tree)
 import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language)
 import Tools.String
 import Tools.Utility as Utility
-import Tree exposing (Tree)
 
 
 initialData : InitialAccumulatorData
@@ -100,33 +99,10 @@ type InListState
 
 {-| Note that function transformAccumulate operates on initialized accumulator.
 -}
-transformAccumulate : InitialAccumulatorData -> Forest ExpressionBlock -> ( Accumulator, Forest ExpressionBlock )
+transformAccumulate : InitialAccumulatorData -> List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
 transformAccumulate data forest =
     List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree tree acc_ |> mapper ast_) ( init data, [] ) forest
         |> (\( acc_, ast_ ) -> ( acc_, List.reverse ast_ ))
-
-
-initialAccumulator : Accumulator
-initialAccumulator =
-    { headingIndex = Vector.init 4
-    , documentIndex = Vector.init 4
-    , counter = Dict.empty
-    , blockCounter = 0
-    , itemVector = Vector.init 4
-    , deltaLevel = 0
-    , numberedItemDict = Dict.empty
-    , numberedBlockNames = Generic.Settings.numberedBlockNames
-    , inListState = SNotInList
-    , reference = Dict.empty
-    , terms = Dict.empty
-    , footnotes = Dict.empty
-    , footnoteNumbers = Dict.empty
-    , mathMacroDict = Dict.empty
-    , textMacroDict = Dict.empty
-    , keyValueDict = Dict.empty
-    , qAndAList = []
-    , qAndADict = Dict.empty
-    }
 
 
 getCounter : String -> Dict String Int -> Int
@@ -180,6 +156,37 @@ mapper ast_ ( acc_, tree_ ) =
     ( acc_, tree_ :: ast_ )
 
 
+transformAccumulateTree : Tree ExpressionBlock -> Accumulator -> ( Accumulator, Tree ExpressionBlock )
+transformAccumulateTree tree acc =
+    mapAccumulate transformAccumulateBlock acc tree
+
+
+mapAccumulate : (s -> a -> ( s, b )) -> s -> Tree a -> ( s, Tree b )
+mapAccumulate f s tree =
+    let
+        ( s_, value_ ) =
+            f s (Tree.value tree)
+
+        ( s__, children_ ) =
+            List.foldl
+                (\child ( accState, accChildren ) ->
+                    let
+                        ( newState, newChild ) =
+                            mapAccumulate f accState child
+                    in
+                    ( newState, newChild :: accChildren )
+                )
+                ( s_, [] )
+                (Tree.children tree)
+    in
+    ( s__, Tree.branch value_ (reverse children_) )
+
+
+reverse : List a -> List a
+reverse list =
+    List.foldl (\x xs -> x :: xs) [] list
+
+
 {-|
 
     This function first updates the Accumulator with information from the ExpressionBlock
@@ -198,11 +205,6 @@ transformAccumulateBlock =
                 updateAccumulator block_ acc_
         in
         ( newAcc, transformBlock newAcc block_ )
-
-
-transformAccumulateTree : Tree ExpressionBlock -> Accumulator -> ( Accumulator, Tree ExpressionBlock )
-transformAccumulateTree tree acc =
-    Tree.mapAccumulate transformAccumulateBlock acc tree
 
 
 {-|

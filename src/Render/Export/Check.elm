@@ -8,10 +8,9 @@ module Render.Export.Check exposing (nonExportableBlocks, nonExportableExpressio
 
 import Generic.ASTTools
 import Generic.Language
-import Render.Block
 import Render.Expression
 import Render.Helper
-import Tree exposing (Tree)
+import RoseTree.Tree as Tree exposing (Tree)
 
 
 {-| -}

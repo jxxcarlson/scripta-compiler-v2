@@ -18,15 +18,13 @@ import Maybe.Extra
 import MicroLaTeX.Util
 import Render.Data
 import Render.Export.Image
-import Render.Export.Preamble
 import Render.Export.Util
 import Render.Html.Image
 import Render.Html.Math
 import Render.Settings exposing (RenderSettings)
 import Render.Utility as Utility
+import RoseTree.Tree exposing (Tree)
 import Time
-import Tools.Loop exposing (Step(..), loop)
-import Tree exposing (Tree)
 
 
 counterValue : Forest ExpressionBlock -> Maybe Int
@@ -163,9 +161,9 @@ documentBody currentTime settings acc ast =
 
 exportTree : RenderSettings -> Generic.Acc.Accumulator -> Tree ExpressionBlock -> String
 exportTree settings acc tree =
-    case Tree.children tree of
+    case RoseTree.Tree.children tree of
         [] ->
-            exportBlock settings acc (Tree.label tree)
+            exportBlock settings acc (RoseTree.Tree.value tree)
 
         children ->
             let
@@ -176,7 +174,7 @@ exportTree settings acc tree =
                         |> List.concat
 
                 root =
-                    exportBlock settings acc (Tree.label tree) |> String.lines
+                    exportBlock settings acc (RoseTree.Tree.value tree) |> String.lines
             in
             case List.Extra.unconsLast root of
                 Nothing ->

@@ -25,6 +25,7 @@ import Render.Block
 import Render.Settings
 import Render.TOCTree
 import Render.Tree
+import RoseTree.Tree
 import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language(..))
 import ScriptaV2.Msg exposing (MarkupMsg(..))
@@ -139,11 +140,11 @@ compile filter lang width outerCount selectedId lines =
 
 -}
 pm str =
-    parseM "!!" 0 (String.lines str) |> Result.map (Generic.Forest.map Generic.Language.simplifyExpressionBlock)
+    parseM "!!" 0 (String.lines str) |> Generic.Forest.map Generic.Language.simplifyExpressionBlock
 
 
 {-| -}
-parseFromString : Language -> String -> Result Error (Forest ExpressionBlock)
+parseFromString : Language -> String -> Forest ExpressionBlock
 parseFromString lang str =
     parse lang Config.idPrefix 0 (String.lines str)
 
@@ -154,7 +155,7 @@ parseFromString lang str =
     Used only in CurrentDocument.setInPhone
 
 -}
-parse : Language -> String -> Int -> List String -> Result Error (Forest ExpressionBlock)
+parse : Language -> String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
 parse lang idPrefix outerCount lines =
     case lang of
         EnclosureLang ->
@@ -167,19 +168,19 @@ parse lang idPrefix outerCount lines =
             parseX idPrefix outerCount lines
 
 
-parseM : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
+parseM : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
 parseM idPrefix outerCount lines =
     Generic.Compiler.parse_ EnclosureLang M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
 
 
-parseX : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
+parseX : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
 parseX idPrefix outerCount lines =
     Generic.Compiler.parse_ SMarkdownLang XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
 
 
 {-| =
 -}
-px : String -> Result Error (Forest ExpressionBlock)
+px : String -> List (RoseTree.Tree.Tree ExpressionBlock)
 px str =
     parseX "!!" 0 (String.lines str)
 
@@ -189,7 +190,7 @@ px str =
     > pl str = parseL "!!" (String.lines str) |> Result.map (F.map simplifyExpressionBlock)
 
 -}
-parseL : String -> Int -> List String -> Result Error (Forest ExpressionBlock)
+parseL : String -> Int -> List String -> Forest ExpressionBlock
 parseL idPrefix outerCount lines =
     Generic.Compiler.parse_ MicroLaTeXLang MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
         |> Debug.log "@@:parseL"
@@ -209,12 +210,12 @@ type alias CompilerOutput =
 
 
 {-| -}
-ps : String -> Result Error (Forest ExpressionBlock)
+ps : String -> Forest ExpressionBlock
 ps str =
     parseM Config.idPrefix 0 (String.lines str)
 
 
-pl : String -> Result Error (Forest ExpressionBlock)
+pl : String -> Forest ExpressionBlock
 pl str =
     parseL Config.idPrefix 0 (String.lines str)
 
@@ -233,22 +234,12 @@ filterForest filter forest =
 
 compileM : Filter -> Int -> Int -> String -> List String -> CompilerOutput
 compileM filter width outerCount selectedId lines =
-    case parseM Config.idPrefix outerCount lines of
-        Err err ->
-            { body = [ Element.text "Oops something went wrong" ], banner = Nothing, toc = [], title = Element.text "Oops! (Error)" }
-
-        Ok forest_ ->
-            render width selectedId outerCount (filterForest filter forest_)
+    render width selectedId outerCount (filterForest filter (parseM Config.idPrefix outerCount lines))
 
 
 compileX : Filter -> Int -> Int -> String -> List String -> CompilerOutput
 compileX filter width outerCount selectedId lines =
-    case parseX Config.idPrefix outerCount lines of
-        Err err ->
-            { body = [ Element.text "Oops something went wrong" ], banner = Nothing, toc = [], title = Element.text "Oops! (Error)" }
-
-        Ok forest_ ->
-            render width selectedId outerCount (filterForest filter forest_)
+    render width selectedId outerCount (filterForest filter (parseX Config.idPrefix outerCount lines))
 
 
 
@@ -257,12 +248,7 @@ compileX filter width outerCount selectedId lines =
 
 compileL : Filter -> Int -> Int -> String -> List String -> CompilerOutput
 compileL filter width outerCount selectedId lines =
-    case parseL Config.idPrefix outerCount lines of
-        Err err ->
-            { body = [ Element.text "Oops something went wrong" ], banner = Nothing, toc = [], title = Element.text "Oops! (Error)" }
-
-        Ok forest_ ->
-            render width selectedId outerCount (filterForest filter forest_)
+    render width selectedId outerCount (filterForest filter (parseL Config.idPrefix outerCount lines))
 
 
 {-|
@@ -324,7 +310,7 @@ render width selectedId outerCount forest_ =
     renderForest count renderSettings accumulator
 
 -}
-renderForest : Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> Forest ExpressionBlock -> List (Element MarkupMsg)
+renderForest : Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> List (RoseTree.Tree.Tree ExpressionBlock) -> List (Element MarkupMsg)
 renderForest count renderSettings accumulator =
     List.map (Render.Tree.renderTreeQ count accumulator renderSettings [])
 

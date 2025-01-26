@@ -22,9 +22,9 @@ import Render.Export.Preamble
 import Render.Export.Util
 import Render.Settings exposing (RenderSettings)
 import Render.Utility as Utility
+import RoseTree.Tree as Tree exposing (Tree)
 import Time
 import Tools.Loop exposing (Step(..), loop)
-import Tree exposing (Tree)
 
 
 counterValue : Forest ExpressionBlock -> Maybe Int
@@ -36,7 +36,7 @@ counterValue ast =
 
 
 {-| -}
-export : Time.Posix -> RenderSettings -> Forest ExpressionBlock -> String
+export : Time.Posix -> RenderSettings -> List (Tree ExpressionBlock) -> String
 export currentTime settings_ ast =
     let
         rawBlockNames =
@@ -173,7 +173,7 @@ exportTree : RenderSettings -> Tree ExpressionBlock -> String
 exportTree settings tree =
     case Tree.children tree of
         [] ->
-            exportBlock settings (Tree.label tree)
+            exportBlock settings (Tree.value tree)
 
         children ->
             let
@@ -184,7 +184,7 @@ exportTree settings tree =
                         |> List.concat
 
                 root =
-                    exportBlock settings (Tree.label tree) |> String.lines
+                    exportBlock settings (Tree.value tree) |> String.lines
             in
             case List.Extra.unconsLast root of
                 Nothing ->
@@ -365,38 +365,38 @@ nextState : Tree ExpressionBlock -> State -> State
 nextState tree state =
     let
         name_ =
-            Tree.label tree |> Generic.BlockUtilities.getExpressionBlockName
+            Tree.value tree |> Generic.BlockUtilities.getExpressionBlockName
     in
     case ( state.status, name_ ) of
         -- ITEMIZED LIST
         ( OutsideList, Just "item" ) ->
-            { state | status = InsideItemizedList, itemNumber = 1, output = tree :: Tree.singleton beginItemizedBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = InsideItemizedList, itemNumber = 1, output = tree :: Tree.leaf beginItemizedBlock :: state.output, input = List.drop 1 state.input }
 
         ( InsideItemizedList, Just "item" ) ->
             { state | output = tree :: state.output, itemNumber = state.itemNumber + 1, input = List.drop 1 state.input }
 
         ( InsideItemizedList, _ ) ->
-            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.singleton endItemizedBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.leaf endItemizedBlock :: state.output, input = List.drop 1 state.input }
 
         -- NUMBERED LIST
         ( OutsideList, Just "numbered" ) ->
-            { state | status = InsideNumberedList, itemNumber = 1, output = tree :: Tree.singleton beginNumberedBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = InsideNumberedList, itemNumber = 1, output = tree :: Tree.leaf beginNumberedBlock :: state.output, input = List.drop 1 state.input }
 
         ( InsideNumberedList, Just "numbered" ) ->
             { state | output = tree :: state.output, itemNumber = state.itemNumber + 1, input = List.drop 1 state.input }
 
         ( InsideNumberedList, _ ) ->
-            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.singleton endNumberedBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.leaf endNumberedBlock :: state.output, input = List.drop 1 state.input }
 
         -- DESCRIPTION LIST
         ( OutsideList, Just "desc" ) ->
-            { state | status = InsideDescriptionList, itemNumber = 1, output = tree :: Tree.singleton beginDescriptionBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = InsideDescriptionList, itemNumber = 1, output = tree :: Tree.leaf beginDescriptionBlock :: state.output, input = List.drop 1 state.input }
 
         ( InsideDescriptionList, Just "desc" ) ->
             { state | output = tree :: state.output, itemNumber = state.itemNumber + 1, input = List.drop 1 state.input }
 
         ( InsideDescriptionList, _ ) ->
-            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.singleton endDescriptionBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.leaf endDescriptionBlock :: state.output, input = List.drop 1 state.input }
 
         --- OUTSIDE
         ( OutsideList, _ ) ->

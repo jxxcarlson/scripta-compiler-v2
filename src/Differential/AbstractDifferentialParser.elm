@@ -3,8 +3,8 @@ module Differential.AbstractDifferentialParser exposing (EditRecord, InitialData
 import Differential.Differ as Differ
 import Differential.DifferForest as DifferForest
 import Generic.Acc
+import RoseTree.Tree exposing (Tree)
 import ScriptaV2.Language exposing (Language)
-import Tree exposing (Tree)
 
 
 type alias EditRecord chunk parsedChunk accumulator =

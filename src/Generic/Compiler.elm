@@ -8,11 +8,11 @@ module Generic.Compiler exposing
 
 import Dict exposing (Dict)
 import Generic.Acc
-import Generic.Forest exposing (Forest)
-import Generic.ForestTransform exposing (Error)
+import Generic.Forest
 import Generic.Language exposing (ExpressionBlock)
 import Generic.Pipeline
 import Render.Settings
+import RoseTree.Tree
 import ScriptaV2.Language exposing (Language)
 
 
@@ -31,12 +31,12 @@ parse_ :
     -> String
     -> Int
     -> List String
-    -> Result Error (Forest ExpressionBlock)
+    -> List (RoseTree.Tree.Tree ExpressionBlock)
 parse_ lang primitiveBlockParser exprParser idPrefix outerCount lines =
     lines
         |> primitiveBlockParser idPrefix outerCount
         |> Generic.Pipeline.toPrimitiveBlockForest
-        |> Result.map (Generic.Forest.map (Generic.Pipeline.toExpressionBlock lang exprParser))
+        |> Generic.Forest.map (Generic.Pipeline.toExpressionBlock lang exprParser)
 
 
 type alias RenderData =

@@ -37,6 +37,7 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExpressionBlock)
 import Json.Encode
+import Library.Forest
 import List.Extra
 import Maybe.Extra
 import Render.Block
@@ -44,10 +45,10 @@ import Render.Export.Check
 import Render.Export.LaTeX
 import Render.Settings
 import Render.TOC
+import RoseTree.Tree as Tree
 import ScriptaV2.Msg exposing (MarkupMsg)
 import Time
 import Tools.Utility
-import Tree
 
 
 {-| -}
@@ -241,7 +242,7 @@ getImageUrls syntaxTree =
 getImageUrlsFromExpressions : Forest ExpressionBlock -> List String
 getImageUrlsFromExpressions syntaxTree =
     syntaxTree
-        |> List.map Tree.flatten
+        |> List.map Library.Forest.flatten
         |> List.concat
         |> List.map (\block -> Either.toList block.body)
         |> List.concat
@@ -255,7 +256,7 @@ getImageUrlsFromExpressions syntaxTree =
 getImageUrlsFromBlocks : Forest ExpressionBlock -> List String
 getImageUrlsFromBlocks syntaxTree =
     syntaxTree
-        |> List.map Tree.flatten
+        |> List.map Library.Forest.flatten
         |> List.concat
         |> Generic.ASTTools.filterBlocksOnName "image"
         |> List.map Generic.Language.getVerbatimContent
@@ -266,7 +267,7 @@ getImageUrlsFromBlocks syntaxTree =
 getBlockNames : Forest ExpressionBlock -> List String
 getBlockNames syntaxTree =
     syntaxTree
-        |> List.map Tree.flatten
+        |> List.map Library.Forest.flatten
         |> List.concat
         |> List.map Generic.Language.getName
         |> Maybe.Extra.values

@@ -7,24 +7,20 @@ module Generic.ASTTools exposing
     , exprListToStringList
     , expressionNames
     , extractTextFromSyntaxTreeByKey
-    , filterASTOnName
     , filterBlocks
     , filterBlocksByArgs
     , filterBlocksOnName
     , filterExpressionsOnName
     , filterExpressionsOnName_
     , filterExprs
-    , filterForestForExpressionsWithName
     , filterForestOnLabelNames
     , filterNotBlocksOnName
     , filterOutExpressionsOnName
-    , flattenForest
     , frontMatterDict
     , getBlockArgsByName
     , getText
     , getValue
     , getVerbatimBlockValue
-    , insertAfter
     , isBlank
     , matchingIdsInAST
     , normalize
@@ -41,9 +37,10 @@ import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
+import Library.Forest
 import List.Extra
 import Maybe.Extra
-import Tree exposing (Tree)
+import RoseTree.Tree as Tree exposing (Tree)
 
 
 normalize : Either String (List Expression) -> Either String (List Expression)
@@ -56,16 +53,6 @@ normalize exprs =
             exprs
 
 
-filterForestForExpressionsWithName : String -> Forest Expression -> List Expression
-filterForestForExpressionsWithName name forest =
-    filterExpressionsOnName name (List.map Tree.flatten forest |> List.concat)
-
-
-flattenForest : Forest ExpressionBlock -> List ExpressionBlock
-flattenForest forest =
-    forest |> List.map Tree.flatten |> List.concat
-
-
 blockNames : List (Tree.Tree ExpressionBlock) -> List String
 blockNames forest =
     forest
@@ -76,7 +63,7 @@ blockNames forest =
 
 rawBlockNames : List (Tree.Tree ExpressionBlock) -> List String
 rawBlockNames forest =
-    List.map Tree.flatten forest
+    List.map Library.Forest.flatten forest
         |> List.concat
         |> List.map Generic.Language.getName
         |> Maybe.Extra.values
@@ -84,7 +71,7 @@ rawBlockNames forest =
 
 expressionNames : List (Tree.Tree ExpressionBlock) -> List String
 expressionNames forest =
-    List.map Tree.flatten forest
+    List.map Library.Forest.flatten forest
         |> List.concat
         |> List.map Generic.Language.getExpressionContent
         |> List.concat
@@ -161,7 +148,7 @@ filterForestOnLabelNames predicate forest =
 
 labelName : Tree ExpressionBlock -> Maybe String
 labelName tree =
-    Tree.label tree |> Generic.Language.getName
+    Tree.value tree |> Generic.Language.getName
 
 
 matchBlockName : String -> ExpressionBlock -> Bool
@@ -186,7 +173,7 @@ matchExprOnName_ name expr =
 
 matchingIdsInAST : String -> Forest ExpressionBlock -> List String
 matchingIdsInAST key ast =
-    ast |> List.map Tree.flatten |> List.concat |> List.filterMap (idOfMatchingBlockContent key)
+    ast |> List.map Library.Forest.flatten |> List.concat |> List.filterMap (idOfMatchingBlockContent key)
 
 
 idOfMatchingBlockContent : String -> ExpressionBlock -> Maybe String
@@ -208,7 +195,7 @@ existsBlockWithName ast name =
     let
         mBlock =
             ast
-                |> List.map Tree.flatten
+                |> List.map Library.Forest.flatten
                 |> List.concat
                 |> filterBlocksOnName name
                 |> List.head
@@ -221,47 +208,13 @@ existsBlockWithName ast name =
             True
 
 
-{-| Return the text content of the first element with the given name
--}
-filterASTOnName : List (Tree.Tree ExpressionBlock) -> String -> List String
-filterASTOnName ast name =
-    let
-        mBlock =
-            ast
-                |> List.map Tree.flatten
-                |> List.concat
-                |> filterBlocksOnName name
-                |> List.head
-    in
-    case Maybe.map Generic.Language.getExpressionContent mBlock of
-        Nothing ->
-            []
-
-        Just content ->
-            List.map getText content |> Maybe.Extra.values
-
-
 getBlockByName : String -> List (Tree.Tree ExpressionBlock) -> Maybe ExpressionBlock
 getBlockByName name ast =
     ast
-        |> List.map Tree.flatten
+        |> List.map Library.Forest.flatten
         |> List.concat
         |> filterBlocksOnName name
         |> List.head
-
-
-insertAfter : String -> List (Tree ExpressionBlock) -> List (Tree ExpressionBlock) -> List (Tree ExpressionBlock)
-insertAfter name toInsert ast =
-    let
-        match : String -> Tree ExpressionBlock -> Bool
-        match name_ tree =
-            matchBlockName name_ (Tree.label tree)
-
-        ( before, after ) =
-            ast
-                |> List.partition (match name)
-    in
-    before ++ toInsert ++ after
 
 
 banner : List (Tree ExpressionBlock) -> Maybe ExpressionBlock
@@ -397,7 +350,7 @@ getValue key ast =
                 |> String.join ""
 
 
-title : Forest ExpressionBlock -> String
+title : List (Tree ExpressionBlock) -> String
 title ast =
     getValue "title" ast
 
@@ -409,13 +362,13 @@ extractTextFromSyntaxTreeByKey key syntaxTree =
 
 tableOfContents : Int -> List (Tree ExpressionBlock) -> List ExpressionBlock
 tableOfContents maximumLevel ast =
-    filterBlocksOnName "section" (List.map Tree.flatten ast |> List.concat)
+    filterBlocksOnName "section" (List.map Library.Forest.flatten ast |> List.concat)
 
 
 filterBlocksByArgs : String -> Forest ExpressionBlock -> List ExpressionBlock
 filterBlocksByArgs key ast =
     ast
-        |> List.map Tree.flatten
+        |> List.map Library.Forest.flatten
         |> List.concat
         |> List.filter (matchBlock key)
 

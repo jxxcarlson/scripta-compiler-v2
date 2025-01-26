@@ -32,42 +32,30 @@ type alias ViewParameters =
 view : ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element MarkupMsg)
 view viewParameters acc documentAst =
     let
+        tocAST : List ExpressionBlock
+        tocAST =
+            Generic.ASTTools.tableOfContents 8 documentAst
+                -- This is correct for document HoTT
+                |> Debug.log "@@:tocAST"
+
         -- I. The raw data: List TOCNodeValue
-        nodesApp : List TOCNodeValue
-        nodesApp =
-            -- Levels: [1,1,2,2]
-            List.map (makeNodeValue viewParameters.idsOfOpenNodes) (Generic.ASTTools.tableOfContents 8 documentAst)
+        nodes : List TOCNodeValue
+        nodes =
+            -- Levels should be : [1,1,1,2,2,2,2]
+            -- But the actual result is [1]
+            List.map (makeNodeValue viewParameters.idsOfOpenNodes) tocAST
+                |> Debug.log "@@::nodes"
 
-        nodesRepl : List TOCNodeValue
-        nodesRepl =
-            -- Levels: [1,1,2,2]
-            Library.Forest.nodesRepl
-
-        _ =
-            -- TRUE
-            Debug.log "@@:TOC_COMPARE 1. (nodeRepl == nodesApp)" (nodesRepl == nodesApp)
-
-        -- II. The Forests of TOCNodeValue
-        forestReplSTATIC : List (Tree TOCNodeValue)
-        forestReplSTATIC =
-            Library.Forest.forestReplSTATIC
-
-        forestApp : List (Tree TOCNodeValue)
-        forestApp =
-            Library.Forest.makeForest Library.Forest.lev nodesApp
+        forest : List (Tree TOCNodeValue)
+        forest =
+            Library.Forest.makeForest Library.Forest.lev nodes
+                |> Debug.log "@@::forest"
 
         _ =
-            -- FALSE
-            Debug.log "@@:TOC_COMPARE 2. (forestReplSTATIC == forestApp)" (forestReplSTATIC == forestApp)
-
-        _ =
-            Debug.log "@@:TOC_COMPARE 3. (depth: repl, app)" ( List.map Library.Tree.depth forestReplSTATIC, List.map Library.Tree.depth forestApp )
-
-        _ =
-            -- "@@::fListListAppp_DEPTHS: [1,1] - INCORRECT!!
-            List.map Library.Tree.depth forestApp |> Debug.log "@@::fListListApp_DEPTHS"
+            -- Actual is [1,1,1,1], should be [1,1,1,2,2,2,2,1]
+            List.map Library.Tree.depth forest |> Debug.log "@@::forest_DEPTHS"
     in
-    forestApp |> List.map (viewTOCTree viewParameters acc 4 0 Nothing)
+    forest |> List.map (viewTOCTree viewParameters acc 4 0 Nothing)
 
 
 viewTOCTree : ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
@@ -110,9 +98,9 @@ viewNode viewParameters acc indentation node =
 tocForest : List String -> Forest ExpressionBlock -> List (Tree TOCNodeValue)
 tocForest idsOfOpenNodes ast =
     Generic.ASTTools.tableOfContents 8 ast
-        --|> Debug.log "@@:TOC_AST"
+        |> Debug.log "@@:TOC_AST"
         |> List.map (makeNodeValue idsOfOpenNodes)
-        --|> Debug.log "@@:TOC_NODE_VALUES"
+        |> Debug.log "@@:TOC_NODE_VALUES"
         |> Library.Forest.makeForest nodeLevel
 
 
@@ -219,4 +207,4 @@ tocLevel block =
 
 
 nodeLevel =
-    \node -> Dict.get "level" node.block.properties |> Maybe.andThen String.toInt |> Maybe.withDefault 1
+    \node -> Dict.get "level" node.block.properties |> Maybe.andThen String.toInt |> Maybe.withDefault 1 |> (\x -> x - 1)

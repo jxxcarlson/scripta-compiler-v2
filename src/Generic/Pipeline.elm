@@ -6,24 +6,20 @@ module Generic.Pipeline exposing
 
 import Dict exposing (Dict)
 import Either exposing (Either(..))
-import Generic.Forest exposing (Forest)
 import Generic.ForestTransform exposing (Error)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..), PrimitiveBlock)
 import List.Extra
 import M.Expression
 import M.PrimitiveBlock
+import RoseTree.Tree exposing (Tree)
 import ScriptaV2.Language exposing (Language(..))
 import Tools.Utility
-import Tree exposing (Tree)
-import XMarkdown.Expression
 
 
-toExpressionBlockForestFromStringlist : Language -> String -> Int -> (Int -> String -> List Expression) -> List String -> Result Error (Forest ExpressionBlock)
 toExpressionBlockForestFromStringlist lang idPrefix outerCount parser lines =
     lines
         |> M.PrimitiveBlock.parse idPrefix outerCount
         |> toPrimitiveBlockForest
-        |> Result.map (Generic.Forest.map (toExpressionBlock lang parser))
 
 
 toExpressionBlock : Language -> (Int -> String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
@@ -32,20 +28,18 @@ toExpressionBlock lang parser block =
         |> Generic.Language.boostBlock
 
 
-toPrimitiveBlockForest : List PrimitiveBlock -> Result Error (Forest PrimitiveBlock)
 toPrimitiveBlockForest blocks =
-    Generic.ForestTransform.forestFromBlocks { emptyBlock | indent = -2 } .indent blocks
-        |> Result.map primitiveBlockForestTransform
+    Generic.ForestTransform.forestFromBlocks .indent blocks
 
 
-primitiveBlockForestTransform : Forest PrimitiveBlock -> Forest PrimitiveBlock
+primitiveBlockForestTransform : List (Tree PrimitiveBlock) -> List (Tree PrimitiveBlock)
 primitiveBlockForestTransform forest =
     forest |> List.map primitiveBlockTreeTransform
 
 
 primitiveBlockTreeTransform : Tree PrimitiveBlock -> Tree PrimitiveBlock
 primitiveBlockTreeTransform tree =
-    case (Tree.label tree).heading of
+    case (RoseTree.Tree.value tree).heading of
         Ordinary "quotation" ->
             let
                 changeHeading : Heading -> PrimitiveBlock -> PrimitiveBlock
@@ -53,10 +47,25 @@ primitiveBlockTreeTransform tree =
                     { block | heading = heading }
             in
             tree
-                |> Tree.mapChildren (List.map (Tree.mapLabel (changeHeading (Ordinary "quotation"))))
+                |> mapChildren (List.map (RoseTree.Tree.mapValues (changeHeading (Ordinary "quotation"))))
 
         _ ->
             tree
+
+
+mapChildren : (List (Tree a) -> List (Tree a)) -> Tree a -> Tree a
+mapChildren f tree =
+    let
+        ch =
+            RoseTree.Tree.children tree
+
+        newChildren =
+            f ch
+
+        root =
+            RoseTree.Tree.value tree
+    in
+    RoseTree.Tree.branch root newChildren
 
 
 emptyBlock : PrimitiveBlock
@@ -92,6 +101,7 @@ toExpressionBlock_ lang parse block =
             Verbatim _ ->
                 Left <| String.join "\n" block.body
     , meta = block.meta
+    , style = block.style
     }
 
 

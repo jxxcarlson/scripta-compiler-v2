@@ -11,6 +11,7 @@ import Generic.ASTTools
 import Generic.Acc exposing (Accumulator)
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExprMeta, Expression, ExpressionBlock)
+import Library.Forest
 import List.Extra
 import Render.Expression
 import Render.Settings
@@ -18,7 +19,6 @@ import Render.TOCTree
 import Render.Utility
 import ScriptaV2.Config as Config
 import ScriptaV2.Msg exposing (MarkupMsg(..))
-import Tree
 
 
 viewWithTitle : Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
@@ -64,7 +64,7 @@ viewTocItem : String -> Int -> Accumulator -> Render.Settings.RenderSettings -> 
 viewTocItem selectedId count acc settings attr ({ args, body, properties } as block) =
     let
         maximumNumberedTocLevel =
-            1
+            3
     in
     case body of
         Left _ ->
@@ -206,7 +206,7 @@ getHeadings : Forest ExpressionBlock -> { title : List Expression, subtitle : Li
 getHeadings ast =
     let
         flattened =
-            List.map Tree.flatten ast |> List.concat
+            List.map Library.Forest.flatten ast |> List.concat
 
         title : List Expression
         title =

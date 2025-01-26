@@ -22,12 +22,12 @@ import Render.Export.Image
 import Render.Export.Util
 import Render.Settings exposing (RenderSettings)
 import Render.Utility as Utility
+import RoseTree.Tree as Tree exposing (Tree)
 import ScriptaV2.Compiler
 import ScriptaV2.Language
 import String.Extra
 import Tools.Loop exposing (Step(..), loop)
 import Tools.String
-import Tree exposing (Tree)
 
 
 {-| -}
@@ -43,18 +43,17 @@ rawExport wrapOption ast =
 
 rawExport_ : WrapOption -> String -> Result String String
 rawExport_ wrapOption source =
-    case ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source) of
-        Err _ ->
-            Err "Error parsing source"
-
-        Ok ast ->
-            ast
-                |> Generic.Forest.map Generic.BlockUtilities.condenseUrls
-                |> encloseLists
-                |> Generic.Forest.map (counterValue ast |> oneOrTwo |> shiftSection)
-                |> List.map (exportTree wrapOption)
-                |> String.join "\n\n"
-                |> Ok
+    let
+        ast =
+            ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source)
+    in
+    ast
+        |> Generic.Forest.map Generic.BlockUtilities.condenseUrls
+        |> encloseLists
+        |> Generic.Forest.map (counterValue ast |> oneOrTwo |> shiftSection)
+        |> List.map (exportTree wrapOption)
+        |> String.join "\n\n"
+        |> Ok
 
 
 type ExportError
@@ -82,17 +81,12 @@ rawExportValidateSimple wrapOption source =
         --prettyText =
         --    rawExport wrapOption ast
         source2 =
-            case ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source) of
-                Err _ ->
-                    "((error))"
-
-                Ok ast ->
-                    rawExport wrapOption ast
+            rawExport wrapOption (ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source))
 
         compress str =
             String.replace " " "" str |> String.replace "\n" "" |> String.replace "\t" ""
     in
-    compress source == compress source2 |> Debug.log "!@:rawExportValidateSimple"
+    compress source == compress source2
 
 
 rawExportValidateS : WrapOption -> String -> Bool
@@ -102,17 +96,12 @@ rawExportValidateS wrapOption source =
             ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source)
 
         prettyText =
-            Result.map (rawExport wrapOption) astResult1
+            rawExport wrapOption astResult1
 
         astResult2 =
-            Result.andThen (\ast -> ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines ast)) prettyText
+            (\ast -> ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines ast)) prettyText
     in
-    case ( astResult1, astResult2 ) of
-        ( Ok ast1, Ok ast2 ) ->
-            ast1 == ast2
-
-        _ ->
-            False
+    astResult1 == astResult2
 
 
 rawExportValidate : WrapOption -> List (Tree ExpressionBlock) -> Bool
@@ -121,15 +110,11 @@ rawExportValidate wrapOption ast =
         prettyText =
             rawExport wrapOption ast
 
-        ast2_ =
+        ast2 : List (Tree ExpressionBlock)
+        ast2 =
             ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines prettyText)
     in
-    case ast2_ of
-        Err _ ->
-            False
-
-        Ok ast2 ->
-            Generic.Language.simplifyForest ast == Generic.Language.simplifyForest ast2
+    Generic.Language.simplifyForest ast == Generic.Language.simplifyForest ast2
 
 
 counterValue : Forest ExpressionBlock -> Maybe Int
@@ -187,7 +172,7 @@ exportTree : WrapOption -> Tree ExpressionBlock -> String
 exportTree wrapOption tree =
     case Tree.children tree of
         [] ->
-            exportBlock wrapOption (Tree.label tree)
+            exportBlock wrapOption (Tree.value tree)
 
         children ->
             let
@@ -198,7 +183,7 @@ exportTree wrapOption tree =
                         |> List.concat
 
                 root =
-                    exportBlock wrapOption (Tree.label tree) |> String.lines
+                    exportBlock wrapOption (Tree.value tree) |> String.lines
             in
             case List.Extra.unconsLast root of
                 Nothing ->
@@ -338,38 +323,38 @@ nextState : Tree ExpressionBlock -> State -> State
 nextState tree state =
     let
         name_ =
-            Tree.label tree |> Generic.BlockUtilities.getExpressionBlockName
+            Tree.value tree |> Generic.BlockUtilities.getExpressionBlockName
     in
     case ( state.status, name_ ) of
         -- ITEMIZED LIST
         ( OutsideList, Just "item" ) ->
-            { state | status = InsideItemizedList, itemNumber = 1, output = tree :: Tree.singleton beginItemizedBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = InsideItemizedList, itemNumber = 1, output = tree :: Tree.leaf beginItemizedBlock :: state.output, input = List.drop 1 state.input }
 
         ( InsideItemizedList, Just "item" ) ->
             { state | output = tree :: state.output, itemNumber = state.itemNumber + 1, input = List.drop 1 state.input }
 
         ( InsideItemizedList, _ ) ->
-            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.singleton endItemizedBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.leaf endItemizedBlock :: state.output, input = List.drop 1 state.input }
 
         -- NUMBERED LIST
         ( OutsideList, Just "numbered" ) ->
-            { state | status = InsideNumberedList, itemNumber = 1, output = tree :: Tree.singleton beginNumberedBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = InsideNumberedList, itemNumber = 1, output = tree :: Tree.leaf beginNumberedBlock :: state.output, input = List.drop 1 state.input }
 
         ( InsideNumberedList, Just "numbered" ) ->
             { state | output = tree :: state.output, itemNumber = state.itemNumber + 1, input = List.drop 1 state.input }
 
         ( InsideNumberedList, _ ) ->
-            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.singleton endNumberedBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.leaf endNumberedBlock :: state.output, input = List.drop 1 state.input }
 
         -- DESCRIPTION LIST
         ( OutsideList, Just "desc" ) ->
-            { state | status = InsideDescriptionList, itemNumber = 1, output = tree :: Tree.singleton beginDescriptionBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = InsideDescriptionList, itemNumber = 1, output = tree :: Tree.leaf beginDescriptionBlock :: state.output, input = List.drop 1 state.input }
 
         ( InsideDescriptionList, Just "desc" ) ->
             { state | output = tree :: state.output, itemNumber = state.itemNumber + 1, input = List.drop 1 state.input }
 
         ( InsideDescriptionList, _ ) ->
-            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.singleton endDescriptionBlock :: state.output, input = List.drop 1 state.input }
+            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.leaf endDescriptionBlock :: state.output, input = List.drop 1 state.input }
 
         --- OUTSIDE
         ( OutsideList, _ ) ->

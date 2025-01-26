@@ -35,44 +35,10 @@ module Generic.Language exposing
 
 import Dict exposing (Dict)
 import Either exposing (Either(..))
-import Generic.Forest exposing (Forest)
-import List.Extra
-import Tools.Utility
-import Tree exposing (Tree)
+import RoseTree.Tree as Tree exposing (Tree)
 
 
 
---
---
---out11 =
---    Ok
---        [ Tree
---            { args = []
---            , body =
---                Right
---                    [ Text "this is " { begin = 0, end = 7, id = "e-1.0", index = 0 }
---                    , Fun "i" [ Text " really" { begin = 10, end = 16, id = "e-0.3", index = 3 } ] { begin = 9, end = 9, id = "e-1.2", index = 2 }
---                    , Text " a test" { begin = 18, end = 24, id = "e-1.5", index = 5 }
---                    ]
---            , firstLine = "this is [i really] a test"
---            , heading = Paragraph
---            , indent = 0
---            , meta = { error = Nothing, id = "@-0", lineNumber = 1, messages = [], numberOfLines = 1, position = 0, sourceText = "this is [i really] a test" }
---            , properties = Dict.fromList []
---            }
---            []
---        , Tree
---            { args = []
---            , body = Right [ Text "Ho ho ho" { begin = 27, end = 34, id = "e-3.0", index = 0 } ]
---            , firstLine = "Ho ho ho"
---            , heading = Paragraph
---            , indent = 0
---            , meta = { error = Nothing, id = "@-1", lineNumber = 3, messages = [], numberOfLines = 1, position = 27, sourceText = "Ho ho ho" }
---            , properties = Dict.fromList []
---            }
---            []
---        ]
---
 -- PARAMETRIZED TYPES
 
 
@@ -101,6 +67,50 @@ type alias Block content blockMetaData =
     , firstLine : String
     , body : content
     , meta : blockMetaData
+    , style : Maybe Style
+    }
+
+
+type alias Style =
+    { lineWidth : Int
+    , lineSpacing : Int
+    , spaceAbove : Int
+    , spaceBelow : Int
+    , indent : Int
+    , firstLineIndent : Int
+    , fontSize : Int
+    , borderWidth : Maybe Int
+    , bgColor : StyleColor
+    , fgColor : StyleColor
+    , borderColor : Maybe StyleColor
+    , attrs : List StyleAttr
+    }
+
+
+type StyleColor
+    = RGB Float Float Float
+    | RGBA Float Float Float Float
+
+
+type StyleAttr
+    = None
+    | Italic
+
+
+defaultStyle : Style
+defaultStyle =
+    { lineWidth = 600
+    , lineSpacing = 8
+    , spaceAbove = 18
+    , spaceBelow = 18
+    , indent = 0
+    , firstLineIndent = 0
+    , fontSize = 12
+    , borderWidth = Nothing
+    , bgColor = RGB 1 1 1
+    , fgColor = RGB 0.1 0.1 0.1
+    , borderColor = Nothing
+    , attrs = []
     }
 
 
@@ -260,6 +270,7 @@ simplifyBlock simplifyContent block =
     , firstLine = block.firstLine
     , body = simplifyContent block.body
     , meta = ()
+    , style = block.style
     }
 
 
@@ -280,14 +291,14 @@ simplifyExpr expr =
 -- CONCRETE SIMPLIFIERS
 
 
-simplifyForest : Forest ExpressionBlock -> Forest SimpleExpressionBlock
+simplifyForest : List (Tree ExpressionBlock) -> List (Tree SimpleExpressionBlock)
 simplifyForest forest =
     List.map simplifyTree forest
 
 
 simplifyTree : Tree ExpressionBlock -> Tree SimpleExpressionBlock
 simplifyTree tree =
-    Tree.map simplifyExpressionBlock tree
+    Tree.mapValues simplifyExpressionBlock tree
 
 
 simplifyExpressionBlock : ExpressionBlock -> SimpleExpressionBlock
@@ -323,6 +334,7 @@ primitiveBlockEmpty =
     , firstLine = ""
     , body = []
     , meta = emptyBlockMeta
+    , style = Nothing
     }
 
 
@@ -335,6 +347,7 @@ expressionBlockEmpty =
     , firstLine = ""
     , body = Right []
     , meta = emptyBlockMeta
+    , style = Nothing
     }
 
 

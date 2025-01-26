@@ -1474,6 +1474,7 @@ blockFromLine statePosition idPrefix count level ({ indent, lineNumber, position
         , sourceText = ""
         , error = Nothing
         }
+    , style = Nothing
     }
 
 
