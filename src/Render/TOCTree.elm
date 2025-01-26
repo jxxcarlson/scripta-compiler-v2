@@ -38,30 +38,9 @@ view viewParameters acc documentAst =
             -- Levels: [1,1,2,2]
             List.map (makeNodeValue viewParameters.idsOfOpenNodes) (Generic.ASTTools.tableOfContents 8 documentAst)
 
-        nodesRepl : List TOCNodeValue
-        nodesRepl =
-            -- Levels: [1,1,2,2]
-            Library.Forest.nodesRepl
-
-        _ =
-            -- TRUE
-            Debug.log "@@:TOC_COMPARE 1. (nodeRepl == nodesApp)" (nodesRepl == nodesApp)
-
-        -- II. The Forests of TOCNodeValue
-        forestReplSTATIC : List (Tree TOCNodeValue)
-        forestReplSTATIC =
-            Library.Forest.forestReplSTATIC
-
         forestApp : List (Tree TOCNodeValue)
         forestApp =
             Library.Forest.makeForest Library.Forest.lev nodesApp
-
-        _ =
-            -- FALSE
-            Debug.log "@@:TOC_COMPARE 2. (forestReplSTATIC == forestApp)" (forestReplSTATIC == forestApp)
-
-        _ =
-            Debug.log "@@:TOC_COMPARE 3. (depth: repl, app)" ( List.map Library.Tree.depth forestReplSTATIC, List.map Library.Tree.depth forestApp )
 
         _ =
             -- "@@::fListListAppp_DEPTHS: [1,1] - INCORRECT!!

@@ -35,6 +35,7 @@ module Generic.Language exposing
 
 import Dict exposing (Dict)
 import Either exposing (Either(..))
+import Element
 import Generic.Forest exposing (Forest)
 import List.Extra
 import Tools.Utility
@@ -101,6 +102,50 @@ type alias Block content blockMetaData =
     , firstLine : String
     , body : content
     , meta : blockMetaData
+    , style : Maybe Style
+    }
+
+
+type alias Style =
+    { lineWidth : Int
+    , lineSpacing : Int
+    , spaceAbove : Int
+    , spaceBelow : Int
+    , indent : Int
+    , firstLineIndent : Int
+    , fontSize : Int
+    , borderWidth : Maybe Int
+    , bgColor : StyleColor
+    , fgColor : StyleColor
+    , borderColor : Maybe StyleColor
+    , attrs : List StyleAttr
+    }
+
+
+type StyleColor
+    = RGB Float Float Float
+    | RGBA Float Float Float Float
+
+
+type StyleAttr
+    = None
+    | Italic
+
+
+defaultStyle : Style
+defaultStyle =
+    { lineWidth = 600
+    , lineSpacing = 8
+    , spaceAbove = 18
+    , spaceBelow = 18
+    , indent = 0
+    , firstLineIndent = 0
+    , fontSize = 12
+    , borderWidth = Nothing
+    , bgColor = RGB 1 1 1
+    , fgColor = RGB 0.1 0.1 0.1
+    , borderColor = Nothing
+    , attrs = []
     }
 
 
@@ -260,6 +305,7 @@ simplifyBlock simplifyContent block =
     , firstLine = block.firstLine
     , body = simplifyContent block.body
     , meta = ()
+    , style = block.style
     }
 
 
@@ -323,6 +369,7 @@ primitiveBlockEmpty =
     , firstLine = ""
     , body = []
     , meta = emptyBlockMeta
+    , style = Nothing
     }
 
 
@@ -335,6 +382,7 @@ expressionBlockEmpty =
     , firstLine = ""
     , body = Right []
     , meta = emptyBlockMeta
+    , style = Nothing
     }
 
 

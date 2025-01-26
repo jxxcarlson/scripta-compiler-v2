@@ -155,6 +155,7 @@ blockFromLine parserFunctions ({ indent, lineNumber, position, prefix, content }
                 , firstLine = content
                 , body = [ prefix ++ content ]
                 , meta = meta
+                , style = Nothing
                 }
 
 
@@ -179,6 +180,7 @@ bogusBlockFromLine message_ { indent, lineNumber, position, prefix, content } =
     , firstLine = ""
     , body = [ message ]
     , meta = meta
+    , style = Nothing
     }
 
 

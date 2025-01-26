@@ -92,6 +92,7 @@ toExpressionBlock_ lang parse block =
             Verbatim _ ->
                 Left <| String.join "\n" block.body
     , meta = block.meta
+    , style = block.style
     }
 
 
