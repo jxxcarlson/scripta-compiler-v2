@@ -52,6 +52,7 @@ render count acc settings attr block =
                                         settings
                             in
                             f count acc newSettings attr block
+                                -- to account for tree structure
                                 |> indentOrdinaryBlock block.indent (String.fromInt block.meta.lineNumber) settings
 
                 _ ->
@@ -72,9 +73,6 @@ getAttributes : String -> List (Element.Attribute MarkupMsg)
 getAttributes name =
     if name == "box" then
         [ Background.color (Element.rgb 0.9 0.9 1.0) ]
-
-    else if name == "quotation" then
-        [ Element.paddingEach { top = 0, bottom = 0, left = 0, right = 0 }, Font.italic ]
 
     else if List.member name italicNames then
         [ Font.italic ]
@@ -259,10 +257,12 @@ indented count acc settings attr block =
 
 quotation : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 quotation count acc settings attrs block =
-    Element.column ([ Element.spacing 12 ] |> Render.Sync2.sync block settings)
-        [ Element.paragraph
+    Element.column ([ Element.spacing 8 ] |> Render.Sync2.sync block settings)
+        [ Render.Helper.noteFromPropertyKey "title" [ Font.bold ] block
+        , Element.paragraph
             (Render.Helper.blockAttributes settings block [])
             (Render.Helper.renderWithDefault "quotation" count acc settings attrs (Generic.Language.getExpressionContent block))
+        , Render.Helper.noteFromPropertyKey "source" [] block
         ]
 
 

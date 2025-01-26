@@ -251,11 +251,8 @@ renderVerbatim _ _ _ attrs block =
 
 
 renderVerbatimLine : String -> String -> Element msg
-renderVerbatimLine lang str_ =
+renderVerbatimLine lang str =
     let
-        str =
-            String.replace "\\bt" "`" str_
-
         spacer s =
             let
                 n =
@@ -266,11 +263,8 @@ renderVerbatimLine lang str_ =
     if String.trim str == "" then
         Element.row [ spacer str, Element.spacing 12 ] [ Element.el [ Element.height (Element.px 11) ] (Element.text "") ]
 
-    else if lang == "plain" then
-        Element.row [ spacer str, Element.spacing 12 ] [ Element.el [ Element.height (Element.px 22) ] (Element.text str) ]
-
     else
-        Element.row [ spacer str, Element.spacing 12 ] [ Element.paragraph [ Element.height (Element.px 22) ] (renderedColoredLine lang str) ]
+        Element.row [ spacer str, Element.spacing 12 ] [ Element.el [ Element.height (Element.px 22) ] (Element.text str) ]
 
 
 renderIndexedVerbatimLine : Int -> String -> String -> Element msg
@@ -294,13 +288,45 @@ renderIndexedVerbatimLine k lang str_ =
 
 renderVerse : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 renderVerse _ _ _ attrs block =
-    Element.column
-        (verbatimBlockAttributes block.meta.lineNumber
-            block.meta.numberOfLines
-            [ Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
-            ++ attrs
-        )
-        (List.map (renderVerbatimLine "plain") (String.lines (String.trim (Render.Utility.getVerbatimContent block))))
+    let
+        lines_ =
+            String.lines (Render.Utility.getVerbatimContent block)
+
+        lines =
+            -- normalize to properly render an indented block of verse
+            -- often  used when there are "blank" lines in the verse,
+            -- meaning lines with leading spaces (2 spaces)
+            case List.head lines_ of
+                Just firstLine ->
+                    if String.left 2 firstLine == "  " then
+                        List.map (\line -> String.dropLeft 2 line) lines_
+
+                    else
+                        lines_
+
+                Nothing ->
+                    lines_
+    in
+    Element.column [ Element.spacing 8 ]
+        [ Render.Helper.noteFromPropertyKey "title" [ Render.Helper.leftPadding 12, Font.bold ] block
+        , Element.column
+            (verbatimBlockAttributes block.meta.lineNumber
+                block.meta.numberOfLines
+                [ Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
+                ++ attrs
+            )
+            (List.map (renderVerbatimLine "plain") lines)
+        , Render.Helper.noteFromPropertyKey "source" [ Render.Helper.leftPadding 12 ] block
+        ]
+
+
+note block =
+    case Dict.get "note" block.properties of
+        Nothing ->
+            Element.none
+
+        Just note_ ->
+            Element.paragraph [] [ Element.text note_ ]
 
 
 verbatimBlockAttributes lineNumber numberOfLines attrs =

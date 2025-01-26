@@ -5,10 +5,12 @@ module Render.Helper exposing
     , getLabel
     , htmlId
     , labeledArgs
+    , leftPadding
     , noSuchOrdinaryBlock
     , noSuchVerbatimBlock
     , nonExportableOrdinaryBlocks
     , nonExportableVerbatimBlocks
+    , noteFromPropertyKey
     , renderNothing
     , renderWithDefault
     , renderWithDefaultNarrow
@@ -35,6 +37,10 @@ import ScriptaV2.Msg exposing (MarkupMsg(..))
 -- SETTINGS
 
 
+leftPadding k =
+    Element.paddingEach { top = 0, right = 0, bottom = 0, left = k }
+
+
 topPaddingForIndentedElements =
     10
 
@@ -49,6 +55,16 @@ nonExportableOrdinaryBlocks =
 
 
 -- HELPERS
+-- oteFromPropertyKey : String -> ExpressionBlock -> Element MarkupMsg
+
+
+noteFromPropertyKey key attrs block =
+    case Dict.get key block.properties of
+        Nothing ->
+            Element.none
+
+        Just note_ ->
+            Element.paragraph attrs [ Element.text note_ ]
 
 
 {-|
