@@ -1,81 +1,18 @@
-module Generic.Pipeline exposing
-    ( toExpressionBlock
-    , toExpressionBlockForestFromStringlist
-    , toPrimitiveBlockForest
-    )
+module Generic.Pipeline exposing (toExpressionBlock)
 
 import Dict exposing (Dict)
 import Either exposing (Either(..))
-import Generic.ForestTransform exposing (Error)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..), PrimitiveBlock)
 import List.Extra
 import M.Expression
-import M.PrimitiveBlock
-import RoseTree.Tree exposing (Tree)
 import ScriptaV2.Language exposing (Language(..))
 import Tools.Utility
-
-
-toExpressionBlockForestFromStringlist lang idPrefix outerCount parser lines =
-    lines
-        |> M.PrimitiveBlock.parse idPrefix outerCount
-        |> toPrimitiveBlockForest
 
 
 toExpressionBlock : Language -> (Int -> String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
 toExpressionBlock lang parser block =
     toExpressionBlock_ lang (parser block.meta.lineNumber) block
         |> Generic.Language.boostBlock
-
-
-toPrimitiveBlockForest blocks =
-    Generic.ForestTransform.forestFromBlocks .indent blocks
-
-
-primitiveBlockForestTransform : List (Tree PrimitiveBlock) -> List (Tree PrimitiveBlock)
-primitiveBlockForestTransform forest =
-    forest |> List.map primitiveBlockTreeTransform
-
-
-primitiveBlockTreeTransform : Tree PrimitiveBlock -> Tree PrimitiveBlock
-primitiveBlockTreeTransform tree =
-    case (RoseTree.Tree.value tree).heading of
-        Ordinary "quotation" ->
-            let
-                changeHeading : Heading -> PrimitiveBlock -> PrimitiveBlock
-                changeHeading heading block =
-                    { block | heading = heading }
-            in
-            tree
-                |> mapChildren (List.map (RoseTree.Tree.mapValues (changeHeading (Ordinary "quotation"))))
-
-        _ ->
-            tree
-
-
-mapChildren : (List (Tree a) -> List (Tree a)) -> Tree a -> Tree a
-mapChildren f tree =
-    let
-        ch =
-            RoseTree.Tree.children tree
-
-        newChildren =
-            f ch
-
-        root =
-            RoseTree.Tree.value tree
-    in
-    RoseTree.Tree.branch root newChildren
-
-
-emptyBlock : PrimitiveBlock
-emptyBlock =
-    { emptyBlock_ | indent = -2 }
-
-
-emptyBlock_ : PrimitiveBlock
-emptyBlock_ =
-    Generic.Language.primitiveBlockEmpty
 
 
 

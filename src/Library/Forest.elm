@@ -6,16 +6,24 @@ module Library.Forest exposing
     , lev
     , list2
     , listListApp
+    , ll1
+    , ll2
+    , ll3
     , makeForest
     , nodesRepl
     , print
     , tList2
     , test1
+    , test1b
+    , test1c
     , test2
     , test3
     , test4
     , toForestTOCNodeValue
     , toListList
+    , tt1
+    , tt2
+    , tt3
     )
 
 import Array
@@ -66,26 +74,38 @@ print toText list =
 
 type alias State a =
     { currentLevel : Int
+    , rootLevel : Int
     , currentList : List a
     , input : List a
     , output : List (List a)
     }
 
 
-init : List a -> State a
-init input =
-    { currentLevel = 1
-    , input = input
-    , currentList = []
-    , output = []
-    }
+init : (a -> Int) -> List a -> State a
+init getLevel input =
+    case List.head input of
+        Nothing ->
+            { currentLevel = 0
+            , rootLevel = 0
+            , input = []
+            , currentList = []
+            , output = []
+            }
+
+        Just item ->
+            { currentLevel = getLevel item
+            , rootLevel = getLevel item
+            , input = input
+            , currentList = []
+            , output = []
+            }
 
 
 toListList : (a -> Int) -> List a -> List (List a)
 toListList getLevel input =
     let
         initialState =
-            init input
+            init getLevel input
     in
     loop initialState (nextStep getLevel)
 
@@ -101,11 +121,11 @@ nextStep getLevel state =
                 level =
                     getLevel x |> Debug.log "@@::level"
             in
-            if level == 0 && state.currentLevel >= 0 then
+            if level == state.rootLevel then
                 Loop
                     { state
                         | input = xs
-                        , currentLevel = 1
+                        , currentLevel = level
                         , currentList = [ x ]
                         , output =
                             if state.currentList == [] then
@@ -116,7 +136,7 @@ nextStep getLevel state =
                     }
 
             else
-                -- new item, push it onto the current list
+                -- new item at higher than root leve, push it onto the current list
                 Loop { state | input = xs, currentLevel = level, currentList = x :: state.currentList }
 
 
@@ -141,7 +161,47 @@ loop s f =
 
 
 test1 =
+    toListList .level testData1
+        |> List.map (List.map .name)
+
+
+ll1 =
+    toListList .level testData1b
+        |> List.map (List.map .name)
+
+
+ll2 =
+    toListList .level testData1b
+        |> List.map (List.map .name)
+
+
+tt1 =
     makeForest .level testData1
+        |> print .name
+
+
+tt2 =
+    makeForest .level testData1b
+        |> print .name
+
+
+ll3 =
+    toListList .level testData1c
+        |> List.map (List.map .name)
+
+
+tt3 =
+    makeForest .level testData1c
+        |> print .name
+
+
+test1b =
+    makeForest .level testData1b
+        |> print .name
+
+
+test1c =
+    makeForest .level testData1c
         |> print .name
 
 
@@ -165,8 +225,28 @@ testData1 =
     , { level = 2, name = "A" }
     , { level = 2, name = "B" }
     , { level = 1, name = "II" }
+    , { level = 2, name = "C" }
+    , { level = 2, name = "D" }
+    ]
+
+
+testData1b =
+    [ { level = 0, name = "I" }
+    , { level = 1, name = "A" }
+    , { level = 1, name = "B" }
+    , { level = 0, name = "II" }
+    , { level = 1, name = "C" }
+    , { level = 1, name = "D" }
+    ]
+
+
+testData1c =
+    [ { level = 0, name = "I" }
     , { level = 2, name = "A" }
     , { level = 2, name = "B" }
+    , { level = 0, name = "II" }
+    , { level = 2, name = "C" }
+    , { level = 2, name = "D" }
     ]
 
 

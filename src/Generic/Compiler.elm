@@ -9,6 +9,7 @@ module Generic.Compiler exposing
 import Dict exposing (Dict)
 import Generic.Acc
 import Generic.Forest
+import Generic.ForestTransform
 import Generic.Language exposing (ExpressionBlock)
 import Generic.Pipeline
 import Render.Settings
@@ -35,7 +36,8 @@ parse_ :
 parse_ lang primitiveBlockParser exprParser idPrefix outerCount lines =
     lines
         |> primitiveBlockParser idPrefix outerCount
-        |> Generic.Pipeline.toPrimitiveBlockForest
+        |> Generic.ForestTransform.forestFromBlocks .indent
+        |> Debug.log "@@:forestFromBlocks"
         |> Generic.Forest.map (Generic.Pipeline.toExpressionBlock lang exprParser)
 
 

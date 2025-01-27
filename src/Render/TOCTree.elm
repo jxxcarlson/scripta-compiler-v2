@@ -1,6 +1,5 @@
 module Render.TOCTree exposing (ViewParameters, view)
 
-import Array
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Element exposing (Element)
@@ -44,16 +43,16 @@ view viewParameters acc documentAst =
             -- Levels should be : [1,1,1,2,2,2,2]
             -- But the actual result is [1]
             List.map (makeNodeValue viewParameters.idsOfOpenNodes) tocAST
-                |> Debug.log "@@::nodes"
+                |> Debug.log "@@::tocNodes"
 
         forest : List (Tree TOCNodeValue)
         forest =
             Library.Forest.makeForest Library.Forest.lev nodes
-                |> Debug.log "@@::forest"
+                |> Debug.log "@@::tocForest"
 
         _ =
             -- Actual is [1,1,1,1], should be [1,1,1,2,2,2,2,1]
-            List.map Library.Tree.depth forest |> Debug.log "@@::forest_DEPTHS"
+            List.map Library.Tree.depth forest |> Debug.log "@@::tocForest_DEPTHS"
     in
     forest |> List.map (viewTOCTree viewParameters acc 4 0 Nothing)
 

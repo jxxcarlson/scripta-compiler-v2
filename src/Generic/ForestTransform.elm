@@ -1,4 +1,7 @@
-module Generic.ForestTransform exposing (forestFromBlocks, Error(..))
+module Generic.ForestTransform exposing
+    ( forestFromBlocks
+    , mapChildren
+    )
 
 {-| This module provides tools for building
 a tree from a string or a list of blocks. As noted
@@ -40,7 +43,6 @@ has the correct type. Here we use the representation of rose trees found in
 
 -}
 
-import Generic.Forest exposing (Forest)
 import Library.Forest
 import RoseTree.Tree as Tree exposing (Tree)
 
@@ -51,50 +53,23 @@ import RoseTree.Tree as Tree exposing (Tree)
       Ok (Tree "1" [Tree "2" [],Tree "3" []])
 
 -}
-
-
-
---forestFromBlocks : block -> (block -> Int) -> List block -> Result Error (Forest block)
-
-
 forestFromBlocks : (b -> Int) -> List b -> List (Tree b)
 forestFromBlocks indentation blocks =
     Library.Forest.makeForest indentation blocks
 
 
-{-| -}
-type Error
-    = EmptyBlocks
-
-
-
--- HELPERS II
-
-
-{-|
-
-    Apply f to x n times
-
+{-| TODO: Keep for now
 -}
-repeatM : Int -> (block -> Maybe block) -> Maybe block -> Maybe block
-repeatM n f x =
-    if n == 0 then
-        x
+mapChildren : (List (Tree a) -> List (Tree a)) -> Tree a -> Tree a
+mapChildren f tree =
+    let
+        ch =
+            Tree.children tree
 
-    else
-        repeatM (n - 1) f (Maybe.andThen f x)
+        newChildren =
+            f ch
 
-
-{-|
-
-    Apply f to x n times
-
--}
-repeat : Int -> (a -> Maybe a) -> a -> a
-repeat n f x =
-    case repeatM n f (Just x) of
-        Nothing ->
-            x
-
-        Just y ->
-            y
+        root =
+            Tree.value tree
+    in
+    Tree.branch root newChildren

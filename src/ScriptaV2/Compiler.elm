@@ -15,7 +15,6 @@ import Generic.ASTTools
 import Generic.Acc
 import Generic.Compiler
 import Generic.Forest exposing (Forest)
-import Generic.ForestTransform exposing (Error)
 import Generic.Language exposing (ExpressionBlock)
 import M.Expression
 import M.PrimitiveBlock
@@ -113,7 +112,7 @@ compile : Filter -> Language -> Int -> Int -> String -> List String -> CompilerO
 compile filter lang width outerCount selectedId lines =
     case lang of
         EnclosureLang ->
-            compileM filter width outerCount selectedId lines
+            compileM filter width outerCount selectedId lines |> Debug.log "@@:compile"
 
         MicroLaTeXLang ->
             compileL filter width outerCount selectedId lines
@@ -300,7 +299,7 @@ render width selectedId outerCount forest_ =
     { body =
         renderForest outerCount renderSettings accumulator forest
     , banner = banner
-    , toc = [] -- toc
+    , toc = toc
     , title = title
     }
 

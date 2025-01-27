@@ -11,16 +11,34 @@ text0 =
 | title
 TEST
 
-|| mathmacros
+# Math
 
+|| mathmacros
 \\newcommand{\\foo}{y^3}
 
-$\\foo$
+$\\foo = 1$
+
+# Arrays and Tables
+
+|| textarray
+a & b & c
+$x^2$ & $y^2 - 3$ & $df/dx = x^2$
 
 || table
-$x^2$ & \\foo  \\
-c & d
+a & b & c
+$x^2$ & $y^2 - 3$ & $df/dx = x^2$
 
+# Lists
+
+List:
+
+- ABC
+
+  - 123
+
+  - 456
+
+- DEF
 
  """
 
