@@ -45,31 +45,51 @@ view viewParameters acc documentAst =
             List.map (makeNodeValue viewParameters.idsOfOpenNodes) tocAST
                 |> Debug.log "@@::tocNodes"
 
+        _ =
+            Debug.log "@@::tocLEN" (List.length nodes)
+
         forest : List (Tree TOCNodeValue)
         forest =
             Library.Forest.makeForest Library.Forest.lev nodes
                 |> Debug.log "@@::tocForest"
 
         _ =
-            -- Actual is [1,1,1,1], should be [1,1,1,2,2,2,2,1]
-            List.map Library.Tree.depth forest |> Debug.log "@@::tocForest_DEPTHS"
+            Debug.log "@@::tocForest:SANITY_CHECK"
+                { equalitCheck = forest == Library.Forest.hottForest
+                , depthsComputedForest = List.map Library.Tree.depth forest
+                , depthsLibraryForest = List.map Library.Tree.depth forest
+
+                -- depthsComputedForest is [1,1,1,1], should be depthsLibraryForest [1,1,2,1]
+                }
+
+        _ =
+            Debug.log "@@:LibraryHottChildren" (Library.Forest.getChildren Library.Forest.hottForest)
     in
+    -- Library.Forest.hottForest |> List.map (viewTOCTree viewParameters acc 4 0 Nothing)
     forest |> List.map (viewTOCTree viewParameters acc 4 0 Nothing)
 
 
 viewTOCTree : ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
 viewTOCTree viewParameters acc depth indentation maybeFoundIds tocTree =
     let
+        _ =
+            Debug.log "@@::TOC_ROOT" ( (Tree.value tocTree).block.firstLine, List.length (Tree.children tocTree) )
+
         level =
             indentation + 1
 
         children : List (Tree TOCNodeValue)
         children =
-            if level == 1 && List.member (Generic.Language.getIdFromBlock val.block) (List.map Just viewParameters.idsOfOpenNodes) then
-                Tree.children tocTree
+            Tree.children tocTree
 
-            else
-                []
+        ----if level == 1 && List.member (Generic.Language.getIdFromBlock val.block) (List.map Just viewParameters.idsOfOpenNodes) then
+        --if List.member (Generic.Language.getIdFromBlock val.block) (List.map Just viewParameters.idsOfOpenNodes) then
+        --    Tree.children tocTree
+        --
+        --else
+        --    []
+        _ =
+            Debug.log "@@::TOC_CHILDREN(1)" (List.length children)
 
         val : TOCNodeValue
         val =
@@ -79,9 +99,17 @@ viewTOCTree viewParameters acc depth indentation maybeFoundIds tocTree =
         Element.none
 
     else if List.isEmpty children then
+        let
+            _ =
+                Debug.log "@@::TOC_NO_CHILDREN" val.block.firstLine
+        in
         viewNode viewParameters acc indentation val
 
     else
+        let
+            _ =
+                Debug.log "@@::TOC_CHILDREN(2)" (List.length children)
+        in
         Element.column [ Element.spacing 8 ]
             (viewNode viewParameters acc indentation val
                 :: List.map (viewTOCTree viewParameters acc (depth - 1) (indentation + 1) maybeFoundIds)
