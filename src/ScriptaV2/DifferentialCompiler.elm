@@ -106,7 +106,7 @@ indentation block =
 
 forestFromBlocks : List ExpressionBlock -> List (Tree ExpressionBlock)
 forestFromBlocks blocks =
-    Generic.ForestTransform.forestFromBlocks indentation blocks
+    Generic.ForestTransform.forestFromBlocks .indent blocks
 
 
 {-| -}
