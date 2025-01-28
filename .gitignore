@@ -7,3 +7,7 @@ CLI/*.txt
 CLI/*.txt*
 .DS_Store
 Demo/scripts.yaml
+Demo/install_elm_packages.sh
+Demo/uninstall_elm_packages.sh
+Example/
+debug/
