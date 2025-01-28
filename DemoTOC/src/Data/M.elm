@@ -18,6 +18,19 @@ TEST
 
 $\\foo = 1$
 
+abc
+
+| theorem
+Blah blah blah
+
+  || equation
+  a^2 + b^2 = c^2
+
+  this  is great!
+
+def
+
+
 | theorem
 A basic property of Euclidean space:
 

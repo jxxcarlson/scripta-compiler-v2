@@ -1,0 +1,1 @@
+ npx elm-watch hot
