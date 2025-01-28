@@ -28,7 +28,7 @@ import M.PrimitiveBlock
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
-import Render.TOC
+import Render.TOCTree
 import RoseTree.Tree as Tree exposing (Tree)
 import ScriptaV2.Compiler
 import ScriptaV2.Config
@@ -70,7 +70,7 @@ editRecordToCompilerOutput filter displaySettings editRecord =
 
         toc : List (Element MarkupMsg)
         toc =
-            Render.TOC.view viewParameters editRecord.accumulator editRecord.tree
+            Render.TOCTree.view viewParameters editRecord.accumulator editRecord.tree
 
         banner : Maybe (Element MarkupMsg)
         banner =
