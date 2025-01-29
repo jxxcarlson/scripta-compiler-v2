@@ -99,16 +99,6 @@ type alias ExpBlockData =
     { name : Maybe String, args : List String, properties : Dict String String, indent : Int, lineNumber : Int, numberOfLines : Int, id : String, tag : String, content : Either String (List Generic.Language.Expression), messages : List String, sourceText : String }
 
 
-indentation : ExpressionBlock -> Int
-indentation block =
-    block.indent
-
-
-forestFromBlocks : List ExpressionBlock -> List (Tree ExpressionBlock)
-forestFromBlocks blocks =
-    Generic.ForestTransform.forestFromBlocks .indent blocks
-
-
 {-| -}
 init : Dict String String -> Language -> String -> EditRecord
 init inclusionData lang str =
@@ -172,7 +162,7 @@ updateFunctions lang =
     , chunkLevel = chunkLevel -- PrimitiveBlock -> Bool
     , diffPostProcess = identity
     , chunkParser = toExprBlock lang --  PrimitiveBlock -> parsedChunk
-    , forestFromBlocks = forestFromBlocks -- : List parsedChunk -> List (Tree parsedChunk)
+    , forestFromBlocks = Generic.ForestTransform.forestFromBlocks .indent -- : List parsedChunk -> List (Tree parsedChunk)
     , getMessages = messagesFromForest -- : List parsedChunk -> List String
     , accMaker = Generic.Acc.transformAccumulate -- : Scripta.Language.Language -> Forest parsedChunk -> (acc, Forest parsedChunk)
     }

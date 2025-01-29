@@ -55,7 +55,8 @@ view viewParameters acc documentAst =
 
         _ =
             Debug.log "@@::tocForest:SANITY_CHECK"
-                { equalitCheck = forest == Library.Forest.hottForest
+                { equalityCheck1 = nodes == Library.Forest.hottNodes
+                , equalityCheck2 = forest == Library.Forest.hottForest
                 , depthsComputedForest = List.map Library.Tree.depth forest
                 , depthsLibraryForest = List.map Library.Tree.depth forest
 
