@@ -37,7 +37,7 @@ import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
-import Library.Forest
+import Library.Tree
 import List.Extra
 import Maybe.Extra
 import RoseTree.Tree as Tree exposing (Tree)
@@ -63,7 +63,7 @@ blockNames forest =
 
 rawBlockNames : List (Tree.Tree ExpressionBlock) -> List String
 rawBlockNames forest =
-    List.map Library.Forest.flatten forest
+    List.map Library.Tree.flatten forest
         |> List.concat
         |> List.map Generic.Language.getName
         |> Maybe.Extra.values
@@ -71,7 +71,7 @@ rawBlockNames forest =
 
 expressionNames : List (Tree.Tree ExpressionBlock) -> List String
 expressionNames forest =
-    List.map Library.Forest.flatten forest
+    List.map Library.Tree.flatten forest
         |> List.concat
         |> List.map Generic.Language.getExpressionContent
         |> List.concat
@@ -173,7 +173,7 @@ matchExprOnName_ name expr =
 
 matchingIdsInAST : String -> Forest ExpressionBlock -> List String
 matchingIdsInAST key ast =
-    ast |> List.map Library.Forest.flatten |> List.concat |> List.filterMap (idOfMatchingBlockContent key)
+    ast |> List.map Library.Tree.flatten |> List.concat |> List.filterMap (idOfMatchingBlockContent key)
 
 
 idOfMatchingBlockContent : String -> ExpressionBlock -> Maybe String
@@ -195,7 +195,7 @@ existsBlockWithName ast name =
     let
         mBlock =
             ast
-                |> List.map Library.Forest.flatten
+                |> List.map Library.Tree.flatten
                 |> List.concat
                 |> filterBlocksOnName name
                 |> List.head
@@ -211,7 +211,7 @@ existsBlockWithName ast name =
 getBlockByName : String -> List (Tree.Tree ExpressionBlock) -> Maybe ExpressionBlock
 getBlockByName name ast =
     ast
-        |> List.map Library.Forest.flatten
+        |> List.map Library.Tree.flatten
         |> List.concat
         |> filterBlocksOnName name
         |> List.head
@@ -362,13 +362,13 @@ extractTextFromSyntaxTreeByKey key syntaxTree =
 
 tableOfContents : Int -> List (Tree ExpressionBlock) -> List ExpressionBlock
 tableOfContents maximumLevel ast =
-    filterBlocksOnName "section" (List.map Library.Forest.flatten ast |> List.concat)
+    filterBlocksOnName "section" (List.map Library.Tree.flatten ast |> List.concat)
 
 
 filterBlocksByArgs : String -> Forest ExpressionBlock -> List ExpressionBlock
 filterBlocksByArgs key ast =
     ast
-        |> List.map Library.Forest.flatten
+        |> List.map Library.Tree.flatten
         |> List.concat
         |> List.filter (matchBlock key)
 

@@ -1,6 +1,7 @@
-module Library.Tree exposing (depth, makeTree, print, ta, tb, tc, test1, test2)
+module Library.Tree exposing (depth, flatten, lev, makeTree, print)
 
-import RoseTree.Tree as T exposing (Tree)
+import Dict
+import RoseTree.Tree exposing (Tree)
 
 
 makeTree : (a -> Int) -> List a -> Maybe (Tree a)
@@ -12,9 +13,28 @@ makeTree getLevel input =
     loop initialState (nextStepTree getLevel)
 
 
+
+-- UTILITIES
+
+
+lev : { a | block : { b | properties : Dict.Dict String String } } -> Int
+lev { block } =
+    case Dict.get "level" block.properties of
+        Just level ->
+            String.toInt level |> Maybe.withDefault 1 |> (\x -> x - 1)
+
+        Nothing ->
+            0
+
+
+flatten : Tree a -> List a
+flatten =
+    RoseTree.Tree.foldr (\n acc -> RoseTree.Tree.value n :: acc) []
+
+
 depth : Tree a -> Int
 depth tree =
-    case T.children tree of
+    case RoseTree.Tree.children tree of
         [] ->
             1
 
@@ -41,7 +61,7 @@ print_ level f tree =
         g level_ x =
             eol ++ String.repeat level_ "  " ++ f x
     in
-    g level (T.value tree) ++ (List.map (print_ (level + 1) f) (T.children tree) |> String.join "")
+    g level (RoseTree.Tree.value tree) ++ (List.map (print_ (level + 1) f) (RoseTree.Tree.children tree) |> String.join "")
 
 
 
@@ -51,7 +71,7 @@ print_ level f tree =
 type alias StateTree a =
     { pathToActiveNode : Maybe (List Int)
     , input : List a
-    , output : Maybe (T.Tree a)
+    , output : Maybe (RoseTree.Tree.Tree a)
     , n : Int
     }
 
@@ -74,10 +94,10 @@ nextStepTree getLevel state =
         [ lastItem ] ->
             case state.pathToActiveNode of
                 Nothing ->
-                    Just (T.branch lastItem []) |> Done
+                    Just (RoseTree.Tree.branch lastItem []) |> Done
 
                 Just path ->
-                    Maybe.map (T.pushChildFor path (T.leaf lastItem)) state.output |> Done
+                    Maybe.map (RoseTree.Tree.pushChildFor path (RoseTree.Tree.leaf lastItem)) state.output |> Done
 
         currentItem :: nextItem :: rest ->
             let
@@ -106,13 +126,13 @@ nextStepTree getLevel state =
                 newOutput =
                     case state.pathToActiveNode of
                         Nothing ->
-                            Just (T.branch currentItem [])
+                            Just (RoseTree.Tree.branch currentItem [])
 
                         Just path ->
-                            Maybe.map (T.pushChildFor path (T.leaf currentItem)) state.output
+                            Maybe.map (RoseTree.Tree.pushChildFor path (RoseTree.Tree.leaf currentItem)) state.output
 
                 indexToActiveNode =
-                    Maybe.map (T.children >> List.length >> (\i -> i - 1)) newOutput
+                    Maybe.map (RoseTree.Tree.children >> List.length >> (\i -> i - 1)) newOutput
 
                 dropLast : List Int -> List Int
                 dropLast list =
@@ -143,86 +163,3 @@ loop s f =
 
         Done b ->
             b
-
-
-
--- TESTS
-
-
-test1 =
-    makeTree (\a -> a.level) testData1 |> Maybe.map (print (\a -> a.name))
-
-
-test2 =
-    makeTree (\a -> a.level) testData2 |> Maybe.map (print (\a -> a.name))
-
-
-ta =
-    makeTree (\a -> a.level) tDA |> Maybe.map (print (\a -> a.name))
-
-
-tb =
-    makeTree (\a -> a.level) tDB |> Maybe.map (print (\a -> a.name))
-
-
-tc =
-    makeTree (\a -> a.level) tDC |> Maybe.map (print (\a -> a.name))
-
-
-tDA =
-    [ { level = 0, name = "I" }
-    , { level = 1, name = "A" }
-    , { level = 1, name = "B" }
-    , { level = 2, name = "x" }
-    , { level = 2, name = "y" }
-    , { level = 1, name = "P" }
-    , { level = 1, name = "Q" }
-    ]
-
-
-tDB =
-    [ { level = 1, name = "I" }
-    , { level = 2, name = "A" }
-    , { level = 2, name = "B" }
-    , { level = 3, name = "x" }
-    , { level = 3, name = "y" }
-    , { level = 2, name = "P" }
-    , { level = 2, name = "Q" }
-    ]
-
-
-tDC =
-    [ { level = 0, name = "I" }
-    , { level = 2, name = "A" }
-    , { level = 2, name = "B" }
-    , { level = 4, name = "x" }
-    , { level = 4, name = "y" }
-    , { level = 2, name = "P" }
-    , { level = 0, name = "QQ" }
-    ]
-
-
-testData1 =
-    [ { level = 0, name = "I" }
-    , { level = 1, name = "A" }
-    , { level = 2, name = "a" }
-    , { level = 2, name = "b" }
-    , { level = 3, name = "i" }
-    , { level = 3, name = "ii" }
-    , { level = 2, name = "c" }
-    , { level = 1, name = "B" }
-    , { level = 1, name = "C" }
-    ]
-
-
-testData2 =
-    [ { level = 0, name = "I" }
-    , { level = 1, name = "A" }
-    , { level = 2, name = "i" }
-    , { level = 2, name = "ii" }
-    , { level = 1, name = "B" }
-    , { level = 1, name = "P" }
-    , { level = 2, name = "i" }
-    , { level = 2, name = "ii" }
-    , { level = 1, name = "Q" }
-    ]

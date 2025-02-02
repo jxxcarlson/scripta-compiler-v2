@@ -11,7 +11,7 @@ import Generic.ASTTools
 import Generic.Acc exposing (Accumulator)
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExprMeta, Expression, ExpressionBlock)
-import Library.Forest
+import Library.Tree
 import List.Extra
 import Render.Expression
 import Render.Settings
@@ -206,7 +206,7 @@ getHeadings : Forest ExpressionBlock -> { title : List Expression, subtitle : Li
 getHeadings ast =
     let
         flattened =
-            List.map Library.Forest.flatten ast |> List.concat
+            List.map Library.Tree.flatten ast |> List.concat
 
         title : List Expression
         title =

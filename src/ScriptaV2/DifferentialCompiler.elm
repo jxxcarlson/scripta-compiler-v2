@@ -22,7 +22,7 @@ import Generic.ForestTransform
 import Generic.Language exposing (ExpressionBlock, PrimitiveBlock)
 import Generic.Pipeline
 import Generic.PrimitiveBlock
-import Library.Forest
+import Library.Tree
 import M.Expression
 import M.PrimitiveBlock
 import MicroLaTeX.Expression
@@ -186,7 +186,7 @@ messagesFromForest forest =
 
 messagesFromTree : Tree.Tree ExpressionBlock -> List String
 messagesFromTree tree =
-    List.map Generic.BlockUtilities.getMessages (Library.Forest.flatten tree) |> List.concat
+    List.map Generic.BlockUtilities.getMessages (Library.Tree.flatten tree) |> List.concat
 
 
 changeLineNumber : Int -> ExpressionBlock -> ExpressionBlock
