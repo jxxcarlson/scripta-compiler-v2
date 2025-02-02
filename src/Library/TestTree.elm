@@ -1,4 +1,4 @@
-module Library.TestTree exposing (..)
+module Library.TestTree exposing (ta, test1, test2, testEquality)
 
 import Library.Tree exposing (makeTree, print)
 
@@ -7,27 +7,39 @@ import Library.Tree exposing (makeTree, print)
 -- TESTS
 
 
+{-| Passed (see print output)
+-}
 test1 =
     makeTree (\a -> a.level) testData1 |> Maybe.map (print (\a -> a.name))
 
 
+{-| Passed (see print output)
+-}
 test2 =
     makeTree (\a -> a.level) testData2 |> Maybe.map (print (\a -> a.name))
 
 
+{-| Passed (see print output)
+-}
 ta =
-    makeTree (\a -> a.level) tDA |> Maybe.map (print (\a -> a.name))
+    makeTree (\a -> a.level) tA |> Maybe.map (print (\a -> a.name))
 
 
-tb =
-    makeTree (\a -> a.level) tDB |> Maybe.map (print (\a -> a.name))
+{-| tb => True
+-}
+testEquality =
+    ( ta == tb_, ta == tc_ )
 
 
-tc =
-    makeTree (\a -> a.level) tDC |> Maybe.map (print (\a -> a.name))
+tb_ =
+    makeTree (\a -> a.level) tB |> Maybe.map (print (\a -> a.name))
 
 
-tDA =
+tc_ =
+    makeTree (\a -> a.level) tC |> Maybe.map (print (\a -> a.name))
+
+
+tA =
     [ { level = 0, name = "I" }
     , { level = 1, name = "A" }
     , { level = 1, name = "B" }
@@ -38,7 +50,7 @@ tDA =
     ]
 
 
-tDB =
+tB =
     [ { level = 1, name = "I" }
     , { level = 2, name = "A" }
     , { level = 2, name = "B" }
@@ -49,14 +61,14 @@ tDB =
     ]
 
 
-tDC =
+tC =
     [ { level = 0, name = "I" }
     , { level = 2, name = "A" }
     , { level = 2, name = "B" }
     , { level = 4, name = "x" }
     , { level = 4, name = "y" }
     , { level = 2, name = "P" }
-    , { level = 0, name = "QQ" }
+    , { level = 0, name = "Q" }
     ]
 
 
