@@ -9,7 +9,7 @@ import Array
 import Dict
 import Either exposing (Either(..))
 import Generic.Language exposing (Expr(..), Heading(..))
-import Library.Forest exposing (depths, makeForest, print, toListList)
+import Library.Forest exposing (depths, makeForest)
 import Library.Tree
 import RoseTree.Tree exposing (Tree(..))
 
@@ -20,6 +20,19 @@ in the Lamdera repl while in the repo for the Scripta app (item 2)
 -- as opposed to the same code running in the Elm or Lamdera repls while
 in the repo for the Scripta compiler (item 3).
 
+I still don't understand why I get computed = [1,1,2,1]. The imports are
+
+    import Array
+    import Dict
+    import Either exposing (Either(..))
+    import Generic.Language exposing (Expr(..), Heading(..))
+    import Library.Forest exposing (depths, makeForest)
+    import Library.Tree
+    import RoseTree.Tree exposing (Tree(..))
+
+None of them reference code in the Scripta app. Therefore
+the behavior of the code in should be the same in all three cases.
+
 Repos:
 
   - Scripta compiler: <https://github.com/jxxcarlson/scripta-compiler-v2>
@@ -27,7 +40,9 @@ Repos:
   - Scripta app: <https://github.com/jxxcarlson/microlatex-lamdera>
 
     The lists of numbers you see below are the depths of trees in a list
-    of trees. The correct value is [1,1,2,1].
+    of trees. The correct value is [1,1,2,1] in (1) but [1,1,1,1] in (2) and (3).
+    I am running the same code in both cases. The code is in module
+    Library.TestForest2. The imports
 
 1.  Elm repl running in the Scripta compiler repo:
 
