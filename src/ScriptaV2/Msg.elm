@@ -13,6 +13,7 @@ type MarkupMsg
     = SendMeta { begin : Int, end : Int, index : Int, id : String }
     | SendLineNumber { begin : Int, end : Int }
     | SelectId String
+    | ToggleTOCNodeID String
     | HighlightId String
       --| RequestAnchorOffset_
       --| ReceiveAnchorOffset_ (Maybe Int)

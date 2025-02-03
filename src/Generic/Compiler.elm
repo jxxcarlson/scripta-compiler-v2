@@ -37,7 +37,6 @@ parse_ lang primitiveBlockParser exprParser idPrefix outerCount lines =
     lines
         |> primitiveBlockParser idPrefix outerCount
         |> Generic.ForestTransform.forestFromBlocks .indent
-        |> Debug.log "@@:forestFromBlocks"
         |> Generic.Forest.map (Generic.Pipeline.toExpressionBlock lang exprParser)
 
 
@@ -77,3 +76,15 @@ type alias DisplaySettings =
     , data : Dict String String
     , idsOfOpenNodes : List String
     }
+
+
+
+-- From ScriptaV2.Compiler
+-- type alias CompilerParameters =
+--    { lang : Language
+--    , docWidth : Int
+--    , editCount : Int
+--    , selectedId : String
+--    , idsOfOpenNodes : List String
+--    , filter : Filter
+--    }

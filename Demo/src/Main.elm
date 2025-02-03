@@ -14,7 +14,9 @@ import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
+import List.Extra
 import ScriptaV2.APISimple
+import ScriptaV2.Compiler
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
 import Task
@@ -41,6 +43,7 @@ type alias Model =
     , windowHeight : Int
     , currentLanguage : ScriptaV2.Language.Language
     , selectId : String
+    , idsOfOpenNodes : List String
     }
 
 
@@ -80,6 +83,7 @@ init flags =
       , windowHeight = flags.window.windowHeight
       , currentLanguage = ScriptaV2.Language.MicroLaTeXLang
       , selectId = "@InitID"
+      , idsOfOpenNodes = []
       }
     , Cmd.none
     )
@@ -113,6 +117,21 @@ update msg model =
 
                     else
                         ( { model | selectId = id }, Cmd.none )
+
+                ScriptaV2.Msg.ToggleTOCNodeID id ->
+                    let
+                        idsOfOpenNodes =
+                            if String.left 2 id == "@-" then
+                                if List.member id model.idsOfOpenNodes then
+                                    List.Extra.remove id model.idsOfOpenNodes
+
+                                else
+                                    id :: model.idsOfOpenNodes
+
+                            else
+                                model.idsOfOpenNodes
+                    in
+                    ( { model | idsOfOpenNodes = idsOfOpenNodes |> Debug.log ("@@::idsOfOpenNodes, " ++ id) }, Cmd.none )
 
                 ScriptaV2.Msg.SendLineNumber line ->
                     ( model, Cmd.none )
@@ -245,6 +264,16 @@ title str =
 
 displayRenderedText : Model -> Element MarkupMsg
 displayRenderedText model =
+    let
+        params =
+            { lang = model.currentLanguage
+            , docWidth = model.windowWidth - 3 * xPadding
+            , editCount = model.count
+            , selectedId = "selectedId"
+            , idsOfOpenNodes = model.idsOfOpenNodes
+            , filter = ScriptaV2.Compiler.NoFilter
+            }
+    in
     column [ spacing 8, Font.size 14 ]
         [ el [ fontGray 0.9 ] (text "Rendered Text")
         , column
@@ -256,10 +285,7 @@ displayRenderedText model =
             , htmlId "rendered-text"
             , scrollbarY
             ]
-            (ScriptaV2.APISimple.compile
-                { lang = model.currentLanguage, docWidth = panelWidth model - 3 * xPadding, editCount = model.count }
-                model.sourceText
-            )
+            (ScriptaV2.APISimple.compile params model.sourceText)
         ]
 
 

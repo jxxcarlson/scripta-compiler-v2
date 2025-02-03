@@ -45,6 +45,6 @@ defined by docWidth. The editCount should be 0 for a static document. For docume
 in a live editing context, the editCount should be increment after each edit.
 This ensures that the rendered text is properly updated.
 -}
-compile : { lang : Language, docWidth : Int, editCount : Int } -> String -> List (Element MarkupMsg)
-compile { lang, docWidth, editCount } sourceText =
-    ScriptaV2.Compiler.compile ScriptaV2.Compiler.NoFilter lang docWidth editCount "" (String.lines sourceText) |> ScriptaV2.Compiler.view docWidth
+compile : ScriptaV2.Compiler.CompilerParameters -> String -> List (Element MarkupMsg)
+compile params sourceText =
+    ScriptaV2.Compiler.compile params (String.lines sourceText) |> ScriptaV2.Compiler.view params.docWidth

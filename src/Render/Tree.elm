@@ -1,4 +1,4 @@
-module Render.Tree exposing (renderTreeQ)
+module Render.Tree exposing (renderTree)
 
 -- import Render.Block
 
@@ -79,8 +79,8 @@ r1 k a s block =
     [ Font.italic ]
 
 
-renderTreeQ : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> RoseTree.Tree.Tree ExpressionBlock -> Element MarkupMsg
-renderTreeQ count accumulator settings attrs_ tree =
+renderTree : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> RoseTree.Tree.Tree ExpressionBlock -> Element MarkupMsg
+renderTree count accumulator settings attrs_ tree =
     let
         root =
             RoseTree.Tree.value tree
@@ -103,14 +103,14 @@ renderTreeQ count accumulator settings attrs_ tree =
                 Element.column [ Element.paddingEach { left = 12, right = 12, top = 0, bottom = 0 } ]
                     [ Element.column (Render.Block.renderAttributes settings_ root ++ rootAttributes root)
                         (Render.Block.renderBody count accumulator settings_ attrs_ root
-                            ++ List.map (renderTreeQ count accumulator settings_ (attrs_ ++ innerAttributes root ++ blockAttrs)) children
+                            ++ List.map (renderTree count accumulator settings_ (attrs_ ++ innerAttributes root ++ blockAttrs)) children
                         )
                     ]
 
             else
                 Element.column (Element.spacing 12 :: rootAttributes root)
                     (Render.Block.renderBody count accumulator settings (rootAttributes root) root
-                        ++ List.map (renderTreeQ count accumulator settings (attrs_ ++ rootAttributes root ++ blockAttrs)) children
+                        ++ List.map (renderTree count accumulator settings (attrs_ ++ rootAttributes root ++ blockAttrs)) children
                     )
 
 

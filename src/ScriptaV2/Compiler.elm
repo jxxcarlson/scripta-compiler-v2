@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
     ( CompilerOutput, Filter(..), compile, parse, parseFromString, render, renderForest, view, viewTOC, filterForest, px, viewBody
-    , pl, pm, ps
+    , CompilerParameters, pl, pm, ps
     )
 
 {-|
@@ -30,6 +30,17 @@ import ScriptaV2.Language exposing (Language(..))
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
+
+
+{-| -}
+type alias CompilerParameters =
+    { lang : Language
+    , docWidth : Int
+    , editCount : Int
+    , selectedId : String
+    , idsOfOpenNodes : List String
+    , filter : Filter
+    }
 
 
 {-| -}
@@ -108,17 +119,17 @@ bottomPadding k =
     Used only in View.Phone (twice)
 
 -}
-compile : Filter -> Language -> Int -> Int -> String -> List String -> CompilerOutput
-compile filter lang width outerCount selectedId lines =
-    case lang of
+compile : CompilerParameters -> List String -> CompilerOutput
+compile params lines =
+    case params.lang of
         EnclosureLang ->
-            compileM filter width outerCount selectedId lines |> Debug.log "@@:compile"
+            compileM params lines
 
         MicroLaTeXLang ->
-            compileL filter width outerCount selectedId lines
+            compileL params lines
 
         SMarkdownLang ->
-            compileX filter width outerCount selectedId lines
+            compileX params lines
 
 
 {-|
@@ -192,7 +203,6 @@ px str =
 parseL : String -> Int -> List String -> Forest ExpressionBlock
 parseL idPrefix outerCount lines =
     Generic.Compiler.parse_ MicroLaTeXLang MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
-        |> Debug.log "@@:parseL"
 
 
 
@@ -231,23 +241,23 @@ filterForest filter forest =
                 |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "document")
 
 
-compileM : Filter -> Int -> Int -> String -> List String -> CompilerOutput
-compileM filter width outerCount selectedId lines =
-    render width selectedId outerCount (filterForest filter (parseM Config.idPrefix outerCount lines))
+compileM : CompilerParameters -> List String -> CompilerOutput
+compileM params lines =
+    render params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
 
 
-compileX : Filter -> Int -> Int -> String -> List String -> CompilerOutput
-compileX filter width outerCount selectedId lines =
-    render width selectedId outerCount (filterForest filter (parseX Config.idPrefix outerCount lines))
+compileX : CompilerParameters -> List String -> CompilerOutput
+compileX params lines =
+    render params (filterForest params.filter (parseX Config.idPrefix params.editCount lines))
 
 
 
 -- LaTeX compiler
 
 
-compileL : Filter -> Int -> Int -> String -> List String -> CompilerOutput
-compileL filter width outerCount selectedId lines =
-    render width selectedId outerCount (filterForest filter (parseL Config.idPrefix outerCount lines))
+compileL : CompilerParameters -> List String -> CompilerOutput
+compileL params lines =
+    render params (filterForest params.filter (parseL Config.idPrefix params.editCount lines))
 
 
 {-|
@@ -263,19 +273,19 @@ type alias ViewParameters =
 }
 
 -}
-render : Int -> String -> Int -> Forest ExpressionBlock -> CompilerOutput
-render width selectedId outerCount forest_ =
+render : CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
+render params forest_ =
     let
         renderSettings =
-            Generic.Compiler.defaultRenderSettings width selectedId
+            Generic.Compiler.defaultRenderSettings params.docWidth params.selectedId
 
         ( accumulator, forest ) =
             Generic.Acc.transformAccumulate Generic.Acc.initialData forest_
 
         viewParameters =
-            { idsOfOpenNodes = []
-            , selectedId = selectedId
-            , counter = outerCount
+            { idsOfOpenNodes = params.idsOfOpenNodes
+            , selectedId = params.selectedId
+            , counter = params.editCount
             , attr = []
             , settings = renderSettings
             }
@@ -289,7 +299,7 @@ render width selectedId outerCount forest_ =
         banner : Maybe (Element MarkupMsg)
         banner =
             Generic.ASTTools.banner forest
-                |> Maybe.map (Render.Block.renderBody outerCount accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
+                |> Maybe.map (Render.Block.renderBody params.editCount accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
                 |> Maybe.map (Element.row [ Element.height (Element.px 40) ])
 
         title : Element MarkupMsg
@@ -297,7 +307,7 @@ render width selectedId outerCount forest_ =
             Element.paragraph [] [ Element.text <| Generic.ASTTools.title forest ]
     in
     { body =
-        renderForest outerCount renderSettings accumulator forest
+        renderForest params.editCount renderSettings accumulator forest
     , banner = banner
     , toc = toc
     , title = title
@@ -311,7 +321,7 @@ render width selectedId outerCount forest_ =
 -}
 renderForest : Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> List (RoseTree.Tree.Tree ExpressionBlock) -> List (Element MarkupMsg)
 renderForest count renderSettings accumulator =
-    List.map (Render.Tree.renderTreeQ count accumulator renderSettings [])
+    List.map (Render.Tree.renderTree count accumulator renderSettings [])
 
 
 

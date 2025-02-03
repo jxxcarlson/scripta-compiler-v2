@@ -14,7 +14,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
-import ScriptaV2.APISimple
+import List.Extra
 import ScriptaV2.Compiler
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
@@ -42,6 +42,7 @@ type alias Model =
     , windowHeight : Int
     , currentLanguage : ScriptaV2.Language.Language
     , selectId : String
+    , idsOfOpenNodes : List String
     }
 
 
@@ -77,6 +78,7 @@ init flags =
       , windowHeight = flags.window.windowHeight
       , currentLanguage = ScriptaV2.Language.MicroLaTeXLang
       , selectId = "@InitID"
+      , idsOfOpenNodes = []
       }
     , Cmd.none
     )
@@ -104,6 +106,21 @@ update msg model =
 
         Render msg_ ->
             case msg_ of
+                ScriptaV2.Msg.ToggleTOCNodeID id ->
+                    let
+                        idsOfOpenNodes =
+                            if String.left 2 id == "@-" then
+                                if List.member id model.idsOfOpenNodes then
+                                    List.Extra.remove id model.idsOfOpenNodes
+
+                                else
+                                    id :: model.idsOfOpenNodes
+
+                            else
+                                model.idsOfOpenNodes
+                    in
+                    ( { model | idsOfOpenNodes = idsOfOpenNodes |> Debug.log ("@@::idsOfOpenNodes, " ++ id) }, Cmd.none )
+
                 ScriptaV2.Msg.SelectId id ->
                     if id == "title" then
                         ( { model | selectId = id }, jumpToTopOf "rendered-text" )
@@ -134,17 +151,17 @@ view model =
 mainColumn : Model -> Element Msg
 mainColumn model =
     let
-        compilerOutput =
-            ScriptaV2.Compiler.compile
-                ScriptaV2.Compiler.NoFilter
-                model.currentLanguage
-                (rhPanelWidth model - 3 * xPadding)
-                model.count
-                "selectedId"
-                (String.lines model.sourceText)
+        params =
+            { lang = model.currentLanguage
+            , docWidth = rhPanelWidth model - 3 * xPadding
+            , editCount = model.count
+            , selectedId = "selectedId"
+            , idsOfOpenNodes = model.idsOfOpenNodes
+            , filter = ScriptaV2.Compiler.NoFilter
+            }
 
-        _ =
-            compilerOutput.toc |> Debug.log "@@::compilerOutput.toc"
+        compilerOutput =
+            ScriptaV2.Compiler.compile params (String.lines model.sourceText)
     in
     column mainColumnStyle
         [ column [ width (px <| appWidth model), height (px <| appHeight model), clipY ]

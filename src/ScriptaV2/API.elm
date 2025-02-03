@@ -21,12 +21,13 @@ settings =
 
 
 {-| -}
-compile : { filter : ScriptaV2.Compiler.Filter, lang : Language, width : Int } -> Int -> String -> List String -> List (Element MarkupMsg)
-compile { filter, lang, width } outerCount selectedId lines =
-    ScriptaV2.Compiler.compile filter lang width outerCount selectedId lines |> ScriptaV2.Compiler.view width
+compile : ScriptaV2.Compiler.CompilerParameters -> List String -> List (Element MarkupMsg)
+compile params lines =
+    ScriptaV2.Compiler.compile params lines |> ScriptaV2.Compiler.view params.docWidth
 
 
 {-| -}
-compileString : ScriptaV2.Compiler.Filter -> Language -> Int -> String -> List (Element MarkupMsg)
-compileString filter lang width str =
-    ScriptaV2.Compiler.compile filter lang width 0 "---" (String.lines str) |> ScriptaV2.Compiler.view width
+compileString : ScriptaV2.Compiler.CompilerParameters -> String -> List (Element MarkupMsg)
+compileString params str =
+    -- ScriptaV2.Compiler.compile filter lang width 0 "---" (String.lines str) |> ScriptaV2.Compiler.view width
+    ScriptaV2.Compiler.compile params (String.lines str) |> ScriptaV2.Compiler.view params.docWidth

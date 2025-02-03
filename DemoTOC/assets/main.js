@@ -1,4 +1,4 @@
-// elm-watch hot {"version":"1.1.2","targetName":"My target name","webSocketPort":65388}
+// elm-watch hot {"version":"1.1.2","targetName":"My target name","webSocketPort":63197}
 "use strict";
 (() => {
   // node_modules/tiny-decoders/index.mjs
@@ -604,11 +604,11 @@ ${variant}`;
   var VERSION = "1.1.2";
   var TARGET_NAME = "My target name";
   var INITIAL_ELM_COMPILED_TIMESTAMP = Number(
-    "1738044580999"
+    "1738605772795"
   );
   var ORIGINAL_COMPILATION_MODE = "standard";
   var ORIGINAL_BROWSER_UI_POSITION = "BottomLeft";
-  var WEBSOCKET_PORT = "65388";
+  var WEBSOCKET_PORT = "63197";
   var CONTAINER_ID = "elm-watch";
   var DEBUG = String("false") === "true";
   var BROWSER_UI_MOVED_EVENT = "BROWSER_UI_MOVED_EVENT";
@@ -8546,7 +8546,7 @@ var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Data$MicroLaTeX$text = '\n\\title{Test}\n\n\\section{Math}\n\n\n\n\\begin{theorem}\nBlah blah blah\n\n  \\begin{equation}\n  a^2 + b^2 = c^2\n  \\end{equation}\n\n  this is great!\n\n\\end{theorem}\n\n\\section{Tables and Arrays}\n\n\\begin{textarray}{rrr}\na & $x^2$ &777\\\\\nfoo & bar & baz\n\\end{textarray}\n\n\\hrule\n\n\\begin{table}{rrr}\na & $x^2$ &666 \\\\\nfoo & bar & baz\n\\end{table}\n\n\\hrule\n\n\n\\begin{array}{ccc}\na & b & c \\\\\n1 & 2 & 3\n\\end{array}\n\n\\hrule\n\n\n\n';
 var $author$project$Main$init = function (flags) {
 	return _Utils_Tuple2(
-		{count: 0, currentLanguage: $author$project$ScriptaV2$Language$MicroLaTeXLang, selectId: '@InitID', sourceText: $author$project$Data$MicroLaTeX$text, windowHeight: flags.window.windowHeight, windowWidth: flags.window.windowWidth},
+		{count: 0, currentLanguage: $author$project$ScriptaV2$Language$MicroLaTeXLang, idsOfOpenNodes: _List_Nil, selectId: '@InitID', sourceText: $author$project$Data$MicroLaTeX$text, windowHeight: flags.window.windowHeight, windowWidth: flags.window.windowWidth},
 		$elm$core$Platform$Cmd$none);
 };
 var $elm$json$Json$Decode$int = _Json_decodeInt;
@@ -9011,6 +9011,70 @@ var $author$project$Main$jumpToTopOf = function (id) {
 			},
 			$elm$browser$Browser$Dom$getViewportOf(id)));
 };
+var $elm$core$Debug$log = _Debug_log;
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
+var $elmcraft$core_extra$List$Extra$reverseAppend = F2(
+	function (list1, list2) {
+		return A3($elm$core$List$foldl, $elm$core$List$cons, list2, list1);
+	});
+var $elmcraft$core_extra$List$Extra$removeHelp = F4(
+	function (list, x, xs, previousElements) {
+		removeHelp:
+		while (true) {
+			if (!xs.b) {
+				return list;
+			} else {
+				var y = xs.a;
+				var ys = xs.b;
+				if (_Utils_eq(x, y)) {
+					return A2($elmcraft$core_extra$List$Extra$reverseAppend, previousElements, ys);
+				} else {
+					var $temp$list = list,
+						$temp$x = x,
+						$temp$xs = ys,
+						$temp$previousElements = A2($elm$core$List$cons, y, previousElements);
+					list = $temp$list;
+					x = $temp$x;
+					xs = $temp$xs;
+					previousElements = $temp$previousElements;
+					continue removeHelp;
+				}
+			}
+		}
+	});
+var $elmcraft$core_extra$List$Extra$remove = F2(
+	function (x, xs) {
+		return A4($elmcraft$core_extra$List$Extra$removeHelp, xs, x, xs, _List_Nil);
+	});
 var $author$project$Data$M$text0 = '\n\n| title\nTEST\n\n# Math\n\n|| mathmacros\n\\newcommand{\\foo}{y^3}\n\n$\\foo = 1$\n\nabc\n\n| theorem\nBlah blah blah\n\n  || equation\n  a^2 + b^2 = c^2\n\n  this  is great!\n\ndef\n\n\n| theorem\nA basic property of Euclidean space:\n\n  || equation\n  a^2 + b^2 = c^2\n\n  This is due to Pythagoras\n\n## Stuff\n\nfee fie fo fum ...\n\n## More Stuff\n\nTwas brillig ..\n\n# Arrays and Tables\n\n|| textarray\na & b & c\n$x^2$ & $y^2 - 3$ & $df/dx = x^2$\n\n|| table\na & b & c\n$x^2$ & $y^2 - 3$ & $df/dx = x^2$\n\n# Lists\n\nList:\n\n- ABC\n\n  - 123\n\n  - 456\n\n- DEF\n\n ';
 var $author$project$Data$M$text = $author$project$Data$M$text0;
 var $author$project$Data$XMarkdown$text = '\n\n\n!! XMarkdown Test Document\n\n# Stuff\n\n- **some of its history**\n\n## More stuff\n\n- @[red Introduce] notions that will be studied in detail in what follows.\n\n@[hrule]\n\n# Lists\n\n. This\n\n. That\n\n  . Foo\n\n  . Bar\n\n\n\nAnother list:\n\n. This\n\n. That\n\n  . Foo\n\n  . Bar\n\n# Links and images\n\nI read the [New York Times](https://nytimes.com) every day.\n\n![Divorce party](https://imagedelivery.net/9U-0Y4sEzXlO6BXzTnQnYQ/663d702e-ba37-4227-1019-85fe74261900/public)\n\n\n# Type Theory\n\n*Type theory* brings together programming, logic, and mathematics.\n We outline\n\n\n\n# Mathematics\n\nPythagoras said that $z^2 = x^2 + y^2$.\n\nNewton said that\n\n $$\n \\int_0^1 x^2 dx = \\frac{1}{3}\n\n# Code\n\n\nHere is some inline code: `a[0] = $1`.\n\nHere is some Python code:\n\n```\ndef factorial(n):\n    if n == 0:\n        return 1\n    else:\n        return n * factorial(n - 1)\n```\n\n ';
@@ -9057,6 +9121,16 @@ var $author$project$Main$update = F2(
 			default:
 				var msg_ = msg.a;
 				switch (msg_.$) {
+					case 'ToggleTOCNodeID':
+						var id = msg_.a;
+						var idsOfOpenNodes = (A2($elm$core$String$left, 2, id) === '@-') ? (A2($elm$core$List$member, id, model.idsOfOpenNodes) ? A2($elmcraft$core_extra$List$Extra$remove, id, model.idsOfOpenNodes) : A2($elm$core$List$cons, id, model.idsOfOpenNodes)) : model.idsOfOpenNodes;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									idsOfOpenNodes: A2($elm$core$Debug$log, '@@::idsOfOpenNodes, ' + id, idsOfOpenNodes)
+								}),
+							$elm$core$Platform$Cmd$none);
 					case 'SelectId':
 						var id = msg_.a;
 						return (id === 'title') ? _Utils_Tuple2(
@@ -11760,27 +11834,6 @@ var $elm$json$Json$Encode$object = function (pairs) {
 			_Json_emptyObject(_Utils_Tuple0),
 			pairs));
 };
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
 var $mdgriffith$elm_ui$Internal$Model$fontName = function (font) {
 	switch (font.$) {
 		case 'Serif':
@@ -14962,7 +15015,6 @@ var $author$project$ScriptaV2$Compiler$filterForest = F2(
 		}
 	});
 var $author$project$ScriptaV2$Config$idPrefix = '@';
-var $elm$core$Debug$log = _Debug_log;
 var $author$project$MicroLaTeX$Expression$initWithTokens = F2(
 	function (lineNumber, tokens) {
 		return {
@@ -15613,15 +15665,6 @@ var $author$project$Tools$Loop$loop = F2(
 				return b;
 			}
 		}
-	});
-var $elm$core$List$member = F2(
-	function (x, xs) {
-		return A2(
-			$elm$core$List$any,
-			function (a) {
-				return _Utils_eq(a, x);
-			},
-			xs);
 	});
 var $author$project$Tools$Loop$Done = function (a) {
 	return {$: 'Done', a: a};
@@ -21579,10 +21622,7 @@ var $author$project$Library$Forest$nextStep = F2(
 		} else {
 			var x = _v0.a;
 			var xs = _v0.b;
-			var level = A2(
-				$elm$core$Debug$log,
-				'@@::level',
-				getLevel(x));
+			var level = getLevel(x);
 			return _Utils_eq(level, state.rootLevel) ? $author$project$Library$Forest$Loop(
 				_Utils_update(
 					state,
@@ -21615,11 +21655,6 @@ var $author$project$Library$Forest$toListList = F2(
 	});
 var $author$project$Library$Forest$makeForest = F2(
 	function (getLevel, input) {
-		var _v0 = A2(
-			$elm$core$Debug$log,
-			'@@::toListList(2), length',
-			$elm$core$List$length(
-				A2($author$project$Library$Forest$toListList, getLevel, input)));
 		return A2(
 			$elm$core$List$filterMap,
 			$elm$core$Basics$identity,
@@ -21794,21 +21829,15 @@ var $author$project$Generic$Compiler$parse_ = F6(
 			$author$project$Generic$Forest$map,
 			A2($author$project$Generic$Pipeline$toExpressionBlock, lang, exprParser),
 			A2(
-				$elm$core$Debug$log,
-				'@@:forestFromBlocks',
-				A2(
-					$author$project$Generic$ForestTransform$forestFromBlocks,
-					function ($) {
-						return $.indent;
-					},
-					A3(primitiveBlockParser, idPrefix, outerCount, lines))));
+				$author$project$Generic$ForestTransform$forestFromBlocks,
+				function ($) {
+					return $.indent;
+				},
+				A3(primitiveBlockParser, idPrefix, outerCount, lines)));
 	});
 var $author$project$ScriptaV2$Compiler$parseL = F3(
 	function (idPrefix, outerCount, lines) {
-		return A2(
-			$elm$core$Debug$log,
-			'@@:parseL',
-			A6($author$project$Generic$Compiler$parse_, $author$project$ScriptaV2$Language$MicroLaTeXLang, $author$project$MicroLaTeX$PrimitiveBlock$parse, $author$project$MicroLaTeX$Expression$parse, idPrefix, outerCount, lines));
+		return A6($author$project$Generic$Compiler$parse_, $author$project$ScriptaV2$Language$MicroLaTeXLang, $author$project$MicroLaTeX$PrimitiveBlock$parse, $author$project$MicroLaTeX$Expression$parse, idPrefix, outerCount, lines);
 	});
 var $author$project$Generic$ASTTools$changeName = F3(
 	function (oldName, newName, block) {
@@ -21849,7 +21878,7 @@ var $maca$elm_rose_tree$RoseTree$Tree$foldr = F3(
 				acc),
 			ns);
 	});
-var $author$project$Library$Forest$flatten = A2(
+var $author$project$Library$Tree$flatten = A2(
 	$maca$elm_rose_tree$RoseTree$Tree$foldr,
 	F2(
 		function (n, acc) {
@@ -21866,7 +21895,7 @@ var $author$project$Generic$ASTTools$getBlockByName = F2(
 				$author$project$Generic$ASTTools$filterBlocksOnName,
 				name,
 				$elm$core$List$concat(
-					A2($elm$core$List$map, $author$project$Library$Forest$flatten, ast))));
+					A2($elm$core$List$map, $author$project$Library$Tree$flatten, ast))));
 	});
 var $author$project$Generic$ASTTools$banner = function (ast) {
 	return A2(
@@ -46308,36 +46337,20 @@ var $author$project$Generic$Acc$transformAccumulate = F2(
 					_List_Nil),
 				forest));
 	});
-var $author$project$Library$Tree$depth = function (tree) {
-	var _v0 = $maca$elm_rose_tree$RoseTree$Tree$children(tree);
-	if (!_v0.b) {
-		return 1;
-	} else {
-		var children = _v0;
-		return A2(
-			$elm$core$Maybe$withDefault,
-			0,
-			$elm$core$List$maximum(
-				A2($elm$core$List$map, $author$project$Library$Tree$depth, children))) + 1;
-	}
-};
-var $author$project$Library$Forest$lev = function (_v0) {
+var $author$project$Library$Tree$lev = function (_v0) {
 	var block = _v0.block;
 	var _v1 = A2($elm$core$Dict$get, 'level', block.properties);
 	if (_v1.$ === 'Just') {
 		var level = _v1.a;
-		return A2(
-			$elm$core$Debug$log,
-			'@@::lev(1)',
-			function (x) {
-				return x - 1;
-			}(
-				A2(
-					$elm$core$Maybe$withDefault,
-					1,
-					$elm$core$String$toInt(level))));
+		return function (x) {
+			return x - 1;
+		}(
+			A2(
+				$elm$core$Maybe$withDefault,
+				1,
+				$elm$core$String$toInt(level)));
 	} else {
-		return A2($elm$core$Debug$log, '@@::lev(2)', 0);
+		return 0;
 	}
 };
 var $author$project$Render$TOCTree$tocLevel = function (block) {
@@ -46363,8 +46376,11 @@ var $author$project$Render$TOCTree$makeNodeValue = F2(
 			},
 			block);
 		var level = $author$project$Render$TOCTree$tocLevel(block);
-		var visibility = (level <= 3) || A2($elm$core$List$member, block.meta.id, idsOfOpenNodes);
-		return {block: newBlock, visible: visibility};
+		var visible = A2(
+			$elm$core$Debug$log,
+			'@@::visibility' + block.meta.id,
+			(level <= 1) || A2($elm$core$List$member, block.meta.id, idsOfOpenNodes));
+		return {block: newBlock, visible: true};
 	});
 var $author$project$Generic$ASTTools$tableOfContents = F2(
 	function (maximumLevel, ast) {
@@ -46372,27 +46388,10 @@ var $author$project$Generic$ASTTools$tableOfContents = F2(
 			$author$project$Generic$ASTTools$filterBlocksOnName,
 			'section',
 			$elm$core$List$concat(
-				A2($elm$core$List$map, $author$project$Library$Forest$flatten, ast)));
+				A2($elm$core$List$map, $author$project$Library$Tree$flatten, ast)));
 	});
-var $author$project$Generic$Language$getMetaFromBlock = function (block) {
-	var _v0 = block.body;
-	if (_v0.$ === 'Left') {
-		return $elm$core$Maybe$Nothing;
-	} else {
-		var exprList = _v0.a;
-		return A2(
-			$elm$core$Maybe$map,
-			$author$project$Generic$Language$getMeta,
-			$elm$core$List$head(exprList));
-	}
-};
-var $author$project$Generic$Language$getIdFromBlock = function (block) {
-	return A2(
-		$elm$core$Maybe$map,
-		function ($) {
-			return $.id;
-		},
-		$author$project$Generic$Language$getMetaFromBlock(block));
+var $author$project$ScriptaV2$Msg$ToggleTOCNodeID = function (a) {
+	return {$: 'ToggleTOCNodeID', a: a};
 };
 var $author$project$Render$TOCTree$tocIndentAux = function (args) {
 	var _v0 = $elm$core$List$head(args);
@@ -46453,6 +46452,7 @@ var $author$project$Render$TOCTree$viewTocItem_ = F3(
 					}
 				}
 			}();
+			var nodeId = block.meta.id;
 			var id = $author$project$ScriptaV2$Config$expressionIdPrefix + ($elm$core$String$fromInt(block.meta.lineNumber) + '.0');
 			var content = A2(
 				$mdgriffith$elm_ui$Element$paragraph,
@@ -46474,6 +46474,8 @@ var $author$project$Render$TOCTree$viewTocItem_ = F3(
 					[
 						$mdgriffith$elm_ui$Element$Events$onClick(
 						$author$project$ScriptaV2$Msg$SelectId(id)),
+						$mdgriffith$elm_ui$Element$Events$onClick(
+						$author$project$ScriptaV2$Msg$ToggleTOCNodeID(nodeId)),
 						$mdgriffith$elm_ui$Element$Font$size(14)
 					]),
 				A2(
@@ -46495,11 +46497,7 @@ var $author$project$Render$TOCTree$viewNode = F4(
 var $author$project$Render$TOCTree$viewTOCTree = F6(
 	function (viewParameters, acc, depth, indentation, maybeFoundIds, tocTree) {
 		var val = $maca$elm_rose_tree$RoseTree$Tree$value(tocTree);
-		var level = indentation + 1;
-		var children = ((level === 1) && A2(
-			$elm$core$List$member,
-			$author$project$Generic$Language$getIdFromBlock(val.block),
-			A2($elm$core$List$map, $elm$core$Maybe$Just, viewParameters.idsOfOpenNodes))) ? $maca$elm_rose_tree$RoseTree$Tree$children(tocTree) : _List_Nil;
+		var children = A2($elm$core$List$member, val.block.meta.id, viewParameters.idsOfOpenNodes) ? $maca$elm_rose_tree$RoseTree$Tree$children(tocTree) : _List_Nil;
 		return ((depth < 0) || (!val.visible)) ? $mdgriffith$elm_ui$Element$none : ($elm$core$List$isEmpty(children) ? A4($author$project$Render$TOCTree$viewNode, viewParameters, acc, indentation, val) : A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -46516,34 +46514,29 @@ var $author$project$Render$TOCTree$viewTOCTree = F6(
 	});
 var $author$project$Render$TOCTree$view = F3(
 	function (viewParameters, acc, documentAst) {
-		var tocAST = A2(
-			$elm$core$Debug$log,
-			'@@:tocAST',
-			A2($author$project$Generic$ASTTools$tableOfContents, 8, documentAst));
+		var tocAST = A2($author$project$Generic$ASTTools$tableOfContents, 8, documentAst);
 		var nodes = A2(
-			$elm$core$Debug$log,
-			'@@::tocNodes',
-			A2(
-				$elm$core$List$map,
-				$author$project$Render$TOCTree$makeNodeValue(viewParameters.idsOfOpenNodes),
-				tocAST));
-		var forest = A2(
-			$elm$core$Debug$log,
-			'@@::tocForest',
-			A2($author$project$Library$Forest$makeForest, $author$project$Library$Forest$lev, nodes));
-		var _v0 = A2(
-			$elm$core$Debug$log,
-			'@@::tocForest_DEPTHS',
-			A2($elm$core$List$map, $author$project$Library$Tree$depth, forest));
+			$elm$core$List$map,
+			$author$project$Render$TOCTree$makeNodeValue(viewParameters.idsOfOpenNodes),
+			tocAST);
+		var forest = A2($author$project$Library$Forest$makeForest, $author$project$Library$Tree$lev, nodes);
 		return A2(
 			$elm$core$List$map,
 			A5($author$project$Render$TOCTree$viewTOCTree, viewParameters, acc, 4, 0, $elm$core$Maybe$Nothing),
-			forest);
+			A2(
+				$elm$core$List$map,
+				$maca$elm_rose_tree$RoseTree$Tree$mapValues(
+					function (x) {
+						return ($author$project$Library$Tree$lev(x) > 1) ? _Utils_update(
+							x,
+							{visible: false}) : x;
+					}),
+				forest));
 	});
-var $author$project$ScriptaV2$Compiler$render = F4(
-	function (width, selectedId, outerCount, forest_) {
-		var renderSettings = A2($author$project$Generic$Compiler$defaultRenderSettings, width, selectedId);
-		var viewParameters = {attr: _List_Nil, counter: outerCount, idsOfOpenNodes: _List_Nil, selectedId: selectedId, settings: renderSettings};
+var $author$project$ScriptaV2$Compiler$render = F2(
+	function (params, forest_) {
+		var renderSettings = A2($author$project$Generic$Compiler$defaultRenderSettings, params.docWidth, params.selectedId);
+		var viewParameters = {attr: _List_Nil, counter: params.editCount, idsOfOpenNodes: params.idsOfOpenNodes, selectedId: params.selectedId, settings: renderSettings};
 		var _v0 = A2($author$project$Generic$Acc$transformAccumulate, $author$project$Generic$Acc$initialData, forest_);
 		var accumulator = _v0.a;
 		var forest = _v0.b;
@@ -46560,7 +46553,7 @@ var $author$project$ScriptaV2$Compiler$render = F4(
 				$elm$core$Maybe$map,
 				A4(
 					$author$project$Render$Block$renderBody,
-					outerCount,
+					params.editCount,
 					accumulator,
 					renderSettings,
 					_List_fromArray(
@@ -46579,22 +46572,20 @@ var $author$project$ScriptaV2$Compiler$render = F4(
 				]));
 		return {
 			banner: banner,
-			body: A4($author$project$ScriptaV2$Compiler$renderForest, outerCount, renderSettings, accumulator, forest),
+			body: A4($author$project$ScriptaV2$Compiler$renderForest, params.editCount, renderSettings, accumulator, forest),
 			title: title,
 			toc: toc
 		};
 	});
-var $author$project$ScriptaV2$Compiler$compileL = F5(
-	function (filter, width, outerCount, selectedId, lines) {
-		return A4(
+var $author$project$ScriptaV2$Compiler$compileL = F2(
+	function (params, lines) {
+		return A2(
 			$author$project$ScriptaV2$Compiler$render,
-			width,
-			selectedId,
-			outerCount,
+			params,
 			A2(
 				$author$project$ScriptaV2$Compiler$filterForest,
-				filter,
-				A3($author$project$ScriptaV2$Compiler$parseL, $author$project$ScriptaV2$Config$idPrefix, outerCount, lines)));
+				params.filter,
+				A3($author$project$ScriptaV2$Compiler$parseL, $author$project$ScriptaV2$Config$idPrefix, params.editCount, lines)));
 	});
 var $author$project$ScriptaV2$Language$EnclosureLang = {$: 'EnclosureLang'};
 var $elm$regex$Regex$find = _Regex_findAtMost(_Regex_infinity);
@@ -47595,17 +47586,15 @@ var $author$project$ScriptaV2$Compiler$parseM = F3(
 	function (idPrefix, outerCount, lines) {
 		return A6($author$project$Generic$Compiler$parse_, $author$project$ScriptaV2$Language$EnclosureLang, $author$project$M$PrimitiveBlock$parse, $author$project$M$Expression$parse, idPrefix, outerCount, lines);
 	});
-var $author$project$ScriptaV2$Compiler$compileM = F5(
-	function (filter, width, outerCount, selectedId, lines) {
-		return A4(
+var $author$project$ScriptaV2$Compiler$compileM = F2(
+	function (params, lines) {
+		return A2(
 			$author$project$ScriptaV2$Compiler$render,
-			width,
-			selectedId,
-			outerCount,
+			params,
 			A2(
 				$author$project$ScriptaV2$Compiler$filterForest,
-				filter,
-				A3($author$project$ScriptaV2$Compiler$parseM, $author$project$ScriptaV2$Config$idPrefix, outerCount, lines)));
+				params.filter,
+				A3($author$project$ScriptaV2$Compiler$parseM, $author$project$ScriptaV2$Config$idPrefix, params.editCount, lines)));
 	});
 var $author$project$ScriptaV2$Language$SMarkdownLang = {$: 'SMarkdownLang'};
 var $author$project$XMarkdown$Expression$forkLogWidth = 12;
@@ -50406,30 +50395,26 @@ var $author$project$ScriptaV2$Compiler$parseX = F3(
 	function (idPrefix, outerCount, lines) {
 		return A6($author$project$Generic$Compiler$parse_, $author$project$ScriptaV2$Language$SMarkdownLang, $author$project$XMarkdown$PrimitiveBlock$parse, $author$project$XMarkdown$Expression$parse, idPrefix, outerCount, lines);
 	});
-var $author$project$ScriptaV2$Compiler$compileX = F5(
-	function (filter, width, outerCount, selectedId, lines) {
-		return A4(
+var $author$project$ScriptaV2$Compiler$compileX = F2(
+	function (params, lines) {
+		return A2(
 			$author$project$ScriptaV2$Compiler$render,
-			width,
-			selectedId,
-			outerCount,
+			params,
 			A2(
 				$author$project$ScriptaV2$Compiler$filterForest,
-				filter,
-				A3($author$project$ScriptaV2$Compiler$parseX, $author$project$ScriptaV2$Config$idPrefix, outerCount, lines)));
+				params.filter,
+				A3($author$project$ScriptaV2$Compiler$parseX, $author$project$ScriptaV2$Config$idPrefix, params.editCount, lines)));
 	});
-var $author$project$ScriptaV2$Compiler$compile = F6(
-	function (filter, lang, width, outerCount, selectedId, lines) {
-		switch (lang.$) {
+var $author$project$ScriptaV2$Compiler$compile = F2(
+	function (params, lines) {
+		var _v0 = params.lang;
+		switch (_v0.$) {
 			case 'EnclosureLang':
-				return A2(
-					$elm$core$Debug$log,
-					'@@:compile',
-					A5($author$project$ScriptaV2$Compiler$compileM, filter, width, outerCount, selectedId, lines));
+				return A2($author$project$ScriptaV2$Compiler$compileM, params, lines);
 			case 'MicroLaTeXLang':
-				return A5($author$project$ScriptaV2$Compiler$compileL, filter, width, outerCount, selectedId, lines);
+				return A2($author$project$ScriptaV2$Compiler$compileL, params, lines);
 			default:
-				return A5($author$project$ScriptaV2$Compiler$compileX, filter, width, outerCount, selectedId, lines);
+				return A2($author$project$ScriptaV2$Compiler$compileX, params, lines);
 		}
 	});
 var $author$project$Main$fontGray = function (g) {
@@ -51453,15 +51438,18 @@ var $author$project$Main$title = function (str) {
 };
 var $author$project$Main$xPadding = 16;
 var $author$project$Main$mainColumn = function (model) {
-	var compilerOutput = A6(
+	var params = {
+		docWidth: $author$project$Main$rhPanelWidth(model) - (3 * $author$project$Main$xPadding),
+		editCount: model.count,
+		filter: $author$project$ScriptaV2$Compiler$NoFilter,
+		idsOfOpenNodes: model.idsOfOpenNodes,
+		lang: model.currentLanguage,
+		selectedId: 'selectedId'
+	};
+	var compilerOutput = A2(
 		$author$project$ScriptaV2$Compiler$compile,
-		$author$project$ScriptaV2$Compiler$NoFilter,
-		model.currentLanguage,
-		$author$project$Main$rhPanelWidth(model) - (3 * $author$project$Main$xPadding),
-		model.count,
-		'selectedId',
+		params,
 		$elm$core$String$lines(model.sourceText));
-	var _v0 = A2($elm$core$Debug$log, '@@::compilerOutput.toc', compilerOutput.toc);
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
 		$author$project$Main$mainColumnStyle,
