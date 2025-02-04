@@ -9,6 +9,7 @@ module Generic.Language exposing
     , PrimitiveBlock
     , SimpleExpressionBlock
     , SimplePrimitiveBlock
+    , Style
     , boostBlock
     , emptyBlockMeta
     , expressionBlockEmpty
