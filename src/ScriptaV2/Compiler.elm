@@ -292,8 +292,9 @@ render params forest_ =
 
         toc : List (Element MarkupMsg)
         toc =
-            -- TODO: decide what to do with this code.  Is it correct?
-            -- Render.TOC.view selectedId outerCount accumulator [] forest
+            -- this value is used in DemoTOC for the document TOC
+            -- it is NOT used for the documentTOC in Lamdera
+            --Render.TOCTree.view viewParameters accumulator forest_
             Render.TOCTree.view viewParameters accumulator forest_
 
         banner : Maybe (Element MarkupMsg)

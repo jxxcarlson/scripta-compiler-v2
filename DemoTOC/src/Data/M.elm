@@ -11,7 +11,7 @@ text0 =
 | title
 TEST
 
-# Math
+# Math Math Math Math Math Math!
 
 || mathmacros
 \\newcommand{\\foo}{y^3}
