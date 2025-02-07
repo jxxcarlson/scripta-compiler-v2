@@ -10,6 +10,8 @@ module Generic.Language exposing
     , SimpleExpressionBlock
     , SimplePrimitiveBlock
     , Style
+    , StyleAttr(..)
+    , StyleColor(..)
     , boostBlock
     , emptyBlockMeta
     , expressionBlockEmpty
