@@ -697,6 +697,7 @@ macroDict =
     Dict.fromList
         [ ( "link", \_ -> link )
         , ( "ilink", \_ -> ilink )
+        , ( "par", \_ -> par )
         , ( "index_", \_ _ -> blindIndex )
         , ( "image", Render.Export.Image.export )
         , ( "vspace", \_ -> vspace )
@@ -809,6 +810,11 @@ vspace exprs =
                 |> (\x -> x ++ "pt")
     in
     [ "\\par\\vspace{", arg, "}" ] |> String.join ""
+
+
+par : List Expression -> String
+par _ =
+    [ "\\par\\par" ] |> String.join ""
 
 
 ilink : List Expression -> String
