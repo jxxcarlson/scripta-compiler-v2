@@ -61,7 +61,7 @@ editRecordToCompilerOutput filter displaySettings editRecord =
             ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings
 
         viewParameters =
-            { idsOfOpenNodes = displaySettings.idsOfOpenNodes |> Debug.log "@@:idsOfOpenNodes"
+            { idsOfOpenNodes = displaySettings.idsOfOpenNodes
             , selectedId = displaySettings.selectedId
             , counter = displaySettings.counter
             , attr = []

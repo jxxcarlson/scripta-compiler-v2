@@ -122,7 +122,6 @@ makeNodeValue idsOfOpenNodes block =
         visible =
             (level <= 1)
                 || List.member block.meta.id idsOfOpenNodes
-                |> Debug.log ("@@::visibility" ++ block.meta.id)
 
         newBlock =
             -- The "xy" line below is needed because we also have the possibility of
