@@ -92,7 +92,7 @@ equation count acc settings attrs block =
 
         label : Element msg
         label =
-            Element.el [ Element.alignTop ] (equationLabel settings block.properties content)
+            Element.el [] (equationLabel 0 settings block.properties content)
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
         [ Element.row
@@ -110,13 +110,13 @@ highlightMath settings block =
         )
 
 
-equationLabel settings properties content =
+equationLabel dY settings properties content =
     let
         labelText =
             "(" ++ (Dict.get "equation-number" properties |> Maybe.withDefault "-") ++ ")"
 
         label_ =
-            Element.el [ Font.size 12, Element.alignRight, Element.moveDown 35 ] (Element.text labelText)
+            Element.el [ Font.size 12, Element.alignRight, Element.moveDown dY ] (Element.text labelText)
     in
     showIf settings content label_
 
@@ -182,16 +182,20 @@ aligned count acc settings attrs block =
             "\\begin{aligned}\n" ++ innerContent ++ "\n\\end{aligned}"
 
         label =
-            equationLabel settings block.properties content
+            equationLabel (deltaY adjustedLines_) settings block.properties content
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
         [ Element.row
-            (Element.width (Element.px settings.width) :: rightToLeftSyncHelper block label)
+            (Element.width (Element.px settings.width) :: rightToLeftSyncHelperAlt block label)
             [ Element.el
                 (Element.centerX :: highlightMath settings block)
                 (mathText count str block.meta.id DisplayMathMode content)
             ]
         ]
+
+
+deltaY lines =
+    12 * List.length lines |> toFloat
 
 
 array : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
@@ -246,7 +250,7 @@ array count acc settings attrs block =
             "\\begin{array}{" ++ args ++ "}\n" ++ innerContent ++ "\n\\end{array}"
 
         label =
-            equationLabel settings block.properties content
+            equationLabel (deltaY filteredLines) settings block.properties content
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
         [ Element.row
@@ -322,7 +326,7 @@ textarray count acc settings attrs block =
                 ++ "\n\\end{array}"
 
         label =
-            equationLabel settings block.properties content
+            equationLabel (deltaY adjustedLines_) settings block.properties content
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
         [ Element.row
@@ -337,6 +341,14 @@ textarray count acc settings attrs block =
 rightToLeftSyncHelper : { a | meta : { b | lineNumber : Int, numberOfLines : Int, id : String } } -> Element MarkupMsg -> List (Element.Attribute MarkupMsg)
 rightToLeftSyncHelper block label =
     [ Element.centerX, Element.spacing 12, Element.inFront label ]
+        ++ (Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
+                :: [ Render.Utility.elementAttribute "id" block.meta.id ]
+           )
+
+
+rightToLeftSyncHelperAlt : { a | meta : { b | lineNumber : Int, numberOfLines : Int, id : String } } -> Element MarkupMsg -> List (Element.Attribute MarkupMsg)
+rightToLeftSyncHelperAlt block label =
+    [ Element.centerX, Element.moveDown 18, Element.spacing 12, Element.inFront label ]
         ++ (Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
                 :: [ Render.Utility.elementAttribute "id" block.meta.id ]
            )
