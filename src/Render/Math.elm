@@ -154,7 +154,7 @@ aligned count acc settings attrs block =
         filteredLines =
             -- filter stuff out of lines of math text to be rendered:
             String.lines str
-                |> List.filter (\line -> not (String.left 6 line == "[label") && not (line == ""))
+                |> List.filter (\line -> not (String.left 6 line == "\\label") && not (line == ""))
 
         deleteTrailingSlashes inputString =
             let
