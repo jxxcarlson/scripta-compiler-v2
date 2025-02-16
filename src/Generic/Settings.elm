@@ -8,6 +8,8 @@ numberedBlockNames =
     , "theorem"
     , "definition"
     , "lemma"
+    , "construction"
+    , "principle"
     , "proposition"
     , "corollary"
     , "note"

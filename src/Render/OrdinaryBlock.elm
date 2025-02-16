@@ -654,13 +654,14 @@ env count acc settings attr block =
 
         Right exprs ->
             Element.column ([ Element.spacing 8, Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
-                [ Element.el
-                    ([ Font.bold
-                     , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
+                [ Element.row
+                    ([ Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
                      ]
                         |> Render.Sync.highlightIfIdSelected block.meta.id settings
                     )
-                    (Element.text (blockHeading block))
+                    [ Element.el [ Font.bold ] (Element.text (blockHeading block))
+                    , Element.el [] (Element.text (String.join " " block.args))
+                    ]
                 , Element.paragraph
                     ([ Font.italic
 
@@ -709,4 +710,3 @@ blockHeading block =
                     ++ " "
                     ++ (Dict.get "label" block.properties |> Maybe.withDefault "")
                     ++ ". "
-                    ++ String.join " " block.args
