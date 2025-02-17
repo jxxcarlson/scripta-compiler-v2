@@ -103,7 +103,7 @@ endnotes _ acc _ attrs block =
                 |> List.sortBy .label
     in
     Element.column ([ Element.spacing 12 ] ++ attrs)
-        (Element.el [ Font.bold ] (Element.text "Endnotes")
+        (Element.el [ Font.bold, Font.size 18 ] (Element.text "Endnotes")
             :: List.map renderFootnote endnoteList
         )
 
