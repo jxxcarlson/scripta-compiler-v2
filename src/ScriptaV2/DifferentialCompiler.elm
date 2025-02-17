@@ -103,9 +103,12 @@ type alias ExpBlockData =
 init : Dict String String -> Language -> String -> EditRecord
 init inclusionData lang str =
     let
+        _ =
+            Debug.log "@@::inclusionData" (List.map String.length (Dict.values inclusionData))
+
         initialData : { language : Language, mathMacros : String, textMacros : String, vectorSize : number }
         initialData =
-            makeInitialData inclusionData lang
+            makeInitialData inclusionData lang |> Debug.log "@@::initialData"
     in
     Differential.AbstractDifferentialParser.init (updateFunctions lang) initialData (str ++ "\n")
 
@@ -119,36 +122,49 @@ default lang =
 
 
 makeInitialData : Dict String String -> Language -> { language : Language, mathMacros : String, textMacros : String, vectorSize : number }
-makeInitialData inclusionData lang =
+makeInitialData filesToIncludeDict lang =
     let
         keys =
-            Dict.keys inclusionData
+            Dict.keys filesToIncludeDict
 
         macroKeys =
-            List.filter (\k -> String.contains "macro" (String.toLower k)) keys
-    in
-    case List.head macroKeys of
-        Nothing ->
-            default lang
+            List.filter (\k -> String.contains "texmacros" (String.toLower k)) keys
 
-        Just fileName ->
-            case Dict.get fileName inclusionData of
+        getMacroText key =
+            case Dict.get key filesToIncludeDict of
                 Nothing ->
-                    default lang
+                    Nothing
 
                 Just macroText_ ->
-                    let
-                        macroText =
-                            macroText_ ++ "\n\n"
+                    Just
+                        { mathmacros = Differential.Utility.getKeyedParagraph "|| mathmacros" macroText_ |> Maybe.withDefault ""
+                        , textmacros = Differential.Utility.getKeyedParagraph "|| textmacros" macroText_ |> Maybe.withDefault ""
+                        }
 
-                        _ =
-                            macroText
-                    in
-                    { language = lang
-                    , mathMacros = Differential.Utility.getKeyedParagraph "|| mathmacros" macroText |> Maybe.withDefault ""
-                    , textMacros = Differential.Utility.getKeyedParagraph "|| textmacros" macroText |> Maybe.withDefault ""
-                    , vectorSize = 4
-                    }
+        -- foldl : (a -> b -> b) -> b -> List a -> b
+        folder new acc =
+            { mathmacros = new.mathmacros ++ "\n" ++ acc.mathmacros, textmacros = new.textmacros ++ "\n" ++ acc.textmacros }
+
+        macroTexts : { mathmacros : String, textmacros : String }
+        macroTexts =
+            List.map getMacroText keys
+                |> List.filterMap identity
+                |> List.foldl folder { mathmacros = "", textmacros = "" }
+                |> (\r -> { mathmacros = fixup "|| mathmacros" r.mathmacros, textmacros = fixup "|| textmacros" r.textmacros })
+
+        fixup key str =
+            str
+                |> String.lines
+                |> List.map (\str_ -> String.replace key "" str_ |> String.trim)
+                |> List.filter (\str_ -> String.length str_ > 0)
+                |> String.join "\n"
+                |> (\x -> key ++ "\n" ++ x)
+    in
+    { language = lang
+    , mathMacros = macroTexts.mathmacros |> Debug.log "@@::mathMacros"
+    , textMacros = macroTexts.textmacros |> Debug.log "@@::textMacros"
+    , vectorSize = 4
+    }
 
 
 updateFunctions : Language -> Differential.AbstractDifferentialParser.UpdateFunctions PrimitiveBlock ExpressionBlock Generic.Acc.Accumulator
