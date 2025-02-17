@@ -186,7 +186,7 @@ aligned count acc settings attrs block =
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
         [ Element.row
-            (Element.width (Element.px settings.width) :: rightToLeftSyncHelperAlt block label)
+            (Element.width (Element.px settings.width) :: rightToLeftSyncHelper block label)
             [ Element.el
                 (Element.centerX :: highlightMath settings block)
                 (mathText count str block.meta.id DisplayMathMode content)
@@ -346,12 +346,14 @@ rightToLeftSyncHelper block label =
            )
 
 
-rightToLeftSyncHelperAlt : { a | meta : { b | lineNumber : Int, numberOfLines : Int, id : String } } -> Element MarkupMsg -> List (Element.Attribute MarkupMsg)
-rightToLeftSyncHelperAlt block label =
-    [ Element.centerX, Element.moveDown 18, Element.spacing 12, Element.inFront label ]
-        ++ (Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-                :: [ Render.Utility.elementAttribute "id" block.meta.id ]
-           )
+
+--
+--rightToLeftSyncHelperAlt : { a | meta : { b | lineNumber : Int, numberOfLines : Int, id : String } } -> Element MarkupMsg -> List (Element.Attribute MarkupMsg)
+--rightToLeftSyncHelperAlt block label =
+--    [ Element.centerX, Element.spacing 12, Element.inFront label ]
+--        ++ (Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
+--                :: [ Render.Utility.elementAttribute "id" block.meta.id ]
+--           )
 
 
 mathText : Int -> String -> String -> DisplayMode -> String -> Element msg
