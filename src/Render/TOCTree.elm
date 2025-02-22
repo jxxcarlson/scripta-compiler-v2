@@ -11,12 +11,13 @@ import Either exposing (Either(..))
 import Element exposing (Element)
 import Element.Events as Events
 import Element.Font as Font
+import FS.Core
+import FS.Generic
 import Generic.ASTTools
 import Generic.Acc exposing (Accumulator)
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), ExpressionBlock, Heading(..))
 import Library.Forest
-import Library.TestForest2
 import Library.Tree
 import Render.Expression
 import Render.Settings
@@ -51,24 +52,34 @@ view viewParameters acc documentAst =
 
         forest : List (Tree TOCNodeValue)
         forest =
-            Library.Forest.makeForest Library.Tree.lev nodes
-    in
-    forest
-        |> List.map
-            (RoseTree.Tree.mapValues
-                (\x ->
-                    if Library.Tree.lev x > 1 then
-                        { x | visible = False }
+            Library.Forest.makeForest Library.Tree.lev nodes |> Debug.log "@@::Forest"
+
+        vee t =
+            { length = t |> RoseTree.Tree.children >> List.length, view = viewTOCTree [] viewParameters acc 4 0 Nothing t }
+
+        vee2 t =
+            let
+                data =
+                    vee t
+
+                format =
+                    if data.length > 0 then
+                        [ Font.italic ]
 
                     else
-                        x
-                )
-            )
-        |> List.map (viewTOCTree viewParameters acc 4 0 Nothing)
+                        []
+            in
+            Element.el format data.view
+    in
+    forest
+        |> List.map vee2
 
 
-viewTOCTree : ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
-viewTOCTree viewParameters acc depth indentation maybeFoundIds tocTree =
+
+-- viewTOCTree : ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
+
+
+viewTOCTree format viewParameters acc depth indentation maybeFoundIds tocTree =
     let
         children : List (Tree TOCNodeValue)
         children =
@@ -86,12 +97,12 @@ viewTOCTree viewParameters acc depth indentation maybeFoundIds tocTree =
         Element.none
 
     else if List.isEmpty children then
-        viewNode viewParameters acc indentation val
+        Element.el [] (viewNode viewParameters acc indentation val)
 
     else
         Element.column [ Element.spacing 8 ]
-            (viewNode viewParameters acc indentation val
-                :: List.map (viewTOCTree viewParameters acc (depth - 1) (indentation + 1) maybeFoundIds)
+            (Element.el [] (viewNode viewParameters acc indentation val)
+                :: List.map (viewTOCTree [] viewParameters acc (depth - 1) (indentation + 1) maybeFoundIds)
                     children
             )
 
