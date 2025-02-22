@@ -455,8 +455,19 @@ answer count acc settings attrs block =
 reveal : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 reveal count acc settings attrs block =
     let
-        title_ =
+        preTitle =
             String.join " " block.args
+
+        title_ =
+            if preTitle == "more" then
+                if settings.selectedId /= block.meta.id then
+                    "(More ...)"
+
+                else
+                    "(Less ...)"
+
+            else
+                preTitle ++ " ..."
 
         label =
             " " ++ Render.Helper.getLabel block.properties
@@ -470,7 +481,7 @@ reveal count acc settings attrs block =
     in
     Element.column [ Element.spacing 6 ]
         [ Element.el
-            [ Font.bold
+            [ Font.italic
             , Font.color Color.blue
             , clicker
             ]
@@ -478,7 +489,7 @@ reveal count acc settings attrs block =
         , if settings.selectedId == block.meta.id then
             Element.el []
                 (Element.paragraph
-                    ([ Font.italic
+                    ([ Background.color (Element.rgb 0.925 0.925 1.0)
                      , Element.paddingXY 8 8
                      ]
                         |> Render.Sync2.sync block settings
