@@ -161,8 +161,8 @@ makeInitialData filesToIncludeDict lang =
                 |> (\x -> key ++ "\n" ++ x)
     in
     { language = lang
-    , mathMacros = macroTexts.mathmacros |> Debug.log "@@::mathMacros"
-    , textMacros = macroTexts.textmacros |> Debug.log "@@::textMacros"
+    , mathMacros = macroTexts.mathmacros
+    , textMacros = macroTexts.textmacros
     , vectorSize = 4
     }
 

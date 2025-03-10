@@ -489,8 +489,8 @@ reveal count acc settings attrs block =
         , if settings.selectedId == block.meta.id then
             Element.el []
                 (Element.paragraph
-                    ([ Background.color (Element.rgb 0.925 0.925 1.0)
-                     , Element.paddingXY 8 8
+                    ([ Background.color (Element.rgb 0.95 0.95 1.0)
+                     , Element.paddingXY 18 8
                      ]
                         |> Render.Sync2.sync block settings
                     )

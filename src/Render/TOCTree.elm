@@ -11,8 +11,6 @@ import Either exposing (Either(..))
 import Element exposing (Element)
 import Element.Events as Events
 import Element.Font as Font
-import FS.Core
-import FS.Generic
 import Generic.ASTTools
 import Generic.Acc exposing (Accumulator)
 import Generic.Forest exposing (Forest)
