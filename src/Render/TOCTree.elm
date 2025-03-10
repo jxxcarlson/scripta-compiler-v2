@@ -50,7 +50,7 @@ view viewParameters acc documentAst =
 
         forest : List (Tree TOCNodeValue)
         forest =
-            Library.Forest.makeForest Library.Tree.lev nodes |> Debug.log "@@::Forest"
+            Library.Forest.makeForest Library.Tree.lev nodes
 
         vee t =
             { length = t |> RoseTree.Tree.children >> List.length, view = viewTOCTree [] viewParameters acc 4 0 Nothing t }

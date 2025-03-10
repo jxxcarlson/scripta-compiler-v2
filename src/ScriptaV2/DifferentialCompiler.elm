@@ -103,12 +103,9 @@ type alias ExpBlockData =
 init : Dict String String -> Language -> String -> EditRecord
 init inclusionData lang str =
     let
-        _ =
-            Debug.log "@@::inclusionData" (List.map String.length (Dict.values inclusionData))
-
         initialData : { language : Language, mathMacros : String, textMacros : String, vectorSize : number }
         initialData =
-            makeInitialData inclusionData lang |> Debug.log "@@::initialData"
+            makeInitialData inclusionData lang
     in
     Differential.AbstractDifferentialParser.init (updateFunctions lang) initialData (str ++ "\n")
 
