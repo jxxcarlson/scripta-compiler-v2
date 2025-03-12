@@ -17,6 +17,7 @@ import List.Extra
 import Maybe.Extra
 import MicroScheme.Interpreter
 import Render.Graphics
+import Render.Html.Math
 import Render.Math
 import Render.Settings exposing (RenderSettings)
 import Render.Utility as Utility
@@ -171,6 +172,7 @@ markupDict =
         , ( "break", vspace )
         , ( "//", par )
         , ( "par", par )
+        , ( "indent", indent )
 
         -- MiniLaTeX stuff
         , ( "term", \g acc s attr exprList -> term g acc s attr exprList )
@@ -473,6 +475,10 @@ vspace _ _ _ _ exprList =
 
 par _ _ _ _ _ =
     Element.column [ Element.height (Element.px 5) ] [ Element.text "" ]
+
+
+indent _ _ _ _ _ =
+    Element.el [ Element.height (Element.px 5) ] (Render.Html.Math.mathText 0 "24px" "abc" Render.Html.Math.InlineMathMode "\\quad")
 
 
 strong g acc s attr exprList =
