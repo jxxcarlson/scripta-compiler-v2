@@ -23,6 +23,7 @@ import Render.Utility
 import RoseTree.Tree exposing (Tree)
 import ScriptaV2.Config as Config
 import ScriptaV2.Msg exposing (MarkupMsg(..))
+import String.Extra
 
 
 type alias ViewParameters =
@@ -160,25 +161,37 @@ viewTocItem_ viewParameters acc ({ args, body, properties } as block) =
                     block.meta.id
 
                 sectionNumber =
+                    let
+                        nosectionNumeber =
+                            Element.el [ Element.paddingEach { left = 8, right = 0, top = 0, bottom = 0 } ] (Element.text "-")
+                    in
                     case Dict.get "level" properties |> Maybe.andThen String.toInt of
                         Nothing ->
-                            Element.none
+                            nosectionNumeber
 
                         Just level ->
                             if level <= maximumNumberedTocLevel then
                                 case Dict.get "label" properties of
                                     Nothing ->
-                                        Element.none
+                                        nosectionNumeber
 
                                     Just label ->
                                         Element.el [] (Element.text (label ++ "."))
 
                             else
-                                Element.none
+                                nosectionNumeber
 
-                content : Element MarkupMsg
+                --exprs2 : Element MarkupMsg
+                exprs2 =
+                    case exprs |> List.head |> Maybe.andThen Generic.Language.extractText of
+                        Nothing ->
+                            exprs
+
+                        Just ( text, meta ) ->
+                            [ Generic.Language.composeTextElement (String.Extra.softWrapWith 22 "..." (String.trim text)) meta ]
+
                 content =
-                    Element.paragraph [ tocIndent args ] (sectionNumber :: List.map (Render.Expression.render viewParameters.counter acc viewParameters.settings viewParameters.attr) exprs)
+                    Element.row [ tocIndent args, Element.width (Element.px 180), Element.spacing 8 ] (sectionNumber :: List.map (Render.Expression.render viewParameters.counter acc viewParameters.settings viewParameters.attr) exprs2)
 
                 color =
                     if id == viewParameters.selectedId then

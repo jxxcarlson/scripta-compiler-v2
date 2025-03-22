@@ -13,8 +13,10 @@ module Generic.Language exposing
     , StyleAttr(..)
     , StyleColor(..)
     , boostBlock
+    , composeTextElement
     , emptyBlockMeta
     , expressionBlockEmpty
+    , extractText
     , getExpressionContent
     , getFunctionName
     , getIdFromBlock
@@ -49,6 +51,21 @@ type Expr metaData
     = Text String metaData
     | Fun String (List (Expr metaData)) metaData
     | VFun String String metaData
+
+
+extractText : Expr metaData -> Maybe ( String, metaData )
+extractText expr =
+    case expr of
+        Text text meta ->
+            Just ( text, meta )
+
+        _ ->
+            Nothing
+
+
+composeTextElement : String -> metaData -> Expr metaData
+composeTextElement text meta =
+    Text text meta
 
 
 type ScriptaExpressions metaData
