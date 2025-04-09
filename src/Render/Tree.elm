@@ -152,7 +152,7 @@ innerAttributes rootBlock =
         [ Font.italic ]
 
     else if blockName == "box" then
-        [ Element.spacing 11, Font.italic, Background.color (Element.rgb 0.9 0.9 1.0) ]
+        [ Element.spacing 11, Background.color (Element.rgb 0.9 0.9 1.0) ]
 
     else
         []
