@@ -168,6 +168,7 @@ markupDict =
         , ( "image", \_ _ s attr exprList -> Render.Graphics.image s attr exprList )
         , ( "inlineimage", \_ _ s attr exprList -> Render.Graphics.inlineimage s attr exprList )
         , ( "tags", \_ _ _ _ _ -> Element.none )
+        , ( "quote", quote )
         , ( "vspace", vspace )
         , ( "break", vspace )
         , ( "//", par )
@@ -677,6 +678,15 @@ backTick =
 italic : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
 italic g acc s attr exprList =
     simpleElement [ Font.italic, Element.paddingEach { left = 0, right = 2, top = 0, bottom = 0 } ] g acc s attr exprList
+
+
+quote : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
+quote g acc s attr exprList =
+    let
+        meta =
+            { begin = 0, end = 1, index = 0, id = "qq" }
+    in
+    Element.paragraph [] (List.map (render g acc s attr) (Text "“" meta :: exprList ++ [ Text "”" meta ]))
 
 
 qed _ _ _ _ _ =
