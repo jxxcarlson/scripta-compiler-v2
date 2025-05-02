@@ -13,7 +13,7 @@ module Render.Compatibility.OrdinaryBlock exposing
 import Element exposing (Element)
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
-import Render.OrdinaryBlock2 as NewOrdinaryBlock
+import Render.OrdinaryBlock as NewOrdinaryBlock
 import Render.Settings exposing (RenderSettings)
 import ScriptaV2.Msg exposing (MarkupMsg)
 

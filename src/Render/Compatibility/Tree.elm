@@ -10,7 +10,7 @@ import Element exposing (Element)
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
 import Render.Settings exposing (RenderSettings)
-import Render.Tree2 as NewTree
+import Render.Tree as NewTree
 import RoseTree.Tree exposing (Tree)
 import ScriptaV2.Msg exposing (MarkupMsg)
 

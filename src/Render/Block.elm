@@ -7,7 +7,7 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Render.Expression
 import Render.Helper
-import Render.Compatibility.OrdinaryBlock as CompatibilityOrdinaryBlock
+import Render.OrdinaryBlock
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
@@ -27,7 +27,7 @@ renderAttributes settings block =
             focusedAttribute :: standardAttributes settings block
 
         Ordinary name ->
-            standardAttributes settings block ++ focusedAttribute :: CompatibilityOrdinaryBlock.getAttributes name
+            standardAttributes settings block ++ focusedAttribute :: Render.OrdinaryBlock.getAttributes name
 
         Verbatim _ ->
             focusedAttribute :: standardAttributes settings block
@@ -47,7 +47,7 @@ renderBody count acc settings attrs block =
             [ renderParagraphBody count acc settings attrs block ]
 
         Ordinary _ ->
-            [ CompatibilityOrdinaryBlock.render count acc settings attrs block ]
+            [ Render.OrdinaryBlock.render count acc settings attrs block ]
 
         Verbatim _ ->
             [ VerbatimBlock.render count acc settings attrs block |> Render.Helper.showError block.meta.error ]

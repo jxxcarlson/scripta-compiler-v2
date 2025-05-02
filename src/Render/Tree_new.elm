@@ -14,7 +14,7 @@ import Generic.BlockUtilities
 import Generic.Language exposing (ExpressionBlock, Heading(..))
 import Render.Attributes
 import Render.BlockType exposing (BlockType(..))
-import Render.OrdinaryBlock2 as OrdinaryBlock
+import Render.OrdinaryBlock as OrdinaryBlock
 import Render.Settings exposing (RenderSettings)
 import Render.TreeSupport
 import RoseTree.Tree exposing (Tree)

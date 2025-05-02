@@ -12,7 +12,7 @@ import Render.Attributes
 import Render.Compatibility.Tree as CompatibilityTree
 import Render.Compatibility.OrdinaryBlock as CompatibilityOrdinaryBlock
 import Render.Settings
-import Render.Tree2
+import Render.Tree
 import Render.TreeSupport
 import ScriptaV2.Msg exposing (MarkupMsg)
 

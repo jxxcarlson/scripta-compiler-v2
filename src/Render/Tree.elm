@@ -1,84 +1,28 @@
 module Render.Tree exposing (renderTree)
 
--- import Render.Block
+{-| This module provides a refactored implementation of tree rendering using the new abstractions.
+
+@docs renderTree
+
+-}
 
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
 import Generic.Acc exposing (Accumulator)
 import Generic.BlockUtilities
-import Generic.Language exposing (ExpressionBlock)
-import Render.Block
-import Render.OrdinaryBlock as OrdinaryBlock exposing (getAttributesForBlock)
+import Generic.Language exposing (ExpressionBlock, Heading(..))
+import Render.Attributes
+import Render.BlockType exposing (BlockType(..))
+import Render.OrdinaryBlock as OrdinaryBlock
 import Render.Settings exposing (RenderSettings)
+import Render.TreeSupport
 import RoseTree.Tree exposing (Tree)
-import ScriptaV2.Msg as Tree exposing (MarkupMsg)
+import ScriptaV2.Msg exposing (MarkupMsg)
 
 
-unravelL : Tree (Element MarkupMsg) -> Element MarkupMsg
-unravelL tree =
-    let
-        children =
-            RoseTree.Tree.children tree
-    in
-    if List.isEmpty children then
-        RoseTree.Tree.value tree
-
-    else
-        let
-            root : Element MarkupMsg
-            root =
-                RoseTree.Tree.value tree
-        in
-        Element.column [ Font.italic ]
-            [ root
-            , Element.column
-                [ Element.paddingEach
-                    { top = 12
-                    , left = 0
-                    , right = 0
-                    , bottom = 0
-                    }
-                ]
-                (List.map unravelL children)
-            ]
-
-
-unravelM : Tree (Element MarkupMsg) -> Element MarkupMsg
-unravelM tree =
-    let
-        children =
-            RoseTree.Tree.children tree
-    in
-    if List.isEmpty children then
-        RoseTree.Tree.value tree
-
-    else
-        let
-            root : Element MarkupMsg
-            root =
-                RoseTree.Tree.value tree
-        in
-        Element.column [ Font.italic ]
-            [ root
-            , Element.column
-                [ Element.paddingEach
-                    { top = 12
-                    , left = 12
-                    , right = 0
-                    , bottom = 0
-                    }
-                ]
-                (List.map unravelM children)
-            ]
-
-
-r1 : Int -> Accumulator -> RenderSettings -> ExpressionBlock -> List (Element.Attribute msg)
-r1 k a s block =
-    -- Debug.todo "r1"
-    [ Font.italic ]
-
-
+{-| Render a tree of expression blocks
+-}
 renderTree : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> RoseTree.Tree.Tree ExpressionBlock -> Element MarkupMsg
 renderTree count accumulator settings attrs_ tree =
     let
@@ -91,48 +35,81 @@ renderTree count accumulator settings attrs_ tree =
     in
     case RoseTree.Tree.children tree of
         [] ->
-            Element.column (Render.Block.renderAttributes settings root ++ rootAttributes root)
-                (Render.Block.renderBody count accumulator settings attrs_ root)
+            -- Leaf node: just render the block
+            renderLeafNode count accumulator settings attrs_ root
 
         children ->
-            let
-                settings_ =
-                    { settings | width = settings.width - 100, backgroundColor = Element.rgb 0.95 0.93 0.93 }
-            in
-            if root.heading == Generic.Language.Ordinary "box" then
-                Element.column [ Element.paddingEach { left = 12, right = 12, top = 0, bottom = 0 } ]
-                    [ Element.column (Render.Block.renderAttributes settings_ root ++ rootAttributes root)
-                        (Render.Block.renderBody count accumulator settings_ attrs_ root
-                            ++ List.map (renderTree count accumulator settings_ (attrs_ ++ innerAttributes root ++ blockAttrs)) children
-                        )
-                    ]
-
-            else
-                Element.column (Element.spacing 12 :: rootAttributes root)
-                    (Render.Block.renderBody count accumulator settings (rootAttributes root) root
-                        ++ List.map (renderTree count accumulator settings (attrs_ ++ rootAttributes root ++ blockAttrs)) children
-                    )
+            -- Branch node: render based on block type
+            renderBranchNode count accumulator settings attrs_ blockAttrs root children tree
 
 
-rootAttributes rootBlock =
+{-| Render a leaf node (a block with no children)
+-}
+renderLeafNode : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+renderLeafNode count accumulator settings attrs_ root =
+    Element.column (Render.TreeSupport.renderAttributes settings root ++ getBlockAttributes root)
+        (Render.TreeSupport.renderBody count accumulator settings attrs_ root)
+
+
+{-| Render a branch node (a block with children)
+-}
+renderBranchNode : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Tree ExpressionBlock) -> Tree ExpressionBlock -> Element MarkupMsg
+renderBranchNode count accumulator settings attrs_ blockAttrs root children tree =
+    if isBoxBlock root then
+        renderBoxBranch count accumulator settings attrs_ blockAttrs root children
+    else
+        renderStandardBranch count accumulator settings attrs_ blockAttrs root children
+
+
+{-| Render a branch node that is a box
+-}
+renderBoxBranch : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Tree ExpressionBlock) -> Element MarkupMsg
+renderBoxBranch count accumulator settings attrs_ blockAttrs root children =
+    let
+        settings_ =
+            { settings | width = settings.width - 100, backgroundColor = Element.rgb 0.95 0.93 0.93 }
+    in
+    Element.column [ Element.paddingEach { left = 12, right = 12, top = 0, bottom = 0 } ]
+        [ Element.column (Render.TreeSupport.renderAttributes settings_ root ++ getBlockAttributes root)
+            (Render.TreeSupport.renderBody count accumulator settings_ attrs_ root
+                ++ List.map (renderTree count accumulator settings_ (attrs_ ++ getInnerAttributes root ++ blockAttrs)) children
+            )
+        ]
+
+
+{-| Render a standard branch node
+-}
+renderStandardBranch : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Tree ExpressionBlock) -> Element MarkupMsg
+renderStandardBranch count accumulator settings attrs_ blockAttrs root children =
+    Element.column (Element.spacing 12 :: getBlockAttributes root)
+        (Render.TreeSupport.renderBody count accumulator settings (getBlockAttributes root) root
+            ++ List.map (renderTree count accumulator settings (attrs_ ++ getBlockAttributes root ++ blockAttrs)) children
+        )
+
+
+{-| Check if the block is a box block
+-}
+isBoxBlock : ExpressionBlock -> Bool
+isBoxBlock block =
+    block.heading == Generic.Language.Ordinary "box"
+
+
+{-| Get attributes for a block
+-}
+getBlockAttributes : ExpressionBlock -> List (Element.Attribute MarkupMsg)
+getBlockAttributes block =
     let
         blockName =
-            Generic.BlockUtilities.getExpressionBlockName rootBlock
+            Generic.BlockUtilities.getExpressionBlockName block
                 |> Maybe.withDefault "---"
     in
     if List.member blockName italicBlockNames then
         [ Font.italic ]
-        --else if List.member blockName ["quotation"] then
-        --    [Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0}]
 
     else if blockName == "indent" then
-        -- re left indent see also Render.OrdingaryBlock.indented.  The value there must
-        -- be the same.
         [ Element.spacing 11, Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
 
     else if blockName == "quotation" then
-        -- re left indent see also Render.OrdingaryBlock.indented.  The value there must
-        -- be the same.
         [ Font.italic, Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
 
     else if blockName == "box" then
@@ -142,10 +119,13 @@ rootAttributes rootBlock =
         []
 
 
-innerAttributes rootBlock =
+{-| Get inner attributes for a block (applied to children)
+-}
+getInnerAttributes : ExpressionBlock -> List (Element.Attribute MarkupMsg)
+getInnerAttributes block =
     let
         blockName =
-            Generic.BlockUtilities.getExpressionBlockName rootBlock
+            Generic.BlockUtilities.getExpressionBlockName block
                 |> Maybe.withDefault "---"
     in
     if List.member blockName italicBlockNames then
@@ -158,6 +138,9 @@ innerAttributes rootBlock =
         []
 
 
+{-| List of block names that should be rendered in italics
+-}
+italicBlockNames : List String
 italicBlockNames =
     [ "quote"
     , "aside"
