@@ -97,7 +97,7 @@ renderTree count accumulator settings attrs_ tree =
         children ->
             let
                 settings_ =
-                    { settings | width = settings.width - 100, backgroundColor = Element.rgb 0.9 0.9 1.0 }
+                    { settings | width = settings.width - 100, backgroundColor = Element.rgb 0.95 0.93 0.93 }
             in
             if root.heading == Generic.Language.Ordinary "box" then
                 Element.column [ Element.paddingEach { left = 12, right = 12, top = 0, bottom = 0 } ]
@@ -152,7 +152,7 @@ innerAttributes rootBlock =
         [ Font.italic ]
 
     else if blockName == "box" then
-        [ Element.spacing 11, Background.color (Element.rgb 0.9 0.9 1.0) ]
+        [ Element.spacing 11, Background.color (Element.rgb 0.95 0.93 0.93) ]
 
     else
         []

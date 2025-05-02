@@ -72,7 +72,7 @@ getAttributesForBlock block =
 getAttributes : String -> List (Element.Attribute MarkupMsg)
 getAttributes name =
     if name == "box" then
-        [ Background.color (Element.rgb 0.9 0.9 1.0) ]
+        [ Background.color (Element.rgb 0.95 0.93 0.93) ]
 
     else if List.member name italicNames then
         [ Font.italic ]
