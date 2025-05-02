@@ -14,9 +14,10 @@ import Either exposing (Either(..))
 import Element exposing (Element)
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock, Heading(..))
-import Render.Compatibility.OrdinaryBlock as CompatibilityOrdinaryBlock
+import Render.OrdinaryBlock
 import Render.Expression
 import Render.Helper
+import Render.Indentation
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
@@ -33,7 +34,7 @@ renderAttributes settings block =
             Element.focused [] :: standardAttributes settings block
 
         Ordinary name ->
-            standardAttributes settings block ++ Element.focused [] :: CompatibilityOrdinaryBlock.getAttributes name
+            standardAttributes settings block ++ Element.focused [] :: Render.OrdinaryBlock.getAttributes name
 
         Verbatim _ ->
             Element.focused [] :: standardAttributes settings block
@@ -58,7 +59,7 @@ renderBody count acc settings attrs block =
             [ renderParagraphBody count acc settings attrs block ]
 
         Ordinary _ ->
-            [ CompatibilityOrdinaryBlock.render count acc settings attrs block ]
+            [ Render.OrdinaryBlock.render count acc settings attrs block ]
 
         Verbatim _ ->
             [ VerbatimBlock.render count acc settings attrs block |> Render.Helper.showError block.meta.error ]
@@ -98,10 +99,6 @@ clickableParagraph lineNumber numberOfLines color elements =
 
 {-| Helper for indenting paragraphs
 -}
-indentParagraph : number -> Element msg -> Element msg
+indentParagraph : Int -> Element msg -> Element msg
 indentParagraph indent x =
-    if indent > 0 then
-        Element.el [ Element.paddingEach { top = Render.Helper.topPaddingForIndentedElements, bottom = 0, left = 0, right = 0 } ] x
-
-    else
-        x
+    Render.Indentation.indentParagraph indent x

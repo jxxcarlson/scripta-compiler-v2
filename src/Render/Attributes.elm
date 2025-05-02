@@ -25,7 +25,9 @@ import Element.Font as Font
 import Generic.BlockUtilities
 import Generic.Language exposing (ExpressionBlock)
 import Render.BlockType as BlockType exposing (BlockType(..))
+import Render.Color
 import Render.Helper
+import Render.Indentation
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import ScriptaV2.Msg exposing (MarkupMsg)
@@ -65,13 +67,13 @@ getTypeSpecificAttributes blockType =
                     getQuotationAttributes
 
                 BlockType.Red ->
-                    [ Font.color (Element.rgb 0.8 0 0) ]
+                    [ Font.color Render.Color.redText ]
 
                 BlockType.Red2 ->
-                    [ Font.color (Element.rgb 0.8 0 0) ]
+                    [ Font.color Render.Color.redText ]
 
                 BlockType.Blue ->
-                    [ Font.color (Element.rgb 0 0 0.8) ]
+                    [ Font.color Render.Color.blue ]
 
                 _ ->
                     []
@@ -102,10 +104,10 @@ getItalicAttributes =
 -}
 getBoxAttributes : List (Element.Attribute msg)
 getBoxAttributes =
-    [ Element.spacing 11
+    [ Element.spacing standardSpacing
     , Font.italic
-    , Element.paddingXY 12 12
-    , Background.color (Element.rgb 0.95 0.93 0.93)
+    , Element.paddingXY standardLeftPadding standardLeftPadding
+    , Background.color Render.Color.boxBackground
     ]
 
 
@@ -113,7 +115,7 @@ getBoxAttributes =
 -}
 getContainerAttributes : List (Element.Attribute msg)
 getContainerAttributes =
-    [ Element.spacing 8 ]
+    [ Element.spacing standardSpacing ]
 
 
 {-| Get attributes for document blocks
@@ -123,12 +125,26 @@ getDocumentAttributes =
     []
 
 
+{-| Standard spacing value for consistent spacing
+-}
+standardSpacing : Int
+standardSpacing = 
+    11
+
+
+{-| Standard left padding for indented content
+-}
+standardLeftPadding : Int
+standardLeftPadding =
+    12
+
+
 {-| Get attributes for indented blocks
 -}
 getIndentAttributes : List (Element.Attribute msg)
 getIndentAttributes =
-    [ Element.spacing 11
-    , Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 }
+    [ Element.spacing standardSpacing
+    , Element.paddingEach { left = standardLeftPadding, right = 0, top = 0, bottom = 0 }
     ]
 
 
@@ -137,7 +153,7 @@ getIndentAttributes =
 getQuotationAttributes : List (Element.Attribute msg)
 getQuotationAttributes =
     [ Font.italic
-    , Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 }
+    , Element.paddingEach { left = standardLeftPadding, right = 0, top = 0, bottom = 0 }
     ]
 
 

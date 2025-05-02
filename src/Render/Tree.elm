@@ -13,7 +13,8 @@ import Generic.Acc exposing (Accumulator)
 import Generic.BlockUtilities
 import Generic.Language exposing (ExpressionBlock, Heading(..))
 import Render.Attributes
-import Render.BlockType exposing (BlockType(..))
+import Render.BlockType exposing (BlockType(..), ContainerBlockType(..), DocumentBlockType(..), InteractiveBlockType(..), ListBlockType(..), TextBlockType(..))
+import Render.Color
 import Render.OrdinaryBlock as OrdinaryBlock
 import Render.Settings exposing (RenderSettings)
 import Render.TreeSupport
@@ -47,7 +48,7 @@ renderTree count accumulator settings attrs_ tree =
 -}
 renderLeafNode : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 renderLeafNode count accumulator settings attrs_ root =
-    Element.column (Render.TreeSupport.renderAttributes settings root ++ getBlockAttributes root)
+    Element.column (Render.TreeSupport.renderAttributes settings root ++ getBlockAttributes root settings)
         (Render.TreeSupport.renderBody count accumulator settings attrs_ root)
 
 
@@ -55,10 +56,12 @@ renderLeafNode count accumulator settings attrs_ root =
 -}
 renderBranchNode : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Tree ExpressionBlock) -> Tree ExpressionBlock -> Element MarkupMsg
 renderBranchNode count accumulator settings attrs_ blockAttrs root children tree =
-    if isBoxBlock root then
-        renderBoxBranch count accumulator settings attrs_ blockAttrs root children
-    else
-        renderStandardBranch count accumulator settings attrs_ blockAttrs root children
+    case getBlockType root of
+        ContainerBlock Box ->
+            renderBoxBranch count accumulator settings attrs_ blockAttrs root children
+        
+        _ ->
+            renderStandardBranch count accumulator settings attrs_ blockAttrs root children
 
 
 {-| Render a branch node that is a box
@@ -67,12 +70,12 @@ renderBoxBranch : Int -> Accumulator -> RenderSettings -> List (Element.Attribut
 renderBoxBranch count accumulator settings attrs_ blockAttrs root children =
     let
         settings_ =
-            { settings | width = settings.width - 100, backgroundColor = Element.rgb 0.95 0.93 0.93 }
+            { settings | width = settings.width - 100, backgroundColor = Render.Color.boxBackground }
     in
     Element.column [ Element.paddingEach { left = 12, right = 12, top = 0, bottom = 0 } ]
-        [ Element.column (Render.TreeSupport.renderAttributes settings_ root ++ getBlockAttributes root)
+        [ Element.column (Render.TreeSupport.renderAttributes settings_ root ++ getBlockAttributes root settings)
             (Render.TreeSupport.renderBody count accumulator settings_ attrs_ root
-                ++ List.map (renderTree count accumulator settings_ (attrs_ ++ getInnerAttributes root ++ blockAttrs)) children
+                ++ List.map (renderTree count accumulator settings_ (attrs_ ++ getInnerAttributes root settings_ ++ blockAttrs)) children
             )
         ]
 
@@ -81,82 +84,45 @@ renderBoxBranch count accumulator settings attrs_ blockAttrs root children =
 -}
 renderStandardBranch : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Tree ExpressionBlock) -> Element MarkupMsg
 renderStandardBranch count accumulator settings attrs_ blockAttrs root children =
-    Element.column (Element.spacing 12 :: getBlockAttributes root)
-        (Render.TreeSupport.renderBody count accumulator settings (getBlockAttributes root) root
-            ++ List.map (renderTree count accumulator settings (attrs_ ++ getBlockAttributes root ++ blockAttrs)) children
+    Element.column (Element.spacing 12 :: getBlockAttributes root settings)
+        (Render.TreeSupport.renderBody count accumulator settings (getBlockAttributes root settings) root
+            ++ List.map (renderTree count accumulator settings (attrs_ ++ getBlockAttributes root settings ++ blockAttrs)) children
         )
 
 
-{-| Check if the block is a box block
+{-| Get the BlockType for a block
 -}
-isBoxBlock : ExpressionBlock -> Bool
-isBoxBlock block =
-    block.heading == Generic.Language.Ordinary "box"
+getBlockType : ExpressionBlock -> BlockType
+getBlockType block =
+    case block.heading of
+        Ordinary name ->
+            Render.BlockType.fromString name
+        
+        _ ->
+            MiscBlock ""
 
 
-{-| Get attributes for a block
+{-| Get attributes for a block using the consolidated Attributes module
 -}
-getBlockAttributes : ExpressionBlock -> List (Element.Attribute MarkupMsg)
-getBlockAttributes block =
-    let
-        blockName =
-            Generic.BlockUtilities.getExpressionBlockName block
-                |> Maybe.withDefault "---"
-    in
-    if List.member blockName italicBlockNames then
-        [ Font.italic ]
-
-    else if blockName == "indent" then
-        [ Element.spacing 11, Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
-
-    else if blockName == "quotation" then
-        [ Font.italic, Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
-
-    else if blockName == "box" then
-        [ Element.spacing 11, Font.italic, Element.paddingXY 12 12, Background.color (Element.rgb 0.95 0.93 0.93) ]
-
-    else
-        []
+getBlockAttributes : ExpressionBlock -> RenderSettings -> List (Element.Attribute MarkupMsg)
+getBlockAttributes block settings =
+    Render.Attributes.getBlockAttributes block settings
 
 
 {-| Get inner attributes for a block (applied to children)
 -}
-getInnerAttributes : ExpressionBlock -> List (Element.Attribute MarkupMsg)
-getInnerAttributes block =
+getInnerAttributes : ExpressionBlock -> RenderSettings -> List (Element.Attribute MarkupMsg)
+getInnerAttributes block settings =
     let
-        blockName =
-            Generic.BlockUtilities.getExpressionBlockName block
-                |> Maybe.withDefault "---"
+        blockType =
+            getBlockType block
     in
-    if List.member blockName italicBlockNames then
-        [ Font.italic ]
-
-    else if blockName == "box" then
-        [ Element.spacing 11, Background.color (Element.rgb 0.95 0.93 0.93) ]
-
-    else
-        []
-
-
-{-| List of block names that should be rendered in italics
--}
-italicBlockNames : List String
-italicBlockNames =
-    [ "quote"
-    , "aside"
-    , "note"
-    , "warning"
-    , "exercise"
-    , "problem"
-    , "note"
-    , "theorem"
-    , "proof"
-    , "definition"
-    , "principle"
-    , "construction"
-    , "axiom"
-    , "lemma"
-    , "corollary"
-    , "example"
-    , "remark"
-    ]
+    case blockType of
+        ContainerBlock Box ->
+            Render.Attributes.getBoxAttributes
+        
+        _ ->
+            if List.member (Render.BlockType.toString blockType) Render.Attributes.italicBlockNames then
+                Render.Attributes.getItalicAttributes
+            else
+                []

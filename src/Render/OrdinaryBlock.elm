@@ -21,12 +21,14 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Render.Attributes
 import Render.BlockRegistry exposing (BlockRegistry)
-import Render.BlockType exposing (BlockType(..))
+import Render.BlockType exposing (BlockType(..), ContainerBlockType(..), ListBlockType(..))
 import Render.Blocks.Container as ContainerBlocks
 import Render.Blocks.Document as DocumentBlocks
 import Render.Blocks.Interactive as InteractiveBlocks
 import Render.Blocks.Text as TextBlocks
+import Render.Color
 import Render.Helper
+import Render.Indentation
 import Render.List
 import Render.Footnote
 import Render.Table
@@ -38,14 +40,19 @@ import ScriptaV2.Msg exposing (MarkupMsg(..))
 -}
 getAttributes : String -> List (Element.Attribute MarkupMsg)
 getAttributes name =
-    if name == "box" then
-        [ Background.color (Element.rgb 0.95 0.93 0.93) ]
-
-    else if List.member name italicNames then
-        [ Font.italic ]
-
-    else
-        []
+    let
+        blockType =
+            Render.BlockType.fromString name
+    in
+    case blockType of
+        ContainerBlock Box ->
+            [ Background.color Render.Color.boxBackground ]
+        
+        _ ->
+            if List.member name Render.Attributes.italicBlockNames then
+                [ Font.italic ]
+            else
+                []
 
 
 {-| Get attributes for a block
@@ -58,23 +65,6 @@ getAttributesForBlock block =
 
         Just name ->
             getAttributes name
-
-
-{-| List of block names that should be rendered in italics
--}
-italicNames : List String
-italicNames =
-    [ "theorem"
-    , "lemma"
-    , "corollary"
-    , "proposition"
-    , "definition"
-    , "example"
-    , "remark"
-    , "exercise"
-    , "question"
-    , "answer"
-    ]
 
 
 {-| Initialize the registry with all renderers
@@ -126,11 +116,19 @@ render count acc settings attr block =
 
                                 Just renderer ->
                                     let
+                                        blockType =
+                                            Render.BlockType.fromString functionName
+                                            
                                         newSettings =
-                                            if List.member block.heading [ Ordinary "item", Ordinary "numbered" ] then
-                                                { settings | width = settings.width - 6 * block.indent }
-                                            else
-                                                settings
+                                            case blockType of
+                                                ListBlock Item ->
+                                                    { settings | width = settings.width - 6 * block.indent }
+                                                    
+                                                ListBlock Numbered ->
+                                                    { settings | width = settings.width - 6 * block.indent }
+                                                    
+                                                _ ->
+                                                    settings
                                     in
                                     renderer count acc newSettings attr block
                     in
@@ -145,7 +143,4 @@ render count acc settings attr block =
 -}
 indentOrdinaryBlock : Int -> String -> RenderSettings -> Element msg -> Element msg
 indentOrdinaryBlock indent id settings x =
-    if indent > 0 then
-        Element.el [ Render.Helper.selectedColor id settings, Element.paddingEach { top = Render.Helper.topPaddingForIndentedElements, bottom = 0, left = 0, right = 0 } ] x
-    else
-        x
+    Render.Indentation.indentOrdinaryBlock indent id settings x

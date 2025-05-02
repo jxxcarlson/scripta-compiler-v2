@@ -9,8 +9,7 @@ import Element exposing (Element)
 import Generic.Acc
 import Generic.Language exposing (ExpressionBlock, Heading(..))
 import Render.Attributes
-import Render.Compatibility.Tree as CompatibilityTree
-import Render.Compatibility.OrdinaryBlock as CompatibilityOrdinaryBlock
+import Render.OrdinaryBlock
 import Render.Settings
 import Render.Tree
 import Render.TreeSupport
@@ -74,4 +73,4 @@ testAttributes =
 
 testRenderer : Int -> Element MarkupMsg
 testRenderer count =
-    CompatibilityOrdinaryBlock.render count Generic.Acc.initialData sampleSettings [] sampleBlock
+    Render.OrdinaryBlock.render count Generic.Acc.initialData sampleSettings [] sampleBlock
