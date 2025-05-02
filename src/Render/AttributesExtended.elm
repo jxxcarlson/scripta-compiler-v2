@@ -1,4 +1,4 @@
-module Render.Attributes exposing
+module Render.AttributesExtended exposing
     ( getBlockAttributes
     , getItalicAttributes
     , getBoxAttributes
@@ -7,15 +7,13 @@ module Render.Attributes exposing
     , getIndentAttributes
     , getQuotationAttributes
     , italicBlockNames
+    , getBlockMarkupAttributes
     )
 
-{-| This module consolidates attribute handling for various block types.
-
-Instead of having attribute logic scattered across multiple files, this module
-provides a unified approach to determining the attributes for any given block.
+{-| This module extends Render.Attributes with both generic and specific versions of attribute functions.
 
 @docs getBlockAttributes, getItalicAttributes, getBoxAttributes, getContainerAttributes, getDocumentAttributes, getIndentAttributes, getQuotationAttributes
-@docs italicBlockNames
+@docs italicBlockNames, getBlockMarkupAttributes
 
 -}
 
@@ -28,11 +26,11 @@ import Render.BlockType as BlockType exposing (BlockType(..))
 import Render.Helper
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
-import ScriptaV2.Msg exposing (MarkupMsg)
 import Render.Utility
+import ScriptaV2.Msg exposing (MarkupMsg)
 
 
-{-| Main function to get attributes for a block based on its type
+{-| Main function to get generic attributes for a block based on its type
 -}
 getBlockAttributes : ExpressionBlock -> RenderSettings -> List (Element.Attribute msg)
 getBlockAttributes block settings =
@@ -51,10 +49,71 @@ getBlockAttributes block settings =
     standardAttrs ++ getTypeSpecificAttributes blockType
 
 
-{-| Get attributes specific to a block type
+{-| Version that returns MarkupMsg-specific attributes, including sync attributes
+-}
+getBlockMarkupAttributes : ExpressionBlock -> RenderSettings -> List (Element.Attribute MarkupMsg)
+getBlockMarkupAttributes block settings =
+    let
+        blockName =
+            Generic.BlockUtilities.getExpressionBlockName block
+                |> Maybe.withDefault ""
+
+        blockType =
+            BlockType.fromString blockName
+
+        standardAttrs =
+            [ Render.Utility.idAttributeFromInt block.meta.lineNumber
+            , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
+            ]
+                ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings
+    in
+    standardAttrs ++ getTypeSpecificMarkupAttributes blockType
+
+
+{-| Get attributes specific to a block type (generic version)
 -}
 getTypeSpecificAttributes : BlockType -> List (Element.Attribute msg)
 getTypeSpecificAttributes blockType =
+    case blockType of
+        TextBlock textType ->
+            case textType of
+                BlockType.Indent ->
+                    getIndentAttributes
+
+                BlockType.Quotation ->
+                    getQuotationAttributes
+
+                BlockType.Red ->
+                    [ Font.color (Element.rgb 0.8 0 0) ]
+
+                BlockType.Red2 ->
+                    [ Font.color (Element.rgb 0.8 0 0) ]
+
+                BlockType.Blue ->
+                    [ Font.color (Element.rgb 0 0 0.8) ]
+
+                _ ->
+                    []
+
+        ContainerBlock containerType ->
+            case containerType of
+                BlockType.Box ->
+                    getBoxAttributes
+
+                _ ->
+                    []
+
+        _ ->
+            if List.member (BlockType.toString blockType) italicBlockNames then
+                getItalicAttributes
+            else
+                []
+
+
+{-| Get attributes specific to a block type (MarkupMsg-specific version)
+-}
+getTypeSpecificMarkupAttributes : BlockType -> List (Element.Attribute MarkupMsg)
+getTypeSpecificMarkupAttributes blockType =
     case blockType of
         TextBlock textType ->
             case textType of

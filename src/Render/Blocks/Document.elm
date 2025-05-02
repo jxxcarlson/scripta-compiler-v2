@@ -15,6 +15,7 @@ module Render.Blocks.Document exposing
 -}
 
 import Dict exposing (Dict)
+import Either exposing (Either(..))
 import Element exposing (Element)
 import Element.Font as Font
 import Element.Input
@@ -24,6 +25,7 @@ import Generic.Language exposing (ExpressionBlock)
 import List.Extra
 import Maybe.Extra
 import Render.BlockRegistry exposing (BlockRegistry)
+import Render.Expression
 import Render.Helper
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
@@ -212,10 +214,10 @@ visibleBanner count acc settings attr block =
 
         exprs =
             case block.body of
-                Generic.Language.Left _ ->
+                Left _ ->
                     []
 
-                Generic.Language.Right exprs_ ->
+                Right exprs_ ->
                     exprs_
     in
     Element.paragraph [ Font.size fontSize, elementAttribute "id" "banner" ]

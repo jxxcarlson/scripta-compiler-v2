@@ -21,9 +21,9 @@ import M.PrimitiveBlock
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
+import Render.Compatibility.Tree as CompatibilityTree
 import Render.Settings
 import Render.TOCTree
-import Render.Tree
 import RoseTree.Tree
 import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language(..))
@@ -322,7 +322,7 @@ render params forest_ =
 -}
 renderForest : Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> List (RoseTree.Tree.Tree ExpressionBlock) -> List (Element MarkupMsg)
 renderForest count renderSettings accumulator =
-    List.map (Render.Tree.renderTree count accumulator renderSettings [])
+    List.map (CompatibilityTree.renderTree count accumulator renderSettings [])
 
 
 

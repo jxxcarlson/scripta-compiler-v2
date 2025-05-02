@@ -13,10 +13,10 @@ import Generic.Acc exposing (Accumulator)
 import Generic.BlockUtilities
 import Generic.Language exposing (ExpressionBlock, Heading(..))
 import Render.Attributes
-import Render.Block
 import Render.BlockType exposing (BlockType(..))
 import Render.OrdinaryBlock2 as OrdinaryBlock
 import Render.Settings exposing (RenderSettings)
+import Render.TreeSupport
 import RoseTree.Tree exposing (Tree)
 import ScriptaV2.Msg exposing (MarkupMsg)
 
@@ -47,8 +47,8 @@ renderTree count accumulator settings attrs_ tree =
 -}
 renderLeafNode : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 renderLeafNode count accumulator settings attrs_ root =
-    Element.column (Render.Block.renderAttributes settings root ++ getBlockAttributes root)
-        (Render.Block.renderBody count accumulator settings attrs_ root)
+    Element.column (Render.TreeSupport.renderAttributes settings root ++ getBlockAttributes root)
+        (Render.TreeSupport.renderBody count accumulator settings attrs_ root)
 
 
 {-| Render a branch node (a block with children)
@@ -70,8 +70,8 @@ renderBoxBranch count accumulator settings attrs_ blockAttrs root children =
             { settings | width = settings.width - 100, backgroundColor = Element.rgb 0.95 0.93 0.93 }
     in
     Element.column [ Element.paddingEach { left = 12, right = 12, top = 0, bottom = 0 } ]
-        [ Element.column (Render.Block.renderAttributes settings_ root ++ getBlockAttributes root)
-            (Render.Block.renderBody count accumulator settings_ attrs_ root
+        [ Element.column (Render.TreeSupport.renderAttributes settings_ root ++ getBlockAttributes root)
+            (Render.TreeSupport.renderBody count accumulator settings_ attrs_ root
                 ++ List.map (renderTree count accumulator settings_ (attrs_ ++ getInnerAttributes root ++ blockAttrs)) children
             )
         ]
@@ -82,7 +82,7 @@ renderBoxBranch count accumulator settings attrs_ blockAttrs root children =
 renderStandardBranch : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Tree ExpressionBlock) -> Element MarkupMsg
 renderStandardBranch count accumulator settings attrs_ blockAttrs root children =
     Element.column (Element.spacing 12 :: getBlockAttributes root)
-        (Render.Block.renderBody count accumulator settings (getBlockAttributes root) root
+        (Render.TreeSupport.renderBody count accumulator settings (getBlockAttributes root) root
             ++ List.map (renderTree count accumulator settings (attrs_ ++ getBlockAttributes root ++ blockAttrs)) children
         )
 

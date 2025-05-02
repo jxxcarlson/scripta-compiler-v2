@@ -16,6 +16,7 @@ module Render.Blocks.Container exposing
 -}
 
 import Dict exposing (Dict)
+import Either exposing (Either(..))
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
@@ -27,6 +28,7 @@ import List.Extra
 import Maybe.Extra
 import Render.BlockRegistry exposing (BlockRegistry)
 import Render.Color as Color
+import Render.Expression
 import Render.Helper
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
@@ -135,10 +137,10 @@ env_ count acc settings attr block =
 env : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 env count acc settings attr block =
     case block.body of
-        Generic.Language.Left _ ->
+        Left _ ->
             Element.none
 
-        Generic.Language.Right exprs ->
+        Right exprs ->
             Element.column ([ Element.spacing 8, Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
                 [ Element.row
                     ([ Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines

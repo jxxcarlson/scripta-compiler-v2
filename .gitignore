@@ -12,3 +12,5 @@ Demo/uninstall_elm_packages.sh
 Example/
 debug/
 DemoTOC/assets/main.js
+
+**/.claude/settings.local.json
