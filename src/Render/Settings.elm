@@ -66,7 +66,7 @@ makeSettings : String -> Maybe String -> Float -> Int -> Dict String String -> R
 makeSettings selectedId selectedSlug scale windowWidth data =
     let
         titleSize =
-            32
+            38
     in
     { width = round (scale * toFloat windowWidth)
     , titleSize = titleSize

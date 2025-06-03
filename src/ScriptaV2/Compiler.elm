@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
     ( CompilerOutput, Filter(..), compile, parse, parseFromString, render, renderForest, view, viewTOC, filterForest, px, viewBody
-    , CompilerParameters, pl, pm, ps
+    , CompilerParameters, filterForest2, pl, pm, ps, viewBodyOnly
     )
 
 {-|
@@ -21,9 +21,9 @@ import M.PrimitiveBlock
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
-import Render.Tree
 import Render.Settings
 import Render.TOCTree
+import Render.Tree
 import RoseTree.Tree
 import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language(..))
@@ -63,6 +63,17 @@ viewBody width_ compiled =
     [ Element.column [ Element.width (Element.px (width_ - 60)) ]
         (header_ compiled)
     , body compiled
+    ]
+
+
+
+--viewBodyOnly : Int -> CompilerOutput -> List (Element MarkupMsg)
+
+
+viewBodyOnly : Int -> CompilerOutput -> List (Element MarkupMsg)
+viewBodyOnly width_ compiled =
+    [ Element.column [ Element.width (Element.px (width_ - 60)) ]
+        [ body compiled ]
     ]
 
 
@@ -239,6 +250,14 @@ filterForest filter forest =
         SuppressDocumentBlocks ->
             forest
                 |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "document")
+                |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "title")
+
+
+filterForest2 : Forest ExpressionBlock -> Forest ExpressionBlock
+filterForest2 forest =
+    forest
+        |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "document")
+        |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "title")
 
 
 compileM : CompilerParameters -> List String -> CompilerOutput

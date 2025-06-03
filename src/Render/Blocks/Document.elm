@@ -1,10 +1,6 @@
 module Render.Blocks.Document exposing
     ( registerRenderers
-    , document
-    , section
-    , subheading
-    , title
-    , visibleBanner
+    , document, section, subheading, title, visibleBanner
     )
 
 {-| This module provides renderers for document structure blocks.
@@ -19,8 +15,8 @@ import Either exposing (Either(..))
 import Element exposing (Element)
 import Element.Font as Font
 import Element.Input
-import Generic.Acc exposing (Accumulator)
 import Generic.ASTTools as ASTTools
+import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
 import List.Extra
 import Maybe.Extra
@@ -245,7 +241,7 @@ topPadding k =
 
 {-| Helper for rendering with a default and size
 -}
-renderWithDefaultWithSize : Int -> String -> Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List (Generic.Language.Expression) -> List (Element MarkupMsg)
+renderWithDefaultWithSize : Int -> String -> Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Generic.Language.Expression -> List (Element MarkupMsg)
 renderWithDefaultWithSize size default count acc settings attr exprs =
     if List.isEmpty exprs then
         [ Element.el ([ Font.color settings.redColor, Font.size size ] ++ attr) (Element.text default) ]
