@@ -1,11 +1,6 @@
 module Render.Blocks.Container exposing
     ( registerRenderers
-    , box
-    , comment
-    , collection
-    , bibitem
-    , env
-    , env_
+    , box, comment, collection, bibitem, env, env_
     )
 
 {-| This module provides renderers for container blocks.
@@ -18,14 +13,10 @@ module Render.Blocks.Container exposing
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Element exposing (Element)
-import Element.Background as Background
 import Element.Font as Font
 import Generic.Acc exposing (Accumulator)
-import Generic.ASTTools as ASTTools
-import Generic.BlockUtilities
 import Generic.Language exposing (ExpressionBlock)
 import List.Extra
-import Maybe.Extra
 import Render.BlockRegistry exposing (BlockRegistry)
 import Render.Color as Color
 import Render.Expression
@@ -36,7 +27,6 @@ import Render.Sync2
 import Render.Utility exposing (elementAttribute)
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 import String.Extra
-import Tools.Utility as Utility
 
 
 {-| Register all container block renderers to the registry
@@ -121,12 +111,13 @@ env_ : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg
 env_ count acc settings attr block =
     case List.head block.args of
         Nothing ->
-            Element.paragraph
-                [ Render.Utility.idAttributeFromInt block.meta.lineNumber
-                , Font.color settings.redColor
-                , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-                ]
-                [ Element.text "| env (missing name!)" ]
+            --Element.paragraph
+            --    [ Render.Utility.idAttributeFromInt block.meta.lineNumber
+            --    , Font.color settings.redColor
+            --    , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
+            --    ]
+            --    [ Element.text "| env (missing name!!!)" ]
+            env count acc settings attr block
 
         Just _ ->
             env count acc settings attr block
@@ -152,9 +143,9 @@ env count acc settings attr block =
                     ]
                 , Element.paragraph
                     ([ Font.italic
-                    , Render.Helper.htmlId block.meta.id
-                    , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-                    ]
+                     , Render.Helper.htmlId block.meta.id
+                     , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
+                     ]
                         |> Render.Sync.highlightIfIdSelected block.meta.id
                             settings
                     )
