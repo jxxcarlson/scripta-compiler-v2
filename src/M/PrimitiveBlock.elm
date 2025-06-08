@@ -110,36 +110,7 @@ getHeadingData line_ =
                                     Err <| HEMissingName
 
                                 name :: args2 ->
-                                    if String.contains "code" line_ then
-                                        Ok <|
-                                            { heading = Verbatim "code"
-                                            , args = args2
-                                            , properties = Dict.singleton "firstLine" (String.replace "| " "" line)
-                                            }
-
-                                    else if String.contains "equation" line_ then
-                                        Ok <|
-                                            { heading = Verbatim "equation"
-                                            , args = args2
-                                            , properties = Dict.singleton "firstLine" (String.replace "| " "" line)
-                                            }
-
-                                    else if String.contains "verse" line_ then
-                                        Ok <|
-                                            { heading = Verbatim "verse"
-                                            , args = args2
-                                            , properties = Dict.singleton "firstLine" (String.replace "| " "" line)
-                                            }
-
-                                    else if String.contains "aligned" line_ then
-                                        Ok <|
-                                            { heading = Verbatim "aligned"
-                                            , args = args2
-                                            , properties = Dict.singleton "firstLine" (String.replace "| " "" line)
-                                            }
-
-                                    else
-                                        Ok <| { heading = Ordinary name, args = args2, properties = properties }
+                                    coerce line args name args2 properties
 
                         "-" ->
                             let
@@ -185,20 +156,73 @@ getHeadingData line_ =
                             Ok <| { heading = Paragraph, args = [], properties = Dict.empty }
 
 
-coerce line args name args2 properties element =
-    if hasVerbatimWord line then
-        Ok <| coerce_ line args element
+coerce line args name args2 properties =
+    case hasVerbatimWord line of
+        Just element ->
+            Ok <| coerce_ line args element
 
-    else
-        Ok <| { heading = Ordinary name, args = args2, properties = properties }
+        Nothing ->
+            Ok <| { heading = Ordinary name, args = args2, properties = properties }
 
 
-hasVerbatimWord : String -> Bool
+hasVerbatimWord : String -> Maybe String
 hasVerbatimWord line =
-    String.contains "code" line
-        || String.contains "equation" line
-        || String.contains "verse" line
-        || String.contains "aligned" line
+    case mElementWord line of
+        Nothing ->
+            Nothing
+
+        Just word ->
+            if List.member word verbatimWords then
+                Just word
+
+            else
+                Nothing
+
+
+verbatimWords =
+    [ "math"
+    , "equation"
+    , "aligned"
+    , "array"
+    , "textarray"
+    , "table"
+    , "code"
+    , "verse"
+    , "verbatim"
+    , "load"
+    , "load-data"
+    , "hide"
+    , "texComment"
+    , "docinfo"
+    , "mathmacros"
+    , "textmacros"
+    , "datatable"
+    , "chart"
+    , "svg"
+    , "quiver"
+    , "image"
+    , "tikz"
+    , "load-files"
+    , "include"
+    , "setup"
+    , "iframe"
+    ]
+
+
+mElementWord line =
+    line
+        |> String.dropLeft 2
+        |> String.trim
+        |> String.split " "
+        |> List.head
+        |> Maybe.map String.trim
+
+
+
+--String.contains "code" line
+--    || String.contains "equation" line
+--    || String.contains "verse" line
+--    || String.contains "aligned" line
 
 
 coerce_ line args2 element =
