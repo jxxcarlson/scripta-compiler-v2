@@ -9,6 +9,39 @@ import Parser exposing ((|.), (|=), Parser)
 import Tools.KV as KV
 
 
+x3 =
+    """
+| equation
+\\int_0^1 x^n dx = \\frac{1}{n+1}
+"""
+
+
+x4 =
+    """
+| aligned
+& a  = b^2    \\
+& c  = d^2    \\
+"""
+
+
+x3b =
+    """
+|| equation
+\\int_0^1 x^n dx = \\frac{1}{n+1}
+"""
+
+
+ex1 =
+    """
+| code
+$$
+\\int_0^1 x^n dx = \\frac{1}{n+1}
+$$
+
+
+"""
+
+
 p str =
     parse "0" 0 (String.lines str)
 
@@ -77,7 +110,36 @@ getHeadingData line_ =
                                     Err <| HEMissingName
 
                                 name :: args2 ->
-                                    Ok <| { heading = Ordinary name, args = args2, properties = properties }
+                                    if String.contains "code" line_ then
+                                        Ok <|
+                                            { heading = Verbatim "code"
+                                            , args = args2
+                                            , properties = Dict.singleton "firstLine" (String.replace "| " "" line)
+                                            }
+
+                                    else if String.contains "equation" line_ then
+                                        Ok <|
+                                            { heading = Verbatim "equation"
+                                            , args = args2
+                                            , properties = Dict.singleton "firstLine" (String.replace "| " "" line)
+                                            }
+
+                                    else if String.contains "verse" line_ then
+                                        Ok <|
+                                            { heading = Verbatim "verse"
+                                            , args = args2
+                                            , properties = Dict.singleton "firstLine" (String.replace "| " "" line)
+                                            }
+
+                                    else if String.contains "aligned" line_ then
+                                        Ok <|
+                                            { heading = Verbatim "aligned"
+                                            , args = args2
+                                            , properties = Dict.singleton "firstLine" (String.replace "| " "" line)
+                                            }
+
+                                    else
+                                        Ok <| { heading = Ordinary name, args = args2, properties = properties }
 
                         "-" ->
                             let
@@ -121,3 +183,26 @@ getHeadingData line_ =
 
                         _ ->
                             Ok <| { heading = Paragraph, args = [], properties = Dict.empty }
+
+
+coerce line args name args2 properties element =
+    if hasVerbatimWord line then
+        Ok <| coerce_ line args element
+
+    else
+        Ok <| { heading = Ordinary name, args = args2, properties = properties }
+
+
+hasVerbatimWord : String -> Bool
+hasVerbatimWord line =
+    String.contains "code" line
+        || String.contains "equation" line
+        || String.contains "verse" line
+        || String.contains "aligned" line
+
+
+coerce_ line args2 element =
+    { heading = Verbatim element
+    , args = args2
+    , properties = Dict.singleton "firstLine" (String.replace "| " "" line)
+    }

@@ -148,11 +148,11 @@ blockFromLine parserFunctions ({ indent, lineNumber, position, prefix, content }
                     }
             in
             Ok
-                { heading = heading
+                { heading = heading |> Debug.log "HEADING"
                 , indent = indent
                 , args = args
                 , properties = properties
-                , firstLine = content
+                , firstLine = content |> Debug.log "FIRST_LINE"
                 , body = [ prefix ++ content ]
                 , meta = meta
                 , style = Nothing

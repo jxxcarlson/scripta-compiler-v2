@@ -82,6 +82,7 @@ equation count acc settings attrs block =
         filteredLines =
             -- lines of math text to be rendered: filter stuff out
             String.lines (getContent block)
+                |> Debug.log "@@filteredLines"
                 |> List.map String.trimRight
                 |> List.filter (\line -> not (String.left 2 line == "$$") && not (String.left 6 line == "[label") && not (line == "end"))
                 -- |> List.map (Generic.MathMacro.evalStr acc.mathMacroDict)

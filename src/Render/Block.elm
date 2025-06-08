@@ -42,6 +42,10 @@ standardAttributes settings block =
 
 renderBody : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Element MarkupMsg)
 renderBody count acc settings attrs block =
+    let
+        _ =
+            Debug.log "@@block.heading" block.heading
+    in
     case block.heading of
         Paragraph ->
             [ renderParagraphBody count acc settings attrs block ]
