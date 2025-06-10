@@ -52,7 +52,8 @@ type Filter
 {-| -}
 view : Int -> CompilerOutput -> List (Element MarkupMsg)
 view width_ compiled =
-    [ Element.column [ Element.width (Element.px (width_ - 60)) ] (header compiled)
+    [ Element.column [ Element.width (Element.px (width_ - 60)) ]
+        (header compiled)
     , body compiled
     ]
 

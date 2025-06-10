@@ -685,8 +685,14 @@ quote g acc s attr exprList =
     let
         meta =
             { begin = 0, end = 1, index = 0, id = "qq" }
+
+        leftQuote =
+            String.fromChar '“'
+
+        rightQuote =
+            String.fromChar '”'
     in
-    Element.paragraph [] (List.map (render g acc s attr) (Text "“" meta :: exprList ++ [ Text "”" meta ]))
+    Element.paragraph [] (List.map (render g acc s attr) (Text leftQuote meta :: exprList ++ [ Text rightQuote meta ]))
 
 
 qed _ _ _ _ _ =

@@ -1,8 +1,6 @@
 module Render.Blocks.Interactive exposing
     ( registerRenderers
-    , question
-    , answer
-    , reveal
+    , question, answer, reveal
     )
 
 {-| This module provides renderers for interactive blocks (questions, answers, etc.)
@@ -69,7 +67,8 @@ answer : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupM
 answer count acc settings attrs block =
     let
         title_ =
-            String.join " " (List.drop 1 block.args)
+            -- String.join " " (List.drop 1 block.args)
+            String.join " " block.args
 
         clicker =
             if settings.selectedId == block.meta.id then
@@ -90,6 +89,56 @@ answer count acc settings attrs block =
           else
             Element.none
         ]
+
+
+
+---XXX---
+--
+--question : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+--question count acc settings attrs block =
+--    let
+--        title_ =
+--            String.join " " block.args
+--
+--        label =
+--            " " ++ Render.Helper.getLabel block.properties
+--
+--        qId =
+--            Dict.get block.meta.id acc.qAndADict |> Maybe.withDefault block.meta.id
+--    in
+--    Element.column ([ Element.spacing 12 ] |> Render.Sync2.sync block settings)
+--        -- TODO: clean up?
+--        [ Element.el [ Font.bold, Font.color Color.blue, Events.onClick (HighlightId qId) ] (Element.text (title_ ++ " " ++ label))
+--        , Element.paragraph ([ Font.italic, Events.onClick (HighlightId qId), Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
+--            (Render.Helper.renderWithDefault "..." count acc settings attrs (Generic.Language.getExpressionContent block))
+--        ]
+--
+--
+--answer : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+--answer count acc settings attrs block =
+--    let
+--        title_ =
+--            String.join " " (List.drop 1 block.args)
+--
+--        clicker =
+--            if settings.selectedId == block.meta.id then
+--                Events.onClick (ProposeSolution ScriptaV2.Msg.Unsolved)
+--
+--            else
+--                Events.onClick (ProposeSolution (ScriptaV2.Msg.Solved block.meta.id))
+--    in
+--    Element.column ([ Element.spacing 12, Element.paddingEach { top = 0, bottom = 24, left = 0, right = 0 } ] |> Render.Sync2.sync block settings)
+--        [ Element.el [ Font.bold, Font.color Color.blue, clicker ] (Element.text title_)
+--        , if settings.selectedId == block.meta.id then
+--            -- TODO: clean up?
+--            Element.el [ Events.onClick (ProposeSolution ScriptaV2.Msg.Unsolved) ]
+--                (Element.paragraph ([ Font.italic, Render.Utility.idAttributeFromInt block.meta.lineNumber, Element.paddingXY 8 8 ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
+--                    (Render.Helper.renderWithDefault "..." count acc settings attrs (Generic.Language.getExpressionContent block))
+--                )
+--
+--          else
+--            Element.none
+--        ]
 
 
 {-| Render a reveal block

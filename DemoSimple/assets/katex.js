@@ -24,10 +24,17 @@ function initKatex() {
 
     connectedCallback() {
       this.attachShadow({mode: "open"});
+      
+      // Get properties (not attributes) - Elm sets these as properties
+      const content = this.content || '';
+      const display = this.display || false;
+      
+      console.log('math-text element connected:', {content, display});
+      
       this.shadowRoot.innerHTML =
         katex.renderToString(
-          this.content,
-          { throwOnError: false, displayMode: this.display }
+          content,
+          { throwOnError: false, displayMode: display }
         );
       let link = document.createElement('link');
       link.setAttribute('rel', 'stylesheet');

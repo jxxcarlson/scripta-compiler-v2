@@ -12,10 +12,10 @@ import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
-import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.API
 import ScriptaV2.Compiler
 import ScriptaV2.Language
+import ScriptaV2.Msg exposing (MarkupMsg)
 import Task
 
 
@@ -70,7 +70,7 @@ setSourceText currentLanguage =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { sourceText = Data.MicroLaTeX.text
-      , count = 0
+      , count = 1
       , windowWidth = flags.window.windowWidth
       , windowHeight = flags.window.windowHeight
       , currentLanguage = ScriptaV2.Language.MicroLaTeXLang
@@ -175,17 +175,6 @@ headerHeight =
 
 mainColumn : Model -> Element Msg
 mainColumn model =
-    let
-        -- compile filter lang width outerCount selectedId lines =
-        compiled =
-            ScriptaV2.Compiler.compile
-                ScriptaV2.Compiler.NoFilter
-                model.currentLanguage
-                400
-                model.count
-                "--"
-                (String.lines model.sourceText)
-    in
     column mainColumnStyle
         [ column [ width (px <| appWidth model), height (px <| appHeight model), clipY ]
             [ header model
@@ -268,13 +257,25 @@ displayRenderedText model =
             (ScriptaV2.API.compile
                 { filter = ScriptaV2.Compiler.NoFilter
                 , lang = model.currentLanguage
-                , width =(panelWidth model - 3 * xPadding)
+                , docWidth = panelWidth model - 3 * xPadding
+                , editCount = model.count
+                , selectedId = model.selectId
+                , idsOfOpenNodes = []
                 }
-                model.count
-                model.selectId
                 (String.lines model.sourceText)
             )
         ]
+
+
+
+--type alias CompilerParameters =
+--    { lang : Language
+--    , docWidth : Int
+--    , editCount : Int
+--    , selectedId : String
+--    , idsOfOpenNodes : List String
+--    , filter : Filter
+--    }
 
 
 htmlId str =

@@ -267,7 +267,7 @@ displayRenderedText model =
     let
         params =
             { lang = model.currentLanguage
-            , docWidth = model.windowWidth - 3 * xPadding
+            , docWidth = model.windowWidth // 2
             , editCount = model.count
             , selectedId = "selectedId"
             , idsOfOpenNodes = model.idsOfOpenNodes

@@ -1,6 +1,8 @@
 module M.Expression exposing
     ( State
     , extractMessages
+    , fixup
+    , foo
     , parse
     , parseToState
     , parseWithMessages
@@ -43,7 +45,38 @@ parse lineNumber str =
         state =
             parseToState lineNumber str
     in
-    state.committed
+    state.committed |> fixup
+
+
+fixup input =
+    case input of
+        (Fun name exprList meta) :: rest ->
+            let
+                newExprlist =
+                    case exprList of
+                        head :: tail ->
+                            case head of
+                                Text str meta_ ->
+                                    [ Text (String.trim str) meta_ ] ++ tail
+
+                                _ ->
+                                    exprList
+
+                        [] ->
+                            []
+            in
+            Fun name newExprlist meta :: fixup rest
+
+        _ ->
+            input
+
+
+
+-- no fixup needed for other types, like
+
+
+foo =
+    [ Fun "quote" [ Text " abc def " { begin = 6, end = 14, id = "e-0.2", index = 2 }, Fun "i" [ Text " xyz" { begin = 17, end = 20, id = "e-0.5", index = 5 } ] { begin = 16, end = 16, id = "e-77.4", index = 4 } ] { begin = 1, end = 5, id = "e-77.1", index = 1 } ]
 
 
 parseWithMessages : Int -> String -> ( List Expression, List String )

@@ -552,7 +552,7 @@ tokenParser_ start index =
         [ Parser.oneOf
             [ Parser.backtrackable <| leftMathBracketParser start index
             , Parser.backtrackable <| rightMathBracketParser start index
-            , backSlahshedPrefixParser start index
+            , backSlashedPrefixParser start index
             ]
         , whiteSpaceParser start index
         , textParser start index
@@ -599,8 +599,8 @@ rightBracketParser start index =
         |> Parser.map (\_ -> RB { begin = start, end = start, index = index })
 
 
-backSlahshedPrefixParser : Int -> Int -> TokenParser
-backSlahshedPrefixParser start index =
+backSlashedPrefixParser : Int -> Int -> TokenParser
+backSlashedPrefixParser start index =
     PT.text (\c -> c == '\\') (\c -> not <| List.member c (' ' :: languageChars))
         |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index })
 

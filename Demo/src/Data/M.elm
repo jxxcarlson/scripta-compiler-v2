@@ -2,7 +2,130 @@ module Data.M exposing (text)
 
 
 text =
-    text0
+    test
+
+
+test =
+    """
+ | title
+ Visual Test
+ 
+ [tags jxxcarlson:visual-test]
+ 
+ # Basic formatting
+ 
+ [i This is italic text.]
+ 
+ [b This is bold text.]
+ 
+ [i [b This is bold-italic text.]]
+ 
+ [u This is underlined text.]
+ 
+ [strike This text is no good.]
+ 
+ [red This text is red.]
+ 
+ [blue This text is blue.]
+ 
+ [gray This text is gray.]
+ 
+ ## Notes
+ 
+ Notice how we made a section heading above.  Notice
+ that sections are numbered automatically. ((To add: turn 
+ off numbering))  Notice also how we made a subsection.
+ ((Subjections should be numbered. ))
+ 
+ 
+ BUG: getting kicked out of editor.
+ 
+ # Basic blocks
+ 
+ [i A block is a contiguous set of non-empty lines with
+ at least one empty line above and below. Blocks
+ may be indented. Begin an indented block by typing
+ TAB.  End an indented block by typing shift-RETURN.]
+ 
+ ## Quotations
+ 
+ Single paragraph
+ 
+ | quotation
+ Four score and seven years ago our fathers brought forth on this 
+ continent a new nation, conceived in liberty, and dedicated to the
+ proposition that all men are created equal.
+ 
+ Multiple paragraphs:
+ 
+ | quotation
+ Four score and seven years ago our fathers brought forth on this 
+ continent a new nation, conceived in liberty, and dedicated to the
+ proposition that all men are created equal.
+ 
+   Now we are engaged in a great civil war, testing whether that nation,
+ or any nation so conceived and so dedicated, can long endure. We are 
+ met on a great battlefield of that war. We have come to dedicate a 
+ portion of that field as a final resting place for those who here   
+ gave their lives that that nation might live. It is altogether   
+ fitting and proper that we should do this.
+ 
+ ((Problems above, [red fix identation]; pretty-printing))
+ 
+ ## Indentation
+ 
+ Look at the block below:
+ 
+ | indent
+ This is  and indented block.
+ 
+   | indent 
+   An indented block
+ 
+     | indent
+     Indented some more
+ 
+ | indent
+ Also indented
+ 
+ | indent
+ Indented even more
+ 
+ ((^^ Think about how this is done.  At the very least,
+ the first block is wrongly indented.
+ We need a visual indication of indentation in the editor))
+ 
+ | remark
+ This is a remark.
+ 
+ | note
+ This is a note
+ 
+ | problem
+ What is the square root of two to three decimals?
+ 
+ 
+ | theorem
+ If $a$, $b$, $c$ are the sides of a right triangle,
+ where $c$ is the hypotenuse, then
+ 
+   $$
+   a^2 + b^2 = c^2
+   $$
+ 
+   This is the Pythagorean theorem
+ 
+   This is cool
+ 
+ 
+ [red [b Directions for multiparagraph blocks.] [i End indented block with  shift-return.  Begin indented block with tab.]]
+ 
+ ((numbering scheme??, multiparagraph blocks, awkward.
+ [red what about treating lines two spaces as if
+ they were empty lines ..]))
+ 
+
+"""
 
 
 text0 =

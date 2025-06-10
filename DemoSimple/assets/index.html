@@ -25,7 +25,16 @@
 
 		var root = document.getElementById('main');
 		var app = Elm.Main.init({node: root, flags: {window: {windowWidth: window.innerWidth, windowHeight: window.innerHeight }}});
+        
+        // Initialize KaTeX
         init(app);
+        
+        // Force a re-render after KaTeX is loaded to ensure math elements are rendered
+        setTimeout(() => {
+            console.log('Forcing re-render after KaTeX load');
+            // Trigger a dummy resize event to force Elm to re-render
+            window.dispatchEvent(new Event('resize'));
+        }, 500);
 
 </script>
 
