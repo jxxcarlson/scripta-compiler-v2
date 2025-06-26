@@ -42,6 +42,36 @@ $$
 """
 
 
+qq =
+    """
+| quotation title:Gettysburg Address
+Four score and seven years ago
+
+  Now we are engaged in a great civil war
+
+  Now we are engaged in a great civil war. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+  Now we are engaged in a great civil wa. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+"""
+
+
+t1 =
+    """
+ || table c c c
+ 1 & 2 & 3.1234 \\
+ 4 & 5 & 6.1
+
+"""
+
+
+tb2 =
+    """
+ | table c c c
+ 1 & 2 & 3.1234 \\
+ 4 & 5 & 6.1
+"""
+
+
 p str =
     parse "0" 0 (String.lines str)
 
@@ -197,6 +227,7 @@ verbatimWords =
     , "mathmacros"
     , "textmacros"
     , "datatable"
+    , "table"
     , "chart"
     , "svg"
     , "quiver"
