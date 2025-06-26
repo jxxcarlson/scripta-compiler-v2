@@ -1,11 +1,5 @@
 module Render.Attributes exposing
-    ( getBlockAttributes
-    , getItalicAttributes
-    , getBoxAttributes
-    , getContainerAttributes
-    , getDocumentAttributes
-    , getIndentAttributes
-    , getQuotationAttributes
+    ( getBlockAttributes, getItalicAttributes, getBoxAttributes, getContainerAttributes, getDocumentAttributes, getIndentAttributes, getQuotationAttributes
     , italicBlockNames
     )
 
@@ -26,11 +20,7 @@ import Generic.BlockUtilities
 import Generic.Language exposing (ExpressionBlock)
 import Render.BlockType as BlockType exposing (BlockType(..))
 import Render.Color
-import Render.Helper
-import Render.Indentation
 import Render.Settings exposing (RenderSettings)
-import Render.Sync
-import ScriptaV2.Msg exposing (MarkupMsg)
 import Render.Utility
 
 
@@ -89,6 +79,7 @@ getTypeSpecificAttributes blockType =
         _ ->
             if List.member (BlockType.toString blockType) italicBlockNames then
                 getItalicAttributes
+
             else
                 []
 
@@ -105,7 +96,6 @@ getItalicAttributes =
 getBoxAttributes : List (Element.Attribute msg)
 getBoxAttributes =
     [ Element.spacing standardSpacing
-    , Font.italic
     , Element.paddingXY standardLeftPadding standardLeftPadding
     , Background.color Render.Color.boxBackground
     ]
@@ -128,7 +118,7 @@ getDocumentAttributes =
 {-| Standard spacing value for consistent spacing
 -}
 standardSpacing : Int
-standardSpacing = 
+standardSpacing =
     11
 
 
@@ -152,8 +142,7 @@ getIndentAttributes =
 -}
 getQuotationAttributes : List (Element.Attribute msg)
 getQuotationAttributes =
-    [ Font.italic
-    , Element.paddingEach { left = standardLeftPadding, right = 0, top = 0, bottom = 0 }
+    [ Element.paddingEach { left = standardLeftPadding, right = 0, top = 0, bottom = 0 }
     ]
 
 
@@ -161,8 +150,7 @@ getQuotationAttributes =
 -}
 italicBlockNames : List String
 italicBlockNames =
-    [ "quote"
-    , "aside"
+    [ "aside"
     , "note"
     , "warning"
     , "exercise"

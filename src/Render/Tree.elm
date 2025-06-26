@@ -70,7 +70,7 @@ renderLeafNode :
     -> Element MarkupMsg
 renderLeafNode count accumulator settings attrs_ root =
     Element.column (Render.TreeSupport.renderAttributes settings root)
-        (Render.TreeSupport.renderBody count accumulator settings attrs_ root)
+        (Render.TreeSupport.renderBody count accumulator settings [] root)
 
 
 {-| Render a branch node (a block with children)
@@ -88,7 +88,7 @@ renderBranchNode :
 renderBranchNode count accumulator settings attrs_ blockAttrs root children tree =
     case getBlockType root of
         ContainerBlock Box ->
-            renderBoxBranch count accumulator settings attrs_ blockAttrs root children
+            renderBoxBranch count accumulator settings [] [] root children
 
         _ ->
             renderStandardBranch count accumulator settings attrs_ blockAttrs root children
