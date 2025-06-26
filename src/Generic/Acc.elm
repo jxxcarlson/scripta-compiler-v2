@@ -345,7 +345,7 @@ reduceName str =
     else if str == "code" then
         "listing"
 
-    else if List.member str [ "quiver", "image", "iframe", "chart", "datatable", "svg", "tikz", "iframe" ] then
+    else if List.member str [ "quiver", "image", "iframe", "chart", "table", "datatable", "svg", "tikz", "iframe" ] then
         "figure"
 
     else

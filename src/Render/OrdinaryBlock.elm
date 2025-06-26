@@ -16,8 +16,8 @@ import Either exposing (Either(..))
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
-import Generic.BlockUtilities
 import Generic.Acc exposing (Accumulator)
+import Generic.BlockUtilities
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Render.Attributes
 import Render.BlockRegistry exposing (BlockRegistry)
@@ -27,12 +27,12 @@ import Render.Blocks.Document as DocumentBlocks
 import Render.Blocks.Interactive as InteractiveBlocks
 import Render.Blocks.Text as TextBlocks
 import Render.Color
+import Render.Footnote
 import Render.Helper
 import Render.Indentation
 import Render.List
-import Render.Footnote
-import Render.Table
 import Render.Settings exposing (RenderSettings)
+import Render.Table
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
@@ -47,10 +47,11 @@ getAttributes name =
     case blockType of
         ContainerBlock Box ->
             [ Background.color Render.Color.boxBackground ]
-        
+
         _ ->
             if List.member name Render.Attributes.italicBlockNames then
                 [ Font.italic ]
+
             else
                 []
 
