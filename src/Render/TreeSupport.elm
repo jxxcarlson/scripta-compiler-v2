@@ -1,7 +1,4 @@
-module Render.TreeSupport exposing
-    ( renderAttributes
-    , renderBody
-    )
+module Render.TreeSupport exposing (renderAttributes, renderBody)
 
 {-| This module provides simplified versions of Block functions needed by Tree2
 to avoid import cycles.
@@ -14,10 +11,10 @@ import Either exposing (Either(..))
 import Element exposing (Element)
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock, Heading(..))
-import Render.OrdinaryBlock
 import Render.Expression
 import Render.Helper
 import Render.Indentation
+import Render.OrdinaryBlock
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
@@ -31,19 +28,20 @@ renderAttributes : RenderSettings -> ExpressionBlock -> List (Element.Attribute 
 renderAttributes settings block =
     case block.heading of
         Paragraph ->
-            Element.focused [] :: standardAttributes settings block
+            Element.focused [] :: syncAttributes settings block
 
         Ordinary name ->
-            standardAttributes settings block ++ Element.focused [] :: Render.OrdinaryBlock.getAttributes name
+            syncAttributes settings block ++ Element.focused [] :: Render.OrdinaryBlock.getAttributes name
 
         Verbatim _ ->
-            Element.focused [] :: standardAttributes settings block
+            Element.focused [] :: syncAttributes settings block
 
 
-{-| Helper for standard attributes
+{-| The standard attributes for a block are those needed for LR and RL sync
+and for highlighting the block if it is selected.
 -}
-standardAttributes : RenderSettings -> ExpressionBlock -> List (Element.Attribute MarkupMsg)
-standardAttributes settings block =
+syncAttributes : RenderSettings -> ExpressionBlock -> List (Element.Attribute MarkupMsg)
+syncAttributes settings block =
     [ Render.Utility.idAttributeFromInt block.meta.lineNumber
     , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
     ]
