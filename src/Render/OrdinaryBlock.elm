@@ -1,9 +1,4 @@
-module Render.OrdinaryBlock exposing
-    ( getAttributes
-    , getAttributesForBlock
-    , render
-    , initRegistry
-    )
+module Render.OrdinaryBlock exposing (getAttributes, getAttributesForBlock, render, initRegistry)
 
 {-| This module provides a new implementation of OrdinaryBlock using the registry pattern
 
@@ -119,15 +114,15 @@ render count acc settings attr block =
                                     let
                                         blockType =
                                             Render.BlockType.fromString functionName
-                                            
+
                                         newSettings =
                                             case blockType of
                                                 ListBlock Item ->
                                                     { settings | width = settings.width - 6 * block.indent }
-                                                    
+
                                                 ListBlock Numbered ->
                                                     { settings | width = settings.width - 6 * block.indent }
-                                                    
+
                                                 _ ->
                                                     settings
                                     in
