@@ -40,11 +40,11 @@ renderTree count accumulator settings attrs_ tree =
     case RoseTree.Tree.children tree of
         [] ->
             -- Leaf node: just render the block
-            renderLeafNode count accumulator settings attrs_ root
+            renderLeafNode count accumulator settings [] root
 
         children ->
             -- Branch node: render based on block type
-            renderBranchNode count accumulator settings attrs_ blockAttrs root children tree
+            renderBranchNode count accumulator settings [] [] root children tree
 
 
 {-| Render a leaf node (a block with no children)
@@ -69,7 +69,8 @@ renderLeafNode :
     -> ExpressionBlock
     -> Element MarkupMsg
 renderLeafNode count accumulator settings attrs_ root =
-    Element.column (Render.TreeSupport.renderAttributes settings root)
+    Element.column []
+        --(Render.TreeSupport.renderAttributes settings root)
         (Render.TreeSupport.renderBody count accumulator settings [] root)
 
 
@@ -88,10 +89,10 @@ renderBranchNode :
 renderBranchNode count accumulator settings attrs_ blockAttrs root children tree =
     case getBlockType root of
         ContainerBlock Box ->
-            renderBoxBranch count accumulator settings [] [] root children
+            renderBoxBranch count accumulator settings attrs_ blockAttrs root children
 
         _ ->
-            renderStandardBranch count accumulator settings attrs_ blockAttrs root children
+            renderStandardBranch count accumulator settings [] [] root children
 
 
 {-| Render a branch node that is a box
@@ -139,7 +140,7 @@ renderStandardBranch :
     -> Element MarkupMsg
 renderStandardBranch count accumulator settings attrs_ blockAttrs root children =
     Element.column (Element.spacing 12 :: getBlockAttributes root settings)
-        (Render.TreeSupport.renderBody count accumulator settings (getBlockAttributes root settings) root
+        (Render.TreeSupport.renderBody count accumulator settings [] root
             ++ List.map (renderTree count accumulator settings (attrs_ ++ getBlockAttributes root settings ++ blockAttrs)) children
         )
 
