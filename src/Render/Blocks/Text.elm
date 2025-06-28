@@ -1,13 +1,6 @@
 module Render.Blocks.Text exposing
     ( registerRenderers
-    , centered
-    , indented
-    , compact
-    , identity
-    , red
-    , red2
-    , blue
-    , quotation
+    , centered, indented, compact, identity, red, red2, blue, quotation
     )
 
 {-| This module provides renderers for text-related blocks.
@@ -138,10 +131,18 @@ blue count acc settings attr block =
 -}
 quotation : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 quotation count acc settings attrs block =
-    Element.column ([ Element.spacing 8 ] |> Render.Sync2.sync block settings)
+    Element.column
+        ([ Element.spacing 8
+         , if block.indent == 0 then
+            Element.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }
+
+           else
+            Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 }
+         ]
+            |> Render.Sync2.sync block settings
+        )
         [ Render.Helper.noteFromPropertyKey "title" [ Font.bold ] block
         , Element.paragraph
             (Render.Helper.blockAttributes settings block [])
             (Render.Helper.renderWithDefault "quotation" count acc settings attrs (Generic.Language.getExpressionContent block))
-        , Render.Helper.noteFromPropertyKey "source" [] block
         ]
