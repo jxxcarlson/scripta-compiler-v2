@@ -1,6 +1,6 @@
 module Generic.PrimitiveBlock exposing
     ( empty, parse
-    , ParserFunctions, bogusBlockFromLine, eq, length, listLength, raiseBlockLevelsIfNeeded_
+    , ParserFunctions, bogusBlockFromLine, eq, fixItems, length, listLength, raiseBlockLevelsIfNeeded_
     )
 
 {-| The main function is
@@ -242,13 +242,34 @@ nextStep state =
                 -- the current line is nonempty and nonblank
                 ( False, False, False ) ->
                     let
+                        adjustedBlocks =
+                            case state.blocks of
+                                [] ->
+                                    []
+
+                                lastBlock :: rest ->
+                                    if lastBlock.heading == Ordinary "itemList" then
+                                        let
+                                            body1 =
+                                                case lastBlock.body of
+                                                    [] ->
+                                                        []
+
+                                                    first :: rest_ ->
+                                                        (lastBlock.firstLine ++ " " ++ first) :: rest_ |> fixItems
+                                        in
+                                        { lastBlock | body = body1 } :: rest |> Debug.log "@@ADJUSTED BLOCK"
+
+                                    else
+                                        state.blocks
+
                         _ =
                             Debug.log "@@heading (CREATE)" ( currentLine, inspect state.parserFunctions currentLine )
 
                         _ =
                             Debug.log "@@TOP" (List.head state.blocks)
                     in
-                    Loop (createBlock { state | position = newPosition, label = "3, NEW" } currentLine)
+                    Loop (createBlock { state | blocks = adjustedBlocks, position = newPosition, label = "3, NEW" } currentLine)
 
                 -- A nonempty line was encountered inside a block, so add it
                 -- HERE
@@ -290,6 +311,30 @@ nextStep state =
                 -- current line is empty
                 ( True, True, _ ) ->
                     Loop (commitBlock { state | position = newPosition, label = "5, COMMIT" } currentLine)
+
+
+fixItems : List String -> List String
+fixItems list =
+    fixItemsAux [] list |> List.reverse
+
+
+fixItemsAux : List String -> List String -> List String
+fixItemsAux acc input =
+    let
+        folder : String -> List String -> List String
+        folder str list =
+            if (str |> String.trimLeft |> String.left 1) == "-" then
+                (str |> String.trimLeft |> String.dropLeft 2) :: list
+
+            else
+                case list of
+                    [] ->
+                        []
+
+                    first :: rest ->
+                        (first ++ " " ++ str) :: rest
+    in
+    List.foldl folder acc input
 
 
 advance : Int -> State -> State
