@@ -88,7 +88,6 @@ verbatimDict =
         , ( "load-files", Render.Helper.renderNothing )
         , ( "include", Render.Helper.renderNothing )
         , ( "setup", Render.Helper.renderNothing )
-        , ( "table", Render.Table.render )
         , ( "iframe", Render.IFrame.render )
         ]
 

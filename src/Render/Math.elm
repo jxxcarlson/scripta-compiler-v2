@@ -22,6 +22,7 @@ import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Keyed
 import Json.Encode
+import List.Extra
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
@@ -201,14 +202,11 @@ deltaY lines =
 array : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 array count acc settings attrs block =
     let
-        args : String
-        args =
+        format : String
+        format =
             block.args
                 |> List.head
                 |> Maybe.withDefault ""
-                -- TODO: remove bad hack in next two lines
-                |> String.replace "{" ""
-                |> String.replace "}" ""
 
         -- |> String.replace " " ""
         str =
@@ -219,6 +217,7 @@ array count acc settings attrs block =
                 Right _ ->
                     ""
 
+        filteredLines : List String
         filteredLines =
             -- filter stuff out of lines of math text to be rendered:
             String.lines str
@@ -235,6 +234,7 @@ array count acc settings attrs block =
             else
                 str_
 
+        adjustedLines_ : List String
         adjustedLines_ =
             -- delete trailing slashes before evaluating macros
             List.map (deleteTrailingSlashes >> Generic.MathMacro.evalStr acc.mathMacroDict) filteredLines
@@ -247,7 +247,7 @@ array count acc settings attrs block =
                 |> String.join "\\\\\n"
 
         content =
-            "\\begin{array}{" ++ args ++ "}\n" ++ innerContent ++ "\n\\end{array}"
+            "\\begin{array}{" ++ format ++ "}\n" ++ innerContent ++ "\n\\end{array}"
 
         label =
             equationLabel (deltaY filteredLines) settings block.properties content
@@ -265,15 +265,12 @@ array count acc settings attrs block =
 textarray : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 textarray count acc settings attrs block =
     let
-        args : String
-        args =
+        format : String
+        format =
             block.args
-                |> List.head
-                |> Maybe.withDefault ""
-                |> String.replace "{" ""
-                |> String.replace "}" ""
+                |> List.Extra.getAt 1
+                |> Maybe.withDefault defaultFormat
 
-        -- |> String.replace " " ""
         str =
             case block.body of
                 Left str_ ->
@@ -287,6 +284,20 @@ textarray count acc settings attrs block =
             String.lines str
                 |> List.filter (\line -> not (String.left 6 line == "[label") && not (line == ""))
                 |> List.map fixrow
+
+        mNumberOfColumns =
+            filteredLines
+                |> List.head
+                |> Maybe.map (String.split "&")
+                |> Maybe.map List.length
+
+        defaultFormat =
+            case mNumberOfColumns of
+                Nothing ->
+                    ""
+
+                Just n ->
+                    List.repeat n "c" |> String.join ""
 
         fixrow : String -> String
         fixrow str_ =
@@ -320,7 +331,7 @@ textarray count acc settings attrs block =
 
         content =
             "\\begin{array}{"
-                ++ args
+                ++ format
                 ++ "}\n"
                 ++ innerContent
                 ++ "\n\\end{array}"

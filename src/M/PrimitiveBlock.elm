@@ -9,6 +9,14 @@ import Parser exposing ((|.), (|=), Parser)
 import Tools.KV as KV
 
 
+xx =
+    """
+| table ccl
+1 & 2 & 3.1234
+4 & 5 & 6.11
+"""
+
+
 x3 =
     """
 | equation
@@ -140,7 +148,10 @@ getHeadingData line_ =
                                     Err <| HEMissingName
 
                                 name :: args2 ->
-                                    coerce line args name args2 properties
+                                    -- coerce the block to a verbatim block if
+                                    -- the prefix is "|" and the name is in the list of
+                                    -- of verbatim blocks
+                                    coerceToVerbatim line args name args2 properties |> Debug.log "@@M.PrimitiveBlock.getHeadingData"
 
                         "-" ->
                             let
@@ -186,13 +197,17 @@ getHeadingData line_ =
                             Ok <| { heading = Paragraph, args = [], properties = Dict.empty }
 
 
-coerce line args name args2 properties =
+coerceToVerbatim line args name args2 properties =
+    let
+        _ =
+            Debug.log "@@M.PrimitiveBlock.coerceToVerbatim" name
+    in
     case hasVerbatimWord line of
         Just element ->
-            Ok <| coerce_ line args element
+            (Ok <| coerceToVerbatim_ line args element) |> Debug.log ("@@M.PrimitiveBlock.coerceToVerbatim (2)" ++ name)
 
         Nothing ->
-            Ok <| { heading = Ordinary name, args = args2, properties = properties }
+            (Ok <| { heading = Ordinary name, args = args2, properties = properties }) |> Debug.log ("@@M.PrimitiveBlock.coerceToVerbatim (3)" ++ name)
 
 
 hasVerbatimWord : String -> Maybe String
@@ -256,7 +271,7 @@ mElementWord line =
 --    || String.contains "aligned" line
 
 
-coerce_ line args2 element =
+coerceToVerbatim_ line args2 element =
     { heading = Verbatim element
     , args = args2
     , properties = Dict.singleton "firstLine" (String.replace "| " "" line)
