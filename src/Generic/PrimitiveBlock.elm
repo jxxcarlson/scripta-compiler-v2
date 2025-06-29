@@ -256,7 +256,8 @@ nextStep state =
                                                         []
 
                                                     first :: rest_ ->
-                                                        (lastBlock.firstLine ++ " " ++ first) :: rest_ |> fixItems
+                                                        -- HERE!
+                                                        ("- " ++ lastBlock.firstLine ++ " " ++ first) :: rest_ |> fixItems |> Debug.log "@@!!"
                                         in
                                         { lastBlock | body = body1 } :: rest |> Debug.log "@@ADJUSTED BLOCK"
 

@@ -127,6 +127,9 @@ toLaTeXString expr =
                 _ ->
                     "error: verbatim " ++ name ++ " not recognized"
 
+        ExprList _ _ ->
+            "[ExprList]"
+
 
 extract2 : Expression -> Maybe Macro
 extract2 expr =
@@ -249,6 +252,9 @@ functionNames_ expr =
             []
 
         VFun _ _ _ ->
+            []
+
+        ExprList _ _ ->
             []
 
 

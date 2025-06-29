@@ -3,6 +3,7 @@ module Generic.Pipeline exposing (toExpressionBlock)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..), PrimitiveBlock)
+import Generic.PrimitiveBlock
 import List.Extra
 import M.Expression
 import ScriptaV2.Language exposing (Language(..))
@@ -31,6 +32,20 @@ toExpressionBlock_ lang parse block =
         case block.heading of
             Paragraph ->
                 Right (String.join "\n" block.body |> parse)
+
+            Ordinary "itemList" ->
+                let
+                    items : List String
+                    items =
+                        Debug.log "@@ block.body (1)" (block.firstLine :: block.body)
+                            |> Generic.PrimitiveBlock.fixItems
+                            |> Debug.log "@@ block.body (2)"
+
+                    content_ : List (List Expression)
+                    content_ =
+                        List.map (M.Expression.parse 0) items
+                in
+                Right (List.map (\list -> ExprList list Generic.Language.emptyExprMeta) content_)
 
             Ordinary _ ->
                 Right (String.join "\n" block.body |> parse)

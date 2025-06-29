@@ -1035,6 +1035,9 @@ exportExpr settings expr =
         VFun name body _ ->
             renderVerbatim name body
 
+        ExprList exprList _ ->
+            "[ExprList]"
+
 
 {-| Use this to unalias names
 -}

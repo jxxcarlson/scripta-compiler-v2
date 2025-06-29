@@ -35,12 +35,37 @@ registerRenderers : BlockRegistry -> BlockRegistry
 registerRenderers registry =
     Render.BlockRegistry.registerBatch
         [ ( "box", box )
+        , ( "itemList", itemList )
         , ( "comment", comment )
         , ( "collection", collection )
         , ( "bibitem", bibitem )
         , ( "env", env_ )
         ]
         registry
+
+
+itemList : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+itemList count acc settings attr block =
+    let
+        _ =
+            Debug.log "!!!itemList" block
+
+        listOfExprList : List Generic.Language.Expression
+        listOfExprList =
+            case block.body of
+                Left _ ->
+                    []
+
+                Right list ->
+                    list
+
+        f =
+            --Render.Expression.render generation acc settings attrs
+            Render.Expression.render 0 acc settings []
+    in
+    Element.column [ Element.spacing 8 ]
+        --(Render.Helper.renderWithDefault "" count acc settings attr (Generic.Language.getExpressionContent block))
+        (List.map f listOfExprList)
 
 
 {-| Render a box block

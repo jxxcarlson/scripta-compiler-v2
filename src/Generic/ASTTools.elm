@@ -403,6 +403,9 @@ getText expression =
         Fun _ expressions _ ->
             List.map getText expressions |> Maybe.Extra.values |> String.join " " |> Just
 
+        ExprList exprList _ ->
+            Nothing
+
 
 stringValueOfList : List Expression -> String
 stringValueOfList textList =
@@ -420,6 +423,9 @@ stringValue expr =
 
         VFun _ str _ ->
             str
+
+        ExprList _ _ ->
+            "[ExprList]"
 
 
 expressionBlockToText : List ExpressionBlock -> String

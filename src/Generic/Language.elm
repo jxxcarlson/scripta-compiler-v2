@@ -15,6 +15,7 @@ module Generic.Language exposing
     , boostBlock
     , composeTextElement
     , emptyBlockMeta
+    , emptyExprMeta
     , expressionBlockEmpty
     , extractText
     , getExpressionContent
@@ -51,6 +52,7 @@ type Expr metaData
     = Text String metaData
     | Fun String (List (Expr metaData)) metaData
     | VFun String String metaData
+    | ExprList (List (Expr metaData)) metaData
 
 
 extractText : Expr metaData -> Maybe ( String, metaData )
@@ -152,6 +154,11 @@ type alias ExprMeta =
     { begin : Int, end : Int, index : Int, id : String }
 
 
+emptyExprMeta : { begin : number, end : number, index : number, id : String }
+emptyExprMeta =
+    { begin = 0, end = 0, index = 0, id = "id" }
+
+
 prefixIdInBlockMeta : String -> BlockMeta -> BlockMeta
 prefixIdInBlockMeta prefix meta =
     { meta | id = prefix ++ String.replace prefix "e-" meta.id }
@@ -188,6 +195,9 @@ getMeta expr =
         Text _ meta ->
             meta
 
+        ExprList _ meta ->
+            meta
+
 
 setMeta : ExprMeta -> Expression -> Expression
 setMeta meta expr =
@@ -200,6 +210,9 @@ setMeta meta expr =
 
         Text text _ ->
             Text text meta
+
+        ExprList eList _ ->
+            ExprList eList meta
 
 
 {-|
@@ -306,8 +319,13 @@ simplifyExpr expr =
         Text text _ ->
             Text text ()
 
+        ExprList eList _ ->
+            --ExprList eList ()
+            Text "text" ()
 
 
+
+-- ExprList (List (Expr metaData)) metaData
 -- CONCRETE SIMPLIFIERS
 
 
@@ -371,6 +389,7 @@ expressionBlockEmpty =
     }
 
 
+emptyBlockMeta : BlockMeta
 emptyBlockMeta =
     { position = 0
     , lineNumber = 0
@@ -447,4 +466,7 @@ getFunctionName expression =
             Nothing
 
         Text _ _ ->
+            Nothing
+
+        ExprList _ _ ->
             Nothing
