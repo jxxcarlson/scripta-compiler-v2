@@ -80,6 +80,28 @@ tb2 =
 """
 
 
+cl =
+    """
+- Plastic cups
+- Red wine
+- White wine
+- Cheese
+- Crackers
+"""
+
+
+cl2 =
+    """
+- Plastic cups
+not too big
+- Red wine
+  really good stuff!
+- White wine
+
+$a^ + b^2 = c^2$
+"""
+
+
 p str =
     parse "0" 0 (String.lines str)
 
