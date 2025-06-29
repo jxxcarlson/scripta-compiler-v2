@@ -131,6 +131,16 @@ init parserFunctions initialId outerCount lines =
     }
 
 
+inspect : ParserFunctions -> Line -> Maybe Generic.Language.Heading
+inspect parserFunctions { indent, lineNumber, position, prefix, content } =
+    case parserFunctions.getHeadingData content of
+        Err err ->
+            Nothing
+
+        Ok { heading, args, properties } ->
+            Just heading
+
+
 blockFromLine : ParserFunctions -> Line -> Result Line.HeadingError PrimitiveBlock
 blockFromLine parserFunctions ({ indent, lineNumber, position, prefix, content } as line) =
     case parserFunctions.getHeadingData content of
@@ -231,11 +241,50 @@ nextStep state =
                 -- create a new block: we are not in a block, but
                 -- the current line is nonempty and nonblank
                 ( False, False, False ) ->
+                    let
+                        _ =
+                            Debug.log "@@heading (CREATE)" ( currentLine, inspect state.parserFunctions currentLine )
+
+                        _ =
+                            Debug.log "@@TOP" (List.head state.blocks)
+                    in
                     Loop (createBlock { state | position = newPosition, label = "3, NEW" } currentLine)
 
                 -- A nonempty line was encountered inside a block, so add it
+                -- HERE
                 ( True, False, _ ) ->
-                    Loop (addCurrentLine2 { state | position = newPosition, label = "4, ADD" } currentLine)
+                    let
+                        _ =
+                            Debug.log "@@heading (CONTINUE)" ( match, currentLine, inspect state.parserFunctions currentLine )
+
+                        match =
+                            Maybe.map .heading state.currentBlock == inspect state.parserFunctions currentLine
+
+                        newCurrentBlock =
+                            if
+                                match
+                                    && List.member (Maybe.map .heading state.currentBlock)
+                                        [ Just <| Ordinary "item", Just <| Ordinary "itemList" ]
+                            then
+                                case state.currentBlock of
+                                    Nothing ->
+                                        Nothing
+
+                                    Just block ->
+                                        Just { block | heading = Ordinary "itemList" }
+
+                            else
+                                state.currentBlock
+                    in
+                    Loop
+                        (addCurrentLine2
+                            { state
+                                | position = newPosition
+                                , currentBlock = newCurrentBlock
+                                , label = "4, ADD"
+                            }
+                            currentLine
+                        )
 
                 -- commit the current block: we are in a block and the
                 -- current line is empty
