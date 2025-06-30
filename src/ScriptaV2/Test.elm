@@ -46,18 +46,28 @@ alpha =
 """
 
 
-alpha2 =
+alpha2Clean =
     """
 - A
-[i number 1]
+[i first item]
 - B
-2
 - C
-3
 - D
-4
 - E
-5
+
+"""
+
+
+alpha2Hoho =
+    """
+- A
+[i first item]
+- B
+- C
+- D
+- E
+
+Ho ho ho!
 """
 
 

@@ -40,7 +40,7 @@ render generation acc settings attrs expr =
 
         ExprList exprList meta ->
             Element.column []
-                [ Element.paragraph [ Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ] (Element.text "• " :: List.map (render generation acc settings attrs) exprList)
+                [ Element.paragraph [ Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ] (List.map (render generation acc settings attrs) exprList)
                 ]
 
 

@@ -270,7 +270,8 @@ nextStep state =
                         _ =
                             Debug.log "@@TOP" (List.head state.blocks)
                     in
-                    Loop (createBlock { state | blocks = adjustedBlocks, position = newPosition, label = "3, NEW" } currentLine)
+                    --Loop (createBlock { state | blocks = adjustedBlocks, position = newPosition, label = "3, NEW" } currentLine)
+                    Loop (createBlock { state | position = newPosition, label = "3, NEW" } currentLine)
 
                 -- A nonempty line was encountered inside a block, so add it
                 -- HERE

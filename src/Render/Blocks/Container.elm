@@ -59,13 +59,50 @@ itemList count acc settings attr block =
                 Right list ->
                     list
 
-        f =
-            --Render.Expression.render generation acc settings attrs
-            Render.Expression.render 0 acc settings []
+        renderItem : RenderSettings -> Generic.Language.Expression -> Element MarkupMsg
+        renderItem settings_ expr =
+            Element.row [ Element.width (Element.px 500) ]
+                [ renderLabel settings
+                , Element.paragraph [ Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines ]
+                    (Render.Expression.render 0 acc settings [] expr :: [])
+                ]
     in
     Element.column [ Element.spacing 8 ]
         --(Render.Helper.renderWithDefault "" count acc settings attr (Generic.Language.getExpressionContent block))
-        (List.map f listOfExprList)
+        (List.map (renderItem settings) listOfExprList)
+
+
+renderLabel settings =
+    Element.el
+        [ Font.size 14
+        , Element.alignTop
+
+        --, Element.moveRight 6
+        , Element.width (Element.px 24)
+        , Render.Utility.leftPadding (settings.leftIndentation + 12)
+        ]
+        (Element.text (String.fromChar '•'))
+
+
+
+--Element.row
+--    [ Element.moveRight (indentationScale * level_ |> toFloat)
+--    , Element.alignTop
+--    , Render.Utility.idAttributeFromInt block.meta.lineNumber
+--    , Render.Utility.vspace 0 settings.topMarginForChildren
+--    , Element.width (Element.px <| settings.width - 50)
+--    ]
+--    [ Element.el
+--        [ Font.size 14
+--        , Element.alignTop
+--        , Element.moveRight 6
+--        , Element.width (Element.px 24)
+--        , Render.Utility.leftPadding settings.leftIndentation
+--        ]
+--        (Element.text label_)
+--    , Element.paragraph [ Render.Utility.leftPadding settings.leftIndentation, Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines ]
+--        (Render.Helper.renderWithDefault "| item" count acc settings attr (Generic.Language.getExpressionContent block))
+--    ]
 
 
 {-| Render a box block
