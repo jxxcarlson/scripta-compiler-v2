@@ -46,6 +46,16 @@ alpha =
 """
 
 
+nl =
+    """
+. Plastic cups
+. Red wine
+. White wine
+. Cheese
+. Crackers
+"""
+
+
 alpha2Clean =
     """
 - A

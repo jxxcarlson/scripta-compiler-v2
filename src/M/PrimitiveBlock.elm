@@ -90,6 +90,16 @@ cl =
 """
 
 
+nl =
+    """
+. Plastic cups
+. Red wine
+. White wine
+. Cheese
+. Crackers
+"""
+
+
 cl2 =
     """
 - Plastic cups

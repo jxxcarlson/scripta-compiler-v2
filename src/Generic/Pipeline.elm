@@ -38,7 +38,21 @@ toExpressionBlock_ lang parse block =
                     items : List String
                     items =
                         Debug.log "@@ block.body (1)" (block.firstLine :: block.body)
-                            |> Generic.PrimitiveBlock.fixItems
+                            |> fixItems
+                            |> Debug.log "@@ block.body (2)"
+
+                    content_ : List (List Expression)
+                    content_ =
+                        List.map (M.Expression.parse 0) items
+                in
+                Right (List.map (\list -> ExprList list Generic.Language.emptyExprMeta) content_)
+
+            Ordinary "numberedList" ->
+                let
+                    items : List String
+                    items =
+                        Debug.log "@@ block.body (1)" (block.firstLine :: block.body)
+                            |> fixNumberedItems
                             |> Debug.log "@@ block.body (2)"
 
                     content_ : List (List Expression)
@@ -55,6 +69,54 @@ toExpressionBlock_ lang parse block =
     , meta = block.meta
     , style = block.style
     }
+
+
+fixItems : List String -> List String
+fixItems list =
+    fixItemsAux [] list |> List.reverse
+
+
+fixItemsAux : List String -> List String -> List String
+fixItemsAux acc input =
+    let
+        folder : String -> List String -> List String
+        folder str list =
+            if (str |> String.trimLeft |> String.left 1) == "-" then
+                (str |> String.trimLeft |> String.dropLeft 2) :: list
+
+            else
+                case list of
+                    [] ->
+                        []
+
+                    first :: rest ->
+                        (first ++ " " ++ str) :: rest
+    in
+    List.foldl folder acc input
+
+
+fixNumberedItems : List String -> List String
+fixNumberedItems list =
+    fixNumberedItemsAux [] list |> List.reverse
+
+
+fixNumberedItemsAux : List String -> List String -> List String
+fixNumberedItemsAux acc input =
+    let
+        folder : String -> List String -> List String
+        folder str list =
+            if (str |> String.trimLeft |> String.left 1) == "." then
+                (str |> String.trimLeft |> String.dropLeft 2) :: list
+
+            else
+                case list of
+                    [] ->
+                        []
+
+                    first :: rest ->
+                        (first ++ " " ++ str) :: rest
+    in
+    List.foldl folder acc input
 
 
 fixTableProperties : PrimitiveBlock -> Dict String String

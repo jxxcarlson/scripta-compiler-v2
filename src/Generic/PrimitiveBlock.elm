@@ -1,6 +1,6 @@
 module Generic.PrimitiveBlock exposing
     ( empty, parse
-    , ParserFunctions, bogusBlockFromLine, eq, fixItems, length, listLength, raiseBlockLevelsIfNeeded_
+    , ParserFunctions, bogusBlockFromLine, eq, length, listLength, raiseBlockLevelsIfNeeded_
     )
 
 {-| The main function is
@@ -131,8 +131,8 @@ init parserFunctions initialId outerCount lines =
     }
 
 
-inspect : ParserFunctions -> Line -> Maybe Generic.Language.Heading
-inspect parserFunctions { indent, lineNumber, position, prefix, content } =
+inspectHeading : ParserFunctions -> Line -> Maybe Generic.Language.Heading
+inspectHeading parserFunctions { indent, lineNumber, position, prefix, content } =
     case parserFunctions.getHeadingData content of
         Err err ->
             Nothing
@@ -241,36 +241,6 @@ nextStep state =
                 -- create a new block: we are not in a block, but
                 -- the current line is nonempty and nonblank
                 ( False, False, False ) ->
-                    let
-                        adjustedBlocks =
-                            case state.blocks of
-                                [] ->
-                                    []
-
-                                lastBlock :: rest ->
-                                    if lastBlock.heading == Ordinary "itemList" then
-                                        let
-                                            body1 =
-                                                case lastBlock.body of
-                                                    [] ->
-                                                        []
-
-                                                    first :: rest_ ->
-                                                        -- HERE!
-                                                        ("- " ++ lastBlock.firstLine ++ " " ++ first) :: rest_ |> fixItems |> Debug.log "@@!!"
-                                        in
-                                        { lastBlock | body = body1 } :: rest |> Debug.log "@@ADJUSTED BLOCK"
-
-                                    else
-                                        state.blocks
-
-                        _ =
-                            Debug.log "@@heading (CREATE)" ( currentLine, inspect state.parserFunctions currentLine )
-
-                        _ =
-                            Debug.log "@@TOP" (List.head state.blocks)
-                    in
-                    --Loop (createBlock { state | blocks = adjustedBlocks, position = newPosition, label = "3, NEW" } currentLine)
                     Loop (createBlock { state | position = newPosition, label = "3, NEW" } currentLine)
 
                 -- A nonempty line was encountered inside a block, so add it
@@ -278,10 +248,10 @@ nextStep state =
                 ( True, False, _ ) ->
                     let
                         _ =
-                            Debug.log "@@heading (CONTINUE)" ( match, currentLine, inspect state.parserFunctions currentLine )
+                            Debug.log "@@heading (CONTINUE)" ( match, currentLine, inspectHeading state.parserFunctions currentLine )
 
                         match =
-                            Maybe.map .heading state.currentBlock == inspect state.parserFunctions currentLine
+                            Maybe.map .heading state.currentBlock == inspectHeading state.parserFunctions currentLine
 
                         newCurrentBlock =
                             if
@@ -295,6 +265,18 @@ nextStep state =
 
                                     Just block ->
                                         Just { block | heading = Ordinary "itemList" }
+
+                            else if
+                                match
+                                    && List.member (Maybe.map .heading state.currentBlock)
+                                        [ Just <| Ordinary "numbered", Just <| Ordinary "numberedList" ]
+                            then
+                                case state.currentBlock of
+                                    Nothing ->
+                                        Nothing
+
+                                    Just block ->
+                                        Just { block | heading = Ordinary "numberedList" }
 
                             else
                                 state.currentBlock
@@ -313,30 +295,6 @@ nextStep state =
                 -- current line is empty
                 ( True, True, _ ) ->
                     Loop (commitBlock { state | position = newPosition, label = "5, COMMIT" } currentLine)
-
-
-fixItems : List String -> List String
-fixItems list =
-    fixItemsAux [] list |> List.reverse
-
-
-fixItemsAux : List String -> List String -> List String
-fixItemsAux acc input =
-    let
-        folder : String -> List String -> List String
-        folder str list =
-            if (str |> String.trimLeft |> String.left 1) == "-" then
-                (str |> String.trimLeft |> String.dropLeft 2) :: list
-
-            else
-                case list of
-                    [] ->
-                        []
-
-                    first :: rest ->
-                        (first ++ " " ++ str) :: rest
-    in
-    List.foldl folder acc input
 
 
 advance : Int -> State -> State

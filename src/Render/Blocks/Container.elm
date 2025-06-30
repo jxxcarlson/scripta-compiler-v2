@@ -36,6 +36,7 @@ registerRenderers registry =
     Render.BlockRegistry.registerBatch
         [ ( "box", box )
         , ( "itemList", itemList )
+        , ( "numberedList", numberedList )
         , ( "comment", comment )
         , ( "collection", collection )
         , ( "bibitem", bibitem )
@@ -72,6 +73,34 @@ itemList count acc settings attr block =
         (List.map (renderItem settings) listOfExprList)
 
 
+numberedList : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+numberedList count acc settings attr block =
+    let
+        _ =
+            Debug.log "!!!itemList" block
+
+        listOfExprList : List Generic.Language.Expression
+        listOfExprList =
+            case block.body of
+                Left _ ->
+                    []
+
+                Right list ->
+                    list
+
+        renderNumberedItem : RenderSettings -> Int -> Generic.Language.Expression -> Element MarkupMsg
+        renderNumberedItem settings_ k expr =
+            Element.row [ Element.width (Element.px 500) ]
+                [ renderNumberedLabel settings k
+                , Element.paragraph [ Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines ]
+                    (Render.Expression.render 0 acc settings [] expr :: [])
+                ]
+    in
+    Element.column [ Element.spacing 8 ]
+        --(Render.Helper.renderWithDefault "" count acc settings attr (Generic.Language.getExpressionContent block))
+        (List.indexedMap (renderNumberedItem settings) listOfExprList)
+
+
 renderLabel settings =
     Element.el
         [ Font.size 14
@@ -82,6 +111,18 @@ renderLabel settings =
         , Render.Utility.leftPadding (settings.leftIndentation + 12)
         ]
         (Element.text (String.fromChar '•'))
+
+
+renderNumberedLabel settings k =
+    Element.el
+        [ Font.size 14
+        , Element.alignTop
+
+        --, Element.moveRight 6
+        , Element.width (Element.px 24)
+        , Render.Utility.leftPadding (settings.leftIndentation + 12)
+        ]
+        (Element.text <| String.fromInt (k + 1) ++ ".")
 
 
 
