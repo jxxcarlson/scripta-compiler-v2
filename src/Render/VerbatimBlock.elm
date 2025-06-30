@@ -10,17 +10,14 @@ import Element.Input
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Html exposing (Html, text)
-import Html.Events as Event
-import Render.Chart
+import Render.CSVTable
 import Render.ChartV2
-import Render.DataTable
 import Render.Graphics
 import Render.Helper
 import Render.IFrame
 import Render.Math
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
-import Render.Table
 import Render.Utility exposing (elementAttribute)
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 import SyntaxHighlight exposing (gitHub, monokai, toBlockHtml, useTheme)
@@ -79,7 +76,7 @@ verbatimDict =
         , ( "docinfo", Render.Helper.renderNothing )
         , ( "mathmacros", Render.Helper.renderNothing )
         , ( "textmacros", Render.Helper.renderNothing )
-        , ( "datatable", Render.DataTable.render )
+        , ( "csvtable", Render.CSVTable.render )
         , ( "chart", Render.ChartV2.render )
         , ( "svg", Render.Graphics.svg )
         , ( "quiver", Render.Graphics.quiver )

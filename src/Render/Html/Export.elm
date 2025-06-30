@@ -363,7 +363,7 @@ exportBlock1 settings block =
                             -- TODO: This should be fixed upstream
                             [ "$$", fix_ str, "$$" ] |> String.join "\n"
 
-                        "datatable" ->
+                        "csvtable" ->
                             let
                                 data =
                                     Render.Data.prepareTable 1 block

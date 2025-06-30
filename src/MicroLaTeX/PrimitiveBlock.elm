@@ -1549,7 +1549,7 @@ verbatimBlockNames =
     , "textmacros"
     , "hide"
     , "docinfo"
-    , "datatable"
+    , "csvtable"
     , "chart"
     , "svg"
     , "quiver"

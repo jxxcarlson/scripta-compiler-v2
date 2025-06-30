@@ -1,4 +1,4 @@
-module Render.DataTable exposing (..)
+module Render.CSVTable exposing (..)
 
 import Dict exposing (Dict)
 import Either exposing (Either(..))

@@ -273,7 +273,7 @@ verbatimWords =
     , "docinfo"
     , "mathmacros"
     , "textmacros"
-    , "datatable"
+    , "csvtable"
     , "table"
     , "chart"
     , "svg"
