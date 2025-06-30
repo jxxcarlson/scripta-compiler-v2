@@ -4,6 +4,7 @@ module Render.Math exposing
     , array
     , displayedMath
     , equation
+    , evalMath
     , mathText
     , textarray
     )
@@ -394,6 +395,35 @@ mathText_ displayMode content =
 
         -- , clicker meta
         -- , HA.id (makeId meta)
+        ]
+        []
+
+
+evalMath :
+    Int
+    -> { a | id : String }
+    -> String
+    -> Element msg
+evalMath generation gogo content =
+    -- TODO Track this down at the source.
+    Html.Keyed.node "span"
+        [ HA.style "padding-top" "0px"
+        , HA.style "padding-bottom" "0px"
+        , HA.id gogo.id
+        ]
+        [ ( String.fromInt generation, evalMath_ content )
+        ]
+        |> Element.html
+
+
+evalMath_ : String -> Html msg
+evalMath_ content =
+    Html.node "math-compute"
+        -- active meta selectedId  ++
+        [ HA.property "content" (Json.Encode.string content)
+
+        -- , clicker meta
+        --, HA.id (makeId meta)
         ]
         []
 

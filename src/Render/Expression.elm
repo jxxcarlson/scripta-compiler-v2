@@ -90,6 +90,7 @@ markupDict =
 
         -- STYLE
         , ( "scheme", \g acc s attr exprList -> renderScheme g acc s attr exprList )
+        , ( "compute", \g acc s attr exprList -> renderComputation g acc s attr exprList )
         , ( "data", \g acc s attr exprList -> renderDataTools g acc s attr exprList )
         , ( "button", \g acc s attr exprList -> renderButton g acc s attr exprList )
         , ( "strong", \g acc s attr exprList -> strong g acc s attr exprList )
@@ -499,6 +500,24 @@ renderScheme g acc s attr exprList =
             ASTTools.exprListToStringList exprList |> String.join " "
     in
     Element.text (MicroScheme.Interpreter.runProgram ";" inputText)
+
+
+renderComputation :
+    Int
+    -> Accumulator
+    -> RenderSettings
+    -> List (Element.Attribute MarkupMsg)
+    -> List Expression
+    -> Element MarkupMsg
+renderComputation g acc s attr exprList =
+    let
+        inputText : String
+        inputText =
+            ASTTools.exprListToStringList exprList |> String.join " "
+
+        -- TODO: fix id
+    in
+    Render.Math.evalMath g { id = "foo" } inputText
 
 
 renderDataTools : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
