@@ -5,7 +5,6 @@ import Generic.Language exposing (Heading(..), PrimitiveBlock)
 import Generic.Line exposing (HeadingData, HeadingError(..), Line)
 import Generic.PrimitiveBlock exposing (ParserFunctions)
 import M.Regex
-import Parser exposing ((|.), (|=), Parser)
 import Tools.KV as KV
 
 
@@ -158,75 +157,81 @@ getHeadingData line_ =
                 |> Ok
 
         Nothing ->
-            case args1 of
-                [] ->
-                    --Err <| HEMissingPrefix
-                    { heading = Paragraph, args = [], properties = Dict.empty }
+            case M.Regex.findUnNumberedSectionPrefix line of
+                Just prefix ->
+                    { heading = Ordinary "section*", args = [ String.length prefix |> String.fromInt ], properties = Dict.singleton "section-type" "markdown" }
                         |> Ok
 
-                prefix :: args ->
-                    case prefix of
-                        "||" ->
-                            case args of
-                                [] ->
-                                    Err <| HEMissingName
+                Nothing ->
+                    case args1 of
+                        [] ->
+                            --Err <| HEMissingPrefix
+                            { heading = Paragraph, args = [], properties = Dict.empty }
+                                |> Ok
 
-                                name :: args2 ->
-                                    Ok <| { heading = Verbatim name, args = args2, properties = properties }
+                        prefix :: args ->
+                            case prefix of
+                                "||" ->
+                                    case args of
+                                        [] ->
+                                            Err <| HEMissingName
 
-                        "|" ->
-                            case args of
-                                [] ->
-                                    Err <| HEMissingName
+                                        name :: args2 ->
+                                            Ok <| { heading = Verbatim name, args = args2, properties = properties }
 
-                                name :: args2 ->
-                                    -- coerce the block to a verbatim block if
-                                    -- the prefix is "|" and the name is in the list of
-                                    -- of verbatim blocks
-                                    coerceToVerbatim line args name args2 properties
+                                "|" ->
+                                    case args of
+                                        [] ->
+                                            Err <| HEMissingName
 
-                        "-" ->
-                            let
-                                reducedLine =
-                                    String.replace "- " "" line
-                            in
-                            if String.isEmpty reducedLine then
-                                Err HENoContent
+                                        name :: args2 ->
+                                            -- coerce the block to a verbatim block if
+                                            -- the prefix is "|" and the name is in the list of
+                                            -- of verbatim blocks
+                                            coerceToVerbatim line args name args2 properties
 
-                            else
-                                Ok <|
-                                    { heading = Ordinary "item"
-                                    , args = []
-                                    , properties = Dict.singleton "firstLine" (String.replace "- " "" line)
-                                    }
+                                "-" ->
+                                    let
+                                        reducedLine =
+                                            String.replace "- " "" line
+                                    in
+                                    if String.isEmpty reducedLine then
+                                        Err HENoContent
 
-                        "." ->
-                            let
-                                reducedLine =
-                                    String.replace ". " "" line
-                            in
-                            if String.isEmpty reducedLine then
-                                Err HENoContent
+                                    else
+                                        Ok <|
+                                            { heading = Ordinary "item"
+                                            , args = []
+                                            , properties = Dict.singleton "firstLine" (String.replace "- " "" line)
+                                            }
 
-                            else
-                                Ok <|
-                                    { heading = Ordinary "numbered"
-                                    , args = []
-                                    , properties = Dict.singleton "firstLine" (String.replace ". " "" line)
-                                    }
+                                "." ->
+                                    let
+                                        reducedLine =
+                                            String.replace ". " "" line
+                                    in
+                                    if String.isEmpty reducedLine then
+                                        Err HENoContent
 
-                        "```" ->
-                            Ok <|
-                                { heading = Verbatim "code"
-                                , args = []
-                                , properties = Dict.empty
-                                }
+                                    else
+                                        Ok <|
+                                            { heading = Ordinary "numbered"
+                                            , args = []
+                                            , properties = Dict.singleton "firstLine" (String.replace ". " "" line)
+                                            }
 
-                        "$$" ->
-                            Ok <| { heading = Verbatim "math", args = [], properties = Dict.empty }
+                                "```" ->
+                                    Ok <|
+                                        { heading = Verbatim "code"
+                                        , args = []
+                                        , properties = Dict.empty
+                                        }
 
-                        _ ->
-                            Ok <| { heading = Paragraph, args = [], properties = Dict.empty }
+                                "$$" ->
+                                    Ok <| { heading = Verbatim "math", args = [], properties = Dict.empty }
+
+                                _ ->
+                                    Ok <| { heading = Paragraph, args = [], properties = Dict.empty }
 
 
 coerceToVerbatim line args name args2 properties =
