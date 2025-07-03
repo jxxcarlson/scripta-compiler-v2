@@ -1,6 +1,6 @@
 module Generic.PrimitiveBlock exposing
-    ( empty, parse
-    , ParserFunctions, bogusBlockFromLine, eq, length, listLength, raiseBlockLevelsIfNeeded_
+    ( parse
+    , ParserFunctions, eq, listLength
     )
 
 {-| The main function is
@@ -354,7 +354,7 @@ commitBlock state currentLine =
                             block_ |> finalize
 
                         Ordinary _ ->
-                            case Dict.get "section-style" block_.properties of
+                            case Dict.get "section-type" block_.properties of
                                 Just "markdown" ->
                                     { block_ | body = block_.body |> Generic.BlockUtilities.dropLast }
                                         |> finalize
@@ -457,6 +457,12 @@ fixMarkdownTitleBlock findTitlePrefix block =
             if prefix == "!!" then
                 { block | heading = Ordinary "title", body = String.replace prefix "" block.firstLine :: block.body }
 
+            else if String.left 1 (String.trim prefix) == "#" then
+                { block | heading = Ordinary "section", body = String.replace prefix "" block.firstLine :: block.body }
+
+            else if String.left 1 (String.trim prefix) == "*" then
+                { block | heading = Ordinary "section*", body = String.replace prefix "" block.firstLine :: block.body }
+
             else
                 { block | body = String.replace prefix "" block.firstLine :: block.body }
 
@@ -473,16 +479,20 @@ transformBlock : (String -> Maybe String) -> PrimitiveBlock -> PrimitiveBlock
 transformBlock findTitlePrefix block =
     case Generic.BlockUtilities.getPrimitiveBlockName block of
         Just "section" ->
-            let
-                fixedBlock =
-                    fixMarkdownTitleBlock findTitlePrefix block
-            in
             case List.head block.args of
                 Nothing ->
-                    { fixedBlock | properties = Dict.insert "level" "1" block.properties }
+                    { block | properties = Dict.insert "level" "1" block.properties }
 
                 Just level ->
-                    { fixedBlock | properties = Dict.insert "level" level block.properties }
+                    { block | properties = Dict.insert "level" level block.properties }
+
+        Just "section*" ->
+            case List.head block.args of
+                Nothing ->
+                    { block | properties = Dict.insert "level" "1" block.properties }
+
+                Just level ->
+                    { block | properties = Dict.insert "level" level block.properties }
 
         Just "subsection" ->
             { block | properties = Dict.insert "level" "2" block.properties, heading = Ordinary "section" }

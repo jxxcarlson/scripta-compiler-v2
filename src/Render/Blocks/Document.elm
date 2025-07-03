@@ -182,9 +182,6 @@ unnumberedSection : Int -> Accumulator -> RenderSettings -> List (Element.Attrib
 unnumberedSection count acc settings attr block =
     -- level 1 is reserved for titles
     let
-        maxNumberedLevel =
-            1
-
         headingLevel : Float
         headingLevel =
             case Dict.get "level" block.properties of
