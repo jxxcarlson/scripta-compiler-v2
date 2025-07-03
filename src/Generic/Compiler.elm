@@ -37,7 +37,7 @@ parse_ lang primitiveBlockParser exprParser idPrefix outerCount lines =
     lines
         |> primitiveBlockParser idPrefix outerCount
         |> Generic.ForestTransform.forestFromBlocks .indent
-        |> Generic.Forest.map (Generic.Pipeline.toExpressionBlock lang exprParser)
+        |> Generic.Forest.map (Generic.Pipeline.toExpressionBlock exprParser)
 
 
 type alias RenderData =

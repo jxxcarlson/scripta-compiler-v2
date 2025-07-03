@@ -9,7 +9,7 @@ import ScriptaV2.Language
 
 exprBlock : Generic.Language.PrimitiveBlock -> Generic.Language.ExpressionBlock
 exprBlock =
-    Generic.Pipeline.toExpressionBlock ScriptaV2.Language.EnclosureLang M.Expression.parse
+    Generic.Pipeline.toExpressionBlock M.Expression.parse
 
 
 exprBlocks : String -> List Generic.Language.ExpressionBlock

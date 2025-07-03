@@ -1,6 +1,7 @@
 module Render.Blocks.Document exposing
     ( registerRenderers
     , document, section, subheading, visibleBanner
+    , unnumberedSection
     )
 
 {-| This module provides renderers for document structure blocks.
@@ -38,6 +39,7 @@ registerRenderers registry =
     Render.BlockRegistry.registerBatch
         [ ( "document", document )
         , ( "section", section )
+        , ( "section*", unnumberedSection )
         , ( "subheading", subheading )
         , ( "sh", subheading )
 
@@ -173,6 +175,40 @@ section count acc settings attr block =
         )
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
         , label = Element.paragraph ([] |> Render.Sync2.sync block settings) (sectionNumber :: renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
+        }
+
+
+unnumberedSection : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+unnumberedSection count acc settings attr block =
+    -- level 1 is reserved for titles
+    let
+        maxNumberedLevel =
+            1
+
+        headingLevel : Float
+        headingLevel =
+            case Dict.get "level" block.properties of
+                Nothing ->
+                    2
+
+                Just n ->
+                    String.toFloat n |> Maybe.withDefault 3
+
+        fontSize =
+            1.2 * (settings.maxHeadingFontSize / sqrt headingLevel) |> round
+
+        exprs =
+            Generic.Language.getExpressionContent block
+    in
+    Element.link
+        (sectionBlockAttributes block
+            settings
+            [ topPadding 20
+            , Font.size fontSize
+            ]
+        )
+        { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
+        , label = Element.paragraph ([] |> Render.Sync2.sync block settings) (renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
         }
 
 

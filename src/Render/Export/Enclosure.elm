@@ -567,6 +567,7 @@ blockDict wrapOption =
 
         --
         , ( "section", \settings_ args body -> section settings_ args (wrap wrapOption body) )
+        , ( "section*", \settings_ args body -> unnumberedSection settings_ args (wrap wrapOption body) )
         , ( "subheading", \settings_ args body -> subheading settings_ args (wrap wrapOption body) )
         , ( "item", \_ _ body -> macro1 "item" (wrap wrapOption (wrap wrapOption body)) )
         , ( "descriptionItem", \_ args body -> descriptionItem args (wrap wrapOption body) )
@@ -738,6 +739,45 @@ section settings args body =
 
     else
         section2 args body
+
+
+unnumberedSection : RenderSettings -> List String -> String -> String
+unnumberedSection settings args body =
+    let
+        tag =
+            body
+                |> String.words
+                |> MicroLaTeX.Util.normalizedWord
+
+        label =
+            " \\label{" ++ tag ++ "}"
+
+        suffix =
+            case List.Extra.getAt 1 args of
+                Nothing ->
+                    ""
+
+                Just "-" ->
+                    "*"
+
+                Just _ ->
+                    ""
+    in
+    case Utility.getArg "4" 0 args of
+        "1" ->
+            macro1 ("title" ++ suffix) body ++ label
+
+        "2" ->
+            macro1 ("section*" ++ suffix) body ++ label
+
+        "3" ->
+            macro1 ("subsection*" ++ suffix) body ++ label
+
+        "4" ->
+            macro1 ("subsubsection*" ++ suffix) body ++ label
+
+        _ ->
+            macro1 ("subheading" ++ suffix) body ++ label
 
 
 section1 : List String -> String -> String

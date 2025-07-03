@@ -1,12 +1,6 @@
 module Render.BlockType exposing
-    ( BlockType(..)
-    , TextBlockType(..)
-    , ContainerBlockType(..)
-    , DocumentBlockType(..)
-    , InteractiveBlockType(..)
-    , ListBlockType(..)
-    , fromString
-    , toString
+    ( BlockType(..), TextBlockType(..), ContainerBlockType(..), DocumentBlockType(..), InteractiveBlockType(..), ListBlockType(..)
+    , fromString, toString
     )
 
 {-| This module defines a type system for block types in the renderer.
@@ -62,6 +56,7 @@ type DocumentBlockType
     | Author
     | Date
     | Section
+    | UnnumberedSection
     | Subheading
     | Contents
     | Banner
@@ -149,6 +144,9 @@ fromString str =
 
         "section" ->
             DocumentBlock Section
+
+        "section*" ->
+            DocumentBlock UnnumberedSection
 
         "subheading" ->
             DocumentBlock Subheading
@@ -263,6 +261,9 @@ toString blockType =
 
         DocumentBlock Section ->
             "section"
+
+        DocumentBlock UnnumberedSection ->
+            "section*"
 
         DocumentBlock Subheading ->
             "subheading"

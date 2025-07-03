@@ -3,16 +3,15 @@ module Generic.Pipeline exposing (toExpressionBlock)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..), PrimitiveBlock)
-import Generic.PrimitiveBlock
 import List.Extra
 import M.Expression
 import ScriptaV2.Language exposing (Language(..))
 import Tools.Utility
 
 
-toExpressionBlock : Language -> (Int -> String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
-toExpressionBlock lang parser block =
-    toExpressionBlock_ lang (parser block.meta.lineNumber) block
+toExpressionBlock : (Int -> String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
+toExpressionBlock parser block =
+    toExpressionBlock_ (parser block.meta.lineNumber) block
         |> Generic.Language.boostBlock
 
 
@@ -20,8 +19,8 @@ toExpressionBlock lang parser block =
 ---XXX---
 
 
-toExpressionBlock_ : Language -> (String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
-toExpressionBlock_ lang parse block =
+toExpressionBlock_ : (String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
+toExpressionBlock_ parse block =
     { heading = block.heading
     , indent = block.indent
     , args = block.args
