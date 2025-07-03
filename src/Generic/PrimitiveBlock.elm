@@ -247,9 +247,6 @@ nextStep state =
                 -- HERE
                 ( True, False, _ ) ->
                     let
-                        _ =
-                            Debug.log "@@heading (CONTINUE)" ( match, currentLine, inspectHeading state.parserFunctions currentLine )
-
                         match =
                             Maybe.map .heading state.currentBlock == inspectHeading state.parserFunctions currentLine
 
@@ -408,10 +405,6 @@ raiseBlockLevelsIfNeeded_ lastBlock blocks =
                 let
                     candidateBlocksToRaise =
                         List.Extra.takeWhile (acceptBlock tag) blocks
-                            |> Debug.log ("@##@ CANDIDATES (" ++ tag ++ ")")
-
-                    _ =
-                        Debug.log "@##@ N CANDIDATES" (List.length candidateBlocksToRaise)
 
                     raisedBlocks_ =
                         List.map (\b -> { b | indent = b.indent + 2 }) candidateBlocksToRaise

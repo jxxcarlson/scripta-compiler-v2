@@ -66,7 +66,7 @@ makeSettings : String -> Maybe String -> Float -> Int -> Dict String String -> R
 makeSettings selectedId selectedSlug scale windowWidth data =
     let
         titleSize =
-            38
+            32
     in
     { width = round (scale * toFloat windowWidth)
     , titleSize = titleSize
@@ -86,7 +86,7 @@ makeSettings selectedId selectedSlug scale windowWidth data =
     , leftRightIndentation = 18
     , wideLeftIndentation = 54
     , windowWidthScale = 0.3
-    , maxHeadingFontSize = (titleSize |> toFloat) * 0.67
+    , maxHeadingFontSize = (titleSize |> toFloat) * 0.72
     , redColor = Element.rgb 0.7 0 0
     , topMarginForChildren = 6
     , data = data

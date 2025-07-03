@@ -183,7 +183,7 @@ getHeadingData line_ =
                                     -- coerce the block to a verbatim block if
                                     -- the prefix is "|" and the name is in the list of
                                     -- of verbatim blocks
-                                    coerceToVerbatim line args name args2 properties |> Debug.log "@@M.PrimitiveBlock.getHeadingData"
+                                    coerceToVerbatim line args name args2 properties
 
                         "-" ->
                             let
@@ -230,16 +230,12 @@ getHeadingData line_ =
 
 
 coerceToVerbatim line args name args2 properties =
-    let
-        _ =
-            Debug.log "@@M.PrimitiveBlock.coerceToVerbatim" name
-    in
     case hasVerbatimWord line of
         Just element ->
-            (Ok <| coerceToVerbatim_ line args element) |> Debug.log ("@@M.PrimitiveBlock.coerceToVerbatim (2)" ++ name)
+            Ok <| coerceToVerbatim_ line args element
 
         Nothing ->
-            (Ok <| { heading = Ordinary name, args = args2, properties = properties }) |> Debug.log ("@@M.PrimitiveBlock.coerceToVerbatim (3)" ++ name)
+            Ok <| { heading = Ordinary name, args = args2, properties = properties }
 
 
 hasVerbatimWord : String -> Maybe String

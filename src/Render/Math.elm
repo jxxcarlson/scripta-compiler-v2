@@ -418,7 +418,7 @@ evalMath generation gogo content =
 
 evalMath_ : String -> Html msg
 evalMath_ content =
-    Html.node "math-compute"
+    Html.node "mathjs-compute"
         -- active meta selectedId  ++
         [ HA.property "content" (Json.Encode.string content)
 

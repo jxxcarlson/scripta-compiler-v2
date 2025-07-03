@@ -137,7 +137,7 @@ markupDict =
           )
 
         -- LATEX
-        -- , ( "title", \g acc s attr  exprList -> title g acc s attr exprList )
+        , ( "title", \g acc s attr exprList -> title g acc s attr exprList )
         , ( "setcounter", \_ _ _ _ _ -> Element.none )
 
         -- COLOR

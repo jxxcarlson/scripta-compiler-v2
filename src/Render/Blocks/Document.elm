@@ -1,6 +1,6 @@
 module Render.Blocks.Document exposing
     ( registerRenderers
-    , document, section, subheading, title, visibleBanner
+    , document, section, subheading, visibleBanner
     )
 
 {-| This module provides renderers for document structure blocks.
@@ -40,7 +40,8 @@ registerRenderers registry =
         , ( "section", section )
         , ( "subheading", subheading )
         , ( "sh", subheading )
-        , ( "title", title )
+
+        --, ( "title", title )
         , ( "visibleBanner", visibleBanner )
         , ( "runninghead_", \_ _ _ _ _ -> Element.none )
         , ( "banner", \_ _ _ _ _ -> Element.none )
@@ -151,7 +152,7 @@ section count acc settings attr block =
                     String.toFloat n |> Maybe.withDefault 3
 
         fontSize =
-            1.4 * (settings.maxHeadingFontSize / sqrt headingLevel) |> round
+            1.2 * (settings.maxHeadingFontSize / sqrt headingLevel) |> round
 
         sectionNumber =
             if headingLevel <= maxNumberedLevel then
@@ -184,20 +185,6 @@ subheading count acc settings attr block =
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
         , label = Element.paragraph [] (Render.Helper.renderWithDefault "| subheading" count acc settings attr (Generic.Language.getExpressionContent block))
         }
-
-
-{-| Render a title
--}
-title : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
-title count acc settings attr block =
-    let
-        fontSize =
-            settings.titleSize
-
-        exprs =
-            Generic.Language.getExpressionContent block
-    in
-    Element.paragraph [ Font.size fontSize, elementAttribute "id" "title" ] (renderWithDefaultWithSize fontSize "??!!" count acc settings attr exprs)
 
 
 {-| Render a visible banner
