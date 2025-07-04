@@ -11,7 +11,6 @@ import Element.Background as Background
 import Element.Events as Events
 import Generic.Language
 import Render.Settings
-import Render.Utility
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
@@ -19,30 +18,9 @@ import ScriptaV2.Msg exposing (MarkupMsg(..))
 -}
 attributes : Render.Settings.RenderSettings -> Generic.Language.ExpressionBlock -> List (Element.Attribute MarkupMsg)
 attributes settings block =
-    [ -- Render.Utility.idAttributeFromInt block.meta.lineNumber
-      rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
+    [ rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
     ]
-
-
-
---++ highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings
---++ foo block
--- ++ highlight settings block
-
-
-foo : { b | args : List String, meta : { c | id : String, lineNumber : Int, numberOfLines : Int } } -> List (Element.Attribute MarkupMsg)
-foo block =
-    -- highlighter block.args [ Element.width (Element.px width), Render.Utility.elementAttribute "id" block.meta.id, Element.paddingXY 12 4 ]
-    highlighter block.args [ Render.Utility.elementAttribute "id" block.meta.id, Element.paddingXY 12 4 ]
-
-
-highlight : Render.Settings.RenderSettings -> Generic.Language.ExpressionBlock -> List (Element.Attribute MarkupMsg)
-highlight settings block =
-    highlightIfIdSelected block.meta.id
-        settings
-        (highlighter block.args
-            []
-        )
+        |> highlightIfIdSelected block.meta.id settings
 
 
 highlightIfIdSelected : String -> { b | selectedId : String } -> List (Element.Attr () msg) -> List (Element.Attr () msg)
