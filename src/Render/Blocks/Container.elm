@@ -1,6 +1,7 @@
 module Render.Blocks.Container exposing
     ( registerRenderers
     , box, comment, collection, bibitem, env, env_
+    , itemList, numberedList
     )
 
 {-| This module provides renderers for container blocks.
@@ -48,9 +49,6 @@ registerRenderers registry =
 itemList : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 itemList count acc settings attr block =
     let
-        _ =
-            Debug.log "!!!itemList" block
-
         listOfExprList : List Generic.Language.Expression
         listOfExprList =
             case block.body of
@@ -64,21 +62,17 @@ itemList count acc settings attr block =
         renderItem settings_ expr =
             Element.row [ Element.width (Element.px 500) ]
                 [ renderLabel settings
-                , Element.paragraph [ Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines ]
+                , Element.paragraph (Render.Sync.attributes settings_ block)
                     (Render.Expression.render 0 acc settings [] expr :: [])
                 ]
     in
-    Element.column [ Element.spacing 8 ]
-        --(Render.Helper.renderWithDefault "" count acc settings attr (Generic.Language.getExpressionContent block))
+    Element.column (Element.spacing 8 :: Render.Sync.attributes settings block)
         (List.map (renderItem settings) listOfExprList)
 
 
 numberedList : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 numberedList count acc settings attr block =
     let
-        _ =
-            Debug.log "!!!itemList" block
-
         listOfExprList : List Generic.Language.Expression
         listOfExprList =
             case block.body of
@@ -92,12 +86,11 @@ numberedList count acc settings attr block =
         renderNumberedItem settings_ k expr =
             Element.row [ Element.width (Element.px 500) ]
                 [ renderNumberedLabel settings k
-                , Element.paragraph [ Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines ]
+                , Element.paragraph (Render.Sync.attributes settings block)
                     (Render.Expression.render 0 acc settings [] expr :: [])
                 ]
     in
-    Element.column [ Element.spacing 8 ]
-        --(Render.Helper.renderWithDefault "" count acc settings attr (Generic.Language.getExpressionContent block))
+    Element.column (Element.spacing 8 :: Render.Sync.attributes settings block)
         (List.indexedMap (renderNumberedItem settings) listOfExprList)
 
 
@@ -125,32 +118,11 @@ renderNumberedLabel settings k =
         (Element.text <| String.fromInt (k + 1) ++ ".")
 
 
-
---Element.row
---    [ Element.moveRight (indentationScale * level_ |> toFloat)
---    , Element.alignTop
---    , Render.Utility.idAttributeFromInt block.meta.lineNumber
---    , Render.Utility.vspace 0 settings.topMarginForChildren
---    , Element.width (Element.px <| settings.width - 50)
---    ]
---    [ Element.el
---        [ Font.size 14
---        , Element.alignTop
---        , Element.moveRight 6
---        , Element.width (Element.px 24)
---        , Render.Utility.leftPadding settings.leftIndentation
---        ]
---        (Element.text label_)
---    , Element.paragraph [ Render.Utility.leftPadding settings.leftIndentation, Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines ]
---        (Render.Helper.renderWithDefault "| item" count acc settings attr (Generic.Language.getExpressionContent block))
---    ]
-
-
 {-| Render a box block
 -}
 box : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 box count acc settings attr block =
-    Element.column [ Element.spacing 8 ]
+    Element.column (Element.spacing 8 :: Render.Sync.attributes settings block)
         [ Element.row [ Font.bold ] [ Element.text (blockHeading block), Element.el [] (Element.text (String.join " " block.args)) ]
         , Element.paragraph
             []
@@ -173,9 +145,15 @@ comment count acc settings attrs block =
             else
                 author_ ++ ":"
     in
-    Element.column ([ Element.spacing 6 ] |> Render.Sync2.sync block settings)
+    Element.column (Element.spacing 6 :: Render.Sync.attributes settings block)
         [ Element.el [ Font.bold, Font.color Color.blue ] (Element.text author)
-        , Element.paragraph ([ Font.italic, Font.color Color.blue, Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines, Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
+        , Element.paragraph
+            ([ Font.italic
+             , Font.color Color.blue
+             , Render.Utility.idAttributeFromInt block.meta.lineNumber
+             ]
+                ++ Render.Sync.attributes settings block
+            )
             (Render.Helper.renderWithDefault "| comment" count acc settings attrs (Generic.Language.getExpressionContent block))
         ]
 
@@ -195,7 +173,11 @@ bibitem count acc settings attrs block =
         label =
             List.Extra.getAt 0 block.args |> Maybe.withDefault "(12)" |> (\s -> "[" ++ s ++ "]")
     in
-    Element.row ([ Element.alignTop, Render.Utility.idAttributeFromInt block.meta.lineNumber, Render.Utility.vspace 0 settings.topMarginForChildren ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
+    Element.row
+        [ Element.alignTop
+        , Render.Utility.idAttributeFromInt block.meta.lineNumber
+        , Render.Utility.vspace 0 settings.topMarginForChildren
+        ]
         [ Element.el
             [ Font.size 14
             , Element.alignTop
@@ -203,7 +185,7 @@ bibitem count acc settings attrs block =
             , Element.width (Element.px 34)
             ]
             (Element.text label)
-        , Element.paragraph []
+        , Element.paragraph (Render.Sync.attributes settings block)
             (Render.Helper.renderWithDefault "bibitem" count acc settings attrs (Generic.Language.getExpressionContent block))
         ]
 
@@ -214,12 +196,6 @@ env_ : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg
 env_ count acc settings attr block =
     case List.head block.args of
         Nothing ->
-            --Element.paragraph
-            --    [ Render.Utility.idAttributeFromInt block.meta.lineNumber
-            --    , Font.color settings.redColor
-            --    , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-            --    ]
-            --    [ Element.text "| env (missing name!!!)" ]
             env count acc settings attr block
 
         Just _ ->
@@ -235,23 +211,14 @@ env count acc settings attr block =
             Element.none
 
         Right exprs ->
-            Element.column ([ Element.spacing 8, Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
+            Element.column (Element.spacing 8 :: Render.Utility.idAttributeFromInt block.meta.lineNumber :: Render.Sync.attributes settings block)
                 [ Element.row
-                    ([ Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-                     ]
-                        |> Render.Sync.highlightIfIdSelected block.meta.id settings
-                    )
+                    []
                     [ Element.el [ Font.bold ] (Element.text (blockHeading block))
                     , Element.el [] (Element.text (String.join " " block.args))
                     ]
                 , Element.paragraph
-                    ([ Font.italic
-                     , Render.Helper.htmlId block.meta.id
-                     , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-                     ]
-                        |> Render.Sync.highlightIfIdSelected block.meta.id
-                            settings
-                    )
+                    []
                     (renderWithDefault2 ("??" ++ (Generic.Language.getNameFromHeading block.heading |> Maybe.withDefault "(name)")) count acc settings attr exprs)
                 ]
 

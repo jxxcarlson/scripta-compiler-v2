@@ -12,6 +12,7 @@ import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading
 import Html exposing (Html, text)
 import Render.CSVTable
 import Render.ChartV2
+import Render.Constants as Constants
 import Render.Graphics
 import Render.Helper
 import Render.IFrame
@@ -124,17 +125,35 @@ renderLoad _ _ _ _ block =
             Element.none
 
 
+
+-- Render.Utility.idAttribute block.meta.id instead of Render.Utility.idAttributeFromInt block.meta.lineNumber
+
+
 renderCode : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 renderCode count acc settings attr block =
+    let
+        _ =
+            Debug.log "@@renderCode_ARGS" block.args
+
+        language =
+            case List.head block.args of
+                Just arg ->
+                    if arg == "numbered" then
+                        "python"
+
+                    else
+                        arg
+
+                Nothing ->
+                    "python"
+    in
     Element.column
-        ([ Background.color (Element.rgb 0.955 0.95 0.95)
-         , Element.paddingEach { left = 24, right = 24, top = 8, bottom = 8 }
-         , Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-         , Render.Utility.idAttributeFromInt block.meta.lineNumber
+        ([ Background.color Constants.syncHighlightColor
+         , Element.paddingXY 18 12
          , Element.width (Element.px settings.width)
          , Element.scrollbarX
          ]
-         -- ++ attr
+            ++ Render.Sync.attributes settings block
         )
         (case List.head block.args of
             Just arg ->
@@ -147,7 +166,7 @@ renderCode count acc settings attr block =
 
             Nothing ->
                 --List.map (renderVerbatimLine "") (String.lines (Render.Utility.getVerbatimContent block))
-                viewCodeWithHighlight "noLang" (Render.Utility.getVerbatimContent block)
+                viewCodeWithHighlight "python                                                                                                         " (Render.Utility.getVerbatimContent block)
         )
 
 
@@ -155,7 +174,7 @@ viewCodeWithHighlight : String -> String -> List (Element msg)
 viewCodeWithHighlight language code =
     [ --useTheme gitHub |> Element.html
       ghCSS2
-    , viewCodeWithHighlight_ language code |> Element.html
+    , viewCodeWithHighlight_ "python" code |> Element.html
     ]
 
 
@@ -165,6 +184,7 @@ viewCodeWithHighlight language code =
 
 
 ghTheme =
+    --".elmsh {color: #24292e;background: #f4f2f2;line-height: 1.5;}.elmsh-hl {background: #f4f2f2;}.elmsh-add {background: #f4f2f2;}.elmsh-del {background: #f4f2f2;}.elmsh-comm {color: #969896;}.elmsh1 {color: #005cc5;}.elmsh2 {color: #df5000;}.elmsh3 {color: #d73a49;}.elmsh4 {color: #0086b3;}.elmsh5 {color: #63a35c;}.elmsh6 {color: #005cc5;}.elmsh7 {color: #795da3;}"
     ".elmsh {color: #24292e;background: #eeeeee;line-height: 1.5;}.elmsh-hl {background: #fffbdd;}.elmsh-add {background: #eaffea;}.elmsh-del {background: #ffecec;}.elmsh-comm {color: #969896;}.elmsh1 {color: #005cc5;}.elmsh2 {color: #df5000;}.elmsh3 {color: #d73a49;}.elmsh4 {color: #0086b3;}.elmsh5 {color: #63a35c;}.elmsh6 {color: #005cc5;}.elmsh7 {color: #795da3;}"
 
 
@@ -239,6 +259,7 @@ renderVerbatim _ _ _ attrs block =
             , Font.monospace
             ]
          , Element.spacing 8
+         , Background.color Constants.syncHighlightColor
          , Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 }
          ]
             ++ attrs

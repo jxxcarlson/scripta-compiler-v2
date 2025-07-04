@@ -56,7 +56,7 @@ question count acc settings attrs block =
     Element.column ([ Element.spacing 12 ] |> Render.Sync2.sync block settings)
         -- TODO: clean up?
         [ Element.el [ Font.bold, Font.color Color.blue, Events.onClick (HighlightId qId) ] (Element.text (title_ ++ " " ++ label))
-        , Element.paragraph ([ Font.italic, Events.onClick (HighlightId qId), Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
+        , Element.paragraph ([ Font.italic, Events.onClick (HighlightId qId), Render.Utility.idAttributeFromInt block.meta.lineNumber ] ++ Render.Sync.attributes settings block)
             (Render.Helper.renderWithDefault "..." count acc settings attrs (Generic.Language.getExpressionContent block))
         ]
 
@@ -82,7 +82,7 @@ answer count acc settings attrs block =
         , if settings.selectedId == block.meta.id then
             -- TODO: clean up?
             Element.el [ Events.onClick (ProposeSolution ScriptaV2.Msg.Unsolved) ]
-                (Element.paragraph ([ Font.italic, Render.Utility.idAttributeFromInt block.meta.lineNumber, Element.paddingXY 8 8 ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
+                (Element.paragraph ([ Font.italic, Render.Utility.idAttributeFromInt block.meta.lineNumber, Element.paddingXY 8 8 ] ++ Render.Sync.attributes settings block)
                     (Render.Helper.renderWithDefault "..." count acc settings attrs (Generic.Language.getExpressionContent block))
                 )
 

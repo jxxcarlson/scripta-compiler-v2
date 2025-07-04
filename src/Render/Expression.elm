@@ -20,6 +20,7 @@ import Render.Graphics
 import Render.Html.Math
 import Render.Math
 import Render.Settings exposing (RenderSettings)
+import Render.Sync
 import Render.Utility as Utility
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 import String.Extra
@@ -205,10 +206,10 @@ markupDict =
 
 verbatimDict =
     Dict.fromList
-        [ ( "$", \g a _ m str -> math g a m str )
-        , ( "`", \_ _ s m str -> code s m str )
-        , ( "code", \_ _ s m str -> code s m str )
-        , ( "math", \g a _ m str -> math g a m str )
+        [ ( "$", \g a s m str -> math g a s m str )
+        , ( "`", \g a s m str -> code g a s m str )
+        , ( "code", \g a s m str -> code g a s m str )
+        , ( "math", \g a s m str -> math g a s m str )
         ]
 
 
@@ -425,12 +426,15 @@ cite acc attr str =
         [ Element.text (tag |> (\s -> "[" ++ s ++ "]")) ]
 
 
-code s m str =
+code g a s m str =
     verbatimElement (codeStyle s) m str
 
 
-math g a m str =
-    mathElement g a m str
+math : Int -> { a | mathMacroDict : Generic.MathMacro.MathMacroDict } -> { s | selectedId : String } -> { b | id : String } -> String -> Element msg
+math g a s m str =
+    Element.el
+        (Render.Sync.highlightIfIdSelected m.id s [])
+        (mathElement g a s m str)
 
 
 table : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
@@ -976,7 +980,7 @@ errorText_ str =
     Element.el [ Font.color (Element.rgb255 200 40 40) ] (Element.text str)
 
 
-mathElement generation acc meta str =
+mathElement generation acc s meta str =
     -- "width" is not used for inline math, but some string needs to be there
     Render.Math.mathText generation "width" meta.id Render.Math.InlineMathMode (Generic.MathMacro.evalStr acc.mathMacroDict str)
 

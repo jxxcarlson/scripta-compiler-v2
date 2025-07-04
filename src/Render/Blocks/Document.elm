@@ -174,7 +174,7 @@ section count acc settings attr block =
             ]
         )
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
-        , label = Element.paragraph (Render.Sync.attributes settings block) (sectionNumber :: renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
+        , label = Element.paragraph (Render.Sync.attributes settings block) (sectionNumber :: renderWithDefaultWithSize 18 "--" count acc settings attr exprs)
         }
 
 
@@ -205,7 +205,7 @@ unnumberedSection count acc settings attr block =
             ]
         )
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
-        , label = Element.paragraph (Render.Sync.attributes settings block) (renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
+        , label = Element.paragraph (Render.Sync.attributes settings block) (renderWithDefaultWithSize 18 "--" count acc settings attr exprs)
         }
 
 
@@ -216,7 +216,7 @@ subheading count acc settings attr block =
     Element.link
         (sectionBlockAttributes block settings ([ topPadding 10, Font.size 18 ] ++ attr) |> Render.Sync2.sync block settings)
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
-        , label = Element.paragraph [] (Render.Helper.renderWithDefault "| subheading" count acc settings attr (Generic.Language.getExpressionContent block))
+        , label = Element.paragraph (Render.Sync.attributes settings block) (Render.Helper.renderWithDefault "| subheading" count acc settings attr (Generic.Language.getExpressionContent block))
         }
 
 
@@ -236,8 +236,7 @@ visibleBanner count acc settings attr block =
                 Right exprs_ ->
                     exprs_
     in
-    Element.paragraph [ Font.size fontSize, elementAttribute "id" "banner" ]
-        -- renderWithDefaultWithSize size default count acc settings attr exprs
+    Element.paragraph ([ Font.size fontSize, elementAttribute "id" "banner" ] ++ Render.Sync.attributes settings block)
         (renderWithDefaultWithSize fontSize "??!!(2)" count acc settings attr exprs)
 
 

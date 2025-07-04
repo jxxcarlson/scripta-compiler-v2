@@ -78,10 +78,9 @@ blockLabel properties =
 
 
 blockAttributes settings block attrs =
-    [ Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-    , Render.Utility.idAttributeFromInt block.meta.lineNumber
+    [ Render.Utility.idAttributeFromInt block.meta.lineNumber
     ]
-        ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings
+        ++ Render.Sync.attributes settings block
         ++ attrs
 
 
@@ -114,6 +113,7 @@ selectedColor id settings =
         Background.color settings.backgroundColor
 
 
+htmlId : String -> Element.Attribute msg
 htmlId str =
     Element.htmlAttribute (Html.Attributes.id str)
 

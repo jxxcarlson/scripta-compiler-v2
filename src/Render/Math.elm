@@ -12,7 +12,6 @@ module Render.Math exposing
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Element exposing (Element)
-import Element.Background as Background
 import Element.Font as Font
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
@@ -86,7 +85,7 @@ equation count acc settings attrs block =
             String.lines (getContent block)
                 |> List.map String.trimRight
                 |> List.filter (\line -> not (String.left 2 line == "$$") && not (String.left 6 line == "[label") && not (line == "end"))
-                -- |> List.map (Generic.MathMacro.evalStr acc.mathMacroDict)
+                |> List.map (Generic.MathMacro.evalStr acc.mathMacroDict)
                 |> List.map evalMacro
 
         content =
@@ -96,9 +95,9 @@ equation count acc settings attrs block =
         label =
             Element.el [] (equationLabel 0 settings block.properties content)
     in
-    Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
+    Element.column ([ Element.width (Element.px settings.width) ] ++ attrs ++ Render.Sync.attributes settings block)
         [ Element.row
-            (highlightMath settings block)
+            []
             [ mathText count w block.meta.id DisplayMathMode content, label ]
         ]
 
@@ -186,11 +185,17 @@ aligned count acc settings attrs block =
         label =
             equationLabel (deltaY adjustedLines_) settings block.properties content
     in
-    Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
+    Element.column ([ Element.width (Element.px settings.width) ] ++ attrs ++ Render.Sync.attributes settings block)
         [ Element.row
-            (Element.width (Element.px settings.width) :: rightToLeftSyncHelper block label)
+            [ Element.width (Element.px settings.width) ]
             [ Element.el
                 (Element.centerX :: highlightMath settings block)
+                (mathText count str block.meta.id DisplayMathMode content)
+            ]
+        , Element.row
+            (Element.width (Element.px settings.width) :: Render.Sync.attributes settings block)
+            [ Element.el
+                (Element.centerX :: Render.Sync.attributes settings block)
                 (mathText count str block.meta.id DisplayMathMode content)
             ]
         ]
@@ -255,9 +260,9 @@ array count acc settings attrs block =
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
         [ Element.row
-            (Element.width (Element.px settings.width) :: rightToLeftSyncHelper block label)
+            (Element.width (Element.px settings.width) :: Render.Sync.attributes settings block)
             [ Element.el
-                (Element.centerX :: highlightMath settings block)
+                (Element.centerX :: Render.Sync.attributes settings block)
                 (mathText count str block.meta.id DisplayMathMode content)
             ]
         ]
@@ -336,36 +341,15 @@ textarray count acc settings attrs block =
                 ++ "}\n"
                 ++ innerContent
                 ++ "\n\\end{array}"
-
-        label =
-            equationLabel (deltaY adjustedLines_) settings block.properties content
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
         [ Element.row
-            (Element.width (Element.px settings.width) :: rightToLeftSyncHelper block label)
+            (Element.width (Element.px settings.width) :: Render.Sync.attributes settings block)
             [ Element.el
-                (Element.centerX :: highlightMath settings block)
+                (Element.centerX :: Render.Sync.attributes settings block)
                 (mathText count str block.meta.id DisplayMathMode content)
             ]
         ]
-
-
-rightToLeftSyncHelper : { a | meta : { b | lineNumber : Int, numberOfLines : Int, id : String } } -> Element MarkupMsg -> List (Element.Attribute MarkupMsg)
-rightToLeftSyncHelper block label =
-    [ Element.centerX, Element.spacing 12, Element.inFront label ]
-        ++ (Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-                :: [ Render.Utility.elementAttribute "id" block.meta.id ]
-           )
-
-
-
---
---rightToLeftSyncHelperAlt : { a | meta : { b | lineNumber : Int, numberOfLines : Int, id : String } } -> Element MarkupMsg -> List (Element.Attribute MarkupMsg)
---rightToLeftSyncHelperAlt block label =
---    [ Element.centerX, Element.spacing 12, Element.inFront label ]
---        ++ (Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
---                :: [ Render.Utility.elementAttribute "id" block.meta.id ]
---           )
 
 
 mathText : Int -> String -> String -> DisplayMode -> String -> Element msg
@@ -389,12 +373,8 @@ eraseLabeMacro content =
 mathText_ : DisplayMode -> String -> Html msg
 mathText_ displayMode content =
     Html.node "math-text"
-        -- active meta selectedId  ++
         [ HA.property "display" (Json.Encode.bool (isDisplayMathMode displayMode))
         , HA.property "content" (Json.Encode.string content)
-
-        -- , clicker meta
-        -- , HA.id (makeId meta)
         ]
         []
 
@@ -419,11 +399,7 @@ evalMath generation gogo content =
 evalMath_ : String -> Html msg
 evalMath_ content =
     Html.node "mathjs-compute"
-        -- active meta selectedId  ++
         [ HA.property "content" (Json.Encode.string content)
-
-        -- , clicker meta
-        --, HA.id (makeId meta)
         ]
         []
 

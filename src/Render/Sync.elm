@@ -6,7 +6,7 @@ module Render.Sync exposing
     , rightToLeftSyncHelper
     )
 
-import Element exposing (Element, paddingEach)
+import Element exposing (Element)
 import Element.Background as Background
 import Element.Events as Events
 import Generic.Language
@@ -57,6 +57,15 @@ highlighter args attrs =
         attrs
 
 
+selectedColorBright : Element.Color
+selectedColorBright =
+    Element.rgb 1.0
+        0.0
+        0.0
+
+
 selectedColor : Element.Color
 selectedColor =
-    Element.rgb 0.9 0.9 1.0
+    Element.rgb 0.9
+        0.9
+        1.0

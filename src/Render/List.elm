@@ -42,12 +42,14 @@ item count acc settings attr block =
                     "◊"
     in
     Element.row
-        [ Element.moveRight (indentationScale * level_ |> toFloat)
-        , Element.alignTop
-        , Render.Utility.idAttributeFromInt block.meta.lineNumber
-        , Render.Utility.vspace 0 settings.topMarginForChildren
-        , Element.width (Element.px <| settings.width - 50)
-        ]
+        ([ Element.moveRight (indentationScale * level_ |> toFloat)
+         , Element.alignTop
+         , Render.Utility.idAttribute block.meta.id
+         , Render.Utility.vspace 0 settings.topMarginForChildren
+         , Element.width (Element.px <| settings.width - 50)
+         ]
+            ++ Render.Sync.attributes settings block
+        )
         [ Element.el
             [ Font.size 14
             , Element.alignTop
@@ -56,9 +58,16 @@ item count acc settings attr block =
             , Render.Utility.leftPadding settings.leftIndentation
             ]
             (Element.text label_)
-        , Element.paragraph [ Render.Utility.leftPadding settings.leftIndentation, Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines ]
+        , Element.paragraph
+            (Render.Utility.leftPadding settings.leftIndentation
+                :: Render.Sync.attributes settings block
+            )
             (Render.Helper.renderWithDefault "| item" count acc settings attr (Generic.Language.getExpressionContent block))
         ]
+
+
+
+--Render.Utility.idAttribute block.meta.id
 
 
 numbered : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
@@ -102,7 +111,7 @@ numbered count acc settings attr block =
     Element.row
         [ Element.moveRight (indentationScale * level |> toFloat)
         , Element.alignTop
-        , Render.Utility.idAttributeFromInt block.meta.lineNumber
+        , Render.Utility.idAttribute block.meta.id
         , Render.Utility.vspace 0 settings.topMarginForChildren
         , Element.width (Element.px <| settings.width - 50)
         ]
@@ -113,7 +122,7 @@ numbered count acc settings attr block =
             , Render.Utility.leftPadding settings.leftRightIndentation
             ]
             (Element.text (label_ ++ ". "))
-        , Element.paragraph [ Render.Utility.leftPadding settings.leftIndentation, Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines ]
+        , Element.paragraph (Render.Utility.leftPadding settings.leftIndentation :: Render.Sync.attributes settings block)
             (Render.Helper.renderWithDefault "| numbered" count acc settings attr (Generic.Language.getExpressionContent block))
         ]
 
@@ -122,11 +131,10 @@ desc : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg
 desc count acc settings attr block =
     let
         label =
-            -- Render.Utility.argString block.args
             String.join " " block.args
     in
-    Element.row ([ Element.alignTop, Render.Utility.idAttributeFromInt block.meta.lineNumber, Render.Utility.vspace 0 settings.topMarginForChildren ] ++ Render.Sync.highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings)
+    Element.row ([ Element.alignTop, Render.Utility.idAttribute block.meta.id, Render.Utility.vspace 0 settings.topMarginForChildren ] ++ Render.Sync.attributes settings block)
         [ Element.el [ Font.bold, Element.alignTop, Element.width (Element.px 100) ] (Element.text label)
-        , Element.paragraph [ Render.Utility.leftPadding settings.leftIndentation, Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines ]
+        , Element.paragraph (Render.Utility.leftPadding settings.leftIndentation :: Render.Sync.attributes settings block)
             (Render.Helper.renderWithDefault "| desc" count acc settings attr (Generic.Language.getExpressionContent block))
         ]
