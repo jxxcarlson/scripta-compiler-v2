@@ -1,5 +1,6 @@
 module Render.Sync exposing
-    ( highlightIfIdIsSelected
+    ( attributes
+    , highlightIfIdIsSelected
     , highlightIfIdSelected
     , highlighter
     , rightToLeftSyncHelper
@@ -8,8 +9,49 @@ module Render.Sync exposing
 import Element exposing (Element, paddingEach)
 import Element.Background as Background
 import Element.Events as Events
+import Generic.Language
 import Render.Settings
+import Render.Utility
 import ScriptaV2.Msg exposing (MarkupMsg(..))
+
+
+{-| Use this function to add all needed properties to an element for LR sync
+-}
+attributes : Render.Settings.RenderSettings -> Generic.Language.ExpressionBlock -> List (Element.Attribute MarkupMsg)
+attributes settings block =
+    [ -- Render.Utility.idAttributeFromInt block.meta.lineNumber
+      rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
+    ]
+
+
+
+--++ highlightIfIdIsSelected block.meta.lineNumber block.meta.numberOfLines settings
+--++ foo block
+-- ++ highlight settings block
+
+
+foo : { b | args : List String, meta : { c | id : String, lineNumber : Int, numberOfLines : Int } } -> List (Element.Attribute MarkupMsg)
+foo block =
+    -- highlighter block.args [ Element.width (Element.px width), Render.Utility.elementAttribute "id" block.meta.id, Element.paddingXY 12 4 ]
+    highlighter block.args [ Render.Utility.elementAttribute "id" block.meta.id, Element.paddingXY 12 4 ]
+
+
+highlight : Render.Settings.RenderSettings -> Generic.Language.ExpressionBlock -> List (Element.Attribute MarkupMsg)
+highlight settings block =
+    highlightIfIdSelected block.meta.id
+        settings
+        (highlighter block.args
+            []
+        )
+
+
+highlightIfIdSelected : String -> { b | selectedId : String } -> List (Element.Attr () msg) -> List (Element.Attr () msg)
+highlightIfIdSelected id settings attrs =
+    if id == settings.selectedId then
+        Background.color selectedColor :: attrs
+
+    else
+        attrs
 
 
 highlightIfIdIsSelected : Int -> Int -> { a | selectedId : String } -> List (Element.Attribute MarkupMsg)
@@ -31,15 +73,6 @@ rightToLeftSyncHelper firstLineNumber numberOfLines =
 highlighter : List String -> List (Element.Attr () msg) -> List (Element.Attr () msg)
 highlighter args attrs =
     if List.member "highlight" args then
-        Background.color selectedColor :: attrs
-
-    else
-        attrs
-
-
-highlightIfIdSelected : String -> Render.Settings.RenderSettings -> List (Element.Attr () msg) -> List (Element.Attr () msg)
-highlightIfIdSelected id settings attrs =
-    if id == settings.selectedId then
         Background.color selectedColor :: attrs
 
     else

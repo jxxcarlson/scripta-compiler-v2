@@ -1,4 +1,4 @@
-module Render.Block exposing (renderAttributes, renderBody)
+module Render.Block exposing (renderAttributes, renderBody, standardAttributes)
 
 import Either exposing (Either(..))
 import Element exposing (Element)

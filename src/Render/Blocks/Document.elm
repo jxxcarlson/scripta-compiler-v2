@@ -174,7 +174,7 @@ section count acc settings attr block =
             ]
         )
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
-        , label = Element.paragraph ([] |> Render.Sync2.sync block settings) (sectionNumber :: renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
+        , label = Element.paragraph (Render.Sync.attributes settings block) (sectionNumber :: renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
         }
 
 
@@ -205,7 +205,7 @@ unnumberedSection count acc settings attr block =
             ]
         )
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
-        , label = Element.paragraph ([] |> Render.Sync2.sync block settings) (renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
+        , label = Element.paragraph (Render.Sync.attributes settings block) (renderWithDefaultWithSize 18 "??!!(1)" count acc settings attr exprs)
         }
 
 
