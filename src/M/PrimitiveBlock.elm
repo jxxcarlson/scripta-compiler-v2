@@ -18,9 +18,8 @@ xx =
 
 ib =
     """
-| indent 77 88 foo:bar yada:ho ho ho
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed venenatis gravida luctus.
-Integer efficitur mattis porttitor. Sed consequat dolor ut neque rhoncus pharetra.
+| indent
+1234Vivamus dignissim tristique enim, et fringilla enim vulputate at. Vestibulum ornare, odio vitae pharetra laoreet, elit nibh iaculis augue, sit amet sodales massa quam sit amet sem.
 In et placerat neque, eget faucibus nisl.
 """
 
@@ -28,8 +27,9 @@ In et placerat neque, eget faucibus nisl.
 py =
     """
 | code python
-for i in range(10):}
-    print(i)
+for i = 12 to n:
+  x = x + 3*i
+print(x)
 """
 
 

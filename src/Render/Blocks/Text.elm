@@ -115,9 +115,14 @@ indented count acc settings attr block =
                     Element.none
     in
     Element.column
-        ([ Element.width (Element.px bodyWidth), Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 0 } ] |> Render.Sync2.sync block settings)
+        [ Element.width (Element.px bodyWidth), Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 0 } ]
         [ titleElement
-        , Element.paragraph (italicStyle :: Font.color colorValue :: [ Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 0 } ])
+        , Element.paragraph
+            (italicStyle
+                :: Font.color colorValue
+                :: [ Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 0 } ]
+                ++ Render.Sync.attributes settings block
+            )
             -- compensate: the width of the body must be reduced by the indent width
             (Render.Helper.renderWithDefault "indent" count acc { settings | width = bodyWidth } attr (Generic.Language.getExpressionContent block))
         ]
