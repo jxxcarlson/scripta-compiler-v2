@@ -20,6 +20,7 @@ import Generic.Language exposing (ExpressionBlock)
 import List.Extra
 import Render.BlockRegistry exposing (BlockRegistry)
 import Render.Color as Color
+import Render.Constants
 import Render.Expression
 import Render.Helper
 import Render.Settings exposing (RenderSettings)
@@ -60,7 +61,7 @@ itemList count acc settings attr block =
 
         renderItem : RenderSettings -> Generic.Language.Expression -> Element MarkupMsg
         renderItem settings_ expr =
-            Element.row [ Element.width (Element.px 500) ]
+            Element.row [ Element.width (Element.px (settings.width - Render.Constants.defaultIndentWidth)) ]
                 [ renderLabel settings
                 , Element.paragraph (Render.Sync.attributes settings_ block)
                     (Render.Expression.render 0 acc settings [] expr :: [])
@@ -68,6 +69,16 @@ itemList count acc settings attr block =
     in
     Element.column (Element.spacing 8 :: Render.Sync.attributes settings block)
         (List.map (renderItem settings) listOfExprList)
+
+
+renderLabel settings =
+    Element.el
+        [ Font.size 14
+        , Element.alignTop
+        , Element.width (Element.px Render.Constants.defaultIndentWidth)
+        , Render.Utility.leftPadding (settings.leftIndentation + 12)
+        ]
+        (Element.text (String.fromChar '•'))
 
 
 numberedList : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
@@ -82,37 +93,23 @@ numberedList count acc settings attr block =
                 Right list ->
                     list
 
-        renderNumberedItem : RenderSettings -> Int -> Generic.Language.Expression -> Element MarkupMsg
-        renderNumberedItem settings_ k expr =
-            Element.row [ Element.width (Element.px 500) ]
+        renderNumberedItem : Int -> Generic.Language.Expression -> Element MarkupMsg
+        renderNumberedItem k expr =
+            Element.row [ Element.width (Element.px (settings.width - Render.Constants.defaultIndentWidth)) ]
                 [ renderNumberedLabel settings k
                 , Element.paragraph (Render.Sync.attributes settings block)
                     (Render.Expression.render 0 acc settings [] expr :: [])
                 ]
     in
     Element.column (Element.spacing 8 :: Render.Sync.attributes settings block)
-        (List.indexedMap (renderNumberedItem settings) listOfExprList)
-
-
-renderLabel settings =
-    Element.el
-        [ Font.size 14
-        , Element.alignTop
-
-        --, Element.moveRight 6
-        , Element.width (Element.px 24)
-        , Render.Utility.leftPadding (settings.leftIndentation + 12)
-        ]
-        (Element.text (String.fromChar '•'))
+        (List.indexedMap renderNumberedItem listOfExprList)
 
 
 renderNumberedLabel settings k =
     Element.el
         [ Font.size 14
         , Element.alignTop
-
-        --, Element.moveRight 6
-        , Element.width (Element.px 24)
+        , Element.width (Element.px Render.Constants.defaultIndentWidth)
         , Render.Utility.leftPadding (settings.leftIndentation + 12)
         ]
         (Element.text <| String.fromInt (k + 1) ++ ".")

@@ -40,9 +40,13 @@ item count acc settings attr block =
 
                 _ ->
                     "◊"
+
+        indentation : Int
+        indentation =
+            indentationScale * level_
     in
     Element.row
-        ([ Element.moveRight (indentationScale * level_ |> toFloat)
+        ([ Element.moveRight (indentation |> toFloat)
          , Element.alignTop
          , Render.Utility.idAttribute block.meta.id
          , Render.Utility.vspace 0 settings.topMarginForChildren
@@ -62,7 +66,7 @@ item count acc settings attr block =
             (Render.Utility.leftPadding settings.leftIndentation
                 :: Render.Sync.attributes settings block
             )
-            (Render.Helper.renderWithDefault "| item" count acc settings attr (Generic.Language.getExpressionContent block))
+            (Render.Helper.renderWithDefault "| item" count acc { settings | width = settings.width - indentation } attr (Generic.Language.getExpressionContent block))
         ]
 
 
@@ -107,9 +111,13 @@ numbered count acc settings attr block =
 
                 _ ->
                     String.fromInt index_
+
+        indentation : Int
+        indentation =
+            indentationScale * level
     in
     Element.row
-        [ Element.moveRight (indentationScale * level |> toFloat)
+        [ Element.moveRight (indentation |> toFloat)
         , Element.alignTop
         , Render.Utility.idAttribute block.meta.id
         , Render.Utility.vspace 0 settings.topMarginForChildren
@@ -123,7 +131,7 @@ numbered count acc settings attr block =
             ]
             (Element.text (label_ ++ ". "))
         , Element.paragraph (Render.Utility.leftPadding settings.leftIndentation :: Render.Sync.attributes settings block)
-            (Render.Helper.renderWithDefault "| numbered" count acc settings attr (Generic.Language.getExpressionContent block))
+            (Render.Helper.renderWithDefault "| numbered" count acc { settings | width = settings.width - indentation } attr (Generic.Language.getExpressionContent block))
         ]
 
 
