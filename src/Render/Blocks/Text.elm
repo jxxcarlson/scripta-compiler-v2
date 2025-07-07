@@ -10,6 +10,7 @@ module Render.Blocks.Text exposing
 
 -}
 
+import Dict
 import Element exposing (Element)
 import Element.Font as Font
 import Generic.Acc exposing (Accumulator)
@@ -73,15 +74,47 @@ indented count acc settings attr block =
                         Nothing ->
                             Render.Constants.defaultIndentWidth
 
+        italicStyle : Element.Attribute msg
+        italicStyle =
+            case Dict.get "style" block.properties of
+                Just "italic" ->
+                    Font.italic
+
+                _ ->
+                    Font.unitalicized
+
+        colorValue =
+            case Dict.get "color" block.properties of
+                Just "red" ->
+                    Element.rgb 0.8 0 0
+
+                Just "blue" ->
+                    Element.rgb 0 0 0.8
+
+                Just "gray" ->
+                    Element.rgb 0.5 0.5 0.5
+
+                _ ->
+                    Element.rgb 0 0 0
+
         bodyWidth =
             settings.width - indentWidth
+
+        titleElement =
+            case Dict.get "title" block.properties of
+                Just title ->
+                    Element.el [ Font.bold, Element.width (Element.px bodyWidth) ] (Element.text title)
+
+                Nothing ->
+                    Element.none
     in
-    Element.el
-        ([ Element.width (Element.px bodyWidth) ] |> Render.Sync2.sync block settings)
-        (Element.paragraph [ Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 0 } ]
+    Element.column
+        ([ Element.width (Element.px bodyWidth), Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 0 } ] |> Render.Sync2.sync block settings)
+        [ titleElement
+        , Element.paragraph (italicStyle :: Font.color colorValue :: [ Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 0 } ])
             -- compensate: the width of the body must be reduced by the indent width
             (Render.Helper.renderWithDefault "indent" count acc { settings | width = bodyWidth } attr (Generic.Language.getExpressionContent block))
-        )
+        ]
 
 
 {-| Render a compact block

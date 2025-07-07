@@ -145,9 +145,7 @@ comment count acc settings attrs block =
     Element.column (Element.spacing 6 :: Render.Sync.attributes settings block)
         [ Element.el [ Font.bold, Font.color Color.blue ] (Element.text author)
         , Element.paragraph
-            ([ Font.italic
-             , Font.color Color.blue
-             , Render.Utility.idAttributeFromInt block.meta.lineNumber
+            ([ Render.Utility.idAttributeFromInt block.meta.lineNumber
              ]
                 ++ Render.Sync.attributes settings block
             )
