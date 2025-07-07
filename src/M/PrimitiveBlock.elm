@@ -1,4 +1,4 @@
-module M.PrimitiveBlock exposing (parse)
+module M.PrimitiveBlock exposing (js, p, parse, py)
 
 import Dict exposing (Dict)
 import Generic.Language exposing (Heading(..), PrimitiveBlock)
@@ -16,98 +16,23 @@ xx =
 """
 
 
-x3 =
+js =
     """
-| equation
-\\int_0^1 x^n dx = \\frac{1}{n+1}
+| code javascript
+function loadMhchem() {
+    var mhChemJs = document.createElement('script');
+    mhChemJs.type = 'text/javascript';
+    mhChemJs.onload = function() {
+      console.log("elm-katex: mhchem loaded");
+    };
 """
 
 
-x4 =
+py =
     """
-| aligned
-& a  = b^2    \\
-& c  = d^2    \\
-"""
-
-
-x3b =
-    """
-|| equation
-\\int_0^1 x^n dx = \\frac{1}{n+1}
-"""
-
-
-ex1 =
-    """
-| code
-$$
-\\int_0^1 x^n dx = \\frac{1}{n+1}
-$$
-
-
-"""
-
-
-qq =
-    """
-| quotation title:Gettysburg Address
-Four score and seven years ago
-
-  Now we are engaged in a great civil war
-
-  Now we are engaged in a great civil war. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-
-  Now we are engaged in a great civil wa. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-"""
-
-
-t1 =
-    """
- || table c c c
- 1 & 2 & 3.1234 \\
- 4 & 5 & 6.1
-
-"""
-
-
-tb2 =
-    """
- | table c c c
- 1 & 2 & 3.1234 \\
- 4 & 5 & 6.1
-"""
-
-
-cl =
-    """
-- Plastic cups
-- Red wine
-- White wine
-- Cheese
-- Crackers
-"""
-
-
-nl =
-    """
-. Plastic cups
-. Red wine
-. White wine
-. Cheese
-. Crackers
-"""
-
-
-cl2 =
-    """
-- Plastic cups
-not too big
-- Red wine
-  really good stuff!
-- White wine
-
-$a^ + b^2 = c^2$
+| code python
+for i in range(10):}
+    print(i)
 """
 
 
@@ -186,7 +111,16 @@ getHeadingData line_ =
                                     -- coerce the block to a verbatim block if
                                     -- the prefix is "|" and the name is in the list of
                                     -- of verbatim blocks
-                                    coerceToVerbatim line args name args2 properties
+                                    -- coerceToVerbatim line args name args2 properties
+                                    Ok <|
+                                        if List.member name verbatimWords then
+                                            { heading = Verbatim name
+                                            , args = args2
+                                            , properties = properties
+                                            }
+
+                                        else
+                                            { heading = Ordinary name, args = args2, properties = properties }
 
                         "-" ->
                             let
