@@ -145,7 +145,7 @@ renderCode count acc settings attr block =
                         arg
 
                 Nothing ->
-                    "python"
+                    "plain"
     in
     Element.column
         ([ Background.color Constants.syncHighlightColor
@@ -155,26 +155,14 @@ renderCode count acc settings attr block =
          ]
             ++ Render.Sync.attributes settings block
         )
-        (case List.head block.args of
-            Just arg ->
-                if arg == "numbered" then
-                    List.indexedMap (\k str -> renderIndexedVerbatimLine k "plain" str) (String.lines (Render.Utility.getVerbatimContent block))
-
-                else
-                    --List.map (renderVerbatimLine arg) (String.lines (Render.Utility.getVerbatimContent block))
-                    viewCodeWithHighlight arg (Render.Utility.getVerbatimContent block)
-
-            Nothing ->
-                --List.map (renderVerbatimLine "") (String.lines (Render.Utility.getVerbatimContent block))
-                viewCodeWithHighlight "python                                                                                                         " (Render.Utility.getVerbatimContent block)
-        )
+        (viewCodeWithHighlight language (Render.Utility.getVerbatimContent block))
 
 
 viewCodeWithHighlight : String -> String -> List (Element msg)
 viewCodeWithHighlight language code =
     [ --useTheme gitHub |> Element.html
       ghCSS2
-    , viewCodeWithHighlight_ "python" code |> Element.html
+    , viewCodeWithHighlight_ language code |> Element.html
     ]
 
 
