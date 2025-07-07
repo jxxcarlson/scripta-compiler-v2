@@ -103,7 +103,13 @@ indented count acc settings attr block =
         titleElement =
             case Dict.get "title" block.properties of
                 Just title ->
-                    Element.el [ Font.bold, Element.width (Element.px bodyWidth) ] (Element.text title)
+                    Element.el
+                        [ Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 4 }
+                        , Font.color colorValue
+                        , Font.semiBold
+                        , Element.width (Element.px bodyWidth)
+                        ]
+                        (Element.text title)
 
                 Nothing ->
                     Element.none
