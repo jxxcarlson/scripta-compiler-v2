@@ -5,3 +5,7 @@ import Element
 
 syncHighlightColor =
     Element.rgb 0.955 0.95 0.95
+
+
+defaultIndentWidth =
+    12

@@ -1,4 +1,4 @@
-module M.PrimitiveBlock exposing (js, p, parse, py)
+module M.PrimitiveBlock exposing (ib, p, parse, py)
 
 import Dict exposing (Dict)
 import Generic.Language exposing (Heading(..), PrimitiveBlock)
@@ -16,15 +16,12 @@ xx =
 """
 
 
-js =
+ib =
     """
-| code javascript
-function loadMhchem() {
-    var mhChemJs = document.createElement('script');
-    mhChemJs.type = 'text/javascript';
-    mhChemJs.onload = function() {
-      console.log("elm-katex: mhchem loaded");
-    };
+| indent 77 88 foo:bar yada:ho ho ho
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed venenatis gravida luctus.
+Integer efficitur mattis porttitor. Sed consequat dolor ut neque rhoncus pharetra.
+In et placerat neque, eget faucibus nisl.
 """
 
 

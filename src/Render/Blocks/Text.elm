@@ -16,6 +16,7 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
 import Render.Attributes exposing (getIndentAttributes)
 import Render.BlockRegistry exposing (BlockRegistry)
+import Render.Constants
 import Render.Helper
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
@@ -56,10 +57,30 @@ centered count acc settings attr block =
 -}
 indented : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 indented count acc settings attr block =
+    let
+        indentWidth =
+            -- If the argument list is empty, use the default width from settings,
+            -- otherwise try to parse the first argument as an integer for the width.
+            case List.head block.args of
+                Nothing ->
+                    Render.Constants.defaultIndentWidth
+
+                Just str ->
+                    case String.toInt str of
+                        Just w ->
+                            w
+
+                        Nothing ->
+                            Render.Constants.defaultIndentWidth
+
+        bodyWidth =
+            settings.width - indentWidth
+    in
     Element.el
-        ([ Element.width (Element.px settings.width) ] |> Render.Sync2.sync block settings)
-        (Element.paragraph [ Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 } ]
-            (Render.Helper.renderWithDefault "indent" count acc settings attr (Generic.Language.getExpressionContent block))
+        ([ Element.width (Element.px bodyWidth) ] |> Render.Sync2.sync block settings)
+        (Element.paragraph [ Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 0 } ]
+            -- compensate: the width of the body must be reduced by the indent width
+            (Render.Helper.renderWithDefault "indent" count acc { settings | width = bodyWidth } attr (Generic.Language.getExpressionContent block))
         )
 
 
