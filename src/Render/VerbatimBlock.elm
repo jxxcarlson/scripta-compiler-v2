@@ -132,9 +132,6 @@ renderLoad _ _ _ _ block =
 renderCode : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 renderCode count acc settings attr block =
     let
-        _ =
-            Debug.log "@@renderCode_ARGS" block.args
-
         language =
             case List.head block.args of
                 Just arg ->
