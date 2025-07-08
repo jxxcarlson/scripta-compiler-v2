@@ -122,7 +122,7 @@ box count acc settings attr block =
     Element.column (Element.spacing 8 :: Render.Sync.attributes settings block)
         [ Element.row [ Font.bold ] [ Element.text (blockHeading block), Element.el [] (Element.text (String.join " " block.args)) ]
         , Element.paragraph
-            []
+            [ Element.paddingXY 0 0 ]
             (Render.Helper.renderWithDefault "" count acc settings attr (Generic.Language.getExpressionContent block))
         ]
 
