@@ -129,8 +129,8 @@ box count acc settings attr block =
 
 {-| Render a comment block
 -}
-comment : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
-comment count acc settings attrs block =
+comment1 : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+comment1 count acc settings attrs block =
     let
         author_ =
             String.join " " block.args
@@ -150,6 +150,27 @@ comment count acc settings attrs block =
                 ++ Render.Sync.attributes settings block
             )
             (Render.Helper.renderWithDefault "| comment" count acc settings attrs (Generic.Language.getExpressionContent block))
+        ]
+
+
+comment : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+comment count acc settings attr block =
+    let
+        feature =
+            Render.Helper.features settings block |> Debug.log "!!!!feature"
+    in
+    Element.column
+        [ Element.width (Element.px feature.bodyWidth), Element.paddingEach { left = feature.indentation, right = 0, top = 0, bottom = 0 } ]
+        [ Element.row [ Element.spacing 8 ]
+            [ feature.titleElement, feature.authorElement ]
+        , Element.paragraph
+            (feature.italicStyle
+                :: Font.color feature.colorValue
+                :: [ Element.paddingEach { left = feature.indentation, right = 0, top = 0, bottom = 0 } ]
+                ++ Render.Sync.attributes settings block
+            )
+            -- compensate: the width of the body must be reduced by the indent width
+            (Render.Helper.renderWithDefault "indent" count acc { settings | width = feature.bodyWidth } attr (Generic.Language.getExpressionContent block))
         ]
 
 

@@ -40,6 +40,14 @@ features settings block =
         _ =
             Debug.log "@@R.Text,FEATURES" block.args
 
+        author =
+            case Dict.get "author" block.properties of
+                Just a ->
+                    a |> Debug.log "@@R.Text,FEATURES,AUTHOR"
+
+                Nothing ->
+                    "" |> Debug.log "@@R.Text,FEATURES,AUTHOR"
+
         indentation =
             -- If the argument list is empty, use the default width from settings,
             -- otherwise try to parse the first argument as an integer for the width.
@@ -88,9 +96,20 @@ features settings block =
                         [ Element.paddingEach { left = indentation, right = 0, top = 0, bottom = 4 }
                         , Font.color colorValue
                         , Font.semiBold
-                        , Element.width (Element.px bodyWidth)
                         ]
                         (Element.text title_)
+
+                Nothing ->
+                    Element.none
+
+        authorElement =
+            case Dict.get "author" block.properties of
+                Just author_ ->
+                    Element.el
+                        [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 4 }
+                        , Font.color colorValue
+                        ]
+                        (Element.text <| "(" ++ author_ ++ ")")
 
                 Nothing ->
                     Element.none
@@ -100,6 +119,7 @@ features settings block =
     , indentation = indentation
     , italicStyle = italicStyle
     , colorValue = colorValue
+    , authorElement = authorElement
     }
 
 
