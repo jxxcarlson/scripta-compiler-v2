@@ -47,11 +47,30 @@ registerRenderers registry =
 -}
 centered : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 centered count acc settings attr block =
-    Element.el
-        ((Element.width (Element.px settings.width) :: attr) |> Render.Sync2.sync block settings)
-        (Element.paragraph [ Element.centerX, Element.width (Element.px (settings.width - 100)) ]
-            (Render.Helper.renderWithDefault "centered" count acc settings attr (Generic.Language.getExpressionContent block))
-        )
+    let
+        feature =
+            Render.Helper.features settings block
+    in
+    Element.column
+        [ Element.width (Element.px feature.bodyWidth), Element.paddingEach { left = feature.indentation, right = 0, top = 0, bottom = 0 } ]
+        [ feature.titleElement
+        , Element.paragraph
+            (feature.italicStyle
+                :: Font.color feature.colorValue
+                :: [ Element.centerX, Element.width (Element.px (settings.width - 2 * feature.indentation)) ]
+                ++ Render.Sync.attributes settings block
+            )
+            -- compensate: the width of the body must be reduced by the indent width
+            (Render.Helper.renderWithDefault "centered" count acc { settings | width = feature.bodyWidth } attr (Generic.Language.getExpressionContent block))
+        ]
+
+
+
+--Element.el
+--    ((Element.width (Element.px settings.width) :: attr) ++ Render.Sync.attributes settings block)
+--    (Element.paragraph [ Element.centerX, Element.width (Element.px (settings.width - 100)) ]
+--        (Render.Helper.renderWithDefault "centered" count acc settings attr (Generic.Language.getExpressionContent block))
+--    )
 
 
 {-| Render an indented block
@@ -59,72 +78,20 @@ centered count acc settings attr block =
 indented : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 indented count acc settings attr block =
     let
-        indentWidth =
-            -- If the argument list is empty, use the default width from settings,
-            -- otherwise try to parse the first argument as an integer for the width.
-            case List.head block.args of
-                Nothing ->
-                    Render.Constants.defaultIndentWidth
-
-                Just str ->
-                    case String.toInt str of
-                        Just w ->
-                            w
-
-                        Nothing ->
-                            Render.Constants.defaultIndentWidth
-
-        italicStyle : Element.Attribute msg
-        italicStyle =
-            case Dict.get "style" block.properties of
-                Just "italic" ->
-                    Font.italic
-
-                _ ->
-                    Font.unitalicized
-
-        colorValue =
-            case Dict.get "color" block.properties of
-                Just "red" ->
-                    Element.rgb 0.8 0 0
-
-                Just "blue" ->
-                    Element.rgb 0 0 0.8
-
-                Just "gray" ->
-                    Element.rgb 0.5 0.5 0.5
-
-                _ ->
-                    Element.rgb 0 0 0
-
-        bodyWidth =
-            settings.width - indentWidth
-
-        titleElement =
-            case Dict.get "title" block.properties of
-                Just title ->
-                    Element.el
-                        [ Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 4 }
-                        , Font.color colorValue
-                        , Font.semiBold
-                        , Element.width (Element.px bodyWidth)
-                        ]
-                        (Element.text title)
-
-                Nothing ->
-                    Element.none
+        feature =
+            Render.Helper.features settings block
     in
     Element.column
-        [ Element.width (Element.px bodyWidth), Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 0 } ]
-        [ titleElement
+        [ Element.width (Element.px feature.bodyWidth), Element.paddingEach { left = feature.indentation, right = 0, top = 0, bottom = 0 } ]
+        [ feature.titleElement
         , Element.paragraph
-            (italicStyle
-                :: Font.color colorValue
-                :: [ Element.paddingEach { left = indentWidth, right = 0, top = 0, bottom = 0 } ]
+            (feature.italicStyle
+                :: Font.color feature.colorValue
+                :: [ Element.paddingEach { left = feature.indentation, right = 0, top = 0, bottom = 0 } ]
                 ++ Render.Sync.attributes settings block
             )
             -- compensate: the width of the body must be reduced by the indent width
-            (Render.Helper.renderWithDefault "indent" count acc { settings | width = bodyWidth } attr (Generic.Language.getExpressionContent block))
+            (Render.Helper.renderWithDefault "indent" count acc { settings | width = feature.bodyWidth } attr (Generic.Language.getExpressionContent block))
         ]
 
 
@@ -198,16 +165,12 @@ quotation : Int -> Accumulator -> RenderSettings -> List (Element.Attribute Mark
 quotation count acc settings attrs block =
     Element.column
         ([ Element.spacing 8
-         , if block.indent == 0 then
-            Element.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }
-
-           else
-            Element.paddingEach { left = 12, right = 0, top = 0, bottom = 0 }
+         , Element.width (Element.px (settings.width - 2 * 24))
          ]
-            |> Render.Sync2.sync block settings
+            ++ Render.Sync.attributes settings block
         )
         [ Render.Helper.noteFromPropertyKey "title" [ Font.bold ] block
         , Element.paragraph
-            (Render.Helper.blockAttributes settings block [])
+            (Element.centerX :: Render.Helper.blockAttributes settings block [])
             (Render.Helper.renderWithDefault "quotation" count acc settings attrs (Generic.Language.getExpressionContent block))
         ]

@@ -1,6 +1,7 @@
 module Render.Helper exposing
     ( blockAttributes
     , blockLabel
+    , features
     , fontColor
     , getLabel
     , htmlId
@@ -26,11 +27,80 @@ import Element.Font as Font
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Html.Attributes
+import Render.Constants
 import Render.Expression
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Utility
 import ScriptaV2.Msg exposing (MarkupMsg(..))
+
+
+features settings block =
+    let
+        _ =
+            Debug.log "@@R.Text,FEATURES" block.args
+
+        indentation =
+            -- If the argument list is empty, use the default width from settings,
+            -- otherwise try to parse the first argument as an integer for the width.
+            case List.head block.args of
+                Nothing ->
+                    Render.Constants.defaultIndentWidth |> Debug.log "@@R.Text,INDENTATION, 1"
+
+                Just str ->
+                    case String.toInt str of
+                        Just w ->
+                            w |> Debug.log "@@R.Text,INDENTATION, 2"
+
+                        Nothing ->
+                            Render.Constants.defaultIndentWidth |> Debug.log "@@R.Text,INDENTATION, 3"
+
+        italicStyle : Element.Attribute msg
+        italicStyle =
+            case Dict.get "style" block.properties of
+                Just "italic" ->
+                    Font.italic
+
+                _ ->
+                    Font.unitalicized
+
+        colorValue =
+            case Dict.get "color" block.properties of
+                Just "red" ->
+                    Element.rgb 0.8 0 0
+
+                Just "blue" ->
+                    Element.rgb 0 0 0.8
+
+                Just "gray" ->
+                    Element.rgb 0.5 0.5 0.5
+
+                _ ->
+                    Element.rgb 0 0 0
+
+        bodyWidth =
+            settings.width - indentation
+
+        titleElement =
+            case Dict.get "title" block.properties of
+                Just title_ ->
+                    Element.el
+                        [ Element.paddingEach { left = indentation, right = 0, top = 0, bottom = 4 }
+                        , Font.color colorValue
+                        , Font.semiBold
+                        , Element.width (Element.px bodyWidth)
+                        ]
+                        (Element.text title_)
+
+                Nothing ->
+                    Element.none
+    in
+    { titleElement = titleElement
+    , bodyWidth = bodyWidth
+    , indentation = indentation
+    , italicStyle = italicStyle
+    , colorValue = colorValue
+    }
 
 
 
