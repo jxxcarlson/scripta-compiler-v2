@@ -40,7 +40,7 @@ renderTree count accumulator settings attrs_ tree =
     case RoseTree.Tree.children tree of
         [] ->
             -- Leaf node: just render the block
-            renderLeafNode count accumulator settings [] root
+            renderLeafNode0 count accumulator settings [] root
 
         children ->
             -- Branch node: render based on block type
@@ -111,7 +111,7 @@ renderBoxBranch count accumulator settings attrs_ blockAttrs root children =
         settings_ =
             { settings | width = settings.width - 100, backgroundColor = Render.Color.boxBackground }
     in
-    Element.column [ Element.paddingEach { left = 12, right = 12, top = 0, bottom = 0 } ]
+    Element.column [ Element.paddingEach { left = 18, right = 18, top = 0, bottom = 0 } ]
         [ Element.column (Render.TreeSupport.renderAttributes settings_ root ++ getBlockAttributes root settings)
             (Render.TreeSupport.renderBody count accumulator settings_ attrs_ root
                 --++ List.map (renderTree count accumulator settings_ (attrs_ ++ getInnerAttributes root settings_ ++ blockAttrs)) children
