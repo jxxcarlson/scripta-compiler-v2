@@ -80,27 +80,35 @@ view viewParameters acc documentAst =
 
 viewTOCTree format viewParameters acc depth indentation maybeFoundIds tocTree =
     let
-        children : List (Tree TOCNodeValue)
-        children =
-            if List.member val.block.meta.id viewParameters.idsOfOpenNodes then
-                RoseTree.Tree.children tocTree
-
-            else
-                []
-
         val : TOCNodeValue
         val =
             RoseTree.Tree.value tocTree
+            
+        actualChildren : List (Tree TOCNodeValue)
+        actualChildren =
+            RoseTree.Tree.children tocTree
+            
+        hasChildren : Bool
+        hasChildren =
+            not (List.isEmpty actualChildren)
+
+        children : List (Tree TOCNodeValue)
+        children =
+            if List.member val.block.meta.id viewParameters.idsOfOpenNodes then
+                actualChildren
+
+            else
+                []
     in
     if depth < 0 || val.visible == False then
         Element.none
 
     else if List.isEmpty children then
-        Element.el [] (viewNode viewParameters acc indentation val)
+        Element.el [] (viewNodeWithChildren viewParameters acc indentation val hasChildren)
 
     else
         Element.column [ Element.spacing 8 ]
-            (Element.el [] (viewNode viewParameters acc indentation val)
+            (Element.el [] (viewNodeWithChildren viewParameters acc indentation val hasChildren)
                 :: List.map (viewTOCTree [] viewParameters acc (depth - 1) (indentation + 1) maybeFoundIds)
                     children
             )
@@ -108,7 +116,12 @@ viewTOCTree format viewParameters acc depth indentation maybeFoundIds tocTree =
 
 viewNode : ViewParameters -> Accumulator -> Int -> TOCNodeValue -> Element MarkupMsg
 viewNode viewParameters acc indentation node =
-    viewTocItem_ viewParameters acc node.block
+    viewTocItem_ viewParameters acc False node.block
+
+
+viewNodeWithChildren : ViewParameters -> Accumulator -> Int -> TOCNodeValue -> Bool -> Element MarkupMsg
+viewNodeWithChildren viewParameters acc indentation node hasChildren =
+    viewTocItem_ viewParameters acc hasChildren node.block
 
 
 tocForest : List String -> Forest ExpressionBlock -> List (Tree TOCNodeValue)
@@ -137,13 +150,13 @@ makeNodeValue idsOfOpenNodes block =
             -- The "xy" line below is needed because we also have the possibility of
             -- the TOC in the sidebar. We do not want click on a TOC item in the sidebar
             -- targeting the TOC item in the main text.
-            Generic.Language.updateMetaInBlock (\m -> { m | id = "xy" ++ m.id }) block
+            Generic.Language.updateMetaInBlock (\m -> { m | id = "xy" ++ m.id |> Debug.log "@@TOC NODE ID" }) block
     in
     { block = newBlock, visible = True }
 
 
-viewTocItem_ : ViewParameters -> Accumulator -> ExpressionBlock -> Element MarkupMsg
-viewTocItem_ viewParameters acc ({ args, body, properties } as block) =
+viewTocItem_ : ViewParameters -> Accumulator -> Bool -> ExpressionBlock -> Element MarkupMsg
+viewTocItem_ viewParameters acc hasChildren ({ args, body, properties } as block) =
     let
         maximumNumberedTocLevel =
             1
@@ -199,8 +212,15 @@ viewTocItem_ viewParameters acc ({ args, body, properties } as block) =
 
                     else
                         Element.rgb 0 0 0.8
+                        
+                -- Click handlers based on whether the item has children
+                clickHandlers =
+                    if hasChildren then
+                        [ Events.onClick (ToggleTOCNodeID nodeId), Font.size 14 ]
+                    else
+                        [ Events.onClick (SelectId <| id), Font.size 14 ]
             in
-            Element.el [ Events.onClick (SelectId <| id), Events.onClick (ToggleTOCNodeID nodeId), Font.size 14 ]
+            Element.el clickHandlers
                 (Element.link [ Font.color color ] { url = Render.Utility.internalLink id, label = content })
 
 
