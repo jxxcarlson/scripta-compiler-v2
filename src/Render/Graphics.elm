@@ -45,7 +45,8 @@ image settings attrs body =
                     k
 
         inner =
-            column [ spacing 8, Element.width (px settings.width), params.placement, Element.paddingXY 0 ypadding ]
+            column
+                [ spacing 8, Element.width (px settings.width), params.placement, Element.paddingXY 0 ypadding ]
                 [ Element.image [ Element.width params.width, params.placement ]
                     { src = params.url, description = params.description }
                 , el [ params.placement ] params.caption
@@ -131,7 +132,7 @@ image2 _ _ settings attrs block =
                 , label = inner
                 }
     in
-    Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
+    Element.column ([ Element.width (Element.px settings.width) ] ++ attrs ++ Render.Sync.attributes settings block)
         [ Element.column [ Element.width params.width, Element.centerX ] [ outer, Element.el [] figureLabel ] ]
 
 
@@ -183,6 +184,7 @@ svg count acc settings attrs block =
                  , Element.width (Element.px settings.width)
                  ]
                     ++ attrs
+                    ++ Render.Sync.attributes settings block
                 )
                 [ Element.column [ Element.centerX ] [ html_ |> Element.html ]
                 ]
@@ -213,7 +215,11 @@ tikz count acc settings attrs block =
                 params =
                     String.words imageData |> imageParameters settings
             in
-            Element.column ([ Element.spacing 8, Element.width (Element.px settings.width), params.placement, Element.paddingXY 0 18 ] ++ attrs)
+            Element.column
+                ([ Element.spacing 8, Element.width (Element.px settings.width), params.placement, Element.paddingXY 0 18 ]
+                    ++ attrs
+                    ++ Render.Sync.attributes settings block
+                )
                 [ Element.image [ Element.width params.width, params.placement ]
                     { src = params.url, description = params.description }
                 , Element.el [ params.placement ] params.caption
@@ -258,12 +264,13 @@ quiver _ _ settings attrs block =
                  , Element.width (Element.px settings.width)
                  ]
                     ++ attrs
+                    ++ Render.Sync.attributes settings block
                 )
                 [ Element.image [ Element.width qArgs.width, params.placement ]
                     { src = params.url, description = desc }
                 , Element.el
-                    (Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-                        :: Render.Sync.highlighter block.args [ params.placement, params.placement, Element.paddingXY 12 4, Render.Utility.elementAttribute "id" block.meta.id ]
+                    (Render.Sync.highlighter block.args
+                        [ params.placement, params.placement, Element.paddingXY 12 4, Render.Utility.elementAttribute "id" block.meta.id ]
                     )
                     (Element.text desc)
                 ]
