@@ -46,19 +46,23 @@ render count acc settings attrs block =
                             ""
             in
             Element.column
-                ([ Element.width (Element.px w)
-                 ]
-                    ++ attrs
-                )
-                [ Html.iframe
-                    [ Html.Attributes.src <| iframeProperties.src
-                    , Html.Attributes.style "border" "none"
-                    , Html.Attributes.style "width" (iframeProperties.width ++ "px")
-                    , Html.Attributes.style "height" (iframeProperties.height ++ "px")
+                ((Element.width <| Element.px settings.width) :: Render.Sync.attributes settings block)
+                [ Element.column
+                    ([ Element.width (Element.px w)
+                     , Element.centerX
+                     ]
+                        ++ attrs
+                    )
+                    [ Html.iframe
+                        [ Html.Attributes.src <| iframeProperties.src
+                        , Html.Attributes.style "border" "none"
+                        , Html.Attributes.style "width" (iframeProperties.width ++ "px")
+                        , Html.Attributes.style "height" (iframeProperties.height ++ "px")
+                        ]
+                        []
+                        |> Element.html
+                    , Element.row [ Element.centerX, Element.paddingXY 0 12 ] [ Element.text figureLabel ]
                     ]
-                    []
-                    |> Element.html
-                , Element.row [ Element.centerX, Element.paddingXY 0 12 ] [ Element.text figureLabel ]
                 ]
 
 

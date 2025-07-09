@@ -237,7 +237,7 @@ viewCodeWithHighlight_ language code_ =
 
 
 renderVerbatim : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
-renderVerbatim _ _ _ attrs block =
+renderVerbatim _ _ settings attrs block =
     Element.column
         ([ Font.family
             [ Font.typeface "Inconsolata"
@@ -248,6 +248,7 @@ renderVerbatim _ _ _ attrs block =
          , Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 }
          ]
             ++ attrs
+            ++ Render.Sync.attributes settings block
         )
         (List.map (renderVerbatimLine "none") (String.lines (String.trim (Render.Utility.getVerbatimContent block))))
 
@@ -289,7 +290,7 @@ renderIndexedVerbatimLine k lang str_ =
 
 
 renderVerse : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
-renderVerse _ _ _ attrs block =
+renderVerse _ _ settings attrs block =
     let
         lines_ =
             String.lines (Render.Utility.getVerbatimContent block)
@@ -309,7 +310,7 @@ renderVerse _ _ _ attrs block =
                 Nothing ->
                     lines_
     in
-    Element.column [ Element.spacing 8 ]
+    Element.column ([ Element.spacing 8 ] ++ Render.Sync.attributes settings block)
         [ Render.Helper.noteFromPropertyKey "title" [ Render.Helper.leftPadding 12, Font.bold ] block
         , Element.column
             (verbatimBlockAttributes block.meta.lineNumber
