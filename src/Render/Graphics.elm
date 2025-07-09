@@ -76,8 +76,24 @@ inlineimage settings attrs body =
 image2 : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 image2 _ _ settings attrs block =
     let
-        caption =
-            getCaption block.properties
+        width =
+            case Dict.get "width" block.properties of
+                Nothing ->
+                    Element.px settings.width
+
+                Just "fill" ->
+                    Element.fill
+
+                Just "to-edges" ->
+                    Element.px (round (1.2 * toFloat settings.width))
+
+                Just w_ ->
+                    case String.toInt w_ of
+                        Nothing ->
+                            Element.px settings.width
+
+                        Just w ->
+                            Element.px w
 
         ypadding =
             case Dict.get "yPadding" block.properties of
@@ -86,17 +102,6 @@ image2 _ _ settings attrs block =
 
                 Just dy ->
                     dy |> String.toInt |> Maybe.withDefault 18
-
-        label =
-            case caption of
-                "*" ->
-                    "Figure " ++ getFigureLabel block.properties
-
-                "none" ->
-                    ""
-
-                _ ->
-                    "Figure " ++ getFigureLabel block.properties ++ ". " ++ caption
 
         url =
             case block.body of
@@ -120,11 +125,18 @@ image2 _ _ settings attrs block =
                 ]
 
         figureLabel =
-            Element.el
-                (Render.Sync.rightToLeftSyncHelper block.meta.lineNumber block.meta.numberOfLines
-                    :: Render.Sync.highlighter block.args [ Element.width params.width, Render.Utility.elementAttribute "id" block.meta.id, Element.paddingXY 12 4 ]
-                )
-                (Element.el [ Element.centerX ] (Element.text label))
+            case ( Dict.get "figure" block.properties, Dict.get "caption" block.properties ) of
+                ( Nothing, Nothing ) ->
+                    Element.none
+
+                ( Nothing, Just cap ) ->
+                    Element.el [ Element.centerX ] (Element.text cap)
+
+                ( Just fig, Nothing ) ->
+                    Element.el [ Element.centerX ] (Element.text ("Figure " ++ fig))
+
+                ( Just fig, Just cap ) ->
+                    Element.el [ Element.centerX ] (Element.text ("Figure " ++ fig ++ ". " ++ cap))
 
         outer =
             Element.newTabLink []
@@ -132,8 +144,8 @@ image2 _ _ settings attrs block =
                 , label = inner
                 }
     in
-    Element.column ([ Element.width (Element.px settings.width) ] ++ attrs ++ Render.Sync.attributes settings block)
-        [ Element.column [ Element.width params.width, Element.centerX ] [ outer, Element.el [] figureLabel ] ]
+    Element.column ([ Element.width width ] ++ attrs ++ Render.Sync.attributes settings block)
+        [ Element.column [ Element.width params.width, Element.centerX ] [ outer, figureLabel ] ]
 
 
 
