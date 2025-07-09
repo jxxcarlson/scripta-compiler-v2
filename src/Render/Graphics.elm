@@ -96,7 +96,7 @@ image2 _ _ settings attrs block =
                             Element.px w
 
         ypadding =
-            case Dict.get "yPadding" block.properties of
+            case Dict.get "ypadding" block.properties of
                 Nothing ->
                     18
 
@@ -117,11 +117,12 @@ image2 _ _ settings attrs block =
         inner =
             column
                 [ spacing 8
-                , Element.paddingXY 0 ypadding
+                , Element.paddingEach { left = 0, right = 0, top = ypadding + 6, bottom = ypadding }
                 , Element.centerX
                 ]
                 [ Element.image [ Element.width params.width ]
                     { src = url, description = getDescription block.properties }
+                , figureLabel
                 ]
 
         figureLabel =
@@ -144,8 +145,10 @@ image2 _ _ settings attrs block =
                 , label = inner
                 }
     in
-    Element.column ([ Element.width width ] ++ attrs ++ Render.Sync.attributes settings block)
-        [ Element.column [ Element.width params.width, Element.centerX ] [ outer, figureLabel ] ]
+    Element.column [ Element.width (Element.px settings.width) ]
+        [ Element.column ([ Element.width width, Element.centerX ] ++ attrs ++ Render.Sync.attributes settings block)
+            [ Element.el [ Element.width params.width, Element.spacing 0 ] outer ]
+        ]
 
 
 
