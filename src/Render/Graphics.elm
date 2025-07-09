@@ -269,7 +269,7 @@ quiver _ _ settings attrs block =
                 desc =
                     case qArgs.caption of
                         Just caption ->
-                            "Figure: " ++ caption
+                            caption
 
                         _ ->
                             ""
