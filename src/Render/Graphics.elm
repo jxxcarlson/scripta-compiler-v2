@@ -245,7 +245,7 @@ quiver : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupM
 quiver _ _ settings attrs block =
     let
         -- arguments: ["width:250","caption:Fig","1"]
-        qArgs : { caption : String, description : String, placement : Element.Attribute a, width : Element.Length }
+        qArgs : { caption : Maybe String, description : Maybe String, placement : Element.Attribute a, width : Element.Length }
         qArgs =
             parameters settings block.properties
 
@@ -268,11 +268,11 @@ quiver _ _ settings attrs block =
 
                 desc =
                     case qArgs.caption of
-                        "*" ->
-                            "Figure " ++ getFigureLabel block.properties
+                        Just caption ->
+                            "Figure: " ++ caption
 
                         _ ->
-                            "Figure " ++ getFigureLabel block.properties ++ ". " ++ qArgs.caption
+                            ""
             in
             Element.column
                 ([ Element.spacing 8
@@ -381,15 +381,22 @@ imageParameters settings arguments =
     { caption = caption, description = description, placement = placement, width = width, url = url, yPadding = yPadding }
 
 
-parameters : RenderSettings -> Dict String String -> { caption : String, description : String, placement : Element.Attribute msg, width : Element.Length }
+parameters :
+    RenderSettings
+    -> Dict String String
+    ->
+        { caption : Maybe String
+        , description : Maybe String
+        , placement : Element.Attribute msg
+        , width : Element.Length
+        }
 parameters settings properties =
     let
         captionPhrase =
-            getCaption properties
+            Dict.get "caption" properties
 
-        description : String
         description =
-            getDescription properties
+            Dict.get "description" properties
 
         displayWidth =
             settings.width
