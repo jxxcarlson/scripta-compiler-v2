@@ -83,11 +83,11 @@ viewTOCTree format viewParameters acc depth indentation maybeFoundIds tocTree =
         val : TOCNodeValue
         val =
             RoseTree.Tree.value tocTree
-            
+
         actualChildren : List (Tree TOCNodeValue)
         actualChildren =
             RoseTree.Tree.children tocTree
-            
+
         hasChildren : Bool
         hasChildren =
             not (List.isEmpty actualChildren)
@@ -150,7 +150,7 @@ makeNodeValue idsOfOpenNodes block =
             -- The "xy" line below is needed because we also have the possibility of
             -- the TOC in the sidebar. We do not want click on a TOC item in the sidebar
             -- targeting the TOC item in the main text.
-            Generic.Language.updateMetaInBlock (\m -> { m | id = "xy" ++ m.id |> Debug.log "@@TOC NODE ID" }) block
+            Generic.Language.updateMetaInBlock (\m -> { m | id = "xy" ++ m.id }) block
     in
     { block = newBlock, visible = True }
 
@@ -212,11 +212,12 @@ viewTocItem_ viewParameters acc hasChildren ({ args, body, properties } as block
 
                     else
                         Element.rgb 0 0 0.8
-                        
+
                 -- Click handlers based on whether the item has children
                 clickHandlers =
                     if hasChildren then
                         [ Events.onClick (ToggleTOCNodeID nodeId), Font.size 14 ]
+
                     else
                         [ Events.onClick (SelectId <| id), Font.size 14 ]
             in
