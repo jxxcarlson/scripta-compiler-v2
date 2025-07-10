@@ -965,7 +965,7 @@ f1 f exprList =
 
 
 verbatimElement formatList meta str =
-    Element.el (htmlId meta.id :: formatList) (Element.text str)
+    Element.el (Font.size 13 :: htmlId meta.id :: formatList) (Element.text str)
 
 
 htmlId str =

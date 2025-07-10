@@ -149,6 +149,7 @@ renderCode count acc settings attr block =
          , Element.paddingXY 18 12
          , Element.width (Element.px settings.width)
          , Element.scrollbarX
+         , Font.size 13
          ]
             ++ Render.Sync.attributes settings block
         )
@@ -246,6 +247,7 @@ renderVerbatim _ _ settings attrs block =
          , Element.spacing 8
          , Background.color Constants.syncHighlightColor
          , Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 }
+         , Font.size 13
          ]
             ++ attrs
             ++ Render.Sync.attributes settings block
@@ -264,10 +266,10 @@ renderVerbatimLine lang str =
             Element.paddingEach { top = 0, bottom = 0, left = n * 8, right = 0 }
     in
     if String.trim str == "" then
-        Element.row [ spacer str, Element.spacing 12 ] [ Element.el [ Element.height (Element.px 11) ] (Element.text "") ]
+        Element.row [ spacer str, Element.spacing 12 ] [ Element.el [ Element.height (Element.px 11), Font.size 13 ] (Element.text "") ]
 
     else
-        Element.row [ spacer str, Element.spacing 12 ] [ Element.el [ Element.height (Element.px 22) ] (Element.text str) ]
+        Element.row [ spacer str, Element.spacing 12 ] [ Element.el [ Element.height (Element.px 22), Font.size 13 ] (Element.text str) ]
 
 
 renderIndexedVerbatimLine : Int -> String -> String -> Element msg
@@ -280,13 +282,13 @@ renderIndexedVerbatimLine k lang str_ =
             Element.el [ Element.paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ] (Element.text <| String.fromInt (k_ + 1))
     in
     if String.trim str == "" then
-        Element.row [ Element.spacing 12 ] [ index k, Element.el [ Element.height (Element.px 11) ] (Element.text "") ]
+        Element.row [ Element.spacing 12 ] [ index k, Element.el [ Element.height (Element.px 11), Font.size 13 ] (Element.text "") ]
 
     else if lang == "plain" then
-        Element.row [ Element.spacing 12 ] [ index k, Element.el [ Element.height (Element.px 22) ] (Element.text str) ]
+        Element.row [ Element.spacing 12 ] [ index k, Element.el [ Element.height (Element.px 22), Font.size 13 ] (Element.text str) ]
 
     else
-        Element.row [ Element.spacing 12 ] [ index k, Element.paragraph [ Element.height (Element.px 22) ] (renderedColoredLine lang str) ]
+        Element.row [ Element.spacing 12 ] [ index k, Element.paragraph [ Element.height (Element.px 22), Font.size 13 ] (renderedColoredLine lang str) ]
 
 
 renderVerse : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
