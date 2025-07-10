@@ -30,10 +30,6 @@ a blank line.
 -}
 parse : ParserFunctions -> String -> Int -> List String -> List PrimitiveBlock
 parse functionData initialId outerCount lines =
-    let
-        _ =
-            Debug.log "@@gen/primitiveBlock.parse,OUTERCOUNT" outerCount
-    in
     loop (init functionData initialId outerCount lines) nextStep
 
 
