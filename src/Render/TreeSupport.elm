@@ -50,7 +50,7 @@ syncAttributes settings block =
 
 {-| Simplified version of Block.renderBody
 -}
-renderBody : Render.Settings.Theme -> Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Element MarkupMsg)
+renderBody : Render.Settings.ActualTheme -> Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Element MarkupMsg)
 renderBody theme count acc settings _ block =
     case block.heading of
         Paragraph ->

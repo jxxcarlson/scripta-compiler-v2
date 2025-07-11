@@ -22,7 +22,7 @@ import ScriptaV2.Msg exposing (MarkupMsg)
 {-| Render a tree of expression blocks
 -}
 renderTree :
-    Render.Settings.Theme
+    Render.Settings.ActualTheme
     -> Int
     -> Accumulator
     -> RenderSettings
@@ -51,7 +51,7 @@ renderTree theme count accumulator settings attrs_ tree =
 {-| Render a leaf node (a block with no children)
 -}
 renderLeafNode0 :
-    Render.Settings.Theme
+    Render.Settings.ActualTheme
     -> Int
     -> Accumulator
     -> RenderSettings
@@ -64,7 +64,7 @@ renderLeafNode0 theme count accumulator settings attrs_ root =
 
 
 renderLeafNode :
-    Render.Settings.Theme
+    Render.Settings.ActualTheme
     -> Int
     -> Accumulator
     -> RenderSettings
@@ -80,7 +80,7 @@ renderLeafNode theme count accumulator settings attrs_ root =
 {-| Render a branch node (a block with children)
 -}
 renderBranchNode :
-    Render.Settings.Theme
+    Render.Settings.ActualTheme
     -> Int
     -> Accumulator
     -> RenderSettings
@@ -102,7 +102,7 @@ renderBranchNode theme count accumulator settings attrs_ blockAttrs root childre
 {-| Render a branch node that is a box
 -}
 renderBoxBranch :
-    Render.Settings.Theme
+    Render.Settings.ActualTheme
     -> Int
     -> Accumulator
     -> RenderSettings
@@ -135,7 +135,7 @@ renderBoxBranch theme count accumulator settings attrs_ blockAttrs root children
 
 -}
 renderStandardBranch :
-    Render.Settings.Theme
+    Render.Settings.ActualTheme
     -> Int
     -> Accumulator
     -> RenderSettings

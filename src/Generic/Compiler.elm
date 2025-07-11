@@ -52,7 +52,7 @@ type alias RenderData =
 -- default selectedId width
 
 
-defaultRenderData : Render.Settings.Theme -> Int -> Int -> String -> RenderData
+defaultRenderData : Render.Settings.ActualTheme -> Int -> Int -> String -> RenderData
 defaultRenderData theme width outerCount selectedId =
     { count = outerCount
     , idPrefix = "!!"
@@ -61,7 +61,7 @@ defaultRenderData theme width outerCount selectedId =
     }
 
 
-defaultRenderSettings : Render.Settings.Theme -> Int -> String -> Render.Settings.RenderSettings
+defaultRenderSettings : Render.Settings.ActualTheme -> Int -> String -> Render.Settings.RenderSettings
 defaultRenderSettings theme width selectedId =
     Render.Settings.default theme selectedId width
 

@@ -41,7 +41,7 @@ import XMarkdown.PrimitiveBlock
 
 
 {-| -}
-renderEditRecord : Render.Settings.Theme -> Generic.Compiler.DisplaySettings -> EditRecord -> List (Element MarkupMsg)
+renderEditRecord : Render.Settings.ActualTheme -> Generic.Compiler.DisplaySettings -> EditRecord -> List (Element MarkupMsg)
 renderEditRecord theme displaySettings editRecord =
     let
         renderSettings =
@@ -54,7 +54,7 @@ renderEditRecord theme displaySettings editRecord =
 
 
 {-| -}
-editRecordToCompilerOutput : Render.Settings.Theme -> ScriptaV2.Compiler.Filter -> Generic.Compiler.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
+editRecordToCompilerOutput : Render.Settings.ActualTheme -> ScriptaV2.Compiler.Filter -> Generic.Compiler.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
 editRecordToCompilerOutput theme filter displaySettings editRecord =
     let
         renderSettings : ScriptaV2.Settings.RenderSettings

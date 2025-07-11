@@ -17,7 +17,7 @@ type alias RenderSettings =
 
 
 {-| -}
-makeSettings : Render.Settings.Theme -> String -> Maybe String -> Float -> Int -> Dict String String -> Render.Settings.RenderSettings
+makeSettings : Render.Settings.ActualTheme -> String -> Maybe String -> Float -> Int -> Dict String String -> Render.Settings.RenderSettings
 makeSettings =
     Render.Settings.makeSettings
 
@@ -42,7 +42,7 @@ type alias DisplaySettings =
 
 
 {-| -}
-renderSettingsFromDisplaySettings : Render.Settings.Theme -> DisplaySettings -> RenderSettings
+renderSettingsFromDisplaySettings : Render.Settings.ActualTheme -> DisplaySettings -> RenderSettings
 renderSettingsFromDisplaySettings theme ds =
     Render.Settings.makeSettings theme ds.selectedId ds.selectedSlug ds.scale ds.windowWidth ds.data
 

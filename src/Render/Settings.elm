@@ -1,6 +1,6 @@
 module Render.Settings exposing
     ( Display(..), defaultSettings, makeSettings, RenderSettings, default
-    , Theme, unrollTheme
+    , ActualTheme, darkTheme, lightTheme, unrollTheme
     )
 
 {-| The Settings record holds information needed to render a
@@ -49,7 +49,7 @@ type alias RenderSettings =
     }
 
 
-type alias Theme =
+type alias ActualTheme =
     { backgroundColor : Element.Color
     , textColor : Element.Color
     , codeColor : Element.Color
@@ -63,7 +63,7 @@ unrollTheme theme =
 
 {-| A light theme with a white background and dark text.
 -}
-lightTheme : Theme
+lightTheme : ActualTheme
 lightTheme =
     { backgroundColor = Element.rgb 1 1 1
     , textColor = Element.rgb 0.1 0.1 0.1
@@ -72,7 +72,7 @@ lightTheme =
     }
 
 
-darkTheme : Theme
+darkTheme : ActualTheme
 darkTheme =
     { backgroundColor = Element.rgb 0.1 0.1 0.1
     , textColor = Element.rgb 1 1 1
@@ -94,13 +94,13 @@ defaultSettings =
 
 
 {-| -}
-default : Theme -> String -> Int -> RenderSettings
+default : ActualTheme -> String -> Int -> RenderSettings
 default theme selectedId width =
     makeSettings theme selectedId Nothing 1 width Dict.empty
 
 
 {-| -}
-makeSettings : Theme -> String -> Maybe String -> Float -> Int -> Dict String String -> RenderSettings
+makeSettings : ActualTheme -> String -> Maybe String -> Float -> Int -> Dict String String -> RenderSettings
 makeSettings theme selectedId selectedSlug scale windowWidth data =
     let
         titleSize =
