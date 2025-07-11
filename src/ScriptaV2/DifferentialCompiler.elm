@@ -50,7 +50,7 @@ renderEditRecord theme displaySettings editRecord =
         counter =
             displaySettings.counter
     in
-    ScriptaV2.Compiler.renderForest counter renderSettings editRecord.accumulator editRecord.tree
+    ScriptaV2.Compiler.renderForest theme counter renderSettings editRecord.accumulator editRecord.tree
 
 
 {-| -}
@@ -84,7 +84,7 @@ editRecordToCompilerOutput theme filter displaySettings editRecord =
             Element.paragraph [] [ Element.text <| Generic.ASTTools.title editRecord.tree ]
     in
     { body =
-        ScriptaV2.Compiler.renderForest displaySettings.counter renderSettings editRecord.accumulator (ScriptaV2.Compiler.filterForest2 editRecord.tree)
+        ScriptaV2.Compiler.renderForest theme displaySettings.counter renderSettings editRecord.accumulator (ScriptaV2.Compiler.filterForest2 editRecord.tree)
     , banner = banner
     , toc = toc -- THIS IS WHERE THE SIDEBAR TOC IS COMPUTED
     , title = title

@@ -50,17 +50,17 @@ syncAttributes settings block =
 
 {-| Simplified version of Block.renderBody
 -}
-renderBody : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Element MarkupMsg)
-renderBody count acc settings attrs block =
+renderBody : Render.Settings.Theme -> Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Element MarkupMsg)
+renderBody theme count acc settings _ block =
     case block.heading of
         Paragraph ->
-            [ renderParagraphBody count acc settings attrs block ]
+            [ renderParagraphBody count acc settings (Render.Settings.unrollTheme theme) block ]
 
         Ordinary _ ->
-            [ Render.OrdinaryBlock.render count acc settings attrs block ]
+            [ Render.OrdinaryBlock.render count acc settings (Render.Settings.unrollTheme theme) block ]
 
         Verbatim _ ->
-            [ VerbatimBlock.render count acc settings attrs block |> Render.Helper.showError block.meta.error ]
+            [ VerbatimBlock.render count acc settings (Render.Settings.unrollTheme theme) block |> Render.Helper.showError block.meta.error ]
 
 
 {-| Render a paragraph body

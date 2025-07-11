@@ -22,13 +22,14 @@ import ScriptaV2.Msg exposing (MarkupMsg)
 {-| Render a tree of expression blocks
 -}
 renderTree :
-    Int
+    Render.Settings.Theme
+    -> Int
     -> Accumulator
     -> RenderSettings
     -> List (Element.Attribute MarkupMsg)
     -> RoseTree.Tree.Tree ExpressionBlock
     -> Element MarkupMsg
-renderTree count accumulator settings attrs_ tree =
+renderTree theme count accumulator settings attrs_ tree =
     let
         root =
             RoseTree.Tree.value tree
@@ -40,44 +41,47 @@ renderTree count accumulator settings attrs_ tree =
     case RoseTree.Tree.children tree of
         [] ->
             -- Leaf node: just render the block
-            renderLeafNode0 count accumulator settings [] root
+            renderLeafNode0 theme count accumulator settings [] root
 
         children ->
             -- Branch node: render based on block type
-            renderBranchNode count accumulator settings [] [] root children tree
+            renderBranchNode theme count accumulator settings [] [] root children tree
 
 
 {-| Render a leaf node (a block with no children)
 -}
 renderLeafNode0 :
-    Int
+    Render.Settings.Theme
+    -> Int
     -> Accumulator
     -> RenderSettings
     -> List (Element.Attribute MarkupMsg)
     -> ExpressionBlock
     -> Element MarkupMsg
-renderLeafNode0 count accumulator settings attrs_ root =
-    Element.column (Render.TreeSupport.renderAttributes settings root ++ getBlockAttributes root settings)
-        (Render.TreeSupport.renderBody count accumulator settings attrs_ root)
+renderLeafNode0 theme count accumulator settings attrs_ root =
+    Element.column (Render.TreeSupport.renderAttributes settings root ++ getBlockAttributes root settings ++ Render.Settings.unrollTheme theme)
+        (Render.TreeSupport.renderBody theme count accumulator settings attrs_ root)
 
 
 renderLeafNode :
-    Int
+    Render.Settings.Theme
+    -> Int
     -> Accumulator
     -> RenderSettings
     -> List (Element.Attribute MarkupMsg)
     -> ExpressionBlock
     -> Element MarkupMsg
-renderLeafNode count accumulator settings attrs_ root =
+renderLeafNode theme count accumulator settings attrs_ root =
     Element.column []
         --(Render.TreeSupport.renderAttributes settings root)
-        (Render.TreeSupport.renderBody count accumulator settings [] root)
+        (Render.TreeSupport.renderBody theme count accumulator settings [] root)
 
 
 {-| Render a branch node (a block with children)
 -}
 renderBranchNode :
-    Int
+    Render.Settings.Theme
+    -> Int
     -> Accumulator
     -> RenderSettings
     -> List (Element.Attribute MarkupMsg)
@@ -86,19 +90,20 @@ renderBranchNode :
     -> List (Tree ExpressionBlock)
     -> Tree ExpressionBlock
     -> Element MarkupMsg
-renderBranchNode count accumulator settings attrs_ blockAttrs root children tree =
+renderBranchNode theme count accumulator settings attrs_ blockAttrs root children tree =
     case getBlockType root of
         ContainerBlock Box ->
-            renderBoxBranch count accumulator settings attrs_ blockAttrs root children
+            renderBoxBranch theme count accumulator settings attrs_ blockAttrs root children
 
         _ ->
-            renderStandardBranch count accumulator settings [] [] root children
+            renderStandardBranch theme count accumulator settings [] [] root children
 
 
 {-| Render a branch node that is a box
 -}
 renderBoxBranch :
-    Int
+    Render.Settings.Theme
+    -> Int
     -> Accumulator
     -> RenderSettings
     -> List (Element.Attribute MarkupMsg)
@@ -106,16 +111,16 @@ renderBoxBranch :
     -> ExpressionBlock
     -> List (Tree ExpressionBlock)
     -> Element MarkupMsg
-renderBoxBranch count accumulator settings attrs_ blockAttrs root children =
+renderBoxBranch theme count accumulator settings attrs_ blockAttrs root children =
     let
         settings_ =
             { settings | width = settings.width - 100, backgroundColor = Render.Color.boxBackground }
     in
     Element.column [ Element.paddingEach { left = 18, right = 18, top = 0, bottom = 0 } ]
         [ Element.column (Render.TreeSupport.renderAttributes settings_ root ++ getBlockAttributes root settings)
-            (Render.TreeSupport.renderBody count accumulator settings_ attrs_ root
+            (Render.TreeSupport.renderBody theme count accumulator settings_ attrs_ root
                 --++ List.map (renderTree count accumulator settings_ (attrs_ ++ getInnerAttributes root settings_ ++ blockAttrs)) children
-                ++ List.map (renderTree count accumulator settings_ (attrs_ ++ blockAttrs)) children
+                ++ List.map (renderTree theme count accumulator settings_ (attrs_ ++ blockAttrs)) children
             )
         ]
 
@@ -130,7 +135,8 @@ renderBoxBranch count accumulator settings attrs_ blockAttrs root children =
 
 -}
 renderStandardBranch :
-    Int
+    Render.Settings.Theme
+    -> Int
     -> Accumulator
     -> RenderSettings
     -> List (Element.Attribute MarkupMsg)
@@ -138,10 +144,10 @@ renderStandardBranch :
     -> ExpressionBlock
     -> List (Tree ExpressionBlock)
     -> Element MarkupMsg
-renderStandardBranch count accumulator settings attrs_ blockAttrs root children =
+renderStandardBranch theme count accumulator settings attrs_ blockAttrs root children =
     Element.column (Element.spacing 12 :: getBlockAttributes root settings)
-        (Render.TreeSupport.renderBody count accumulator settings [] root
-            ++ List.map (renderTree count accumulator settings (attrs_ ++ getBlockAttributes root settings ++ blockAttrs)) children
+        (Render.TreeSupport.renderBody theme count accumulator settings [] root
+            ++ List.map (renderTree theme count accumulator settings (attrs_ ++ getBlockAttributes root settings ++ blockAttrs)) children
         )
 
 

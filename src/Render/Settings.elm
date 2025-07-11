@@ -1,6 +1,6 @@
 module Render.Settings exposing
     ( Display(..), defaultSettings, makeSettings, RenderSettings, default
-    , Theme
+    , Theme, unrollTheme
     )
 
 {-| The Settings record holds information needed to render a
@@ -14,6 +14,8 @@ is to be displayed. This is given by the `.width` field.
 
 import Dict exposing (Dict)
 import Element
+import Element.Background as BackgroundColor
+import Element.Font as Font
 
 
 {-| A record of information needed to render a document.
@@ -51,14 +53,22 @@ type alias Theme =
     { backgroundColor : Element.Color
     , textColor : Element.Color
     , codeColor : Element.Color
+    , linkColor : Element.Color
     }
 
 
+unrollTheme theme =
+    [ BackgroundColor.color theme.backgroundColor, Font.color theme.textColor ]
+
+
+{-| A light theme with a white background and dark text.
+-}
 lightTheme : Theme
 lightTheme =
     { backgroundColor = Element.rgb 1 1 1
     , textColor = Element.rgb 0.1 0.1 0.1
     , codeColor = Element.rgb255 20 120 210
+    , linkColor = Element.rgb 0.1 0.1 0.8
     }
 
 
@@ -67,6 +77,7 @@ darkTheme =
     { backgroundColor = Element.rgb 0.1 0.1 0.1
     , textColor = Element.rgb 1 1 1
     , codeColor = Element.rgb255 0 100 200
+    , linkColor = Element.rgb 0.2 0.2 1.0
     }
 
 

@@ -328,7 +328,7 @@ render theme params forest_ =
             Element.paragraph [] [ Element.text <| Generic.ASTTools.title forest ]
     in
     { body =
-        renderForest params.editCount renderSettings accumulator forest
+        renderForest theme params.editCount renderSettings accumulator forest
     , banner = banner
     , toc = toc
     , title = title
@@ -340,9 +340,9 @@ render theme params forest_ =
     renderForest count renderSettings accumulator
 
 -}
-renderForest : Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> List (RoseTree.Tree.Tree ExpressionBlock) -> List (Element MarkupMsg)
-renderForest count renderSettings accumulator =
-    List.map (Render.Tree.renderTree count accumulator renderSettings [])
+renderForest : Render.Settings.Theme -> Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> List (RoseTree.Tree.Tree ExpressionBlock) -> List (Element MarkupMsg)
+renderForest theme count renderSettings accumulator =
+    List.map (Render.Tree.renderTree theme count accumulator renderSettings [])
 
 
 
