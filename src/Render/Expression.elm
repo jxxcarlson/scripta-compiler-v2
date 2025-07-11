@@ -995,7 +995,7 @@ codeStyle settings =
         , Font.monospace
         ]
     , Font.unitalicized
-    , Font.color (Element.rgb 0 0 0)
+    , Font.color settings.codeColor
     , Element.paddingEach { left = 2, right = 2, top = 0, bottom = 0 }
     ]
 

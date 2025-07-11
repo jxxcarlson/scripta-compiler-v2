@@ -131,17 +131,17 @@ bottomPadding k =
     Used only in View.Phone (twice)
 
 -}
-compile : CompilerParameters -> List String -> CompilerOutput
-compile params lines =
+compile : Render.Settings.Theme -> CompilerParameters -> List String -> CompilerOutput
+compile theme params lines =
     case params.lang of
         EnclosureLang ->
-            compileM params lines
+            compileM theme params lines
 
         MicroLaTeXLang ->
-            compileL params lines
+            compileL theme params lines
 
         SMarkdownLang ->
-            compileX params lines
+            compileX theme params lines
 
 
 {-|
@@ -261,23 +261,23 @@ filterForest2 forest =
         |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "title")
 
 
-compileM : CompilerParameters -> List String -> CompilerOutput
-compileM params lines =
-    render params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
+compileM : Render.Settings.Theme -> CompilerParameters -> List String -> CompilerOutput
+compileM theme params lines =
+    render theme params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
 
 
-compileX : CompilerParameters -> List String -> CompilerOutput
-compileX params lines =
-    render params (filterForest params.filter (parseX Config.idPrefix params.editCount lines))
+compileX : Render.Settings.Theme -> CompilerParameters -> List String -> CompilerOutput
+compileX theme params lines =
+    render theme params (filterForest params.filter (parseX Config.idPrefix params.editCount lines))
 
 
 
 -- LaTeX compiler
 
 
-compileL : CompilerParameters -> List String -> CompilerOutput
-compileL params lines =
-    render params (filterForest params.filter (parseL Config.idPrefix params.editCount lines))
+compileL : Render.Settings.Theme -> CompilerParameters -> List String -> CompilerOutput
+compileL theme params lines =
+    render theme params (filterForest params.filter (parseL Config.idPrefix params.editCount lines))
 
 
 {-|
@@ -293,11 +293,11 @@ type alias ViewParameters =
 }
 
 -}
-render : CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
-render params forest_ =
+render : Render.Settings.Theme -> CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
+render theme params forest_ =
     let
         renderSettings =
-            Generic.Compiler.defaultRenderSettings params.docWidth params.selectedId
+            Generic.Compiler.defaultRenderSettings theme params.docWidth params.selectedId
 
         ( accumulator, forest ) =
             Generic.Acc.transformAccumulate Generic.Acc.initialData forest_

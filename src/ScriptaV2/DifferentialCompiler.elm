@@ -28,6 +28,7 @@ import M.PrimitiveBlock
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
+import Render.Settings
 import Render.TOCTree
 import RoseTree.Tree as Tree exposing (Tree)
 import ScriptaV2.Compiler
@@ -40,11 +41,11 @@ import XMarkdown.PrimitiveBlock
 
 
 {-| -}
-renderEditRecord : Generic.Compiler.DisplaySettings -> EditRecord -> List (Element MarkupMsg)
-renderEditRecord displaySettings editRecord =
+renderEditRecord : Render.Settings.Theme -> Generic.Compiler.DisplaySettings -> EditRecord -> List (Element MarkupMsg)
+renderEditRecord theme displaySettings editRecord =
     let
         renderSettings =
-            ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings
+            ScriptaV2.Settings.renderSettingsFromDisplaySettings theme displaySettings
 
         counter =
             displaySettings.counter
@@ -53,12 +54,12 @@ renderEditRecord displaySettings editRecord =
 
 
 {-| -}
-editRecordToCompilerOutput : ScriptaV2.Compiler.Filter -> Generic.Compiler.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
-editRecordToCompilerOutput filter displaySettings editRecord =
+editRecordToCompilerOutput : Render.Settings.Theme -> ScriptaV2.Compiler.Filter -> Generic.Compiler.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
+editRecordToCompilerOutput theme filter displaySettings editRecord =
     let
         renderSettings : ScriptaV2.Settings.RenderSettings
         renderSettings =
-            ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings
+            ScriptaV2.Settings.renderSettingsFromDisplaySettings theme displaySettings
 
         viewParameters =
             { idsOfOpenNodes = displaySettings.idsOfOpenNodes

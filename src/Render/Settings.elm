@@ -1,4 +1,7 @@
-module Render.Settings exposing (Display(..), defaultSettings, makeSettings, RenderSettings, default)
+module Render.Settings exposing
+    ( Display(..), defaultSettings, makeSettings, RenderSettings, default
+    , Theme
+    )
 
 {-| The Settings record holds information needed to render a
 parsed document. For example, the renderer needs to
@@ -28,9 +31,10 @@ type alias RenderSettings =
     , titleSize : Int
     , width : Int
     , backgroundColor : Element.Color
+    , textColor : Element.Color
+    , codeColor : Element.Color
     , titlePrefix : String
     , isStandaloneDocument : Bool
-    , codeColor : Element.Color
     , leftIndent : Int
     , leftIndentation : Int
     , leftRightIndentation : Int
@@ -43,6 +47,29 @@ type alias RenderSettings =
     }
 
 
+type alias Theme =
+    { backgroundColor : Element.Color
+    , textColor : Element.Color
+    , codeColor : Element.Color
+    }
+
+
+lightTheme : Theme
+lightTheme =
+    { backgroundColor = Element.rgb 1 1 1
+    , textColor = Element.rgb 0.1 0.1 0.1
+    , codeColor = Element.rgb255 20 120 210
+    }
+
+
+darkTheme : Theme
+darkTheme =
+    { backgroundColor = Element.rgb 0.1 0.1 0.1
+    , textColor = Element.rgb 1 1 1
+    , codeColor = Element.rgb255 0 100 200
+    }
+
+
 {-| -}
 type Display
     = DefaultDisplay
@@ -52,18 +79,18 @@ type Display
 {-| -}
 defaultSettings : RenderSettings
 defaultSettings =
-    makeSettings "" Nothing 1 600 Dict.empty
+    makeSettings lightTheme "" Nothing 1 600 Dict.empty
 
 
 {-| -}
-default : String -> Int -> RenderSettings
-default selectedId width =
-    makeSettings selectedId Nothing 1 width Dict.empty
+default : Theme -> String -> Int -> RenderSettings
+default theme selectedId width =
+    makeSettings theme selectedId Nothing 1 width Dict.empty
 
 
 {-| -}
-makeSettings : String -> Maybe String -> Float -> Int -> Dict String String -> RenderSettings
-makeSettings selectedId selectedSlug scale windowWidth data =
+makeSettings : Theme -> String -> Maybe String -> Float -> Int -> Dict String String -> RenderSettings
+makeSettings theme selectedId selectedSlug scale windowWidth data =
     let
         titleSize =
             32
@@ -78,9 +105,10 @@ makeSettings selectedId selectedSlug scale windowWidth data =
     , selectedId = selectedId
     , selectedSlug = selectedSlug
     , backgroundColor = Element.rgb 1 1 1
+    , textColor = Element.rgb 0.1 0.1 0.1
+    , codeColor = Element.rgb255 20 120 210
     , titlePrefix = ""
     , isStandaloneDocument = False
-    , codeColor = Element.rgb255 0 0 210
     , leftIndent = 0
     , leftIndentation = 18
     , leftRightIndentation = 18

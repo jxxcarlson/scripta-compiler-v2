@@ -11,6 +11,7 @@ module ScriptaV2.API exposing
 
 import Element exposing (Element)
 import Element.Font
+import Render.Settings
 import ScriptaV2.Compiler
 import ScriptaV2.Language exposing (Language)
 import ScriptaV2.Msg exposing (MarkupMsg)
@@ -25,20 +26,20 @@ settings =
 
 
 {-| -}
-compile : ScriptaV2.Compiler.CompilerParameters -> List String -> List (Element MarkupMsg)
-compile params lines =
-    ScriptaV2.Compiler.compile params lines |> ScriptaV2.Compiler.view params.docWidth
+compile : Render.Settings.Theme -> ScriptaV2.Compiler.CompilerParameters -> List String -> List (Element MarkupMsg)
+compile theme params lines =
+    ScriptaV2.Compiler.compile theme params lines |> ScriptaV2.Compiler.view params.docWidth
 
 
 {-| -}
-compileString : ScriptaV2.Compiler.CompilerParameters -> String -> List (Element MarkupMsg)
-compileString params str =
+compileString : Render.Settings.Theme -> ScriptaV2.Compiler.CompilerParameters -> String -> List (Element MarkupMsg)
+compileString theme params str =
     -- ScriptaV2.Compiler.compile filter lang width 0 "---" (String.lines str) |> ScriptaV2.Compiler.view width
-    ScriptaV2.Compiler.compile params (String.lines str) |> ScriptaV2.Compiler.view params.docWidth
+    ScriptaV2.Compiler.compile theme params (String.lines str) |> ScriptaV2.Compiler.view params.docWidth
 
 
-compileStringWithTitle : String -> ScriptaV2.Compiler.CompilerParameters -> String -> List (Element MarkupMsg)
-compileStringWithTitle title params str =
-    ScriptaV2.Compiler.compile params (String.lines str)
+compileStringWithTitle : Render.Settings.Theme -> String -> ScriptaV2.Compiler.CompilerParameters -> String -> List (Element MarkupMsg)
+compileStringWithTitle theme title params str =
+    ScriptaV2.Compiler.compile theme params (String.lines str)
         |> ScriptaV2.Compiler.viewBodyOnly params.docWidth
         |> (\x -> Element.el [ Element.height (Element.px 96) ] (Element.text title) :: x)
