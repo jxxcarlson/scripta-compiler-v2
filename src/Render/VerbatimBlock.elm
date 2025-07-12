@@ -142,6 +142,16 @@ renderCode count acc settings attr block =
 
                 Nothing ->
                     "plain"
+
+        -- TODO:  compute in terms of the theme without magic numbers
+        bgColor =
+            case settings.theme of
+                Render.Theme.Dark ->
+                    -- Element.rgb 0.298 0.314 0.329
+                    Render.Settings.toElementColor Render.Settings.darkTheme.codeBackground
+
+                Render.Theme.Light ->
+                    Render.Settings.toElementColor Render.Settings.lightTheme.codeBackground
     in
     Element.column
         ([ Background.color Constants.syncHighlightColor
@@ -151,7 +161,7 @@ renderCode count acc settings attr block =
          , Font.size 13
          ]
             ++ Render.Sync.attributes settings block
-            ++ Render.Settings.unrollTheme settings.theme
+            ++ [ Background.color bgColor ]
         )
         (viewCodeWithHighlight settings language (Render.Utility.getVerbatimContent block))
 
@@ -172,8 +182,23 @@ ghTheme =
     ".elmsh {color: #24292e;background: #eeeeee;line-height: 1.5;}.elmsh-hl {background: #fffbdd;}.elmsh-add {background: #eaffea;}.elmsh-del {background: #ffecec;}.elmsh-comm {color: #969896;}.elmsh1 {color: #005cc5;}.elmsh2 {color: #df5000;}.elmsh3 {color: #d73a49;}.elmsh4 {color: #0086b3;}.elmsh5 {color: #63a35c;}.elmsh6 {color: #005cc5;}.elmsh7 {color: #795da3;}"
 
 
+ghTheme2 =
+    ".elmsh {color: #24292e;background: #EDF0FA;line-height: 1.5;}.elmsh-hl {background: #d6dbe8;}.elmsh-add {background: #d4f0d8;}.elmsh-del{background: #f5dde0;}.elmsh-comm {color: #6a737d;}.elmsh1 {color: #0051b8;}.elmsh2 {color: #d14800;}.elmsh3 {color: #cb2e42;}.elmsh4 {color:#0079a3;}.elmsh5 {color: #5a9553;}.elmsh6 {color: #0051b8;}.elmsh7 {color: #6f5397;}"
+
+
+ghTheme3 =
+    ".elmsh {color: #1f2328;background: #d5d8e1;line-height: 1.5;}.elmsh-hl {background: #c0c5d1;}.elmsh-add {background: #bfdbc3;}.elmsh-del{background: #dcc7ca;}.elmsh-comm {color: #5f6770;}.elmsh1 {color: #0049a5;}.elmsh2 {color: #bc4000;}.elmsh3 {color: #b6293b;}.elmsh4 {color:#006d92;}.elmsh5 {color: #50854a;}.elmsh6 {color: #0049a5;}.elmsh7 {color: #644b88;}"
+
+
+
+--darkTheme =
+--    ".elmsh {color: #e1e4e8;background: #2E3337;line-height: 1.5;}.elmsh-hl {background: #3a3d41;}.elmsh-add {background: #28a745;}.elmsh-del {background: #d73a49;}.elmsh-comm {color:\n  #6a737d;}.elmsh1 {color: #79b8ff;}.elmsh2 {color: #ffab70;}.elmsh3 {color: #f97583;}.elmsh4 {color: #79b8ff;}.elmsh5 {color: #85e89d;}.elmsh6 {color: #79b8ff;}.elmsh7 {color: #b392f0;}"
+-- darkTheme =
+--  ".elmsh {color: #e4e7ea;background: #3d4145;line-height: 1.5;}.elmsh-hl {background: #4b4e52;}.elmsh-add {background: #42b15c;}.elmsh-del {background: #dc5460;}.elmsh-comm {color: #7b848a;}.elmsh1 {color: #8dc3ff;}.elmsh2 {color: #ffb57d;}.elmsh3 {color: #fa8c95;}.elmsh4 {color:#8dc3ff;}.elmsh5 {color: #95eca7;}.elmsh6 {color: #8dc3ff;}.elmsh7 {color: #c0a1f3;}"
+
+
 darkTheme =
-    ".elmsh {color: #e1e4e8;background: #2E3337;line-height: 1.5;}.elmsh-hl {background: #3a3d41;}.elmsh-add {background: #28a745;}.elmsh-del {background: #d73a49;}.elmsh-comm {color:\n  #6a737d;}.elmsh1 {color: #79b8ff;}.elmsh2 {color: #ffab70;}.elmsh3 {color: #f97583;}.elmsh4 {color: #79b8ff;}.elmsh5 {color: #85e89d;}.elmsh6 {color: #79b8ff;}.elmsh7 {color: #b392f0;}"
+    ".elmsh {color: #e7eaec;background: #4c5054;line-height: 1.5;}.elmsh-hl {background: #5c5f63;}.elmsh-add {background: #5cba73;}.elmsh-del{background: #e16e77;}.elmsh-comm {color: #8c9399;}.elmsh1 {color: #a1cdff;}.elmsh2 {color: #ffbf8a;}.elmsh3 {color: #fb9fa7;}.elmsh4 {color:#a1cdff;}.elmsh5 {color: #a5f0b8;}.elmsh6 {color: #a1cdff;}.elmsh7 {color: #cbb0f6;}"
 
 
 lightCSS2 : Element msg
@@ -181,7 +206,7 @@ lightCSS2 =
     Element.html <|
         Html.node "style"
             []
-            [ Html.text ghTheme ]
+            [ Html.text ghTheme3 ]
 
 
 darkCSS2 : Element msg

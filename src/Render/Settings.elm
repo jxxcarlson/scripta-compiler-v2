@@ -1,6 +1,6 @@
 module Render.Settings exposing
     ( Display(..), defaultSettings, makeSettings, RenderSettings, default
-    , ActualTheme, darkTheme, lightTheme, unrollTheme
+    , ActualTheme, darkTheme, lightTheme, toElementColor, unrollTheme
     )
 
 {-| The Settings record holds information needed to render a
@@ -38,6 +38,7 @@ type alias RenderSettings =
     , backgroundColor : Element.Color
     , textColor : Element.Color
     , codeColor : Element.Color
+    , codeBackground : Element.Color
     , titlePrefix : String
     , isStandaloneDocument : Bool
     , leftIndent : Int
@@ -95,7 +96,7 @@ lightTheme : ActualTheme
 lightTheme =
     { background = indigo100
     , text = gray950
-    , codeBackground = indigo200
+    , codeBackground = Color.rgba 0.835 0.847 0.882 1
     , codeText = gray900
     , renderedBackground = indigo100
     , renderedText = gray900
@@ -107,7 +108,7 @@ darkTheme : ActualTheme
 darkTheme =
     { background = gray900
     , text = gray100
-    , codeBackground = gray920
+    , codeBackground = Color.rgba 0.298 0.314 0.329 1
     , codeText = gray100
     , renderedBackground = indigo100
     , renderedText = gray900
@@ -152,6 +153,13 @@ makeSettings theme selectedId selectedSlug scale windowWidth data =
     , backgroundColor = Element.rgb 1 1 1
     , textColor = Element.rgb 0.1 0.1 0.1
     , codeColor = Element.rgb 0.078 0.471 0.824
+    , codeBackground =
+        case theme of
+            Render.Theme.Light ->
+                Element.rgb 0.95 0.95 0.95
+
+            Render.Theme.Dark ->
+                Element.rgb 0.2 0.2 0.2
     , titlePrefix = ""
     , isStandaloneDocument = False
     , leftIndent = 0

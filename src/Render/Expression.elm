@@ -427,8 +427,9 @@ cite acc attr str =
         [ Element.text (tag |> (\s -> "[" ++ s ++ "]")) ]
 
 
+code : Int -> b -> RenderSettings -> { d | id : String } -> String -> Element msg
 code g a s m str =
-    verbatimElement (codeStyle s) m str
+    verbatimElement s (codeStyle s) m str
 
 
 math : Int -> { a | mathMacroDict : Generic.MathMacro.MathMacroDict } -> Render.Settings.RenderSettings -> { b | id : String } -> String -> Element msg
@@ -965,8 +966,8 @@ f1 f exprList =
             el [ Font.color errorColor ] (Element.text "Invalid arguments")
 
 
-verbatimElement formatList meta str =
-    Element.el (Font.size 13 :: htmlId meta.id :: formatList) (Element.text str)
+verbatimElement settings formatList meta str =
+    Element.el (Font.size 13 :: htmlId meta.id :: Element.height (Element.px 11) :: Background.color settings.codeBackground :: formatList) (Element.text str)
 
 
 htmlId str =
@@ -990,6 +991,7 @@ mathElement generation acc s meta str =
 -- DEFINITIONS
 
 
+codeStyle : RenderSettings -> List (Element.Attribute msg)
 codeStyle settings =
     [ Font.family
         [ Font.typeface "Inconsolata"
@@ -997,6 +999,7 @@ codeStyle settings =
         ]
     , Font.unitalicized
     , Font.color settings.codeColor
+    , Background.color settings.codeBackground
     , Element.paddingEach { left = 2, right = 2, top = 0, bottom = 0 }
     ]
 
