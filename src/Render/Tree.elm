@@ -41,7 +41,7 @@ renderTree theme count accumulator settings attrs_ tree =
     case RoseTree.Tree.children tree of
         [] ->
             -- Leaf node: just render the block
-            renderLeafNode0 theme count accumulator settings [] root
+            renderLeafNode theme count accumulator settings [] root
 
         children ->
             -- Branch node: render based on block type
@@ -50,19 +50,6 @@ renderTree theme count accumulator settings attrs_ tree =
 
 {-| Render a leaf node (a block with no children)
 -}
-renderLeafNode0 :
-    Render.Settings.ActualTheme
-    -> Int
-    -> Accumulator
-    -> RenderSettings
-    -> List (Element.Attribute MarkupMsg)
-    -> ExpressionBlock
-    -> Element MarkupMsg
-renderLeafNode0 theme count accumulator settings attrs_ root =
-    Element.column (Render.TreeSupport.renderAttributes settings root ++ getBlockAttributes root settings ++ Render.Settings.unrollTheme theme)
-        (Render.TreeSupport.renderBody theme count accumulator settings attrs_ root)
-
-
 renderLeafNode :
     Render.Settings.ActualTheme
     -> Int
@@ -72,6 +59,19 @@ renderLeafNode :
     -> ExpressionBlock
     -> Element MarkupMsg
 renderLeafNode theme count accumulator settings attrs_ root =
+    Element.column (Render.TreeSupport.renderAttributes settings root ++ getBlockAttributes root settings ++ Render.Settings.unrollTheme theme)
+        (Render.TreeSupport.renderBody theme count accumulator settings attrs_ root)
+
+
+renderLeafNodeALT :
+    Render.Settings.ActualTheme
+    -> Int
+    -> Accumulator
+    -> RenderSettings
+    -> List (Element.Attribute MarkupMsg)
+    -> ExpressionBlock
+    -> Element MarkupMsg
+renderLeafNodeALT theme count accumulator settings attrs_ root =
     Element.column []
         --(Render.TreeSupport.renderAttributes settings root)
         (Render.TreeSupport.renderBody theme count accumulator settings [] root)
