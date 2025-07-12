@@ -23,6 +23,7 @@ import MicroLaTeX.PrimitiveBlock
 import Render.Block
 import Render.Settings
 import Render.TOCTree
+import Render.Theme
 import Render.Tree
 import RoseTree.Tree
 import ScriptaV2.Config as Config
@@ -131,7 +132,7 @@ bottomPadding k =
     Used only in View.Phone (twice)
 
 -}
-compile : Render.Settings.ActualTheme -> CompilerParameters -> List String -> CompilerOutput
+compile : Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
 compile theme params lines =
     case params.lang of
         EnclosureLang ->
@@ -261,12 +262,12 @@ filterForest2 forest =
         |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "title")
 
 
-compileM : Render.Settings.ActualTheme -> CompilerParameters -> List String -> CompilerOutput
+compileM : Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
 compileM theme params lines =
     render theme params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
 
 
-compileX : Render.Settings.ActualTheme -> CompilerParameters -> List String -> CompilerOutput
+compileX : Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
 compileX theme params lines =
     render theme params (filterForest params.filter (parseX Config.idPrefix params.editCount lines))
 
@@ -275,7 +276,7 @@ compileX theme params lines =
 -- LaTeX compiler
 
 
-compileL : Render.Settings.ActualTheme -> CompilerParameters -> List String -> CompilerOutput
+compileL : Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
 compileL theme params lines =
     render theme params (filterForest params.filter (parseL Config.idPrefix params.editCount lines))
 
@@ -293,7 +294,7 @@ type alias ViewParameters =
 }
 
 -}
-render : Render.Settings.ActualTheme -> CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
+render : Render.Theme.Theme -> CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
 render theme params forest_ =
     let
         renderSettings =
@@ -340,7 +341,7 @@ render theme params forest_ =
     renderForest count renderSettings accumulator
 
 -}
-renderForest : Render.Settings.ActualTheme -> Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> List (RoseTree.Tree.Tree ExpressionBlock) -> List (Element MarkupMsg)
+renderForest : Render.Theme.Theme -> Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> List (RoseTree.Tree.Tree ExpressionBlock) -> List (Element MarkupMsg)
 renderForest theme count renderSettings accumulator =
     List.map (Render.Tree.renderTree theme count accumulator renderSettings [])
 

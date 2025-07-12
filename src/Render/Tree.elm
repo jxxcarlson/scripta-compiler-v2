@@ -14,6 +14,7 @@ import Render.BlockType exposing (BlockType(..), ContainerBlockType(..), Documen
 import Render.Color
 import Render.OrdinaryBlock as OrdinaryBlock
 import Render.Settings exposing (RenderSettings)
+import Render.Theme
 import Render.TreeSupport
 import RoseTree.Tree exposing (Tree)
 import ScriptaV2.Msg exposing (MarkupMsg)
@@ -22,7 +23,7 @@ import ScriptaV2.Msg exposing (MarkupMsg)
 {-| Render a tree of expression blocks
 -}
 renderTree :
-    Render.Settings.ActualTheme
+    Render.Theme.Theme
     -> Int
     -> Accumulator
     -> RenderSettings
@@ -51,7 +52,7 @@ renderTree theme count accumulator settings attrs_ tree =
 {-| Render a leaf node (a block with no children)
 -}
 renderLeafNode :
-    Render.Settings.ActualTheme
+    Render.Theme.Theme
     -> Int
     -> Accumulator
     -> RenderSettings
@@ -64,7 +65,7 @@ renderLeafNode theme count accumulator settings attrs_ root =
 
 
 renderLeafNodeALT :
-    Render.Settings.ActualTheme
+    Render.Theme.Theme
     -> Int
     -> Accumulator
     -> RenderSettings
@@ -80,7 +81,7 @@ renderLeafNodeALT theme count accumulator settings attrs_ root =
 {-| Render a branch node (a block with children)
 -}
 renderBranchNode :
-    Render.Settings.ActualTheme
+    Render.Theme.Theme
     -> Int
     -> Accumulator
     -> RenderSettings
@@ -102,7 +103,7 @@ renderBranchNode theme count accumulator settings attrs_ blockAttrs root childre
 {-| Render a branch node that is a box
 -}
 renderBoxBranch :
-    Render.Settings.ActualTheme
+    Render.Theme.Theme
     -> Int
     -> Accumulator
     -> RenderSettings
@@ -135,7 +136,7 @@ renderBoxBranch theme count accumulator settings attrs_ blockAttrs root children
 
 -}
 renderStandardBranch :
-    Render.Settings.ActualTheme
+    Render.Theme.Theme
     -> Int
     -> Accumulator
     -> RenderSettings

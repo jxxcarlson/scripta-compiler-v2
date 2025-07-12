@@ -18,6 +18,7 @@ import Element
 import Element.Background as BackgroundColor
 import Element.Font as Font
 import Render.NewColor exposing (..)
+import Render.Theme
 
 
 {-| A record of information needed to render a document.
@@ -48,6 +49,7 @@ type alias RenderSettings =
     , redColor : Element.Color
     , topMarginForChildren : Int
     , data : Dict String String
+    , theme : Render.Theme.Theme
     }
 
 
@@ -64,11 +66,18 @@ type alias ActualTheme =
 
 {-| Unrolls the theme into a list of Element styles.
 -}
-unrollTheme : ActualTheme -> List (Element.Attr decorative msg)
+unrollTheme : Render.Theme.Theme -> List (Element.Attr decorative msg)
 unrollTheme theme =
-    [ BackgroundColor.color (toElementColor theme.background)
-    , Font.color (toElementColor theme.text)
-    ]
+    case theme of
+        Render.Theme.Light ->
+            [ BackgroundColor.color (toElementColor lightTheme.background)
+            , Font.color (toElementColor lightTheme.text)
+            ]
+
+        Render.Theme.Dark ->
+            [ BackgroundColor.color (toElementColor darkTheme.background)
+            , Font.color (toElementColor darkTheme.text)
+            ]
 
 
 toElementColor : Color -> Element.Color
@@ -115,17 +124,17 @@ type Display
 {-| -}
 defaultSettings : RenderSettings
 defaultSettings =
-    makeSettings lightTheme "" Nothing 1 600 Dict.empty
+    makeSettings Render.Theme.Light "" Nothing 1 600 Dict.empty
 
 
 {-| -}
-default : ActualTheme -> String -> Int -> RenderSettings
+default : Render.Theme.Theme -> String -> Int -> RenderSettings
 default theme selectedId width =
     makeSettings theme selectedId Nothing 1 width Dict.empty
 
 
 {-| -}
-makeSettings : ActualTheme -> String -> Maybe String -> Float -> Int -> Dict String String -> RenderSettings
+makeSettings : Render.Theme.Theme -> String -> Maybe String -> Float -> Int -> Dict String String -> RenderSettings
 makeSettings theme selectedId selectedSlug scale windowWidth data =
     let
         titleSize =
@@ -154,4 +163,5 @@ makeSettings theme selectedId selectedSlug scale windowWidth data =
     , redColor = Element.rgb 0.7 0 0
     , topMarginForChildren = 6
     , data = data
+    , theme = theme
     }

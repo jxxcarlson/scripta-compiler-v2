@@ -13,6 +13,7 @@ import Generic.ForestTransform
 import Generic.Language exposing (ExpressionBlock)
 import Generic.Pipeline
 import Render.Settings
+import Render.Theme
 import RoseTree.Tree
 import ScriptaV2.Language exposing (Language)
 
@@ -52,7 +53,7 @@ type alias RenderData =
 -- default selectedId width
 
 
-defaultRenderData : Render.Settings.ActualTheme -> Int -> Int -> String -> RenderData
+defaultRenderData : Render.Theme.Theme -> Int -> Int -> String -> RenderData
 defaultRenderData theme width outerCount selectedId =
     { count = outerCount
     , idPrefix = "!!"
@@ -61,7 +62,7 @@ defaultRenderData theme width outerCount selectedId =
     }
 
 
-defaultRenderSettings : Render.Settings.ActualTheme -> Int -> String -> Render.Settings.RenderSettings
+defaultRenderSettings : Render.Theme.Theme -> Int -> String -> Render.Settings.RenderSettings
 defaultRenderSettings theme width selectedId =
     Render.Settings.default theme selectedId width
 

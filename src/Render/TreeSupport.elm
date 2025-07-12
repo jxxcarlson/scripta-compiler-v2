@@ -17,6 +17,7 @@ import Render.Indentation
 import Render.OrdinaryBlock
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
+import Render.Theme
 import Render.Utility
 import Render.VerbatimBlock as VerbatimBlock
 import ScriptaV2.Msg exposing (MarkupMsg(..))
@@ -50,7 +51,7 @@ syncAttributes settings block =
 
 {-| Simplified version of Block.renderBody
 -}
-renderBody : Render.Settings.ActualTheme -> Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Element MarkupMsg)
+renderBody : Render.Theme.Theme -> Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Element MarkupMsg)
 renderBody theme count acc settings _ block =
     case block.heading of
         Paragraph ->
