@@ -25,6 +25,7 @@ import Json.Encode
 import List.Extra
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
+import Render.ThemeHelpers
 import Render.Utility
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 
@@ -50,7 +51,7 @@ displayedMath count acc settings attrs block =
     in
     Element.column attrs
         [ Element.el (Render.Sync.highlighter block.args [ Element.centerX ])
-            (mathText count w block.meta.id DisplayMathMode (filteredLines |> String.join "\n"))
+            (mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count w block.meta.id DisplayMathMode (filteredLines |> String.join "\n"))
         ]
 
 
@@ -98,7 +99,7 @@ equation count acc settings attrs block =
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs ++ Render.Sync.attributes settings block)
         [ Element.row
             []
-            [ mathText count w block.meta.id DisplayMathMode content, label ]
+            [ mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count w block.meta.id DisplayMathMode content, label ]
         ]
 
 
@@ -190,13 +191,13 @@ aligned count acc settings attrs block =
             [ Element.width (Element.px settings.width) ]
             [ Element.el
                 (Element.centerX :: highlightMath settings block)
-                (mathText count str block.meta.id DisplayMathMode content)
+                (mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count str block.meta.id DisplayMathMode content)
             ]
         , Element.row
             (Element.width (Element.px settings.width) :: Render.Sync.attributes settings block)
             [ Element.el
                 (Element.centerX :: Render.Sync.attributes settings block)
-                (mathText count str block.meta.id DisplayMathMode content)
+                (mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count str block.meta.id DisplayMathMode content)
             ]
         ]
 
@@ -263,7 +264,7 @@ array count acc settings attrs block =
             (Element.width (Element.px settings.width) :: Render.Sync.attributes settings block)
             [ Element.el
                 (Element.centerX :: Render.Sync.attributes settings block)
-                (mathText count str block.meta.id DisplayMathMode content)
+                (mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count str block.meta.id DisplayMathMode content)
             ]
         ]
 
@@ -347,13 +348,13 @@ textarray count acc settings attrs block =
             (Element.width (Element.px settings.width) :: Render.Sync.attributes settings block)
             [ Element.el
                 (Element.centerX :: Render.Sync.attributes settings block)
-                (mathText count str block.meta.id DisplayMathMode content)
+                (mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count str block.meta.id DisplayMathMode content)
             ]
         ]
 
 
-mathText : Int -> String -> String -> DisplayMode -> String -> Element msg
-mathText generation width id displayMode content =
+mathText : String -> Int -> String -> String -> DisplayMode -> String -> Element msg
+mathText theme generation width id displayMode content =
     -- TODO Track this down at the source.
     Html.Keyed.node "span"
         [ HA.style "padding-top" "0px"
@@ -361,7 +362,7 @@ mathText generation width id displayMode content =
         , HA.id id
         , HA.style "width" width
         ]
-        [ ( String.fromInt generation, mathText_ displayMode (eraseLabeMacro content) )
+        [ ( String.fromInt generation, mathText_ theme displayMode (eraseLabeMacro content) )
         ]
         |> Element.html
 
@@ -370,12 +371,12 @@ eraseLabeMacro content =
     content |> String.lines |> List.map (Generic.PTextMacro.eraseLeadingMacro "label") |> String.join "\n"
 
 
-mathText_ : DisplayMode -> String -> Html msg
-mathText_ displayMode content =
+mathText_ : String -> DisplayMode -> String -> Html msg
+mathText_ theme displayMode content =
     Html.node "math-text"
         [ HA.property "display" (Json.Encode.bool (isDisplayMathMode displayMode))
         , HA.property "content" (Json.Encode.string content)
-        , HA.attribute "theme" "light"
+        , HA.attribute "theme" "dark"
         ]
         []
 

@@ -21,6 +21,7 @@ import Render.Html.Math
 import Render.Math
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
+import Render.ThemeHelpers
 import Render.Utility as Utility
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 import String.Extra
@@ -430,7 +431,7 @@ code g a s m str =
     verbatimElement (codeStyle s) m str
 
 
-math : Int -> { a | mathMacroDict : Generic.MathMacro.MathMacroDict } -> { s | selectedId : String } -> { b | id : String } -> String -> Element msg
+math : Int -> { a | mathMacroDict : Generic.MathMacro.MathMacroDict } -> Render.Settings.RenderSettings -> { b | id : String } -> String -> Element msg
 math g a s m str =
     Element.el
         (Render.Sync.highlightIfIdSelected m.id s [])
@@ -982,7 +983,7 @@ errorText_ str =
 
 mathElement generation acc s meta str =
     -- "width" is not used for inline math, but some string needs to be there
-    Render.Math.mathText generation "width" meta.id Render.Math.InlineMathMode (Generic.MathMacro.evalStr acc.mathMacroDict str)
+    Render.Math.mathText (Render.ThemeHelpers.themeAsStringFromSettings s) generation "width" meta.id Render.Math.InlineMathMode (Generic.MathMacro.evalStr acc.mathMacroDict str)
 
 
 

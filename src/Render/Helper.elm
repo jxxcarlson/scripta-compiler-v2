@@ -37,31 +37,28 @@ import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 features settings block =
     let
-        _ =
-            Debug.log "@@R.Text,FEATURES" block.args
-
         author =
             case Dict.get "author" block.properties of
                 Just a ->
-                    a |> Debug.log "@@R.Text,FEATURES,AUTHOR"
+                    a
 
                 Nothing ->
-                    "" |> Debug.log "@@R.Text,FEATURES,AUTHOR"
+                    ""
 
         indentation =
             -- If the argument list is empty, use the default width from settings,
             -- otherwise try to parse the first argument as an integer for the width.
             case List.head block.args of
                 Nothing ->
-                    Render.Constants.defaultIndentWidth |> Debug.log "@@R.Text,INDENTATION, 1"
+                    Render.Constants.defaultIndentWidth
 
                 Just str ->
                     case String.toInt str of
                         Just w ->
-                            w |> Debug.log "@@R.Text,INDENTATION, 2"
+                            w
 
                         Nothing ->
-                            Render.Constants.defaultIndentWidth |> Debug.log "@@R.Text,INDENTATION, 3"
+                            Render.Constants.defaultIndentWidth
 
         italicStyle : Element.Attribute msg
         italicStyle =

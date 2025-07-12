@@ -19,6 +19,7 @@ import Render.IFrame
 import Render.Math
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
+import Render.Theme
 import Render.Utility exposing (elementAttribute)
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 import SyntaxHighlight exposing (gitHub, monokai, toBlockHtml, useTheme)
@@ -47,9 +48,11 @@ render count acc settings attrs block =
 
                         Just f ->
                             Element.el
-                                [ Render.Helper.selectedColor block.meta.id settings
-                                , Render.Helper.htmlId block.meta.id
-                                ]
+                                ([ Render.Helper.selectedColor block.meta.id settings
+                                 , Render.Helper.htmlId block.meta.id
+                                 ]
+                                    ++ attrs
+                                )
                                 (f count acc settings attrs block)
 
                 _ ->
@@ -125,10 +128,6 @@ renderLoad _ _ _ _ block =
             Element.none
 
 
-
--- Render.Utility.idAttribute block.meta.id instead of Render.Utility.idAttributeFromInt block.meta.lineNumber
-
-
 renderCode : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 renderCode count acc settings attr block =
     let
@@ -152,38 +151,45 @@ renderCode count acc settings attr block =
          , Font.size 13
          ]
             ++ Render.Sync.attributes settings block
+            ++ Render.Settings.unrollTheme settings.theme
         )
-        (viewCodeWithHighlight language (Render.Utility.getVerbatimContent block))
+        (viewCodeWithHighlight settings language (Render.Utility.getVerbatimContent block))
 
 
-viewCodeWithHighlight : String -> String -> List (Element msg)
-viewCodeWithHighlight language code =
-    [ --useTheme gitHub |> Element.html
-      ghCSS2
+viewCodeWithHighlight : RenderSettings -> String -> String -> List (Element msg)
+viewCodeWithHighlight settings language code =
+    [ case settings.theme of
+        Render.Theme.Dark ->
+            darkCSS2
+
+        Render.Theme.Light ->
+            lightCSS2
     , viewCodeWithHighlight_ language code |> Element.html
     ]
 
 
-
--- ghTheme =
---".elmsh {color: #24292e;background: #eeeeee;}.elmsh-hl {background: #fffbdd;}.elmsh-add {background: #eaffea;}.elmsh-del {background: #ffecec;}.elmsh-comm {color: #969896;}.elmsh1 {color: #005cc5;}.elmsh2 {color: #df5000;}.elmsh3 {color: #d73a49;}.elmsh4 {color: #0086b3;}.elmsh5 {color: #63a35c;}.elmsh6 {color: #005cc5;}.elmsh7 {color: #795da3;}"
-
-
 ghTheme =
-    --".elmsh {color: #24292e;background: #f4f2f2;line-height: 1.5;}.elmsh-hl {background: #f4f2f2;}.elmsh-add {background: #f4f2f2;}.elmsh-del {background: #f4f2f2;}.elmsh-comm {color: #969896;}.elmsh1 {color: #005cc5;}.elmsh2 {color: #df5000;}.elmsh3 {color: #d73a49;}.elmsh4 {color: #0086b3;}.elmsh5 {color: #63a35c;}.elmsh6 {color: #005cc5;}.elmsh7 {color: #795da3;}"
     ".elmsh {color: #24292e;background: #eeeeee;line-height: 1.5;}.elmsh-hl {background: #fffbdd;}.elmsh-add {background: #eaffea;}.elmsh-del {background: #ffecec;}.elmsh-comm {color: #969896;}.elmsh1 {color: #005cc5;}.elmsh2 {color: #df5000;}.elmsh3 {color: #d73a49;}.elmsh4 {color: #0086b3;}.elmsh5 {color: #63a35c;}.elmsh6 {color: #005cc5;}.elmsh7 {color: #795da3;}"
 
 
-ghCSS2 : Element msg
-ghCSS2 =
+darkTheme =
+    ".elmsh {color: #e1e4e8;background: #2E3337;line-height: 1.5;}.elmsh-hl {background: #3a3d41;}.elmsh-add {background: #28a745;}.elmsh-del {background: #d73a49;}.elmsh-comm {color:\n  #6a737d;}.elmsh1 {color: #79b8ff;}.elmsh2 {color: #ffab70;}.elmsh3 {color: #f97583;}.elmsh4 {color: #79b8ff;}.elmsh5 {color: #85e89d;}.elmsh6 {color: #79b8ff;}.elmsh7 {color: #b392f0;}"
+
+
+lightCSS2 : Element msg
+lightCSS2 =
     Element.html <|
         Html.node "style"
             []
             [ Html.text ghTheme ]
 
 
-
--- githubTheme = .elmsh {color: #24292e;background: #ffffff;}.elmsh-hl {background: #fffbdd;}.elmsh-add {background: #eaffea;}.elmsh-del {background: #ffecec;}.elmsh-comm {color: #969896;}.elmsh1 {color: #005cc5;}.elmsh2 {color: #df5000;}.elmsh3 {color: #d73a49;}.elmsh4 {color: #0086b3;}.elmsh5 {color: #63a35c;}.elmsh6 {color: #005cc5;}.elmsh7 {color: #795da3;}
+darkCSS2 : Element msg
+darkCSS2 =
+    Element.html <|
+        Html.node "style"
+            []
+            [ Html.text darkTheme ]
 
 
 viewCodeWithHighlight_ : String -> String -> Html msg
