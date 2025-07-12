@@ -12,10 +12,12 @@ is to be displayed. This is given by the `.width` field.
 
 -}
 
+import Color
 import Dict exposing (Dict)
 import Element
 import Element.Background as BackgroundColor
 import Element.Font as Font
+import Render.NewColor exposing (..)
 
 
 {-| A record of information needed to render a document.
@@ -50,34 +52,57 @@ type alias RenderSettings =
 
 
 type alias ActualTheme =
-    { backgroundColor : Element.Color
-    , textColor : Element.Color
-    , codeColor : Element.Color
-    , linkColor : Element.Color
+    { background : Color
+    , text : Color
+    , codeBackground : Color
+    , codeText : Color
+    , renderedBackground : Color
+    , renderedText : Color
+    , link : Color
     }
 
 
+{-| Unrolls the theme into a list of Element styles.
+-}
+unrollTheme : ActualTheme -> List (Element.Attr decorative msg)
 unrollTheme theme =
-    [ BackgroundColor.color theme.backgroundColor, Font.color theme.textColor ]
+    [ BackgroundColor.color (toElementColor theme.background)
+    , Font.color (toElementColor theme.text)
+    ]
+
+
+toElementColor : Color -> Element.Color
+toElementColor color =
+    let
+        c =
+            Color.toRgba color
+    in
+    Element.rgba c.red c.green c.blue c.alpha
 
 
 {-| A light theme with a white background and dark text.
 -}
 lightTheme : ActualTheme
 lightTheme =
-    { backgroundColor = Element.rgb 1 1 1
-    , textColor = Element.rgb 0.1 0.1 0.1
-    , codeColor = Element.rgb255 20 120 210
-    , linkColor = Element.rgb 0.1 0.1 0.8
+    { background = indigo100
+    , text = gray950
+    , codeBackground = indigo200
+    , codeText = gray900
+    , renderedBackground = indigo100
+    , renderedText = gray900
+    , link = indigo600
     }
 
 
 darkTheme : ActualTheme
 darkTheme =
-    { backgroundColor = Element.rgb 0.1 0.1 0.1
-    , textColor = Element.rgb 1 1 1
-    , codeColor = Element.rgb255 0 100 200
-    , linkColor = Element.rgb 0.2 0.2 1.0
+    { background = gray900
+    , text = gray100
+    , codeBackground = gray920
+    , codeText = gray100
+    , renderedBackground = indigo100
+    , renderedText = gray900
+    , link = indigo600
     }
 
 

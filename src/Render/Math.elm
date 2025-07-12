@@ -375,6 +375,7 @@ mathText_ displayMode content =
     Html.node "math-text"
         [ HA.property "display" (Json.Encode.bool (isDisplayMathMode displayMode))
         , HA.property "content" (Json.Encode.string content)
+        , HA.attribute "theme" "light"
         ]
         []
 
