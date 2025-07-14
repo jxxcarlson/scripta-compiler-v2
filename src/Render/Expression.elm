@@ -319,7 +319,7 @@ href _ _ _ attr exprList =
     Example: [ilink Read more about it here. jxxcarlson:smart-folders]
 
 -}
-ilink _ _ _ attr exprList =
+ilink _ _ settings attr exprList =
     case List.head <| ASTTools.exprListToStringList exprList of
         Nothing ->
             errorText_ "Please provide label and url"
@@ -340,11 +340,11 @@ ilink _ _ _ attr exprList =
             in
             Input.button attr
                 { onPress = Just (GetDocumentWithSlug ScriptaV2.Msg.MHStandard slug)
-                , label = Element.el [ Element.centerX, Element.centerY, Font.underline, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
+                , label = Element.el [ Element.centerX, Element.centerY, Font.underline, Font.size 14, Font.color settings.linkColor ] (Element.text label)
                 }
 
 
-ulink _ _ _ attr exprList =
+ulink _ _ settings attr exprList =
     case List.head <| ASTTools.exprListToStringList exprList of
         Nothing ->
             errorText_ "Please provide label and url"
@@ -368,11 +368,11 @@ ulink _ _ _ attr exprList =
             in
             Input.button attr
                 { onPress = Just (GetPublicDocumentFromAuthor ScriptaV2.Msg.MHStandard username fragment)
-                , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
+                , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color settings.linkColor ] (Element.text label)
                 }
 
 
-cslink _ _ _ attr exprList =
+cslink _ _ settings attr exprList =
     case List.head <| ASTTools.exprListToStringList exprList of
         Nothing ->
             errorText_ "Please: id or slug"
@@ -396,7 +396,7 @@ cslink _ _ _ attr exprList =
             in
             Input.button attr
                 { onPress = Just (GetPublicDocumentFromAuthor ScriptaV2.Msg.MHAsCheatSheet username fragment)
-                , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
+                , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color settings.linkColor ] (Element.text label)
                 }
 
 

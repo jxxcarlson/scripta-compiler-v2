@@ -49,16 +49,16 @@ attributes settings block =
 -}
 
 
-highlightIfIdSelected : String -> { b | selectedId : String } -> List (Element.Attr () msg) -> List (Element.Attr () msg)
+highlightIfIdSelected : String -> Render.Settings.RenderSettings -> List (Element.Attr () msg) -> List (Element.Attr () msg)
 highlightIfIdSelected id settings attrs =
     if id == settings.selectedId then
-        Background.color selectedColor :: attrs
+        Background.color (Render.Settings.getThemedElementColor .highlight settings.theme) :: Element.padding 8 :: attrs
 
     else
         attrs
 
 
-highlightIfIdIsSelected : Int -> Int -> { a | selectedId : String } -> List (Element.Attribute MarkupMsg)
+highlightIfIdIsSelected : Int -> Int -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg)
 highlightIfIdIsSelected firstLineNumber numberOfLines settings =
     if String.fromInt firstLineNumber == settings.selectedId then
         [ rightToLeftSyncHelper firstLineNumber (firstLineNumber + numberOfLines)
@@ -83,15 +83,6 @@ highlighter args attrs =
         attrs
 
 
-selectedColorBright : Element.Color
-selectedColorBright =
-    Element.rgb 1.0
-        0.0
-        0.0
-
-
 selectedColor : Element.Color
 selectedColor =
-    Element.rgb 0.9
-        0.9
-        1.0
+    Element.rgba 0.1 0.1 0.8 0.5

@@ -1,6 +1,6 @@
 module Render.Settings exposing
     ( Display(..), defaultSettings, makeSettings, RenderSettings, default
-    , ThemedStyles, darkTheme, lightTheme, toElementColor, unrollTheme
+    , ThemedStyles, darkTheme, getThemedElementColor, lightTheme, toElementColor, unrollTheme
     )
 
 {-| The Settings record holds information needed to render a
@@ -39,6 +39,7 @@ type alias RenderSettings =
     , textColor : Element.Color
     , codeColor : Element.Color
     , linkColor : Element.Color
+    , highlight : Element.Color
     , codeBackground : Element.Color
     , titlePrefix : String
     , isStandaloneDocument : Bool
@@ -63,6 +64,7 @@ type alias ThemedStyles =
     , renderedBackground : Color
     , renderedText : Color
     , link : Color
+    , highlight : Color
     }
 
 
@@ -111,7 +113,8 @@ lightTheme =
     , codeText = gray900
     , renderedBackground = indigo100
     , renderedText = gray900
-    , link = indigo600
+    , link = blue600
+    , highlight = transparentBlue500
     }
 
 
@@ -123,7 +126,8 @@ darkTheme =
     , codeText = gray100
     , renderedBackground = indigo100
     , renderedText = gray900
-    , link = indigo300
+    , link = blue300
+    , highlight = blue500
     }
 
 
@@ -162,17 +166,11 @@ makeSettings theme selectedId selectedSlug scale windowWidth data =
     , selectedId = selectedId
     , selectedSlug = selectedSlug
     , backgroundColor = getThemedElementColor .background theme
-    , textColor = getThemedElementColor .text theme -- Element.rgb 0.1 0.1 0.1
-    , codeColor = getThemedElementColor .codeText theme -- Element.rgb 0.078 0.471 0.824
-    , linkColor = getThemedElementColor .link theme -- Element.rgb 0.078 0.471 0.824
+    , textColor = getThemedElementColor .text theme
+    , codeColor = getThemedElementColor .codeText theme
+    , linkColor = getThemedElementColor .link theme
+    , highlight = getThemedElementColor .highlight theme
     , codeBackground = getThemedElementColor .codeBackground theme
-
-    --case theme of
-    --    Render.Theme.Light ->
-    --        Element.rgb 0.95 0.95 0.95
-    --
-    --    Render.Theme.Dark ->
-    --        Element.rgb 0.2 0.2 0.2
     , titlePrefix = ""
     , isStandaloneDocument = False
     , leftIndent = 0

@@ -55,13 +55,13 @@ renderBody : Render.Theme.Theme -> Int -> Accumulator -> RenderSettings -> List 
 renderBody theme count acc settings _ block =
     case block.heading of
         Paragraph ->
-            [ renderParagraphBody count acc settings (Render.Settings.unrollTheme theme) block ]
+            [ Element.column (Render.Sync.attributes settings block) [ renderParagraphBody count acc settings (Render.Settings.unrollTheme theme) block ] ]
 
         Ordinary _ ->
-            [ Render.OrdinaryBlock.render count acc settings (Render.Settings.unrollTheme theme) block ]
+            [ Element.column (Render.Sync.attributes settings block) [ Render.OrdinaryBlock.render count acc settings (Render.Settings.unrollTheme theme) block ] ]
 
         Verbatim _ ->
-            [ VerbatimBlock.render count acc settings (Render.Settings.unrollTheme theme) block |> Render.Helper.showError block.meta.error ]
+            [ Element.column (Render.Sync.attributes settings block) [ VerbatimBlock.render count acc settings (Render.Settings.unrollTheme theme) block |> Render.Helper.showError block.meta.error ] ]
 
 
 {-| Render a paragraph body

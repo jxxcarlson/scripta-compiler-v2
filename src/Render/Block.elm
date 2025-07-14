@@ -48,7 +48,8 @@ renderBody count acc settings attrs block =
     in
     case block.heading of
         Paragraph ->
-            [ renderParagraphBody count acc settings attrs block ]
+            Element.column [] [ renderParagraphBody count acc settings attrs block ]
+                |> List.singleton
 
         Ordinary _ ->
             [ Render.OrdinaryBlock.render count acc settings attrs block ]
@@ -62,10 +63,7 @@ renderParagraphBody count acc settings attrs block =
     case block.body of
         Right exprs ->
             Element.paragraph (Render.Helper.htmlId block.meta.id :: Element.width (Element.px settings.width) :: attrs)
-                [ List.map (Render.Expression.render count acc settings attrs) exprs
-                    |> clickableParagraph block.meta.lineNumber block.meta.numberOfLines (Render.Helper.selectedColor block.meta.id settings)
-                    |> indentParagraph block.indent
-                ]
+                (List.map (Render.Expression.render count acc settings attrs) exprs)
 
         Left _ ->
             Element.none

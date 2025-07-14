@@ -157,7 +157,7 @@ comment : Int -> Accumulator -> RenderSettings -> List (Element.Attribute Markup
 comment count acc settings attr block =
     let
         feature =
-            Render.Helper.features settings block |> Debug.log "!!!!feature"
+            Render.Helper.features settings block
     in
     Element.column
         [ Element.width (Element.px feature.bodyWidth), Element.paddingEach { left = feature.indentation, right = 0, top = 0, bottom = 0 } ]

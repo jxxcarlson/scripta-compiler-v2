@@ -7,6 +7,7 @@ module Render.Math exposing
     , evalMath
     , mathText
     , textarray
+    , translateMathText
     )
 
 import Dict exposing (Dict)
@@ -362,13 +363,30 @@ mathText theme generation width id displayMode content =
         , HA.id id
         , HA.style "width" width
         ]
-        [ ( String.fromInt generation, mathText_ theme displayMode (eraseLabeMacro content) )
+        [ ( String.fromInt generation, mathText_ theme displayMode (eraseLabeMacro content |> translateMathText) )
         ]
         |> Element.html
 
 
 eraseLabeMacro content =
     content |> String.lines |> List.map (Generic.PTextMacro.eraseLeadingMacro "label") |> String.join "\n"
+
+
+translateMathText : String -> String
+translateMathText content =
+    content
+        |> String.words
+        |> List.map translateWord
+        |> String.join " "
+
+
+translateWord : String -> String
+translateWord word =
+    if word == "pi" then
+        "\\pi"
+
+    else
+        word
 
 
 mathText_ : String -> DisplayMode -> String -> Html msg

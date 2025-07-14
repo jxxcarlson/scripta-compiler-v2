@@ -172,9 +172,10 @@ section count acc settings attr block =
             [ topPadding 20
             , Font.size fontSize
             ]
+            ++ Render.Sync.attributes settings block
         )
         { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
-        , label = Element.paragraph (Render.Sync.attributes settings block) (sectionNumber :: renderWithDefaultWithSize 18 "--" count acc settings attr exprs)
+        , label = Element.paragraph [] (sectionNumber :: renderWithDefaultWithSize 18 "--" count acc settings attr exprs)
         }
 
 
