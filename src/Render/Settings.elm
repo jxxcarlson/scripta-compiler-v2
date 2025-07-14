@@ -38,6 +38,7 @@ type alias RenderSettings =
     , backgroundColor : Element.Color
     , textColor : Element.Color
     , codeColor : Element.Color
+    , linkColor : Element.Color
     , codeBackground : Element.Color
     , titlePrefix : String
     , isStandaloneDocument : Bool
@@ -112,7 +113,7 @@ darkTheme =
     , codeText = gray100
     , renderedBackground = indigo100
     , renderedText = gray900
-    , link = indigo600
+    , link = indigo300
     }
 
 
@@ -150,9 +151,16 @@ makeSettings theme selectedId selectedSlug scale windowWidth data =
     , showErrorMessages = False
     , selectedId = selectedId
     , selectedSlug = selectedSlug
-    , backgroundColor = Element.rgb 1 1 1
+    , backgroundColor =
+        case theme of
+            Render.Theme.Light ->
+                Element.rgb 1 1 1
+
+            Render.Theme.Dark ->
+                Element.rgb 0.1 0.1 0.1
     , textColor = Element.rgb 0.1 0.1 0.1
     , codeColor = Element.rgb 0.078 0.471 0.824
+    , linkColor = Element.rgb 0.078 0.471 0.824
     , codeBackground =
         case theme of
             Render.Theme.Light ->

@@ -252,7 +252,7 @@ smallsubheading g acc s attr exprList =
 
 
 link : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
-link _ _ _ attr exprList =
+link _ _ settings attr exprList =
     case List.head <| ASTTools.exprListToStringList exprList of
         Nothing ->
             errorText_ "Please provide label and url"
@@ -278,7 +278,7 @@ link _ _ _ attr exprList =
                 in
                 newTabLink []
                     { url = url
-                    , label = el [ Font.color linkColor, Font.underline ] (Element.text label)
+                    , label = el [ Background.color settings.backgroundColor, Font.color settings.linkColor, Font.underline ] (Element.text label)
                     }
 
             else
@@ -291,7 +291,7 @@ link _ _ _ attr exprList =
                 in
                 newTabLink []
                     { url = url
-                    , label = el [ Font.color linkColor, Font.underline ] (Element.text label)
+                    , label = el [ Background.color settings.backgroundColor, Font.color settings.linkColor, Font.underline ] (Element.text label)
                     }
 
 
