@@ -373,10 +373,6 @@ eraseLabeMacro content =
 
 mathText_ : String -> DisplayMode -> String -> Html msg
 mathText_ theme displayMode content =
-    let
-        _ =
-            Debug.log "@@@ mathText_" theme
-    in
     Html.node "math-text"
         [ HA.property "display" (Json.Encode.bool (isDisplayMathMode displayMode))
         , HA.property "content" (Json.Encode.string content)
