@@ -1,6 +1,6 @@
 module Render.Settings exposing
     ( Display(..), defaultSettings, makeSettings, RenderSettings, default
-    , ActualTheme, darkTheme, lightTheme, toElementColor, unrollTheme
+    , ThemedStyles, darkTheme, lightTheme, toElementColor, unrollTheme
     )
 
 {-| The Settings record holds information needed to render a
@@ -55,7 +55,7 @@ type alias RenderSettings =
     }
 
 
-type alias ActualTheme =
+type alias ThemedStyles =
     { background : Color
     , text : Color
     , codeBackground : Color
@@ -66,20 +66,30 @@ type alias ActualTheme =
     }
 
 
+getThemedColor : (ThemedStyles -> Color) -> Render.Theme.Theme -> Color
+getThemedColor keyAccess theme =
+    keyAccess
+        (case theme of
+            Render.Theme.Dark ->
+                darkTheme
+
+            Render.Theme.Light ->
+                lightTheme
+        )
+
+
+getThemedElementColor : (ThemedStyles -> Color) -> Render.Theme.Theme -> Element.Color
+getThemedElementColor keyAccess theme =
+    toElementColor (getThemedColor keyAccess theme)
+
+
 {-| Unrolls the theme into a list of Element styles.
 -}
 unrollTheme : Render.Theme.Theme -> List (Element.Attr decorative msg)
 unrollTheme theme =
-    case theme of
-        Render.Theme.Light ->
-            [ BackgroundColor.color (toElementColor lightTheme.background)
-            , Font.color (toElementColor lightTheme.text)
-            ]
-
-        Render.Theme.Dark ->
-            [ BackgroundColor.color (toElementColor darkTheme.background)
-            , Font.color (toElementColor darkTheme.text)
-            ]
+    [ BackgroundColor.color (getThemedElementColor .background theme)
+    , Font.color (getThemedElementColor .text theme)
+    ]
 
 
 toElementColor : Color -> Element.Color
@@ -93,7 +103,7 @@ toElementColor color =
 
 {-| A light theme with a white background and dark text.
 -}
-lightTheme : ActualTheme
+lightTheme : ThemedStyles
 lightTheme =
     { background = indigo100
     , text = gray950
@@ -105,7 +115,7 @@ lightTheme =
     }
 
 
-darkTheme : ActualTheme
+darkTheme : ThemedStyles
 darkTheme =
     { background = gray900
     , text = gray100
@@ -151,23 +161,18 @@ makeSettings theme selectedId selectedSlug scale windowWidth data =
     , showErrorMessages = False
     , selectedId = selectedId
     , selectedSlug = selectedSlug
-    , backgroundColor =
-        case theme of
-            Render.Theme.Light ->
-                Element.rgb 1 1 1
+    , backgroundColor = getThemedElementColor .background theme
+    , textColor = getThemedElementColor .text theme -- Element.rgb 0.1 0.1 0.1
+    , codeColor = getThemedElementColor .codeText theme -- Element.rgb 0.078 0.471 0.824
+    , linkColor = getThemedElementColor .link theme -- Element.rgb 0.078 0.471 0.824
+    , codeBackground = getThemedElementColor .codeBackground theme
 
-            Render.Theme.Dark ->
-                Element.rgb 0.1 0.1 0.1
-    , textColor = Element.rgb 0.1 0.1 0.1
-    , codeColor = Element.rgb 0.078 0.471 0.824
-    , linkColor = Element.rgb 0.078 0.471 0.824
-    , codeBackground =
-        case theme of
-            Render.Theme.Light ->
-                Element.rgb 0.95 0.95 0.95
-
-            Render.Theme.Dark ->
-                Element.rgb 0.2 0.2 0.2
+    --case theme of
+    --    Render.Theme.Light ->
+    --        Element.rgb 0.95 0.95 0.95
+    --
+    --    Render.Theme.Dark ->
+    --        Element.rgb 0.2 0.2 0.2
     , titlePrefix = ""
     , isStandaloneDocument = False
     , leftIndent = 0
