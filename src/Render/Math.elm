@@ -361,7 +361,6 @@ mathText theme generation width id displayMode content =
         [ HA.style "padding-top" "0px"
         , HA.style "padding-bottom" "0px"
         , HA.id id
-        , HA.style "width" width
         ]
         [ ( String.fromInt generation, mathText_ theme displayMode (eraseLabeMacro content |> translateMathText) )
         ]
