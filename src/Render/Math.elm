@@ -102,7 +102,7 @@ equation count acc settings attrs block =
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs ++ Render.Sync.attributes settings block)
         [ Element.row
-            []
+            [ Element.centerX ]
             [ mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count w block.meta.id DisplayMathMode content, label ]
         ]
 
