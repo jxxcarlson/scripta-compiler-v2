@@ -853,7 +853,7 @@ updateWithVerbatimBlock block accumulator =
                 -- Increment the appropriate counter, e.g., "equation" and "aligned"
                 -- reduceName maps these both to "equation"
                 newCounter =
-                    if List.member name accumulator.numberedBlockNames then
+                    if List.member name accumulator.numberedBlockNames && List.member "numbered" block.args then
                         incrementCounter (reduceName name) accumulator.counter
 
                     else

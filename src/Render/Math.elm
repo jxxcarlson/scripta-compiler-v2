@@ -73,11 +73,15 @@ getContent { body } =
 equation : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 equation count acc settings attrs block =
     let
-        _ =
-            Debug.log "@@equation" ( block.args, block.properties )
+        isNumbered =
+            List.member "numbered" block.args
 
         labelWidth =
-            60
+            if isNumbered then
+                60
+
+            else
+                0
 
         contentWidth =
             settings.width - labelWidth
@@ -105,14 +109,17 @@ equation count acc settings attrs block =
 
         label : Element msg
         label =
-            equationLabel block.properties
+            if isNumbered then
+                equationLabel block.properties
+
+            else
+                Element.none
     in
-    Element.column ([ Element.width (Element.px settings.width), Element.height Element.fill, Background.color (Element.rgb 1 1 0) ] ++ attrs ++ Render.Sync.attributes settings block)
-        [ Element.row [ Element.centerX ]
-            [ Element.el [ Element.padding 8, Element.width <| Element.px contentWidth ]
-                (Element.el [ Element.centerX ] (mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count (String.fromInt contentWidth) block.meta.id DisplayMathMode content))
-            , Element.el [ Element.padding 8, Element.width <| Element.px labelWidth ] (Element.el [ Element.alignRight ] label)
-            ]
+    Element.row []
+        [ Element.el [ Element.width <| Element.px contentWidth ]
+            (Element.el [ Element.centerX, Element.moveRight (toFloat labelWidth / 2) ] (mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count (String.fromInt contentWidth) block.meta.id DisplayMathMode content))
+        , Element.el [ Element.width <| Element.px labelWidth ]
+            (Element.el [ Element.alignRight ] label)
         ]
 
 
