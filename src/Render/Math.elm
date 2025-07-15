@@ -13,6 +13,7 @@ module Render.Math exposing
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Element exposing (Element)
+import Element.Background as Background
 import Element.Font as Font
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
@@ -72,8 +73,14 @@ getContent { body } =
 equation : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 equation count acc settings attrs block =
     let
-        w =
-            String.fromInt settings.width ++ "px"
+        _ =
+            Debug.log "@@equation" ( block.args, block.properties )
+
+        labelWidth =
+            60
+
+        contentWidth =
+            settings.width - labelWidth
 
         evalMacro line =
             if String.right 2 line == "\\\\" then
@@ -98,12 +105,14 @@ equation count acc settings attrs block =
 
         label : Element msg
         label =
-            Element.el [] (equationLabel 0 settings block.properties content)
+            equationLabel block.properties
     in
-    Element.column ([ Element.width (Element.px settings.width) ] ++ attrs ++ Render.Sync.attributes settings block)
-        [ Element.row
-            [ Element.centerX ]
-            [ mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count w block.meta.id DisplayMathMode content, label ]
+    Element.column ([ Element.width (Element.px settings.width), Element.height Element.fill, Background.color (Element.rgb 1 1 0) ] ++ attrs ++ Render.Sync.attributes settings block)
+        [ Element.row [ Element.centerX ]
+            [ Element.el [ Element.padding 8, Element.width <| Element.px contentWidth ]
+                (Element.el [ Element.centerX ] (mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count (String.fromInt contentWidth) block.meta.id DisplayMathMode content))
+            , Element.el [ Element.padding 8, Element.width <| Element.px labelWidth ] (Element.el [ Element.alignRight ] label)
+            ]
         ]
 
 
@@ -116,20 +125,21 @@ highlightMath settings block =
         )
 
 
-equationLabel dY settings properties content =
+equationLabel properties =
     let
         labelText =
             "(" ++ (Dict.get "equation-number" properties |> Maybe.withDefault "-") ++ ")"
 
         label_ =
-            Element.el [ Font.size 12, Element.alignRight, Element.moveDown dY ] (Element.text labelText)
+            Element.el [ Font.size 12 ] (Element.text labelText)
     in
-    showIf settings content label_
+    --showIf settings content label_
+    label_
 
 
 showIf : Render.Settings.RenderSettings -> String -> Element msg -> Element msg
 showIf settings content element =
-    if Render.Utility.textWidth settings.display content > (toFloat settings.width - 40) then
+    if Render.Utility.textWidth settings.display content > (toFloat settings.width - 140) then
         Element.none
 
     else
@@ -188,7 +198,7 @@ aligned count acc settings attrs block =
             "\\begin{aligned}\n" ++ innerContent ++ "\n\\end{aligned}"
 
         label =
-            equationLabel (deltaY adjustedLines_) settings block.properties content
+            equationLabel block.properties
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs ++ Render.Sync.attributes settings block)
         [ Element.row
@@ -261,7 +271,7 @@ array count acc settings attrs block =
             "\\begin{array}{" ++ format ++ "}\n" ++ innerContent ++ "\n\\end{array}"
 
         label =
-            equationLabel (deltaY filteredLines) settings block.properties content
+            equationLabel block.properties
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs)
         [ Element.row
