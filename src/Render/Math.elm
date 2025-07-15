@@ -37,10 +37,13 @@ type DisplayMode
 
 
 displayedMath : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
-displayedMath count acc settings attrs block =
+displayedMath count acc settings attrs_ block =
     let
         w =
             String.fromInt settings.width ++ "px"
+
+        attrs =
+            Element.width (Element.px settings.width) :: attrs_
 
         filteredLines =
             -- lines of math text to be rendered: filter stuff out
