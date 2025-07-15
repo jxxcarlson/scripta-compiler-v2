@@ -114,7 +114,7 @@ lightTheme =
     , renderedBackground = indigo100
     , renderedText = gray900
     , link = blue600
-    , highlight = transparentBlue500
+    , highlight = transparentIndigo500
     }
 
 
@@ -127,7 +127,7 @@ darkTheme =
     , renderedBackground = indigo100
     , renderedText = gray900
     , link = blue300
-    , highlight = blue500
+    , highlight = indigo500
     }
 
 
