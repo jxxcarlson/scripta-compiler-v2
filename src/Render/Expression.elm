@@ -983,7 +983,6 @@ errorText_ str =
 
 
 mathElement generation acc s meta str =
-    -- "width" is not used for inline math, but some string needs to be there
     Render.Math.mathText (Render.ThemeHelpers.themeAsStringFromSettings s) generation "width" meta.id Render.Math.InlineMathMode (Generic.MathMacro.evalStr acc.mathMacroDict str)
 
 
