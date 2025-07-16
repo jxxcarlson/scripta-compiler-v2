@@ -1,4 +1,4 @@
-module Generic.MathMacro exposing
+module ETeX.Parser exposing
     ( Context(..)
     , Deco(..)
     , MacroBody(..)
