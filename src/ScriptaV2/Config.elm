@@ -15,7 +15,7 @@ defaultLanguage =
 
 
 idPrefix =
-    "ID"
+    "L"
 
 
 expressionIdPrefix =
