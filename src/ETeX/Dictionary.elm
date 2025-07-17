@@ -1,6 +1,25 @@
-module ETeX.Dictionary exposing (functionDict, macroDict)
+module ETeX.Dictionary exposing (functionDict, macroDict, symbolDict)
 
 import Dict exposing (Dict)
+import Generic.MathMacro exposing (MacroBody, MathExpr)
+
+
+
+-- MacroBody Int (List MathExpr)
+
+
+lines =
+    [ "\\newcommand{\\nat}{\\mathbb{N}}"
+    , "\\newcommand{\\reals}{\\mathbb{R}}"
+    , "\\newcommand{\\space}{\\reals^{#1}}"
+    , "\\newcommand{\\set}{\\{ #1 \\}}"
+    , "\\newcommand{\\sett}{\\{\\ #1 \\ | \\ #2\\ \\}}"
+    ]
+
+
+macroDict : Generic.MathMacro.MathMacroDict
+macroDict =
+    Generic.MathMacro.makeMacroDictFromLines lines
 
 
 functionDict : Dict String { name : String, arity : Int }
@@ -17,15 +36,16 @@ functionDict =
         , ( "exp", { name = "\\exp", arity = 1 } )
         , ( "argmax", { name = "\\argmax", arity = 2 } )
         , ( "argmin", { name = "\\argmin", arity = 2 } )
-        , ( "foo", { name = "\\foo", arity = 2 } )
         ]
 
 
-macroDict : Dict String String
-macroDict =
+symbolDict : Dict String String
+symbolDict =
     Dict.fromList
-        [ -- Lowercase Greek letters
-          ( "alpha", "\\alpha" )
+        [ ( "qquad", "\\qquad" )
+
+        -- Lowercase Greek letters
+        , ( "alpha", "\\alpha" )
         , ( "beta", "\\beta" )
         , ( "gamma", "\\gamma" )
         , ( "delta", "\\delta" )

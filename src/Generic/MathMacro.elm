@@ -7,6 +7,7 @@ module Generic.MathMacro exposing
     , Problem(..)
     , evalStr
     , makeMacroDict
+    , makeMacroDictFromLines
     , parse
     , parseMany
     , parseNewCommand
@@ -205,6 +206,14 @@ makeMacroDict str =
     str
         |> String.trim
         |> String.lines
+        |> List.map (parseNewCommand >> makeEntry)
+        |> Maybe.Extra.values
+        |> Dict.fromList
+
+
+makeMacroDictFromLines : List String -> Dict String MacroBody
+makeMacroDictFromLines lines =
+    lines
         |> List.map (parseNewCommand >> makeEntry)
         |> Maybe.Extra.values
         |> Dict.fromList

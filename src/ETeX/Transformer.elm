@@ -1,7 +1,7 @@
 module ETeX.Transformer exposing (transform, transformWord)
 
 import Dict exposing (Dict)
-import ETeX.Dictionary exposing (macroDict)
+import ETeX.Dictionary exposing (symbolDict)
 import ETeX.Parser exposing (..)
 import Parser.Advanced exposing (DeadEnd)
 import Result.Extra
@@ -11,7 +11,7 @@ macroIze : MathExpr -> MathExpr
 macroIze expr =
     case expr of
         AlphaNum word ->
-            case Dict.get word macroDict of
+            case Dict.get word symbolDict of
                 Just macro ->
                     AlphaNum macro |> Debug.log "macroIze (1)"
 

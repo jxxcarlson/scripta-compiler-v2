@@ -16,6 +16,7 @@ module ETeX.Parser exposing
     )
 
 import Dict exposing (Dict)
+import ETeX.Dictionary
 import Maybe.Extra
 import Parser.Advanced as PA
     exposing
@@ -97,6 +98,21 @@ type MathExpr
 type Deco
     = DecoM MathExpr
     | DecoI Int
+
+
+transform : Dict String String -> MathExpr -> MathExpr
+transform dict expr =
+    case expr of
+        AlphaNum str ->
+            case Dict.get str dict of
+                Just replacement ->
+                    AlphaNum replacement
+
+                Nothing ->
+                    expr
+
+        _ ->
+            expr
 
 
 
@@ -256,7 +272,7 @@ type alias MathExprParser a =
 
 parse : String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
 parse str =
-    PA.run (many mathExprParser) str
+    PA.run (many mathExprParser) str |> Result.map (List.map (transform ETeX.Dictionary.symbolDict))
 
 
 macroParser =
