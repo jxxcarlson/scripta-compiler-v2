@@ -6,17 +6,23 @@ module ETeX.MathMacros exposing
     , MathMacroDict
     , Problem(..)
     , evalStr
+    , getArgList
+    , makeFunctionNames
     , makeMacroDict
-    , makeMacroDictFromLines
     , parse
+    , parse2
+    , parseA
     , parseMany
     , parseNewCommand
     , print
     , printList
     , printNewCommand
+    , resolveSymbolNames
     )
 
 import Dict exposing (Dict)
+import ETeX.Dictionary
+import List.Extra
 import Maybe.Extra
 import Parser.Advanced as PA
     exposing
@@ -41,8 +47,63 @@ import Parser.Advanced as PA
 import Result.Extra
 
 
+{-|
+
+    > parse2  "(sin(3pi^2/5))^3"
+    Ok "(\\sin(3pi^2/5))^3"
+
+-}
+parse2 str =
+    str
+        |> parse
+        |> Debug.log "(1.   PARSE)"
+        |> Result.map resolveMacroDefinitions
+        |> Debug.log "(2.  MACROS)"
+        |> Result.map makeFunctionNames
+        |> Debug.log "(3.FUNCTION)"
+        |> Result.map resolveSymbolNames
+        |> Debug.log "(4. SYMBOLS)"
+        |> Result.map printList
+
+
+parseA : String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
+parseA str =
+    str
+        |> parse
+        |> Debug.log "(1.   PARSE)"
+        |> Result.map resolveMacroDefinitions
+        |> Debug.log "(2.  MACROS)"
+
+
 
 -- TYPES
+
+
+type MathExpr
+    = AlphaNum String
+    | MacroName String
+    | FunctionName String
+    | Arg (List MathExpr)
+    | Sub Deco
+    | Super Deco
+    | Param Int
+    | WS
+    | MathSpace
+    | MathSmallSpace
+    | MathMediumSpace
+    | LeftMathBrace
+    | RightMathBrace
+    | MathSymbols String
+    | Macro String (List MathExpr)
+    | Expr (List MathExpr)
+    | Comma
+    | LeftParen
+    | RightParen
+
+
+type Deco
+    = DecoM MathExpr
+    | DecoI Int
 
 
 type NewCommand
@@ -51,6 +112,20 @@ type NewCommand
 
 type MacroBody
     = MacroBody Int (List MathExpr)
+
+
+lines =
+    [ "\\newcommand{\\nat}{\\mathbb{N}}"
+    , "\\newcommand{\\reals}{\\mathbb{R}}"
+    , "\\newcommand{\\space}{\\reals^{#1}}"
+    , "\\newcommand{\\set}{\\{ #1 \\}}"
+    , "\\newcommand{\\sett}{\\{\\ #1 \\ | \\ #2\\ \\}}"
+    ]
+
+
+macroDict : MathMacroDict
+macroDict =
+    makeMacroDictFromLines lines
 
 
 evalStr : MathMacroDict -> String -> String
@@ -75,32 +150,6 @@ parseMany str =
         |> List.map parse
         |> Result.Extra.combine
         |> Result.map List.concat
-
-
-type MathExpr
-    = AlphaNum String
-    | F0 String
-    | Arg (List MathExpr)
-    | Sub Deco
-    | Super Deco
-    | Param Int
-    | WS
-    | MathSpace
-    | MathSmallSpace
-    | MathMediumSpace
-    | LeftMathBrace
-    | RightMathBrace
-    | MathSymbols String
-    | Macro String (List MathExpr)
-    | Expr (List MathExpr)
-    | Comma
-    | LeftParen
-    | RightParen
-
-
-type Deco
-    = DecoM MathExpr
-    | DecoI Int
 
 
 
@@ -139,6 +188,10 @@ expandMacroWithDict dict expr =
 
         _ ->
             expr
+
+
+
+-- evalMacro1 :
 
 
 {-|
@@ -215,8 +268,8 @@ makeMacroDict str =
 
 
 makeMacroDictFromLines : List String -> Dict String MacroBody
-makeMacroDictFromLines lines =
-    lines
+makeMacroDictFromLines lines_ =
+    lines_
         |> List.map (parseNewCommand >> makeEntry)
         |> Maybe.Extra.values
         |> Dict.fromList
@@ -225,7 +278,7 @@ makeMacroDictFromLines lines =
 makeEntry : Result error NewCommand -> Maybe ( String, MacroBody )
 makeEntry newCommand_ =
     case newCommand_ of
-        Ok (NewCommand (F0 name) arity [ Arg body ]) ->
+        Ok (NewCommand (MacroName name) arity [ Arg body ]) ->
             Just ( name, MacroBody arity body )
 
         _ ->
@@ -306,8 +359,8 @@ mathExprParser =
 mathSymbolsParser =
     (succeed String.slice
         |= getOffset
-        |. chompIf (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}' ])) ExpectingNotAlpha
-        |. chompWhile (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}' ]))
+        |. chompIf (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}', '(', ')', ',' ])) ExpectingNotAlpha
+        |. chompWhile (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}', '(', ')', ',' ]))
         |= getOffset
         |= getSource
     )
@@ -430,7 +483,7 @@ alphaNumParser_ =
 f0Parser : PA.Parser Context Problem MathExpr
 f0Parser =
     second (symbol (Token "\\" ExpectingBackslash)) alphaNumParser_
-        |> PA.map F0
+        |> PA.map MacroName
 
 
 paramParser =
@@ -503,8 +556,11 @@ print expr =
         MathSpace ->
             "\\ "
 
-        F0 str ->
+        MacroName str ->
             "\\" ++ str
+
+        FunctionName str ->
+            str
 
         Param k ->
             "#" ++ String.fromInt k
@@ -553,12 +609,35 @@ printDeco deco =
 
 
 
+-- HELPERS II
+--getArgList: List MathExpr -> List (List MathExpr)
+
+
+getArgList : List MathExpr -> List (List MathExpr)
+getArgList exprs =
+    let
+        test : MathExpr -> MathExpr -> Bool
+        test a b =
+            case ( a, b ) of
+                ( RightParen, LeftParen ) ->
+                    False
+
+                _ ->
+                    True
+    in
+    List.Extra.groupWhile test exprs
+        |> List.map Tuple.second
+        |> List.map (\list -> List.take (List.length list - 1) list)
+
+
+
 -- HELPERS
 
 
 second : MathExprParser a -> MathExprParser b -> MathExprParser b
 second p q =
-    p |> PA.andThen (\_ -> q)
+    p
+        |> PA.andThen (\_ -> q)
 
 
 {-| Apply a parser zero or more times and return a list of the results.
@@ -583,3 +662,104 @@ manyHelp p vs =
 enclose : String -> String
 enclose str =
     "{" ++ str ++ "}"
+
+
+
+-- SYMBOL NAMES
+
+
+resolveMacroDefinitions : List MathExpr -> List MathExpr
+resolveMacroDefinitions exprs =
+    List.map resolveMacroDefinition exprs
+
+
+resolveMacroDefinition : MathExpr -> MathExpr
+resolveMacroDefinition expr =
+    case expr of
+        AlphaNum name ->
+            case Dict.get name macroDict of
+                Just (MacroBody x body) ->
+                    Macro name body
+
+                Nothing ->
+                    expr
+
+        Arg exprs ->
+            Arg (List.map resolveMacroDefinition exprs)
+
+        Sub decoExpr ->
+            case decoExpr of
+                DecoM decoMExpr ->
+                    Sub (DecoM (resolveMacroDefinition decoMExpr))
+
+                DecoI m ->
+                    Sub (DecoI m)
+
+        Super decoExpr ->
+            case decoExpr of
+                DecoM decoMExpr ->
+                    Super (DecoM (resolveMacroDefinition decoMExpr))
+
+                DecoI m ->
+                    Super (DecoI m)
+
+        _ ->
+            expr
+
+
+resolveSymbolNames : List MathExpr -> List MathExpr
+resolveSymbolNames exprs =
+    List.map resolveSymbolName exprs
+
+
+resolveSymbolName : MathExpr -> MathExpr
+resolveSymbolName expr =
+    case expr of
+        AlphaNum str ->
+            case Dict.get str ETeX.Dictionary.symbolDict of
+                Just _ ->
+                    AlphaNum ("\\" ++ str)
+
+                Nothing ->
+                    AlphaNum str
+
+        _ ->
+            expr
+
+
+
+-- MAKE FUNCTION NAMES --
+
+
+makeFunctionNames : List MathExpr -> List MathExpr
+makeFunctionNames words =
+    let
+        b =
+            List.drop 1 words
+
+        a =
+            List.take (List.length words - 1) words
+
+        pairs =
+            List.map2 (\x y -> ( x, y )) a b
+
+        transformPair : ( MathExpr, MathExpr ) -> MathExpr
+        transformPair ( w1, w2 ) =
+            case ( w1, w2 ) of
+                ( AlphaNum str, LeftParen ) ->
+                    case Dict.get str ETeX.Dictionary.functionDict of
+                        Just _ ->
+                            MacroName str
+
+                        Nothing ->
+                            FunctionName str
+
+                _ ->
+                    w1
+    in
+    case List.Extra.last words of
+        Nothing ->
+            []
+
+        Just lastToken ->
+            List.map transformPair pairs ++ [ lastToken ]

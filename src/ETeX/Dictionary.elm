@@ -1,4 +1,4 @@
-module ETeX.Dictionary exposing (functionDict, macroDict, symbolDict)
+module ETeX.Dictionary exposing (functionDict, symbolDict)
 
 import Dict exposing (Dict)
 import Generic.MathMacro exposing (MacroBody, MathExpr)
@@ -6,20 +6,6 @@ import Generic.MathMacro exposing (MacroBody, MathExpr)
 
 
 -- MacroBody Int (List MathExpr)
-
-
-lines =
-    [ "\\newcommand{\\nat}{\\mathbb{N}}"
-    , "\\newcommand{\\reals}{\\mathbb{R}}"
-    , "\\newcommand{\\space}{\\reals^{#1}}"
-    , "\\newcommand{\\set}{\\{ #1 \\}}"
-    , "\\newcommand{\\sett}{\\{\\ #1 \\ | \\ #2\\ \\}}"
-    ]
-
-
-macroDict : Generic.MathMacro.MathMacroDict
-macroDict =
-    Generic.MathMacro.makeMacroDictFromLines lines
 
 
 functionDict : Dict String { name : String, arity : Int }
