@@ -1,5 +1,6 @@
 module ETeX.Transform exposing
-    ( MathExpr(..)
+    ( Deco(..)
+    , MathExpr(..)
     , MathMacroDict
     , evalStr
     , isUserDefinedMacro
@@ -171,7 +172,10 @@ resolveSymbolName expr =
             Expr (List.map resolveSymbolName exprs)
 
 
+
 -- Helper function to resolve symbol names in Deco
+
+
 resolveSymbolNameInDeco : Deco -> Deco
 resolveSymbolNameInDeco deco =
     case deco of
@@ -600,7 +604,10 @@ alphaNumWithoutLookaheadParser =
     alphaNumParser_ |> PA.map AlphaNum
 
 
+
 -- Parse alpha numeric and check if it's a macro (no lookahead for parentheses)
+
+
 alphaNumOrMacroParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 alphaNumOrMacroParser userMacroDict =
     alphaNumParser_
@@ -608,6 +615,7 @@ alphaNumOrMacroParser userMacroDict =
             (\name ->
                 if isKaTeX name || isUserDefinedMacro userMacroDict name then
                     Macro name []
+
                 else
                     AlphaNum name
             )
@@ -683,6 +691,7 @@ alphaNumWithLookaheadParser userMacroDict =
                       succeed
                         (if isKaTeX name || isUserDefinedMacro userMacroDict name then
                             Macro name []
+
                          else
                             AlphaNum name
                         )
