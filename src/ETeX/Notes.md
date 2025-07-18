@@ -80,6 +80,8 @@ This approach avoids parser conflicts by using `andThen` to first parse an alpha
 
 1. `parse "2(x + y)" -> [ MathSymbols "2" ParenthExpr [AlphaNum "x",MathSymbols (" + "),AlphaNum "y"]]`
 2. `parse "2(x + y) (x - y)" ->  [ MathSymbols "2" ParenthExpr [AlphaNum "x",MathSymbols (" + "),AlphaNum "y"], MathSymbols (" (") ParenthExpr [AlphaNum "x",MathSymbols (" - "),AlphaNum "y"] ]`
+3. `> parseETeX fr -> [Macro "frac" [PArg [AlphaNum "dp",Comma,AlphaNum "dt"]]]
+`
 
 ## ParenthExpr Support
 
@@ -156,10 +158,45 @@ EOF
 4. **Mixed expressions**: `parse "2(x + y)f(z)"` → `Ok [MathSymbols "2", ParenthExpr [AlphaNum "x", MathSymbols " + ", AlphaNum "y"], FCall "f" [PArg [AlphaNum "z"]]]`
 
 
-> transformETeX "\\sin{pi}"
+> "frac(dp,dt)" -> [Macro "frac" [PArg [AlphaNum "dp",Comma,AlphaNum "dt"]]]
+> "frac(dp,dt)" -> [Macro "frac" [PArg [AlphaNum "dp"] ,Comma, PArg [AlphaNum "dt"]]] -> "\\frac{dp}{dt}"
+
 PARSED: Ok [Macro "sin" [Arg [AlphaNum "pi"]]]
 BODY: [Arg [AlphaNum "pi"]]
 "\\sin{pi}" : String
 > transformETeX "\\sin(pi)"
 PARSED: Ok [Macro "sin" [],ParenthExpr [AlphaNum "pi"]]
 BODY: []
+
+## Comma-Separated Argument Parsing Fix
+
+The parser now correctly handles comma-separated arguments in function calls:
+
+1. **"frac(dp,dt)"** → parses as `[Macro "frac" [PArg [AlphaNum "dp"], Comma, PArg [AlphaNum "dt"]]]` → prints as `"\frac{dp,dt}"`
+2. **"f(x,y,z)"** → parses as function call with comma-separated args → prints as `"f(x,y,z)"`
+3. **"sin(x)"** → parses as KaTeX macro → prints as `"\sin{x}"`
+4. **"yoyo(a,b)"** → parses as function call → prints as `"yoyo(a,b)"`
+
+The key improvements made:
+1. Created a proper comma-separated argument parser using `sepByComma` helper
+2. Fixed the circular dependency by creating `alphaNumWithoutLookaheadParser`
+3. Updated the print functions to handle comma-separated arguments correctly
+4. Macros with comma-separated args in parentheses now convert to a single brace pair with commas inside
+
+## KaTeX Macro Printing with Separate Braces
+
+The solution now correctly handles any KaTeX function with comma-separated arguments:
+
+1. **"frac(dp,dt)"** → `[Macro "frac" [PArg [AlphaNum "dp"], Comma, PArg [AlphaNum "dt"]]]` → **"\\frac{dp}{dt}"**
+2. **"binom(n,k)"** → `[Macro "binom" [PArg [AlphaNum "n"], Comma, PArg [AlphaNum "k"]]]` → **"\\binom{n}{k}"**
+3. **"overset(a,b)"** → `[Macro "overset" [PArg [AlphaNum "a"], Comma, PArg [AlphaNum "b"]]]` → **"\\overset{a}{b}"**
+4. **"sin(x)"** → `[Macro "sin" [PArg [AlphaNum "x"]]]` → **"\\sin{x}"** (single argument)
+5. **"f(x,y,z)"** → `[FCall "f" ...]` → **"f(x,y,z)"** (non-KaTeX function keeps parentheses)
+
+The solution correctly:
+- Identifies KaTeX macros using the `isKaTeX` function
+- Parses comma-separated arguments as separate `PArg` items with `Comma` tokens between them
+- Prints each argument in its own set of braces for KaTeX macros
+- Preserves parentheses and commas for non-KaTeX function calls
+
+This handles any KaTeX function of the form `f(a,b,c,...)` where `isKaTeX f` is true, converting it to the proper LaTeX format `\f{a}{b}{c}...`.

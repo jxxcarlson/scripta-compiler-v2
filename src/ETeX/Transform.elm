@@ -345,9 +345,85 @@ macroParser =
 
 
 
+-- Parser that parses comma-separated function arguments
+functionArgsParser : PA.Parser Context Problem (List MathExpr)
+functionArgsParser =
+    succeed identity
+        |. symbol (Token "(" ExpectingLeftParen)
+        |= lazy (\_ -> functionArgListParser)
+        |. symbol (Token ")" ExpectingRightParen)
+
+
+-- Helper to parse comma-separated arguments  
+functionArgListParser : PA.Parser Context Problem (List MathExpr)
+functionArgListParser =
+    let
+        -- Parse content that can appear in an argument (excluding commas)
+        argContentParser =
+            oneOf
+                [ mathMediumSpaceParser
+                , mathSmallSpaceParser
+                , mathSpaceParser
+                , leftBraceParser
+                , rightBraceParser
+                , macroParser
+                , alphaNumWithoutLookaheadParser -- Use plain alphaNum to avoid recursion
+                , mathSymbolsParser
+                , lazy (\_ -> argParser)
+                , lazy (\_ -> standaloneParenthExprParser)
+                , paramParser
+                , whitespaceParser
+                , f0Parser
+                , subscriptParser
+                , superscriptParser
+                ]
+    in
+    sepByComma (PA.map PArg (many1 argContentParser))
+
+
+-- Parse alpha numeric without lookahead (to avoid recursion)
+alphaNumWithoutLookaheadParser : PA.Parser c Problem MathExpr
+alphaNumWithoutLookaheadParser =
+    alphaNumParser_ |> PA.map AlphaNum
+
+
+-- Helper for parsing one or more items
+many1 : PA.Parser Context Problem a -> PA.Parser Context Problem (List a)
+many1 p =
+    succeed (::)
+        |= p
+        |= many p
+
+
+-- Parse items separated by commas, returning the items and commas
+sepByComma : PA.Parser Context Problem MathExpr -> PA.Parser Context Problem (List MathExpr)
+sepByComma itemParser =
+    oneOf
+        [ -- Parse at least one item
+          itemParser
+            |> PA.andThen
+                (\firstItem ->
+                    loop [ firstItem ] (sepByCommaHelp itemParser)
+                )
+        , -- Empty case
+          succeed []
+        ]
+
+
+-- Helper for parsing more comma-separated items
+sepByCommaHelp : PA.Parser Context Problem MathExpr -> List MathExpr -> PA.Parser Context Problem (Step (List MathExpr) (List MathExpr))
+sepByCommaHelp itemParser revItems =
+    oneOf
+        [ -- Try to parse comma and another item
+          succeed (\item -> Loop (item :: Comma :: revItems))
+            |. symbol (Token "," ExpectingComma)
+            |= itemParser
+        , -- No more items
+          succeed (Done (List.reverse revItems))
+        ]
+
+
 -- Parser that looks for function calls with lookahead
-
-
 alphaNumWithLookaheadParser : PA.Parser Context Problem MathExpr
 alphaNumWithLookaheadParser =
     succeed identity
@@ -355,15 +431,15 @@ alphaNumWithLookaheadParser =
         |> PA.andThen
             (\name ->
                 oneOf
-                    [ -- Check if followed by '(' and parse the parenthetical group
-                      parentheticalExprParser
+                    [ -- Check if followed by '(' and parse comma-separated arguments
+                      functionArgsParser
                         |> PA.map
-                            (\arg ->
+                            (\args ->
                                 if isKaTeX name then
-                                    Macro name [ arg ]
+                                    Macro name args
 
                                 else
-                                    FCall name [ arg ]
+                                    FCall name args
                             )
                     , -- Otherwise, just return as AlphaNum
                       succeed (AlphaNum name)
@@ -378,10 +454,10 @@ mathExprParser =
         , mathSpaceParser
         , leftBraceParser
         , rightBraceParser
-        , commaParser
         , macroParser
         , alphaNumWithLookaheadParser -- This handles both function calls and plain alphanums
         , lazy (\_ -> standaloneParenthExprParser) -- For standalone parentheses
+        , commaParser
         , mathSymbolsParser
         , lazy (\_ -> argParser)
         , paramParser
@@ -533,7 +609,7 @@ whitespaceParser =
 
 alphaNumParser : PA.Parser c Problem MathExpr
 alphaNumParser =
-    alphaNumParser_ |> PA.map AlphaNum
+    alphaNumWithoutLookaheadParser
 
 
 alphaNumParser_ : PA.Parser c Problem String
@@ -661,18 +737,26 @@ print expr =
             in
             case body of
                 [ PArg exprs ] ->
-                    -- Is this enough to handle all cases?
+                    -- Single argument in parentheses: convert to braces
                     "\\" ++ name ++ enclose (printList exprs)
 
                 [ ParenthExpr exprs ] ->
-                    -- Is this enough to handle all cases?
+                    -- Convert parentheses to braces for macro
                     "\\" ++ name ++ enclose (printList exprs)
 
                 _ ->
-                    "\\" ++ name ++ printList body
+                    -- Multiple arguments or complex case
+                    case body of
+                        (PArg _ :: _) ->
+                            -- Comma-separated arguments: each gets its own braces
+                            "\\" ++ name ++ printMacroArgs body
+                        
+                        _ ->
+                            "\\" ++ name ++ printList body
 
         FCall name args ->
-            name ++ printList args
+            -- Function calls always use parentheses
+            name ++ "(" ++ printArgList args ++ ")"
 
         Expr exprs ->
             List.map print exprs |> String.join ""
@@ -730,3 +814,43 @@ enclose str =
 encloseP : String -> String
 encloseP str =
     "(" ++ str ++ ")"
+
+
+-- Print a list of arguments (handling comma separation)
+printArgList : List MathExpr -> String
+printArgList exprs =
+    case exprs of
+        [] ->
+            ""
+        
+        [ PArg contents ] ->
+            printList contents
+        
+        PArg contents :: Comma :: rest ->
+            printList contents ++ "," ++ printArgList rest
+        
+        PArg contents :: rest ->
+            printList contents ++ printArgList rest
+        
+        other :: rest ->
+            print other ++ printArgList rest
+
+
+-- Print macro arguments where each comma-separated arg gets its own braces
+printMacroArgs : List MathExpr -> String
+printMacroArgs exprs =
+    case exprs of
+        [] ->
+            ""
+        
+        [ PArg contents ] ->
+            enclose (printList contents)
+        
+        PArg contents :: Comma :: rest ->
+            enclose (printList contents) ++ printMacroArgs rest
+        
+        PArg contents :: rest ->
+            enclose (printList contents) ++ printMacroArgs rest
+        
+        other :: rest ->
+            print other ++ printMacroArgs rest
