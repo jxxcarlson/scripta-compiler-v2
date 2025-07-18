@@ -119,8 +119,67 @@ resolveSymbolName expr =
         Macro name args ->
             Macro name (List.map resolveSymbolName args)
 
-        _ ->
-            expr
+        F0 str ->
+            F0 str
+
+        Arg exprs ->
+            Arg (List.map resolveSymbolName exprs)
+
+        Sub deco ->
+            Sub (resolveSymbolNameInDeco deco)
+
+        Super deco ->
+            Super (resolveSymbolNameInDeco deco)
+
+        Param n ->
+            Param n
+
+        WS ->
+            WS
+
+        MathSpace ->
+            MathSpace
+
+        MathSmallSpace ->
+            MathSmallSpace
+
+        MathMediumSpace ->
+            MathMediumSpace
+
+        LeftMathBrace ->
+            LeftMathBrace
+
+        RightMathBrace ->
+            RightMathBrace
+
+        LeftParen ->
+            LeftParen
+
+        RightParen ->
+            RightParen
+
+        Comma ->
+            Comma
+
+        MathSymbols str ->
+            MathSymbols str
+
+        FCall name args ->
+            FCall name (List.map resolveSymbolName args)
+
+        Expr exprs ->
+            Expr (List.map resolveSymbolName exprs)
+
+
+-- Helper function to resolve symbol names in Deco
+resolveSymbolNameInDeco : Deco -> Deco
+resolveSymbolNameInDeco deco =
+    case deco of
+        DecoM expr ->
+            DecoM (resolveSymbolName expr)
+
+        DecoI n ->
+            DecoI n
 
 
 
@@ -518,7 +577,7 @@ functionArgListParser userMacroDict =
                 , leftBraceParser
                 , rightBraceParser
                 , macroParser userMacroDict
-                , alphaNumWithoutLookaheadParser -- Use plain alphaNum to avoid recursion
+                , alphaNumOrMacroParser userMacroDict -- Check if alphaNum is a macro
                 , mathSymbolsParser
                 , lazy (\_ -> argParser userMacroDict)
                 , lazy (\_ -> standaloneParenthExprParser userMacroDict)
@@ -539,6 +598,19 @@ functionArgListParser userMacroDict =
 alphaNumWithoutLookaheadParser : PA.Parser c Problem MathExpr
 alphaNumWithoutLookaheadParser =
     alphaNumParser_ |> PA.map AlphaNum
+
+
+-- Parse alpha numeric and check if it's a macro (no lookahead for parentheses)
+alphaNumOrMacroParser : MathMacroDict -> PA.Parser Context Problem MathExpr
+alphaNumOrMacroParser userMacroDict =
+    alphaNumParser_
+        |> PA.map
+            (\name ->
+                if isKaTeX name || isUserDefinedMacro userMacroDict name then
+                    Macro name []
+                else
+                    AlphaNum name
+            )
 
 
 

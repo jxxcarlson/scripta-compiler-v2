@@ -234,3 +234,10 @@ The parser has been successfully updated to thread the `userMacroDict` parameter
    - `isUserDefinedMacro` to check if a name is in the user macro dictionary
 
 The parser now correctly handles both KaTeX macros and user-defined macros when parsing function-like syntax with parentheses. When tested with `Dict.empty`, it maintains the same behavior as before, correctly parsing expressions like `"frac(dp,dt)"` as a KaTeX macro with separate brace-enclosed arguments.
+
+# TODO
+
+INCOMPLETE:
+
+- expandMacroWithDict (line 209)
+- replaceParam: (line 320)
