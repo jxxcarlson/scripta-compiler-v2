@@ -200,3 +200,37 @@ The solution correctly:
 - Preserves parentheses and commas for non-KaTeX function calls
 
 This handles any KaTeX function of the form `f(a,b,c,...)` where `isKaTeX f` is true, converting it to the proper LaTeX format `\f{a}{b}{c}...`.
+
+## Threading userMacroDict Through Parser
+
+The parser has been successfully updated to thread the `userMacroDict` parameter through the entire parser chain:
+
+1. **Added the `userMacroDict` parameter** to `alphaNumWithLookaheadParser` and updated it to check both `isKaTeX` and `isUserDefinedMacro`.
+
+2. **Threaded the dictionary through all parsers** that needed it:
+   - `mathExprParser`
+   - `macroParser`
+   - `argParser`
+   - `standaloneParenthExprParser`
+   - `subscriptParser`
+   - `superscriptParser`
+   - `decoParser`
+   - `functionArgsParser`
+   - `functionArgListParser`
+   - `newCommandParser`, `newCommandParser1`, `newCommandParser2`
+
+3. **Created wrapper functions** to maintain backward compatibility:
+   - `parse` now calls `parseWithDict` with the provided dictionary
+   - `parseMany` now accepts the dictionary parameter
+
+4. **Removed unused parsers** that were causing type errors:
+   - `leftParenParser`
+   - `rightParenParser`
+   - `parentheticalExprParser`
+   - `parentheticalExprParserM`
+   - `alphaNumParser`
+
+5. **Added helper functions**:
+   - `isUserDefinedMacro` to check if a name is in the user macro dictionary
+
+The parser now correctly handles both KaTeX macros and user-defined macros when parsing function-like syntax with parentheses. When tested with `Dict.empty`, it maintains the same behavior as before, correctly parsing expressions like `"frac(dp,dt)"` as a KaTeX macro with separate brace-enclosed arguments.

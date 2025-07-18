@@ -105,7 +105,7 @@ equation count acc settings attrs block =
                 |> List.map evalMacro
 
         content =
-            String.join "\n" filteredLines |> ETeX.Transform.transformETeX
+            String.join "\n" filteredLines |> ETeX.Transform.transformETeX acc.mathMacroDict
 
         label : Element msg
         label =

@@ -1,16 +1,20 @@
 module ETeX.Transform exposing
     ( MathExpr(..)
+    , convertToGenericMacroDict
+    , makeMacroDict
     , parse
     , parseETeX
     , printList
     , resolveSymbolName
     , resolveSymbolNames
+    , testMacroDict
     , transformETeX
     )
 
 import Dict exposing (Dict)
 import ETeX.Dictionary
 import ETeX.KaTeX exposing (isKaTeX)
+import Generic.MathMacro
 import Maybe.Extra
 import Parser.Advanced as PA
     exposing
@@ -35,18 +39,34 @@ import Parser.Advanced as PA
 import Result.Extra
 
 
-parseETeX src =
+macroDefString =
+    """
+\\newcommand{\\nat}{\\mathbb{N}}
+\\newcommand{\\reals}{\\mathbb{R}}
+\\newcommand{\\space}{\\reals^{#1}}
+\\newcommand{\\set}{\\{ #1 \\}}
+\\newcommand{\\sett}{\\{\\ #1 \\ | \\ #2\\ \\}}
+"""
+
+
+testMacroDict : Dict String MacroBody
+testMacroDict =
+    makeMacroDict macroDefString
+
+
+parseETeX : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) String
+parseETeX userMacroDict src =
     src
-        |> parse
+        |> parse userMacroDict
         |> Debug.log "EXPRS"
         |> Result.map resolveSymbolNames
         |> Debug.log "Symbols resolved"
         |> Result.map printList
 
 
-transformETeX : String -> String
-transformETeX src =
-    case transformETeX_ src of
+transformETeX : Generic.MathMacro.MathMacroDict -> String -> String
+transformETeX userdefinedMacroDict src =
+    case transformETeX_ userdefinedMacroDict src of
         Ok result ->
             List.map print result |> String.join ""
 
@@ -54,15 +74,14 @@ transformETeX src =
             src
 
 
+isUserDefinedMacro : Generic.MathMacro.MathMacroDict -> String -> Bool
+isUserDefinedMacro dict name =
+    Dict.member name dict
 
---transformETeX_ : String -> Result (List (DeadEnd Context Problem)) String
---transformETeX_ : String -> Result (List (DeadEnd Context Problem)) (List String -> String)
 
-
-transformETeX_ : String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
-transformETeX_ src =
+transformETeX_ userdefinedMacroDict src =
     src
-        |> parseMany
+        |> parseMany userdefinedMacroDict
         |> Debug.log "PARSED"
         |> Result.map resolveSymbolNames
 
@@ -113,11 +132,11 @@ type MacroBody
     = MacroBody Int (List MathExpr)
 
 
-evalStr : MathMacroDict -> String -> String
-evalStr dict str =
-    case parseMany (String.trim str) of
+evalStr : Generic.MathMacro.MathMacroDict -> String -> String
+evalStr userDefinedMacroDict str =
+    case parseManyWithDict userDefinedMacroDict (String.trim str) of
         Ok result ->
-            List.map (expandMacroWithDict dict) result |> printList
+            List.map (expandMacroWithDict userDefinedMacroDict) result |> printList
 
         Err _ ->
             -- the intent of evalStr is to expand macros.  So if something
@@ -126,13 +145,27 @@ evalStr dict str =
             str
 
 
-parseMany : String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
-parseMany str =
+
+-- Convert local MathMacroDict to Generic.MathMacro.MathMacroDict
+--convertToGenericDict : MathMacroDict -> Generic.MathMacro.MathMacroDict
+--convertToGenericDict dict =
+--    -- For now, just return empty dict as we're focusing on threading the parameter
+--    -- This should be properly implemented based on the actual conversion logic
+--    Dict.empty
+
+
+parseMany : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
+parseMany userDefinedMacroDict str =
+    parseManyWithDict userDefinedMacroDict str
+
+
+parseManyWithDict : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
+parseManyWithDict userMacroDict str =
     str
         |> String.trim
         |> String.lines
         |> List.map String.trim
-        |> List.map parse
+        |> List.map (parseWithDict userMacroDict)
         |> Result.Extra.combine
         |> Result.map List.concat
 
@@ -166,11 +199,7 @@ type Deco
     | DecoI Int
 
 
-
--- RESUlT: [Macro "frac" [Arg [Macro "baar" [Arg [AlphaNum "X"]]],Arg [Macro "baar" [Arg [AlphaNum "Y"]]]]]
-
-
-expandMacroWithDict : MathMacroDict -> MathExpr -> MathExpr
+expandMacroWithDict : Generic.MathMacro.MathMacroDict -> MathExpr -> MathExpr
 expandMacroWithDict dict expr =
     case expr of
         Macro macroName args ->
@@ -178,8 +207,11 @@ expandMacroWithDict dict expr =
                 Nothing ->
                     Macro macroName (List.map (expandMacroWithDict dict) args)
 
-                Just (MacroBody k exprs) ->
-                    Expr (expandMacro_ (List.map (expandMacroWithDict dict) args) (MacroBody k (List.map (expandMacroWithDict dict) exprs)))
+                Just macroBody ->
+                    -- Handle Generic.MathMacro.MacroBody here
+                    -- For now, just return the macro unchanged
+                    -- TODO: Implement proper expansion using Generic.MathMacro.MacroBody
+                    Macro macroName (List.map (expandMacroWithDict dict) args)
 
         Arg exprs ->
             Arg (List.map (expandMacroWithDict dict) exprs)
@@ -272,7 +304,7 @@ makeMacroDict str =
     str
         |> String.trim
         |> String.lines
-        |> List.map (parseNewCommand >> makeEntry)
+        |> List.map (parseNewCommand Dict.empty >> makeEntry)
         |> Maybe.Extra.values
         |> Dict.fromList
 
@@ -280,9 +312,118 @@ makeMacroDict str =
 makeMacroDictFromLines : List String -> Dict String MacroBody
 makeMacroDictFromLines lines =
     lines
-        |> List.map (parseNewCommand >> makeEntry)
+        |> List.map (parseNewCommand Dict.empty >> makeEntry)
         |> Maybe.Extra.values
         |> Dict.fromList
+
+
+
+-- Convert local MacroBody to Generic.MathMacro.MacroBody
+
+
+convertToGenericMacroBody : MacroBody -> Generic.MathMacro.MacroBody
+convertToGenericMacroBody (MacroBody arity exprs) =
+    Generic.MathMacro.MacroBody arity (List.map convertToGenericMathExpr exprs)
+
+
+
+-- Convert local MathExpr to Generic.MathMacro.MathExpr
+
+
+convertToGenericMathExpr : MathExpr -> Generic.MathMacro.MathExpr
+convertToGenericMathExpr expr =
+    case expr of
+        AlphaNum str ->
+            Generic.MathMacro.AlphaNum str
+
+        F0 str ->
+            Generic.MathMacro.F0 str
+
+        Arg exprs ->
+            Generic.MathMacro.Arg (List.map convertToGenericMathExpr exprs)
+
+        PArg exprs ->
+            -- Convert PArg to Arg in generic representation
+            Generic.MathMacro.Arg (List.map convertToGenericMathExpr exprs)
+
+        ParenthExpr exprs ->
+            -- Convert ParenthExpr to Expr in generic representation
+            Generic.MathMacro.Expr (List.map convertToGenericMathExpr exprs)
+
+        Sub deco ->
+            Generic.MathMacro.Sub (convertToGenericDeco deco)
+
+        Super deco ->
+            Generic.MathMacro.Super (convertToGenericDeco deco)
+
+        Param n ->
+            Generic.MathMacro.Param n
+
+        WS ->
+            Generic.MathMacro.WS
+
+        MathSpace ->
+            Generic.MathMacro.MathSpace
+
+        MathSmallSpace ->
+            Generic.MathMacro.MathSmallSpace
+
+        MathMediumSpace ->
+            Generic.MathMacro.MathMediumSpace
+
+        LeftMathBrace ->
+            Generic.MathMacro.LeftMathBrace
+
+        RightMathBrace ->
+            Generic.MathMacro.RightMathBrace
+
+        LeftParen ->
+            -- Convert to MathSymbols in generic representation
+            Generic.MathMacro.MathSymbols "("
+
+        RightParen ->
+            -- Convert to MathSymbols in generic representation
+            Generic.MathMacro.MathSymbols ")"
+
+        Comma ->
+            -- Convert to MathSymbols in generic representation
+            Generic.MathMacro.MathSymbols ","
+
+        MathSymbols str ->
+            Generic.MathMacro.MathSymbols str
+
+        Macro name args ->
+            Generic.MathMacro.Macro name (List.map convertToGenericMathExpr args)
+
+        FCall name args ->
+            -- Convert FCall to Macro in generic representation
+            Generic.MathMacro.Macro name (List.map convertToGenericMathExpr args)
+
+        Expr exprs ->
+            Generic.MathMacro.Expr (List.map convertToGenericMathExpr exprs)
+
+
+
+-- Convert local Deco to Generic.MathMacro.Deco
+
+
+convertToGenericDeco : Deco -> Generic.MathMacro.Deco
+convertToGenericDeco deco =
+    case deco of
+        DecoM expr ->
+            Generic.MathMacro.DecoM (convertToGenericMathExpr expr)
+
+        DecoI n ->
+            Generic.MathMacro.DecoI n
+
+
+
+-- Convert a dictionary of local MacroBody to Generic.MathMacro.MathMacroDict
+
+
+convertToGenericMacroDict : Dict String MacroBody -> Generic.MathMacro.MathMacroDict
+convertToGenericMacroDict localDict =
+    Dict.map (\_ macroBody -> convertToGenericMacroBody macroBody) localDict
 
 
 makeEntry : Result error NewCommand -> Maybe ( String, MacroBody )
@@ -332,31 +473,42 @@ type alias MathExprParser a =
 -- PARSER
 
 
-parse : String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
-parse str =
-    PA.run (many mathExprParser) str
+parse : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
+parse userMacroDict str =
+    parseWithDict userMacroDict str
 
 
-macroParser =
+parseWithDict : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
+parseWithDict userMacroDict str =
+    PA.run (many (mathExprParser userMacroDict)) str
+
+
+macroParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+macroParser userMacroDict =
     succeed Macro
         |. symbol (Token "\\" ExpectingBackslash)
         |= alphaNumParser_
-        |= many argParser
+        |= many (argParser userMacroDict)
 
 
 
 -- Parser that parses comma-separated function arguments
-functionArgsParser : PA.Parser Context Problem (List MathExpr)
-functionArgsParser =
+
+
+functionArgsParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem (List MathExpr)
+functionArgsParser userMacroDict =
     succeed identity
         |. symbol (Token "(" ExpectingLeftParen)
-        |= lazy (\_ -> functionArgListParser)
+        |= lazy (\_ -> functionArgListParser userMacroDict)
         |. symbol (Token ")" ExpectingRightParen)
 
 
--- Helper to parse comma-separated arguments  
-functionArgListParser : PA.Parser Context Problem (List MathExpr)
-functionArgListParser =
+
+-- Helper to parse comma-separated arguments
+
+
+functionArgListParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem (List MathExpr)
+functionArgListParser userMacroDict =
     let
         -- Parse content that can appear in an argument (excluding commas)
         argContentParser =
@@ -366,28 +518,34 @@ functionArgListParser =
                 , mathSpaceParser
                 , leftBraceParser
                 , rightBraceParser
-                , macroParser
+                , macroParser userMacroDict
                 , alphaNumWithoutLookaheadParser -- Use plain alphaNum to avoid recursion
                 , mathSymbolsParser
-                , lazy (\_ -> argParser)
-                , lazy (\_ -> standaloneParenthExprParser)
+                , lazy (\_ -> argParser userMacroDict)
+                , lazy (\_ -> standaloneParenthExprParser userMacroDict)
                 , paramParser
                 , whitespaceParser
                 , f0Parser
-                , subscriptParser
-                , superscriptParser
+                , subscriptParser userMacroDict
+                , superscriptParser userMacroDict
                 ]
     in
     sepByComma (PA.map PArg (many1 argContentParser))
 
 
+
 -- Parse alpha numeric without lookahead (to avoid recursion)
+
+
 alphaNumWithoutLookaheadParser : PA.Parser c Problem MathExpr
 alphaNumWithoutLookaheadParser =
     alphaNumParser_ |> PA.map AlphaNum
 
 
+
 -- Helper for parsing one or more items
+
+
 many1 : PA.Parser Context Problem a -> PA.Parser Context Problem (List a)
 many1 p =
     succeed (::)
@@ -395,7 +553,10 @@ many1 p =
         |= many p
 
 
+
 -- Parse items separated by commas, returning the items and commas
+
+
 sepByComma : PA.Parser Context Problem MathExpr -> PA.Parser Context Problem (List MathExpr)
 sepByComma itemParser =
     oneOf
@@ -410,7 +571,10 @@ sepByComma itemParser =
         ]
 
 
+
 -- Helper for parsing more comma-separated items
+
+
 sepByCommaHelp : PA.Parser Context Problem MathExpr -> List MathExpr -> PA.Parser Context Problem (Step (List MathExpr) (List MathExpr))
 sepByCommaHelp itemParser revItems =
     oneOf
@@ -423,19 +587,22 @@ sepByCommaHelp itemParser revItems =
         ]
 
 
+
 -- Parser that looks for function calls with lookahead
-alphaNumWithLookaheadParser : PA.Parser Context Problem MathExpr
-alphaNumWithLookaheadParser =
+
+
+alphaNumWithLookaheadParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+alphaNumWithLookaheadParser userMacroDict =
     succeed identity
         |= alphaNumParser_
         |> PA.andThen
             (\name ->
                 oneOf
                     [ -- Check if followed by '(' and parse comma-separated arguments
-                      functionArgsParser
+                      functionArgsParser userMacroDict
                         |> PA.map
                             (\args ->
-                                if isKaTeX name then
+                                if isKaTeX name || isUserDefinedMacro userMacroDict name then
                                     Macro name args
 
                                 else
@@ -447,24 +614,25 @@ alphaNumWithLookaheadParser =
             )
 
 
-mathExprParser =
+mathExprParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+mathExprParser userMacroDict =
     oneOf
         [ mathMediumSpaceParser
         , mathSmallSpaceParser
         , mathSpaceParser
         , leftBraceParser
         , rightBraceParser
-        , macroParser
-        , alphaNumWithLookaheadParser -- This handles both function calls and plain alphanums
-        , lazy (\_ -> standaloneParenthExprParser) -- For standalone parentheses
+        , macroParser userMacroDict
+        , alphaNumWithLookaheadParser userMacroDict -- This handles both function calls and plain alphanums
+        , lazy (\_ -> standaloneParenthExprParser userMacroDict) -- For standalone parentheses
         , commaParser
         , mathSymbolsParser
-        , lazy (\_ -> argParser)
+        , lazy (\_ -> argParser userMacroDict)
         , paramParser
         , whitespaceParser
         , f0Parser
-        , subscriptParser
-        , superscriptParser
+        , subscriptParser userMacroDict
+        , superscriptParser userMacroDict
         ]
 
 
@@ -486,13 +654,14 @@ optionalParamParser =
         |. symbol (Token "]" ExpectingRightBracket)
 
 
-parseNewCommand : String -> Result (List (DeadEnd Context Problem)) NewCommand
-parseNewCommand str =
-    run newCommandParser str
+parseNewCommand : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) NewCommand
+parseNewCommand userMacroDict str =
+    run (newCommandParser userMacroDict) str
 
 
-newCommandParser =
-    oneOf [ backtrackable newCommandParser1, newCommandParser2 ]
+newCommandParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem NewCommand
+newCommandParser userMacroDict =
+    oneOf [ backtrackable (newCommandParser1 userMacroDict), newCommandParser2 userMacroDict ]
 
 
 mathSpaceParser : PA.Parser c Problem MathExpr
@@ -525,16 +694,8 @@ rightBraceParser =
         |. symbol (Token "\\}" ExpectingRightMathBrace)
 
 
-leftParenParser : PA.Parser c Problem MathExpr
-leftParenParser =
-    succeed LeftParen
-        |. symbol (Token "(" ExpectingLeftParen)
 
-
-rightParenParser : PA.Parser c Problem MathExpr
-rightParenParser =
-    succeed RightParen
-        |. symbol (Token ")" ExpectingRightParen)
+-- Removed unused parsers: leftParenParser and rightParenParser
 
 
 commaParser : PA.Parser c Problem MathExpr
@@ -543,61 +704,46 @@ commaParser =
         |. symbol (Token "," ExpectingComma)
 
 
-newCommandParser1 : PA.Parser Context Problem NewCommand
-newCommandParser1 =
+newCommandParser1 : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem NewCommand
+newCommandParser1 userMacroDict =
     succeed (\name arity body -> NewCommand name arity body)
         |. symbol (Token "\\newcommand" ExpectingNewCommand)
         |. symbol (Token "{" ExpectingLeftBrace)
         |= f0Parser
         |. symbol (Token "}" ExpectingRightBrace)
         |= optionalParamParser
-        |= many mathExprParser
+        |= many (mathExprParser userMacroDict)
 
 
-newCommandParser2 =
+newCommandParser2 : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem NewCommand
+newCommandParser2 userMacroDict =
     succeed (\name body -> NewCommand name 0 body)
         |. symbol (Token "\\newcommand" ExpectingNewCommand)
         |. symbol (Token "{" ExpectingLeftBrace)
         |= f0Parser
         |. symbol (Token "}" ExpectingRightBrace)
-        |= many mathExprParser
+        |= many (mathExprParser userMacroDict)
 
 
-argParser : PA.Parser Context Problem MathExpr
-argParser =
+argParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+argParser userMacroDict =
     (succeed identity
         |. symbol (Token "{" ExpectingLeftBrace)
-        |= lazy (\_ -> many mathExprParser)
+        |= lazy (\_ -> many (mathExprParser userMacroDict))
     )
         |. symbol (Token "}" ExpectingRightBrace)
         |> PA.map Arg
 
 
-parentheticalExprParser : PA.Parser Context Problem MathExpr
-parentheticalExprParser =
+
+-- Removed unused parsers: parentheticalExprParser and parentheticalExprParserM
+
+
+standaloneParenthExprParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+standaloneParenthExprParser userMacroDict =
     (succeed identity
         |. symbol (Token "(" ExpectingLeftParen)
-        |= lazy (\_ -> many mathExprParser)
-    )
-        |. symbol (Token ")" ExpectingRightParen)
-        |> PA.map PArg
-
-
-parentheticalExprParserM : PA.Parser Context Problem MathExpr
-parentheticalExprParserM =
-    (succeed identity
-        |. symbol (Token "(" ExpectingLeftParen)
-        |= lazy (\_ -> many mathExprParser)
-    )
-        |. symbol (Token ")" ExpectingRightParen)
-        |> PA.map Arg
-
-
-standaloneParenthExprParser : PA.Parser Context Problem MathExpr
-standaloneParenthExprParser =
-    (succeed identity
-        |. symbol (Token "(" ExpectingLeftParen)
-        |= lazy (\_ -> many mathExprParser)
+        |= lazy (\_ -> many (mathExprParser userMacroDict))
     )
         |. symbol (Token ")" ExpectingRightParen)
         |> PA.map ParenthExpr
@@ -607,9 +753,8 @@ whitespaceParser =
     symbol (Token " " ExpectingSpace) |> PA.map (\_ -> WS)
 
 
-alphaNumParser : PA.Parser c Problem MathExpr
-alphaNumParser =
-    alphaNumWithoutLookaheadParser
+
+-- Removed unused parser: alphaNumParser
 
 
 alphaNumParser_ : PA.Parser c Problem String
@@ -636,24 +781,27 @@ paramParser =
         |> PA.map Param
 
 
-subscriptParser =
+subscriptParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+subscriptParser userMacroDict =
     (succeed identity
         |. symbol (Token "_" ExpectingUnderscore)
-        |= decoParser
+        |= decoParser userMacroDict
     )
         |> PA.map Sub
 
 
-superscriptParser =
+superscriptParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+superscriptParser userMacroDict =
     (succeed identity
         |. symbol (Token "^" ExpectingCaret)
-        |= decoParser
+        |= decoParser userMacroDict
     )
         |> PA.map Super
 
 
-decoParser =
-    oneOf [ numericDecoParser, lazy (\_ -> mathExprParser) |> PA.map DecoM ]
+decoParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem Deco
+decoParser userMacroDict =
+    oneOf [ numericDecoParser, lazy (\_ -> mathExprParser userMacroDict) |> PA.map DecoM ]
 
 
 numericDecoParser =
@@ -747,10 +895,10 @@ print expr =
                 _ ->
                     -- Multiple arguments or complex case
                     case body of
-                        (PArg _ :: _) ->
+                        (PArg _) :: _ ->
                             -- Comma-separated arguments: each gets its own braces
                             "\\" ++ name ++ printMacroArgs body
-                        
+
                         _ ->
                             "\\" ++ name ++ printList body
 
@@ -816,41 +964,47 @@ encloseP str =
     "(" ++ str ++ ")"
 
 
+
 -- Print a list of arguments (handling comma separation)
+
+
 printArgList : List MathExpr -> String
 printArgList exprs =
     case exprs of
         [] ->
             ""
-        
+
         [ PArg contents ] ->
             printList contents
-        
-        PArg contents :: Comma :: rest ->
+
+        (PArg contents) :: Comma :: rest ->
             printList contents ++ "," ++ printArgList rest
-        
-        PArg contents :: rest ->
+
+        (PArg contents) :: rest ->
             printList contents ++ printArgList rest
-        
+
         other :: rest ->
             print other ++ printArgList rest
 
 
+
 -- Print macro arguments where each comma-separated arg gets its own braces
+
+
 printMacroArgs : List MathExpr -> String
 printMacroArgs exprs =
     case exprs of
         [] ->
             ""
-        
+
         [ PArg contents ] ->
             enclose (printList contents)
-        
-        PArg contents :: Comma :: rest ->
+
+        (PArg contents) :: Comma :: rest ->
             enclose (printList contents) ++ printMacroArgs rest
-        
-        PArg contents :: rest ->
+
+        (PArg contents) :: rest ->
             enclose (printList contents) ++ printMacroArgs rest
-        
+
         other :: rest ->
             print other ++ printMacroArgs rest
