@@ -214,11 +214,8 @@ expandMacroWithDict dict expr =
                 Nothing ->
                     Macro macroName (List.map (expandMacroWithDict dict) args)
 
-                Just macroBody ->
-                    -- Handle Generic.MathMacro.MacroBody here
-                    -- For now, just return the macro unchanged
-                    -- TODO: Implement proper expansion using Generic.MathMacro.MacroBody
-                    Macro macroName (List.map (expandMacroWithDict dict) args)
+                Just (MacroBody k exprs) ->
+                    Expr (expandMacro_ (List.map (expandMacroWithDict dict) args) (MacroBody k (List.map (expandMacroWithDict dict) exprs)))
 
         Arg exprs ->
             Arg (List.map (expandMacroWithDict dict) exprs)
