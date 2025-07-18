@@ -607,8 +607,13 @@ alphaNumWithLookaheadParser userMacroDict =
                                 else
                                     FCall name args
                             )
-                    , -- Otherwise, just return as AlphaNum
-                      succeed (AlphaNum name)
+                    , -- Otherwise, check if it's a macro or just alphanumeric
+                      succeed
+                        (if isKaTeX name || isUserDefinedMacro userMacroDict name then
+                            Macro name []
+                         else
+                            AlphaNum name
+                        )
                     ]
             )
 
