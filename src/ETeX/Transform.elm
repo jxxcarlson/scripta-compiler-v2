@@ -1,5 +1,6 @@
 module ETeX.Transform exposing
     ( Deco(..)
+    , MacroBody(..)
     , MathExpr(..)
     , MathMacroDict
     , evalStr
