@@ -44,6 +44,7 @@ module Generic.Acc exposing
 
 import Array exposing (Array)
 import Dict exposing (Dict)
+import ETeX.Transform
 import Either exposing (Either(..))
 import Generic.ASTTools
 import Generic.BlockUtilities
@@ -84,7 +85,7 @@ type alias Accumulator =
     , terms : Dict String TermLoc
     , footnotes : Dict String TermLoc2
     , footnoteNumbers : Dict String Int
-    , mathMacroDict : Generic.MathMacro.MathMacroDict
+    , mathMacroDict : ETeX.Transform.MathMacroDict
     , textMacroDict : Dict String Macro
     , keyValueDict : Dict String String
     , qAndAList : List ( String, String )
@@ -822,7 +823,8 @@ updateWithMathMacros content accumulator =
                 |> String.trim
 
         mathMacroDict =
-            Generic.MathMacro.makeMacroDict (String.trim definitions)
+            --Generic.MathMacro.makeMacroDict (String.trim definitions)
+            ETeX.Transform.makeMacroDict (String.trim definitions)
     in
     { accumulator | mathMacroDict = mathMacroDict }
 

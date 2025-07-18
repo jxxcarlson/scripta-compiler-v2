@@ -1,6 +1,9 @@
 module ETeX.Transform exposing
     ( MathExpr(..)
-    , convertToGenericMacroDict
+    , MathMacroDict
+    , evalStr
+    , isUserDefinedMacro
+    , macroDefString
     , makeMacroDict
     , parse
     , parseETeX
@@ -54,7 +57,7 @@ testMacroDict =
     makeMacroDict macroDefString
 
 
-parseETeX : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) String
+parseETeX : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) String
 parseETeX userMacroDict src =
     src
         |> parse userMacroDict
@@ -64,7 +67,7 @@ parseETeX userMacroDict src =
         |> Result.map printList
 
 
-transformETeX : Generic.MathMacro.MathMacroDict -> String -> String
+transformETeX : MathMacroDict -> String -> String
 transformETeX userdefinedMacroDict src =
     case transformETeX_ userdefinedMacroDict src of
         Ok result ->
@@ -74,7 +77,7 @@ transformETeX userdefinedMacroDict src =
             src
 
 
-isUserDefinedMacro : Generic.MathMacro.MathMacroDict -> String -> Bool
+isUserDefinedMacro : MathMacroDict -> String -> Bool
 isUserDefinedMacro dict name =
     Dict.member name dict
 
@@ -132,8 +135,12 @@ type MacroBody
     = MacroBody Int (List MathExpr)
 
 
-evalStr : Generic.MathMacro.MathMacroDict -> String -> String
+evalStr : MathMacroDict -> String -> String
 evalStr userDefinedMacroDict str =
+    let
+        _ =
+            Debug.log "parseManyWithDict" (parseManyWithDict userDefinedMacroDict (String.trim str))
+    in
     case parseManyWithDict userDefinedMacroDict (String.trim str) of
         Ok result ->
             List.map (expandMacroWithDict userDefinedMacroDict) result |> printList
@@ -146,20 +153,20 @@ evalStr userDefinedMacroDict str =
 
 
 
--- Convert local MathMacroDict to Generic.MathMacro.MathMacroDict
---convertToGenericDict : MathMacroDict -> Generic.MathMacro.MathMacroDict
+-- Convert local MathMacroDict to MathMacroDict
+--convertToGenericDict : MathMacroDict -> MathMacroDict
 --convertToGenericDict dict =
 --    -- For now, just return empty dict as we're focusing on threading the parameter
 --    -- This should be properly implemented based on the actual conversion logic
 --    Dict.empty
 
 
-parseMany : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
+parseMany : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
 parseMany userDefinedMacroDict str =
     parseManyWithDict userDefinedMacroDict str
 
 
-parseManyWithDict : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
+parseManyWithDict : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
 parseManyWithDict userMacroDict str =
     str
         |> String.trim
@@ -199,7 +206,7 @@ type Deco
     | DecoI Int
 
 
-expandMacroWithDict : Generic.MathMacro.MathMacroDict -> MathExpr -> MathExpr
+expandMacroWithDict : MathMacroDict -> MathExpr -> MathExpr
 expandMacroWithDict dict expr =
     case expr of
         Macro macroName args ->
@@ -418,12 +425,7 @@ convertToGenericDeco deco =
 
 
 
--- Convert a dictionary of local MacroBody to Generic.MathMacro.MathMacroDict
-
-
-convertToGenericMacroDict : Dict String MacroBody -> Generic.MathMacro.MathMacroDict
-convertToGenericMacroDict localDict =
-    Dict.map (\_ macroBody -> convertToGenericMacroBody macroBody) localDict
+-- Convert a dictionary of local MacroBody to MathMacroDict
 
 
 makeEntry : Result error NewCommand -> Maybe ( String, MacroBody )
@@ -473,17 +475,17 @@ type alias MathExprParser a =
 -- PARSER
 
 
-parse : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
+parse : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
 parse userMacroDict str =
     parseWithDict userMacroDict str
 
 
-parseWithDict : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
+parseWithDict : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
 parseWithDict userMacroDict str =
     PA.run (many (mathExprParser userMacroDict)) str
 
 
-macroParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+macroParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 macroParser userMacroDict =
     succeed Macro
         |. symbol (Token "\\" ExpectingBackslash)
@@ -495,7 +497,7 @@ macroParser userMacroDict =
 -- Parser that parses comma-separated function arguments
 
 
-functionArgsParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem (List MathExpr)
+functionArgsParser : MathMacroDict -> PA.Parser Context Problem (List MathExpr)
 functionArgsParser userMacroDict =
     succeed identity
         |. symbol (Token "(" ExpectingLeftParen)
@@ -507,7 +509,7 @@ functionArgsParser userMacroDict =
 -- Helper to parse comma-separated arguments
 
 
-functionArgListParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem (List MathExpr)
+functionArgListParser : MathMacroDict -> PA.Parser Context Problem (List MathExpr)
 functionArgListParser userMacroDict =
     let
         -- Parse content that can appear in an argument (excluding commas)
@@ -591,7 +593,7 @@ sepByCommaHelp itemParser revItems =
 -- Parser that looks for function calls with lookahead
 
 
-alphaNumWithLookaheadParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+alphaNumWithLookaheadParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 alphaNumWithLookaheadParser userMacroDict =
     succeed identity
         |= alphaNumParser_
@@ -614,7 +616,7 @@ alphaNumWithLookaheadParser userMacroDict =
             )
 
 
-mathExprParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+mathExprParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 mathExprParser userMacroDict =
     oneOf
         [ mathMediumSpaceParser
@@ -654,12 +656,12 @@ optionalParamParser =
         |. symbol (Token "]" ExpectingRightBracket)
 
 
-parseNewCommand : Generic.MathMacro.MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) NewCommand
+parseNewCommand : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) NewCommand
 parseNewCommand userMacroDict str =
     run (newCommandParser userMacroDict) str
 
 
-newCommandParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem NewCommand
+newCommandParser : MathMacroDict -> PA.Parser Context Problem NewCommand
 newCommandParser userMacroDict =
     oneOf [ backtrackable (newCommandParser1 userMacroDict), newCommandParser2 userMacroDict ]
 
@@ -704,7 +706,7 @@ commaParser =
         |. symbol (Token "," ExpectingComma)
 
 
-newCommandParser1 : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem NewCommand
+newCommandParser1 : MathMacroDict -> PA.Parser Context Problem NewCommand
 newCommandParser1 userMacroDict =
     succeed (\name arity body -> NewCommand name arity body)
         |. symbol (Token "\\newcommand" ExpectingNewCommand)
@@ -715,7 +717,7 @@ newCommandParser1 userMacroDict =
         |= many (mathExprParser userMacroDict)
 
 
-newCommandParser2 : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem NewCommand
+newCommandParser2 : MathMacroDict -> PA.Parser Context Problem NewCommand
 newCommandParser2 userMacroDict =
     succeed (\name body -> NewCommand name 0 body)
         |. symbol (Token "\\newcommand" ExpectingNewCommand)
@@ -725,7 +727,7 @@ newCommandParser2 userMacroDict =
         |= many (mathExprParser userMacroDict)
 
 
-argParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+argParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 argParser userMacroDict =
     (succeed identity
         |. symbol (Token "{" ExpectingLeftBrace)
@@ -739,7 +741,7 @@ argParser userMacroDict =
 -- Removed unused parsers: parentheticalExprParser and parentheticalExprParserM
 
 
-standaloneParenthExprParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+standaloneParenthExprParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 standaloneParenthExprParser userMacroDict =
     (succeed identity
         |. symbol (Token "(" ExpectingLeftParen)
@@ -781,7 +783,7 @@ paramParser =
         |> PA.map Param
 
 
-subscriptParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+subscriptParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 subscriptParser userMacroDict =
     (succeed identity
         |. symbol (Token "_" ExpectingUnderscore)
@@ -790,7 +792,7 @@ subscriptParser userMacroDict =
         |> PA.map Sub
 
 
-superscriptParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem MathExpr
+superscriptParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 superscriptParser userMacroDict =
     (succeed identity
         |. symbol (Token "^" ExpectingCaret)
@@ -799,7 +801,7 @@ superscriptParser userMacroDict =
         |> PA.map Super
 
 
-decoParser : Generic.MathMacro.MathMacroDict -> PA.Parser Context Problem Deco
+decoParser : MathMacroDict -> PA.Parser Context Problem Deco
 decoParser userMacroDict =
     oneOf [ numericDecoParser, lazy (\_ -> mathExprParser userMacroDict) |> PA.map DecoM ]
 

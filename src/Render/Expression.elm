@@ -1,6 +1,7 @@
 module Render.Expression exposing (hd, nonstandardElements, render)
 
 import Dict exposing (Dict)
+import ETeX.Transform
 import Element exposing (Element, column, el, newTabLink, spacing)
 import Element.Background as Background
 import Element.Border
@@ -46,6 +47,7 @@ render generation acc settings attrs expr =
                 ]
 
 
+renderVerbatim : String -> Int -> { a | mathMacroDict : ETeX.Transform.MathMacroDict } -> RenderSettings -> { b | id : String } -> String -> Element msg
 renderVerbatim name generation acc settings meta str =
     case Dict.get name verbatimDict of
         Nothing ->
@@ -432,7 +434,7 @@ code g a s m str =
     verbatimElement s (codeStyle s) m str
 
 
-math : Int -> { a | mathMacroDict : Generic.MathMacro.MathMacroDict } -> Render.Settings.RenderSettings -> { b | id : String } -> String -> Element msg
+math : Int -> { a | mathMacroDict : ETeX.Transform.MathMacroDict } -> Render.Settings.RenderSettings -> { b | id : String } -> String -> Element msg
 math g a s m str =
     Element.el
         (Render.Sync.highlightIfIdSelected m.id s [])
@@ -983,7 +985,7 @@ errorText_ str =
 
 
 mathElement generation acc s meta str =
-    Render.Math.mathText (Render.ThemeHelpers.themeAsStringFromSettings s) generation "width" meta.id Render.Math.InlineMathMode (Generic.MathMacro.evalStr acc.mathMacroDict str)
+    Render.Math.mathText (Render.ThemeHelpers.themeAsStringFromSettings s) generation "width" meta.id Render.Math.InlineMathMode (ETeX.Transform.evalStr acc.mathMacroDict str)
 
 
 

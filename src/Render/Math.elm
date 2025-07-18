@@ -52,7 +52,7 @@ displayedMath count acc settings attrs_ block =
                 |> List.filter (\line -> not (String.left 2 (String.trim line) == "$$"))
                 |> List.filter (\line -> not (String.left 6 line == "[label"))
                 |> List.filter (\line -> line /= "")
-                |> List.map (Generic.MathMacro.evalStr acc.mathMacroDict)
+                |> List.map (ETeX.Transform.evalStr acc.mathMacroDict)
     in
     Element.column attrs
         [ Element.el (Render.Sync.highlighter block.args [ Element.centerX ])
@@ -90,18 +90,18 @@ equation count acc settings attrs block =
             if String.right 2 line == "\\\\" then
                 line
                     |> String.dropRight 2
-                    |> Generic.MathMacro.evalStr acc.mathMacroDict
+                    |> ETeX.Transform.evalStr acc.mathMacroDict
                     |> (\str -> str ++ "\\\\")
 
             else
-                line |> Generic.MathMacro.evalStr acc.mathMacroDict
+                line |> ETeX.Transform.evalStr acc.mathMacroDict
 
         filteredLines =
             -- lines of math text to be rendered: filter stuff out
             String.lines (getContent block)
                 |> List.map String.trimRight
                 |> List.filter (\line -> not (String.left 2 line == "$$") && not (String.left 6 line == "[label") && not (line == "end"))
-                |> List.map (Generic.MathMacro.evalStr acc.mathMacroDict)
+                |> List.map (ETeX.Transform.evalStr acc.mathMacroDict)
                 |> List.map evalMacro
 
         content =
@@ -192,7 +192,7 @@ aligned count acc settings attrs block =
 
         adjustedLines_ =
             -- delete trailing slashes before evaluating macros
-            List.map (deleteTrailingSlashes >> Generic.MathMacro.evalStr acc.mathMacroDict) filteredLines
+            List.map (deleteTrailingSlashes >> ETeX.Transform.evalStr acc.mathMacroDict) filteredLines
                 -- remove bank lines
                 |> List.filter (\line -> line /= "")
 
@@ -265,7 +265,7 @@ array count acc settings attrs block =
         adjustedLines_ : List String
         adjustedLines_ =
             -- delete trailing slashes before evaluating macros
-            List.map (deleteTrailingSlashes >> Generic.MathMacro.evalStr acc.mathMacroDict) filteredLines
+            List.map (deleteTrailingSlashes >> ETeX.Transform.evalStr acc.mathMacroDict) filteredLines
                 -- remove bank lines
                 |> List.filter (\line -> line /= "")
 
@@ -348,7 +348,7 @@ textarray count acc settings attrs block =
 
         adjustedLines_ =
             -- delete trailing slashes before evaluating macros
-            List.map (deleteTrailingSlashes >> Generic.MathMacro.evalStr acc.mathMacroDict) filteredLines
+            List.map (deleteTrailingSlashes >> ETeX.Transform.evalStr acc.mathMacroDict) filteredLines
                 -- remove bank lines
                 |> List.filter (\line -> line /= "")
 
