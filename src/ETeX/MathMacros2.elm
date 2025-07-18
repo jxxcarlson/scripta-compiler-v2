@@ -23,6 +23,7 @@ import Parser.Advanced as PA
         , symbol
         )
 import Result.Extra
+import ETeX.KaTeX exposing (isKaTeX)
 
 
 
@@ -66,6 +67,7 @@ type MathExpr
     | F0 String
     | Arg (List MathExpr)
     | PArg (List MathExpr)
+    | ParenthExpr (List MathExpr)
     | Sub Deco
     | Super Deco
     | Param Int
@@ -77,6 +79,7 @@ type MathExpr
     | RightMathBrace
     | LeftParen
     | RightParen
+    | Comma
     | MathSymbols String
     | Macro String (List MathExpr)
     | FCall String (List MathExpr)
@@ -243,6 +246,7 @@ type Problem
     | ExpectingHash
     | ExpectingBackslash
     | ExpectingNewCommand
+    | ExpectingComma
 
 
 type alias MathExprParser a =
@@ -265,10 +269,27 @@ macroParser =
         |= many argParser
 
 
-functionCallParser =
-    succeed FCall
+-- Parser that looks for function calls with lookahead
+alphaNumWithLookaheadParser : PA.Parser Context Problem MathExpr
+alphaNumWithLookaheadParser =
+    succeed identity
         |= alphaNumParser_
-        |= many argParser
+        |> PA.andThen
+            (\name ->
+                oneOf
+                    [ -- Check if followed by '(' and parse the parenthetical group
+                      parentheticalExprParser
+                        |> PA.map
+                            (\arg ->
+                                if isKaTeX name then
+                                    Macro name [ arg ]
+                                else
+                                    FCall name [ arg ]
+                            )
+                    , -- Otherwise, just return as AlphaNum
+                      succeed (AlphaNum name)
+                    ]
+            )
 
 
 mathExprParser =
@@ -278,16 +299,14 @@ mathExprParser =
         , mathSpaceParser
         , leftBraceParser
         , rightBraceParser
-        , leftParenParser
-        , rightParenParser
+        , commaParser
         , macroParser
-        , functionCallParser
+        , alphaNumWithLookaheadParser  -- This handles both function calls and plain alphanums
+        , lazy (\_ -> standaloneParenthExprParser)  -- For standalone parentheses
         , mathSymbolsParser
         , lazy (\_ -> argParser)
-        , lazy (\_ -> parentheticalExprParser)
         , paramParser
         , whitespaceParser
-        , alphaNumParser
         , f0Parser
         , subscriptParser
         , superscriptParser
@@ -297,8 +316,8 @@ mathExprParser =
 mathSymbolsParser =
     (succeed String.slice
         |= getOffset
-        |. chompIf (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}' ])) ExpectingNotAlpha
-        |. chompWhile (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}' ]))
+        |. chompIf (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}', '(', ')', ',' ])) ExpectingNotAlpha
+        |. chompWhile (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}', '(', ')', ',' ]))
         |= getOffset
         |= getSource
     )
@@ -363,6 +382,12 @@ rightParenParser =
         |. symbol (Token ")" ExpectingRightParen)
 
 
+commaParser : PA.Parser c Problem MathExpr
+commaParser =
+    succeed Comma
+        |. symbol (Token "," ExpectingComma)
+
+
 newCommandParser1 : PA.Parser Context Problem NewCommand
 newCommandParser1 =
     succeed (\name arity body -> NewCommand name arity body)
@@ -401,6 +426,16 @@ parentheticalExprParser =
     )
         |. symbol (Token ")" ExpectingRightParen)
         |> PA.map PArg
+
+
+standaloneParenthExprParser : PA.Parser Context Problem MathExpr
+standaloneParenthExprParser =
+    (succeed identity
+        |. symbol (Token "(" ExpectingLeftParen)
+        |= lazy (\_ -> many mathExprParser)
+    )
+        |. symbol (Token ")" ExpectingRightParen)
+        |> PA.map ParenthExpr
 
 
 whitespaceParser =
@@ -534,10 +569,16 @@ print expr =
             "\\" ++ name ++ printList body
 
         FCall name args ->
-            name ++ encloseP (printList args)
+            name ++ printList args
 
         Expr exprs ->
             List.map print exprs |> String.join ""
+
+        Comma ->
+            ","
+
+        ParenthExpr exprs ->
+            encloseP (printList exprs)
 
 
 printDeco : Deco -> String
