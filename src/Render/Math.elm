@@ -11,10 +11,9 @@ module Render.Math exposing
     )
 
 import Dict exposing (Dict)
-import ETeX.WordTokenizer
+import ETeX.Transform
 import Either exposing (Either(..))
 import Element exposing (Element)
-import Element.Background as Background
 import Element.Font as Font
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
@@ -106,7 +105,7 @@ equation count acc settings attrs block =
                 |> List.map evalMacro
 
         content =
-            String.join "\n" filteredLines |> ETeX.WordTokenizer.transformETeX
+            String.join "\n" filteredLines |> ETeX.Transform.transformETeX
 
         label : Element msg
         label =
