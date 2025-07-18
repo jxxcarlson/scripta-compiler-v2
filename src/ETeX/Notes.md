@@ -148,7 +148,18 @@ EOF
 
 ### Expected Results
 
+1. **Macros**:  `\\sin{\\pi}` -> `Ok [Macro "sin" [Arg [Macro "pi" []]]]` -> Ok "\\sin{\\pi}"
+2. **Parenthesized macros**: `parse "sin(x)"` → `Ok [Macro "sin" [PArg [AlphaNum "x"]]]` -> Ok "\\sin{x}"
 1. **Function calls**: `parse "f(x)"` → `Ok [FCall "f" [PArg [AlphaNum "x"]]]`
-2. **KaTeX macros**: `parse "sin(x)"` → `Ok [Macro "sin" [PArg [AlphaNum "x"]]]`
+
 3. **Parenthetical expressions**: `parse "(x + y)"` → `Ok [ParenthExpr [AlphaNum "x", MathSymbols " + ", AlphaNum "y"]]`
 4. **Mixed expressions**: `parse "2(x + y)f(z)"` → `Ok [MathSymbols "2", ParenthExpr [AlphaNum "x", MathSymbols " + ", AlphaNum "y"], FCall "f" [PArg [AlphaNum "z"]]]`
+
+
+> transformETeX "\\sin{pi}"
+PARSED: Ok [Macro "sin" [Arg [AlphaNum "pi"]]]
+BODY: [Arg [AlphaNum "pi"]]
+"\\sin{pi}" : String
+> transformETeX "\\sin(pi)"
+PARSED: Ok [Macro "sin" [],ParenthExpr [AlphaNum "pi"]]
+BODY: []

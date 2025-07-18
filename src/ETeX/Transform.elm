@@ -1,6 +1,16 @@
-module ETeX.MathMacros2 exposing (..)
+module ETeX.Transform exposing
+    ( MathExpr(..)
+    , parse
+    , parseETeX
+    , printList
+    , resolveSymbolName
+    , resolveSymbolNames
+    , transformETeX
+    )
 
 import Dict exposing (Dict)
+import ETeX.Dictionary
+import ETeX.KaTeX exposing (isKaTeX)
 import Maybe.Extra
 import Parser.Advanced as PA
     exposing
@@ -23,7 +33,72 @@ import Parser.Advanced as PA
         , symbol
         )
 import Result.Extra
-import ETeX.KaTeX exposing (isKaTeX)
+
+
+parseETeX src =
+    src
+        |> parse
+        |> Debug.log "EXPRS"
+        |> Result.map resolveSymbolNames
+        |> Debug.log "Symbols resolved"
+        |> Result.map printList
+
+
+transformETeX : String -> String
+transformETeX src =
+    case transformETeX_ src of
+        Ok result ->
+            List.map print result |> String.join ""
+
+        Err _ ->
+            src
+
+
+
+--transformETeX_ : String -> Result (List (DeadEnd Context Problem)) String
+--transformETeX_ : String -> Result (List (DeadEnd Context Problem)) (List String -> String)
+
+
+transformETeX_ : String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
+transformETeX_ src =
+    src
+        |> parseMany
+        |> Debug.log "PARSED"
+        |> Result.map resolveSymbolNames
+
+
+resolveSymbolNames : List MathExpr -> List MathExpr
+resolveSymbolNames exprs =
+    List.map resolveSymbolName exprs
+
+
+{-|
+
+    TODO: Need to take care of all cases where a symbol name is used.
+
+-}
+resolveSymbolName : MathExpr -> MathExpr
+resolveSymbolName expr =
+    case expr of
+        AlphaNum str ->
+            case Dict.get str ETeX.Dictionary.symbolDict of
+                Just _ ->
+                    AlphaNum ("\\" ++ str)
+
+                Nothing ->
+                    AlphaNum str
+
+        PArg exprs ->
+            PArg (List.map resolveSymbolName exprs)
+
+        ParenthExpr exprs ->
+            ParenthExpr (List.map resolveSymbolName exprs)
+
+        Macro name args ->
+            Macro name (List.map resolveSymbolName args)
+
+        _ ->
+            expr
 
 
 
@@ -269,7 +344,10 @@ macroParser =
         |= many argParser
 
 
+
 -- Parser that looks for function calls with lookahead
+
+
 alphaNumWithLookaheadParser : PA.Parser Context Problem MathExpr
 alphaNumWithLookaheadParser =
     succeed identity
@@ -283,6 +361,7 @@ alphaNumWithLookaheadParser =
                             (\arg ->
                                 if isKaTeX name then
                                     Macro name [ arg ]
+
                                 else
                                     FCall name [ arg ]
                             )
@@ -301,8 +380,8 @@ mathExprParser =
         , rightBraceParser
         , commaParser
         , macroParser
-        , alphaNumWithLookaheadParser  -- This handles both function calls and plain alphanums
-        , lazy (\_ -> standaloneParenthExprParser)  -- For standalone parentheses
+        , alphaNumWithLookaheadParser -- This handles both function calls and plain alphanums
+        , lazy (\_ -> standaloneParenthExprParser) -- For standalone parentheses
         , mathSymbolsParser
         , lazy (\_ -> argParser)
         , paramParser
@@ -426,6 +505,16 @@ parentheticalExprParser =
     )
         |. symbol (Token ")" ExpectingRightParen)
         |> PA.map PArg
+
+
+parentheticalExprParserM : PA.Parser Context Problem MathExpr
+parentheticalExprParserM =
+    (succeed identity
+        |. symbol (Token "(" ExpectingLeftParen)
+        |= lazy (\_ -> many mathExprParser)
+    )
+        |. symbol (Token ")" ExpectingRightParen)
+        |> PA.map Arg
 
 
 standaloneParenthExprParser : PA.Parser Context Problem MathExpr
@@ -566,7 +655,21 @@ print expr =
             " "
 
         Macro name body ->
-            "\\" ++ name ++ printList body
+            let
+                _ =
+                    Debug.log "BODY" body
+            in
+            case body of
+                [ PArg exprs ] ->
+                    -- Is this enough to handle all cases?
+                    "\\" ++ name ++ enclose (printList exprs)
+
+                [ ParenthExpr exprs ] ->
+                    -- Is this enough to handle all cases?
+                    "\\" ++ name ++ enclose (printList exprs)
+
+                _ ->
+                    "\\" ++ name ++ printList body
 
         FCall name args ->
             name ++ printList args
