@@ -7,9 +7,12 @@ module ETeX.Transform exposing
     , isUserDefinedMacro
     , macroDefString
     , makeMacroDict
+    , makeMacroDictFromSimpleLines
     , parse
     , parseETeX
+    , parseSimpleMacro
     , printList
+    , printResult
     , resolveSymbolName
     , resolveSymbolNames
     , testMacroDict
@@ -31,6 +34,7 @@ import Parser.Advanced as PA
         , backtrackable
         , chompIf
         , chompWhile
+        , getChompedString
         , getOffset
         , getSource
         , lazy
@@ -48,9 +52,9 @@ macroDefString =
     """
 \\newcommand{\\nat}{\\mathbb{N}}
 \\newcommand{\\reals}{\\mathbb{R}}
-\\newcommand{\\space}{\\reals^{#1}}
-\\newcommand{\\set}{\\{ #1 \\}}
-\\newcommand{\\sett}{\\{\\ #1 \\ | \\ #2\\ \\}}
+\\newcommand{\\space}[1]{\\reals^{#1}}
+\\newcommand{\\set}[1]{\\{ #1 \\}}
+\\newcommand{\\sett}[2]{\\{\\ #1 \\ | \\ #2\\ \\}}
 """
 
 
@@ -63,9 +67,7 @@ parseETeX : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) S
 parseETeX userMacroDict src =
     src
         |> parse userMacroDict
-        |> Debug.log "EXPRS"
         |> Result.map resolveSymbolNames
-        |> Debug.log "Symbols resolved"
         |> Result.map printList
 
 
@@ -87,7 +89,6 @@ isUserDefinedMacro dict name =
 transformETeX_ userdefinedMacroDict src =
     src
         |> parseMany userdefinedMacroDict
-        |> Debug.log "PARSED"
         |> Result.map resolveSymbolNames
 
 
@@ -172,6 +173,9 @@ resolveSymbolName expr =
         Expr exprs ->
             Expr (List.map resolveSymbolName exprs)
 
+        Text str ->
+            Text str
+
 
 
 -- Helper function to resolve symbol names in Deco
@@ -201,10 +205,6 @@ type MacroBody
 
 evalStr : MathMacroDict -> String -> String
 evalStr userDefinedMacroDict str =
-    let
-        _ =
-            Debug.log "parseManyWithDict" (parseManyWithDict userDefinedMacroDict (String.trim str))
-    in
     case parseManyWithDict userDefinedMacroDict (String.trim str) of
         Ok result ->
             List.map (expandMacroWithDict userDefinedMacroDict) result |> printList
@@ -263,11 +263,49 @@ type MathExpr
     | Macro String (List MathExpr)
     | FCall String (List MathExpr)
     | Expr (List MathExpr)
+    | Text String
 
 
 type Deco
     = DecoM MathExpr
     | DecoI Int
+
+
+
+-- Helper to extract just PArg elements from a comma-separated list
+
+
+extractMacroArgs : List MathExpr -> List MathExpr
+extractMacroArgs args =
+    case args of
+        [] ->
+            []
+
+        (PArg contents) :: rest ->
+            Arg contents :: extractMacroArgs rest
+
+        Comma :: rest ->
+            extractMacroArgs rest
+
+        other :: rest ->
+            other :: extractMacroArgs rest
+
+
+
+-- Helper to flatten PArg content for single-argument macros
+
+
+flattenForSingleArg : List MathExpr -> List MathExpr
+flattenForSingleArg args =
+    case args of
+        [] ->
+            []
+
+        (PArg contents) :: rest ->
+            contents ++ flattenForSingleArg rest
+
+        other :: rest ->
+            other :: flattenForSingleArg rest
 
 
 expandMacroWithDict : MathMacroDict -> MathExpr -> MathExpr
@@ -278,8 +316,23 @@ expandMacroWithDict dict expr =
                 Nothing ->
                     Macro macroName (List.map (expandMacroWithDict dict) args)
 
-                Just (MacroBody k exprs) ->
-                    Expr (expandMacro_ (List.map (expandMacroWithDict dict) args) (MacroBody k (List.map (expandMacroWithDict dict) exprs)))
+                Just (MacroBody arity exprs) ->
+                    let
+                        macroArgs =
+                            if arity == 1 then
+                                -- For single-argument macros, combine all content into one Arg
+                                case args of
+                                    [] ->
+                                        []
+
+                                    _ ->
+                                        [ Arg (flattenForSingleArg args) ]
+
+                            else
+                                -- For multi-argument macros, extract PArg elements separately
+                                extractMacroArgs args
+                    in
+                    Expr (expandMacro_ (List.map (expandMacroWithDict dict) macroArgs) (MacroBody arity (List.map (expandMacroWithDict dict) exprs)))
 
         Arg exprs ->
             Arg (List.map (expandMacroWithDict dict) exprs)
@@ -300,8 +353,60 @@ expandMacroWithDict dict expr =
                 DecoI m ->
                     Super (DecoI m)
 
-        _ ->
-            expr
+        PArg exprs ->
+            PArg (List.map (expandMacroWithDict dict) exprs)
+
+        ParenthExpr exprs ->
+            ParenthExpr (List.map (expandMacroWithDict dict) exprs)
+
+        FCall name args ->
+            FCall name (List.map (expandMacroWithDict dict) args)
+
+        Expr exprs ->
+            Expr (List.map (expandMacroWithDict dict) exprs)
+
+        Text str ->
+            Text str
+
+        -- Simple cases that don't contain sub-expressions
+        AlphaNum str ->
+            AlphaNum str
+
+        F0 str ->
+            F0 str
+
+        Param n ->
+            Param n
+
+        WS ->
+            WS
+
+        MathSpace ->
+            MathSpace
+
+        MathSmallSpace ->
+            MathSmallSpace
+
+        MathMediumSpace ->
+            MathMediumSpace
+
+        LeftMathBrace ->
+            LeftMathBrace
+
+        RightMathBrace ->
+            RightMathBrace
+
+        LeftParen ->
+            LeftParen
+
+        RightParen ->
+            RightParen
+
+        Comma ->
+            Comma
+
+        MathSymbols str ->
+            MathSymbols str
 
 
 {-|
@@ -353,8 +458,57 @@ replaceParam_ k expr target =
         Macro name exprs ->
             Macro name (List.map (replaceParam_ k expr) exprs)
 
-        _ ->
-            target
+        PArg exprs ->
+            PArg (List.map (replaceParam_ k expr) exprs)
+
+        ParenthExpr exprs ->
+            ParenthExpr (List.map (replaceParam_ k expr) exprs)
+
+        FCall name args ->
+            FCall name (List.map (replaceParam_ k expr) args)
+
+        Expr exprs ->
+            Expr (List.map (replaceParam_ k expr) exprs)
+
+        Text str ->
+            Text str
+
+        -- Simple cases that don't contain sub-expressions
+        AlphaNum str ->
+            AlphaNum str
+
+        F0 str ->
+            F0 str
+
+        WS ->
+            WS
+
+        MathSpace ->
+            MathSpace
+
+        MathSmallSpace ->
+            MathSmallSpace
+
+        MathMediumSpace ->
+            MathMediumSpace
+
+        LeftMathBrace ->
+            LeftMathBrace
+
+        RightMathBrace ->
+            RightMathBrace
+
+        LeftParen ->
+            LeftParen
+
+        RightParen ->
+            RightParen
+
+        Comma ->
+            Comma
+
+        MathSymbols str ->
+            MathSymbols str
 
 
 replaceParam : Int -> MathExpr -> List MathExpr -> List MathExpr
@@ -372,9 +526,324 @@ makeMacroDict str =
     str
         |> String.trim
         |> String.lines
-        |> List.map (parseNewCommand Dict.empty >> makeEntry)
-        |> Maybe.Extra.values
-        |> Dict.fromList
+        |> List.map String.trim
+        |> List.filter (not << String.isEmpty)
+        |> makeMacroDictFromMixedLines
+
+
+-- Process lines that can be either format
+makeMacroDictFromMixedLines : List String -> Dict String MacroBody
+makeMacroDictFromMixedLines lines =
+    List.foldl addMixedFormatMacro Dict.empty lines
+
+
+-- Add a macro in either format
+addMixedFormatMacro : String -> Dict String MacroBody -> Dict String MacroBody
+addMixedFormatMacro line dict =
+    let
+        knownMacros = Dict.keys dict
+    in
+    if String.startsWith "\\newcommand" line then
+        -- Traditional format
+        case parseNewCommand Dict.empty line |> makeEntry of
+            Just ( name, body ) ->
+                Dict.insert name body dict
+            
+            Nothing ->
+                dict
+    else if String.contains ":" line then
+        -- Simple format
+        case parseSimpleMacroWithContext knownMacros line of
+            Just ( name, body ) ->
+                Dict.insert name body dict
+            
+            Nothing ->
+                dict
+    else
+        -- Skip unrecognized lines
+        dict
+
+
+-- Parse a simplified macro line like "set: \{ #1 \}"
+parseSimpleMacro : String -> Maybe ( String, MacroBody )
+parseSimpleMacro line =
+    parseSimpleMacroWithContext [] line
+
+
+-- Parse with context of known macro names
+parseSimpleMacroWithContext : List String -> String -> Maybe ( String, MacroBody )
+parseSimpleMacroWithContext knownMacros line =
+    case String.split ":" line of
+        [ name, body ] ->
+            let
+                trimmedName = String.trim name
+                trimmedBody = String.trim body
+                -- Process body with knowledge of what macros exist
+                processedBody = processSimpleMacroBodyWithContext knownMacros trimmedBody
+                -- Convert the simplified syntax to standard newcommand format
+                newCommandStr = "\\newcommand{\\" ++ trimmedName ++ "}{" ++ processedBody ++ "}"
+            in
+            parseNewCommand Dict.empty newCommandStr
+                |> makeEntry
+
+        _ ->
+            Nothing
+
+
+-- Process the body of a simple macro to handle various shortcuts
+processSimpleMacroBody : String -> String
+processSimpleMacroBody body =
+    processSimpleMacroBodyWithContext [] body
+
+
+-- Process with knowledge of existing macros
+processSimpleMacroBodyWithContext : List String -> String -> String
+processSimpleMacroBodyWithContext knownMacros body =
+    -- Parse the body to identify and process tokens
+    body
+        |> tokenizeSimpleMacroBody
+        |> processTokensWithLookahead knownMacros
+        |> List.map tokenToString
+        |> String.concat
+
+
+-- Token types for simple macro parsing
+type SimpleToken
+    = SimpleWord String
+    | SimpleBackslash
+    | SimpleSpace String
+    | SimpleSymbol String
+    | SimpleBrace String String  -- open/close brace with content
+    | SimpleParam Int
+
+
+-- Tokenize the macro body into recognizable parts
+tokenizeSimpleMacroBody : String -> List SimpleToken
+tokenizeSimpleMacroBody body =
+    tokenizeHelper (String.toList body) []
+        |> List.reverse
+
+
+tokenizeHelper : List Char -> List SimpleToken -> List SimpleToken
+tokenizeHelper chars acc =
+    case chars of
+        [] ->
+            acc
+
+        '\\' :: rest ->
+            tokenizeHelper rest (SimpleBackslash :: acc)
+
+        '#' :: rest ->
+            -- Parse parameter number
+            case takeDigits rest of
+                ( digits, remaining ) ->
+                    case String.toInt (String.fromList digits) of
+                        Just n ->
+                            tokenizeHelper remaining (SimpleParam n :: acc)
+                        Nothing ->
+                            tokenizeHelper rest (SimpleSymbol "#" :: acc)
+
+        '{' :: rest ->
+            -- Collect content until matching '}'
+            case collectUntilCloseBrace rest 1 [] of
+                ( content, remaining ) ->
+                    tokenizeHelper remaining (SimpleBrace "{" (String.fromList content) :: acc)
+
+        c :: rest ->
+            if Char.isAlpha c then
+                -- Collect alphabetic word
+                case takeAlphas (c :: rest) of
+                    ( word, remaining ) ->
+                        tokenizeHelper remaining (SimpleWord (String.fromList word) :: acc)
+            else if c == ' ' || c == '\t' || c == '\n' then
+                -- Collect whitespace
+                case takeSpaces (c :: rest) of
+                    ( spaces, remaining ) ->
+                        tokenizeHelper remaining (SimpleSpace (String.fromList spaces) :: acc)
+            else
+                -- Single symbol
+                tokenizeHelper rest (SimpleSymbol (String.fromChar c) :: acc)
+
+
+-- Helper to take digits
+takeDigits : List Char -> ( List Char, List Char )
+takeDigits chars =
+    case chars of
+        [] ->
+            ( [], [] )
+        
+        c :: rest ->
+            if Char.isDigit c then
+                let
+                    ( digits, remaining ) = takeDigits rest
+                in
+                ( c :: digits, remaining )
+            else
+                ( [], chars )
+
+
+-- Helper to take alphabetic characters
+takeAlphas : List Char -> ( List Char, List Char )
+takeAlphas chars =
+    case chars of
+        [] ->
+            ( [], [] )
+        
+        c :: rest ->
+            if Char.isAlpha c then
+                let
+                    ( alphas, remaining ) = takeAlphas rest
+                in
+                ( c :: alphas, remaining )
+            else
+                ( [], chars )
+
+
+-- Helper to take spaces
+takeSpaces : List Char -> ( List Char, List Char )
+takeSpaces chars =
+    case chars of
+        [] ->
+            ( [], [] )
+        
+        c :: rest ->
+            if c == ' ' || c == '\t' || c == '\n' then
+                let
+                    ( spaces, remaining ) = takeSpaces rest
+                in
+                ( c :: spaces, remaining )
+            else
+                ( [], chars )
+
+
+-- Helper to collect content until closing brace
+collectUntilCloseBrace : List Char -> Int -> List Char -> ( List Char, List Char )
+collectUntilCloseBrace chars depth acc =
+    case chars of
+        [] ->
+            ( List.reverse acc, [] )
+        
+        '{' :: rest ->
+            collectUntilCloseBrace rest (depth + 1) ('{' :: acc)
+        
+        '}' :: rest ->
+            if depth == 1 then
+                ( List.reverse acc, rest )
+            else
+                collectUntilCloseBrace rest (depth - 1) ('}' :: acc)
+        
+        c :: rest ->
+            collectUntilCloseBrace rest depth (c :: acc)
+
+
+-- Process tokens with lookahead to make better decisions
+processTokensWithLookahead : List String -> List SimpleToken -> List SimpleToken
+processTokensWithLookahead knownMacros tokens =
+    case tokens of
+        [] ->
+            []
+        
+        (SimpleWord word1) :: (SimpleSpace space) :: (SimpleWord word2) :: rest ->
+            -- Check for "mathbb X" pattern
+            if word1 == "mathbb" && String.length word2 == 1 then
+                SimpleWord "\\mathbb" :: SimpleBrace "{" word2 :: processTokensWithLookahead knownMacros rest
+            else
+                SimpleWord word1 :: SimpleSpace space :: processTokensWithLookahead knownMacros ((SimpleWord word2) :: rest)
+        
+        (SimpleWord word) :: (SimpleSymbol "^") :: rest ->
+            -- Word followed by ^ - likely a macro reference
+            if List.member word knownMacros || List.member word ["reals", "nat", "space"] then
+                SimpleWord ("\\" ++ word) :: SimpleSymbol "^" :: processTokensWithLookahead knownMacros rest
+            else
+                SimpleWord word :: SimpleSymbol "^" :: processTokensWithLookahead knownMacros rest
+        
+        (SimpleWord word) :: (SimpleSymbol "(") :: rest ->
+            -- Word followed by ( - check if it's a function-like macro
+            if isKaTeX word && needsBraceConversion word then
+                -- For macros like frac, binom that need brace arguments
+                let
+                    (args, remaining) = extractParenArgs rest []
+                in
+                SimpleWord ("\\" ++ word) :: convertArgsToBraces args ++ processTokensWithLookahead knownMacros remaining
+            else if isKaTeX word then
+                SimpleWord ("\\" ++ word) :: SimpleSymbol "(" :: processTokensWithLookahead knownMacros rest
+            else if List.member word knownMacros then
+                SimpleWord ("\\" ++ word) :: SimpleSymbol "(" :: processTokensWithLookahead knownMacros rest
+            else
+                SimpleWord word :: SimpleSymbol "(" :: processTokensWithLookahead knownMacros rest
+        
+        (SimpleWord word) :: rest ->
+            -- Check if it's a known function or macro
+            if isKaTeX word || List.member word knownMacros then
+                SimpleWord ("\\" ++ word) :: processTokensWithLookahead knownMacros rest
+            else
+                SimpleWord word :: processTokensWithLookahead knownMacros rest
+        
+        token :: rest ->
+            token :: processTokensWithLookahead knownMacros rest
+
+
+-- Check if a KaTeX command needs brace conversion
+needsBraceConversion : String -> Bool
+needsBraceConversion cmd =
+    -- Commands that take multiple arguments in braces
+    List.member cmd ["frac", "binom", "overset", "underset", "stackrel", "tfrac", "dfrac", "cfrac", "dbinom", "tbinom"]
+
+
+-- Extract arguments from parentheses and remaining tokens
+extractParenArgs : List SimpleToken -> List SimpleToken -> (List (List SimpleToken), List SimpleToken)
+extractParenArgs tokens currentArg =
+    case tokens of
+        [] ->
+            if List.isEmpty currentArg then
+                ([], [])
+            else
+                ([List.reverse currentArg], [])
+        
+        (SimpleSymbol ")") :: rest ->
+            if List.isEmpty currentArg then
+                ([], rest)
+            else
+                ([List.reverse currentArg], rest)
+        
+        (SimpleSymbol ",") :: rest ->
+            let
+                (args, remaining) = extractParenArgs rest []
+            in
+            (List.reverse currentArg :: args, remaining)
+        
+        token :: rest ->
+            extractParenArgs rest (token :: currentArg)
+
+
+-- Convert comma-separated args to brace notation
+convertArgsToBraces : List (List SimpleToken) -> List SimpleToken
+convertArgsToBraces args =
+    args
+        |> List.map (\arg -> SimpleBrace "{" (arg |> List.map tokenToString |> String.concat))
+
+
+-- Convert token back to string
+tokenToString : SimpleToken -> String
+tokenToString token =
+    case token of
+        SimpleWord word ->
+            word
+        
+        SimpleBackslash ->
+            "\\"
+        
+        SimpleSpace s ->
+            s
+        
+        SimpleSymbol s ->
+            s
+        
+        SimpleBrace open content ->
+            open ++ content ++ "}"
+        
+        SimpleParam n ->
+            "#" ++ String.fromInt n
 
 
 makeMacroDictFromLines : List String -> Dict String MacroBody
@@ -385,7 +854,29 @@ makeMacroDictFromLines lines =
         |> Dict.fromList
 
 
+-- Make a macro dictionary from simplified syntax lines
+makeMacroDictFromSimpleLines : List String -> Dict String MacroBody
+makeMacroDictFromSimpleLines lines =
+    -- Build the dictionary progressively so later macros can reference earlier ones
+    List.foldl addSimpleMacro Dict.empty lines
 
+
+-- Add a single macro to the dictionary with context
+addSimpleMacro : String -> Dict String MacroBody -> Dict String MacroBody
+addSimpleMacro line dict =
+    let
+        knownMacros = Dict.keys dict
+    in
+    case parseSimpleMacroWithContext knownMacros line of
+        Just ( name, body ) ->
+            Dict.insert name body dict
+        
+        Nothing ->
+            dict
+
+
+
+-- CONVERSIONS
 -- Convert local MacroBody to Generic.MathMacro.MacroBody
 
 
@@ -470,6 +961,10 @@ convertToGenericMathExpr expr =
         Expr exprs ->
             Generic.MathMacro.Expr (List.map convertToGenericMathExpr exprs)
 
+        Text str ->
+            -- Generic.MathMacro doesn't have Text, so convert to MathSymbols
+            Generic.MathMacro.MathSymbols str
+
 
 
 -- Convert local Deco to Generic.MathMacro.Deco
@@ -487,13 +982,56 @@ convertToGenericDeco deco =
 
 
 -- Convert a dictionary of local MacroBody to MathMacroDict
+-- Helper to find the maximum parameter number in a macro body
+
+
+findMaxParam : List MathExpr -> Int
+findMaxParam exprs =
+    case exprs of
+        [] ->
+            0
+
+        (Param n) :: rest ->
+            max n (findMaxParam rest)
+
+        (Arg innerExprs) :: rest ->
+            max (findMaxParam innerExprs) (findMaxParam rest)
+
+        (PArg innerExprs) :: rest ->
+            max (findMaxParam innerExprs) (findMaxParam rest)
+
+        (ParenthExpr innerExprs) :: rest ->
+            max (findMaxParam innerExprs) (findMaxParam rest)
+
+        (Macro _ args) :: rest ->
+            max (findMaxParam args) (findMaxParam rest)
+
+        (FCall _ args) :: rest ->
+            max (findMaxParam args) (findMaxParam rest)
+
+        (Expr innerExprs) :: rest ->
+            max (findMaxParam innerExprs) (findMaxParam rest)
+
+        (Sub (DecoM expr)) :: rest ->
+            max (findMaxParam [ expr ]) (findMaxParam rest)
+
+        (Super (DecoM expr)) :: rest ->
+            max (findMaxParam [ expr ]) (findMaxParam rest)
+
+        _ :: rest ->
+            findMaxParam rest
 
 
 makeEntry : Result error NewCommand -> Maybe ( String, MacroBody )
 makeEntry newCommand_ =
     case newCommand_ of
-        Ok (NewCommand (F0 name) arity [ Arg body ]) ->
-            Just ( name, MacroBody arity body )
+        Ok (NewCommand (F0 name) _ [ Arg body ]) ->
+            -- Deduce arity from the highest parameter number in the body
+            let
+                deducedArity =
+                    findMaxParam body
+            in
+            Just ( name, MacroBody deducedArity body )
 
         _ ->
             Nothing
@@ -526,6 +1064,7 @@ type Problem
     | ExpectingBackslash
     | ExpectingNewCommand
     | ExpectingComma
+    | ExpectingQuote
 
 
 type alias MathExprParser a =
@@ -576,7 +1115,8 @@ functionArgListParser userMacroDict =
         -- Parse content that can appear in an argument (excluding commas)
         argContentParser =
             oneOf
-                [ mathMediumSpaceParser
+                [ textParser -- Parse quoted text
+                , mathMediumSpaceParser
                 , mathSmallSpaceParser
                 , mathSpaceParser
                 , leftBraceParser
@@ -668,6 +1208,18 @@ sepByCommaHelp itemParser revItems =
 
 
 
+-- Parser for quoted text
+
+
+textParser : PA.Parser Context Problem MathExpr
+textParser =
+    succeed Text
+        |. symbol (Token "\"" ExpectingQuote)
+        |= getChompedString (chompWhile (\c -> c /= '"'))
+        |. symbol (Token "\"" ExpectingQuote)
+
+
+
 -- Parser that looks for function calls with lookahead
 
 
@@ -703,7 +1255,8 @@ alphaNumWithLookaheadParser userMacroDict =
 mathExprParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 mathExprParser userMacroDict =
     oneOf
-        [ mathMediumSpaceParser
+        [ textParser -- Parse quoted text first
+        , mathMediumSpaceParser
         , mathSmallSpaceParser
         , mathSpaceParser
         , leftBraceParser
@@ -725,8 +1278,8 @@ mathExprParser userMacroDict =
 mathSymbolsParser =
     (succeed String.slice
         |= getOffset
-        |. chompIf (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}', '(', ')', ',' ])) ExpectingNotAlpha
-        |. chompWhile (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}', '(', ')', ',' ]))
+        |. chompIf (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}', '(', ')', ',', '"' ])) ExpectingNotAlpha
+        |. chompWhile (\c -> not (Char.isAlpha c) && not (List.member c [ '_', '^', '#', '\\', '{', '}', '(', ')', ',', '"' ]))
         |= getOffset
         |= getSource
     )
@@ -803,6 +1356,16 @@ newCommandParser1 userMacroDict =
 
 newCommandParser2 : MathMacroDict -> PA.Parser Context Problem NewCommand
 newCommandParser2 userMacroDict =
+    succeed (\name body -> NewCommand name 0 body)
+        |. symbol (Token "\\newcommand" ExpectingNewCommand)
+        |. symbol (Token "{" ExpectingLeftBrace)
+        |= f0Parser
+        |. symbol (Token "}" ExpectingRightBrace)
+        |= many (mathExprParser userMacroDict)
+
+
+newCommandParser3 : MathMacroDict -> PA.Parser Context Problem NewCommand
+newCommandParser3 userMacroDict =
     succeed (\name body -> NewCommand name 0 body)
         |. symbol (Token "\\newcommand" ExpectingNewCommand)
         |. symbol (Token "{" ExpectingLeftBrace)
@@ -911,6 +1474,16 @@ printList exprs =
     List.map print exprs |> String.join ""
 
 
+printResult : Result (List (DeadEnd Context Problem)) (List MathExpr) -> String
+printResult result =
+    case result of
+        Ok exprs ->
+            printList exprs
+
+        Err errors ->
+            "Error!"
+
+
 print : MathExpr -> String
 print expr =
     case expr of
@@ -965,10 +1538,6 @@ print expr =
             " "
 
         Macro name body ->
-            let
-                _ =
-                    Debug.log "BODY" body
-            in
             case body of
                 [ PArg exprs ] ->
                     -- Single argument in parentheses: convert to braces
@@ -1000,6 +1569,9 @@ print expr =
 
         ParenthExpr exprs ->
             encloseP (printList exprs)
+
+        Text str ->
+            "\\text{" ++ str ++ "}"
 
 
 printDeco : Deco -> String

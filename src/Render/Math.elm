@@ -209,15 +209,10 @@ aligned count acc settings attrs block =
     in
     Element.column ([ Element.width (Element.px settings.width) ] ++ attrs ++ Render.Sync.attributes settings block)
         [ Element.row
+            -- [ Element.width (Element.px settings.width) ]
             [ Element.width (Element.px settings.width) ]
             [ Element.el
                 (Element.centerX :: highlightMath settings block)
-                (mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count str block.meta.id DisplayMathMode content)
-            ]
-        , Element.row
-            (Element.width (Element.px settings.width) :: Render.Sync.attributes settings block)
-            [ Element.el
-                (Element.centerX :: Render.Sync.attributes settings block)
                 (mathText (Render.ThemeHelpers.themeAsStringFromSettings settings) count str block.meta.id DisplayMathMode content)
             ]
         ]
@@ -382,7 +377,7 @@ mathText theme generation width id displayMode content =
         , HA.style "padding-bottom" "0px"
         , HA.id id
         ]
-        [ ( String.fromInt generation, mathText_ theme displayMode (eraseLabeMacro content |> translateMathText) )
+        [ ( String.fromInt generation, mathText_ theme displayMode (eraseLabeMacro content) )
         ]
         |> Element.html
 

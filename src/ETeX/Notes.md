@@ -152,7 +152,8 @@ EOF
 
 1. **Macros**:  `\\sin{\\pi}` -> `Ok [Macro "sin" [Arg [Macro "pi" []]]]` -> Ok "\\sin{\\pi}"
 2. **Parenthesized macros**: `parse "sin(x)"` → `Ok [Macro "sin" [PArg [AlphaNum "x"]]]` -> Ok "\\sin{x}"
-1. **Function calls**: `parse "f(x)"` → `Ok [FCall "f" [PArg [AlphaNum "x"]]]`
+3. **Function calls**: `parse "f(x)"` → `Ok [FCall "f" [PArg [AlphaNum "x"]]]`
+4. **??**: With `\newcommand{\space}{\reals^{#1}}` I get 
 
 3. **Parenthetical expressions**: `parse "(x + y)"` → `Ok [ParenthExpr [AlphaNum "x", MathSymbols " + ", AlphaNum "y"]]`
 4. **Mixed expressions**: `parse "2(x + y)f(z)"` → `Ok [MathSymbols "2", ParenthExpr [AlphaNum "x", MathSymbols " + ", AlphaNum "y"], FCall "f" [PArg [AlphaNum "z"]]]`
@@ -241,3 +242,189 @@ INCOMPLETE:
 
 - expandMacroWithDict (line 209)
 - replaceParam: (line 320)
+Example of a test:
+
+```bash
+elm repl <<'EOF'                                                                                                                                                                                                                                                                                            │
+│   import ETeX.Transform exposing (..)                                                                                                                                                                                                                                                                         │
+│   evalStr testMacroDict "set(1,2,3)"                                                                                                                                                                                                                                                                          │
+│   EOF 
+````
+
+```bash
+elm repl <<'EOF'
+import ETeX.Transform exposing (..)
+evalStr testMacroDict "set(x in R, x > 0)"
+EOF  
+```
+
+## Macro Arity Handling
+
+The parser now correctly handles macros with different arities when processing comma-separated arguments in parentheses:
+
+### Single-Argument Macros (Arity 1)
+For macros with arity 1, all content between parentheses (including commas) is treated as a single argument:
+- **`set(1,2,3)`** → `\{ {1,2,3} \}` - The entire "1,2,3" is kept together as one argument
+- **`set(x in R, x > 0)`** → `\{ {x \in R, x > 0} \}` - Complex expressions with commas work correctly
+- **`space(n+1)`** → `\mathbb{R}^{{n+1}}` - Expressions are passed as a single unit
+
+### Multi-Argument Macros (Arity 2+)
+For macros with arity 2 or more, content is parsed as comma-separated arguments:
+- **`sett(x in reals, x > 0)`** → `\{\ {x \in \mathbb{R}} \ | \ { x > 0}\ \}` - Two distinct arguments separated by comma
+- **`frac(dp,dt)`** → `\frac{dp}{dt}` - Each argument gets its own set of braces
+
+### Implementation Details
+The `expandMacroWithDict` function checks the macro's arity:
+- If arity is 1: Uses `flattenForSingleArg` to combine all PArg contents and commas into a single Arg
+- If arity is 2+: Uses `extractMacroArgs` to extract each PArg as a separate Arg, skipping Comma tokens
+
+This ensures that macros behave correctly based on their defined parameter count, matching standard LaTeX macro behavior.
+
+## Automatic Arity Deduction
+
+The parser now automatically deduces macro arity from the macro body by finding the highest parameter number:
+- If a macro body contains `#1`, the arity is at least 1
+- If it contains `#2`, the arity is at least 2
+- And so on...
+
+This makes the system more robust as it doesn't rely on the `[n]` syntax being parsed correctly. The `findMaxParam` function recursively searches through all MathExpr nodes to find parameter references.
+
+Examples:
+- `\newcommand{\nat}{\mathbb{N}}` → arity 0 (no parameters)
+- `\newcommand{\set}{\{ #1 \}}` → arity 1 (contains #1)
+- `\newcommand{\sett}{\{\ #1 \ | \ #2\ \}}` → arity 2 (contains #1 and #2)
+
+This deduction happens in the `makeEntry` function when building the macro dictionary, ensuring that all macros have the correct arity regardless of how they were defined.
+
+## Simplified Macro Syntax
+
+The parser now supports a simplified macro syntax that's much cleaner than the verbose `\newcommand` format:
+
+```
+nat:      mathbb N
+reals:    mathbb R
+space:    reals^{#1}
+set:      \{ #1 \}
+sett:     \{\ #1 \ | \ #2 \ \}
+```
+
+### Usage
+
+```elm
+import ETeX.Transform exposing (..)
+
+-- Define macros using simple syntax
+lines = 
+    [ "nat:      mathbb N"
+    , "reals:    mathbb R"
+    , "space:    reals^{#1}"
+    , "set:      \\{ #1 \\}"
+    , "sett:     \\{\\ #1 \\ | \\ #2 \\ \\}"
+    ]
+
+-- Create dictionary
+dict = makeMacroDictFromSimpleLines lines
+
+-- Use the macros
+evalStr dict "set(1,2,3)"         -- → "\{ {1,2,3} \}"
+evalStr dict "sett(a,b)"          -- → "\{\ {a} \ | \ {b} \ \}"
+evalStr dict "space(n)"           -- → "\mathbb{R}^{{n}}"
+```
+
+### Features
+
+1. **Clean syntax**: Just `name: body` instead of `\newcommand{\name}{body}`
+2. **Auto-conversion**: Common patterns like `mathbb N` are automatically converted to `\mathbb{N}`
+3. **Macro references**: Macros can reference other macros (e.g., `space` uses `reals`)
+4. **Automatic arity**: The arity is still deduced from parameter usage in the body
+
+### Implementation
+
+The `parseSimpleMacro` function:
+1. Splits the line on `:`
+2. Processes the body to handle common shortcuts (like `mathbb N` → `\mathbb{N}`)
+3. Converts to standard `\newcommand` format
+4. Uses the existing parser infrastructure
+
+This makes it much easier to define mathematical macros in documents or configuration files.
+
+### Robust Parsing Implementation
+
+The parser now uses a tokenization approach with lookahead to make intelligent decisions:
+
+1. **Tokenization**: The body is first tokenized into meaningful units:
+   - `SimpleWord`: Alphabetic sequences
+   - `SimpleSpace`: Whitespace
+   - `SimpleSymbol`: Single symbols
+   - `SimpleBrace`: Brace-enclosed content
+   - `SimpleParam`: Parameter references like `#1`
+   - `SimpleBackslash`: Literal backslashes
+
+2. **Context-Aware Processing**: The parser maintains a list of known macro names and uses lookahead to identify patterns:
+   - `mathbb N` → `\mathbb{N}` (recognizes the mathbb pattern)
+   - `reals^{#1}` → `\reals^{#1}` (when `reals` is a known macro)
+   - `sin(x)` → `\sin(x)` (recognizes KaTeX commands)
+
+3. **Progressive Building**: Macros are added to the dictionary one by one, so later macros can reference earlier ones:
+   ```elm
+   lines = [ "nat: mathbb N", "reals: mathbb R", "space: reals^{#1}" ]
+   -- When parsing "space", it knows "reals" is a macro
+   ```
+
+This approach is much more reliable than simple string replacement and correctly handles complex macro bodies with mixed content.
+
+## Mixed Format Support
+
+The `makeMacroDict` function now accepts both traditional `\newcommand` format and the simplified `name: body` format in the same input:
+
+```elm
+mixedMacros = """
+\\newcommand{\\nat}{\\mathbb{N}}
+reals: mathbb R
+\\newcommand{\\set}[1]{\\{ #1 \\}}
+sett: \\{ #1 \\ | \\ #2 \\ \\}
+space: reals^{#1}
+"""
+
+dict = makeMacroDict mixedMacros
+```
+
+### How It Works
+
+1. **Format Detection**: Each line is checked to determine its format:
+   - Lines starting with `\newcommand` → traditional format
+   - Lines containing `:` → simplified format
+   - Other lines are skipped (allows comments and blank lines)
+
+2. **Progressive Building**: The dictionary is built line by line, so later macros can reference earlier ones regardless of format
+
+3. **Consistent Parsing**: Both formats ultimately use the same parsing infrastructure and arity deduction
+
+This allows gradual migration from old to new format, or mixing formats based on preference. The simplified format is great for quick definitions, while the traditional format might be preferred for complex macros or when copying from existing LaTeX documents.
+
+## Function-Style to Brace Conversion for Multi-Argument KaTeX Macros
+
+The simple macro syntax now properly handles KaTeX commands that require multiple arguments in braces:
+
+```elm
+-- Define a macro using frac with parentheses
+macros = makeMacroDict "pder: frac(partial #1, partial #2)"
+
+-- Use it
+evalStr macros "pder(S,E)"
+-- Result: "\frac{\partial {S}}{ \partial {E}}"
+```
+
+### How It Works
+
+When processing simple macro bodies, the parser detects KaTeX commands that need brace conversion:
+- `frac(a,b)` → `\frac{a}{b}`
+- `binom(n,k)` → `\binom{n}{k}`
+- `overset(a,b)` → `\overset{a}{b}`
+
+The following commands are automatically converted:
+- `frac`, `tfrac`, `dfrac`, `cfrac`
+- `binom`, `dbinom`, `tbinom`
+- `overset`, `underset`, `stackrel`
+
+This allows natural function-style syntax in macro definitions while producing correct LaTeX output.

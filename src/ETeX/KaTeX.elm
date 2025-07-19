@@ -18,6 +18,8 @@ isKaTeX command =
 
     513 commands
 
+    TODO: ldots, ellipsis, and other common symbols that are not included.
+
 -}
 katexCommands : Set String
 katexCommands =
