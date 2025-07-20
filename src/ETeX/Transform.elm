@@ -13,9 +13,11 @@ module ETeX.Transform exposing
     , parseSimpleMacro
     , printList
     , printResult
+    , processSimpleMacroBody
     , resolveSymbolName
     , resolveSymbolNames
     , testMacroDict
+    , toLaTeXNewCommands
     , transformETeX
     )
 
@@ -829,8 +831,11 @@ processTokensWithLookahead knownMacros tokens =
                 let
                     ( args, remaining ) =
                         extractParenArgs rest []
+                    
+                    processedArgs =
+                        args |> List.map (processTokensWithLookahead knownMacros)
                 in
-                SimpleWord ("\\" ++ word) :: convertArgsToBraces args ++ processTokensWithLookahead knownMacros remaining
+                SimpleWord ("\\" ++ word) :: convertArgsToBraces processedArgs ++ processTokensWithLookahead knownMacros remaining
 
             else if isKaTeX word then
                 SimpleWord ("\\" ++ word) :: SimpleSymbol "(" :: processTokensWithLookahead knownMacros rest
@@ -929,6 +934,37 @@ tokenToString token =
 
         SimpleParam n ->
             "#" ++ String.fromInt n
+
+
+-- Convert simple macro syntax to LaTeX newcommands
+toLaTeXNewCommands : String -> String
+toLaTeXNewCommands input =
+    input
+        |> String.trim
+        |> String.lines
+        |> List.map String.trim
+        |> List.filter (not << String.isEmpty)
+        |> List.map simpleMacroToLaTeX
+        |> List.filter ((/=) "")
+        |> String.join "\n"
+
+
+-- Convert a single simple macro line to LaTeX newcommand
+simpleMacroToLaTeX : String -> String
+simpleMacroToLaTeX line =
+    if String.contains ":" line then
+        case parseSimpleMacroWithContext [] line of
+            Just ( name, MacroBody arity _ ) ->
+                let
+                    processedBody = processSimpleMacroBody (String.split ":" line |> List.drop 1 |> String.join ":" |> String.trim)
+                    arityStr = if arity > 0 then "[" ++ String.fromInt arity ++ "]" else ""
+                in
+                "\\newcommand{\\" ++ name ++ "}" ++ arityStr ++ "{" ++ processedBody ++ "}"
+            
+            Nothing ->
+                ""
+    else
+        ""
 
 
 makeMacroDictFromLines : List String -> Dict String MacroBody
