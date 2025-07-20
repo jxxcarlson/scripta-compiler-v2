@@ -7,6 +7,7 @@ module Render.Export.LaTeX exposing (export, exportExpr, rawExport)
 -}
 
 import Dict exposing (Dict)
+import ETeX.Transform
 import Either exposing (Either(..))
 import Generic.ASTTools as ASTTools
 import Generic.BlockUtilities
@@ -169,22 +170,22 @@ shiftSection delta block =
         block
 
 
-exportTree : RenderSettings -> Tree ExpressionBlock -> String
-exportTree settings tree =
+exportTree : ETeX.Transform.MathMacroDict -> RenderSettings -> Tree ExpressionBlock -> String
+exportTree mathMacroDict settings tree =
     case Tree.children tree of
         [] ->
-            exportBlock settings (Tree.value tree)
+            exportBlock mathMacroDict settings (Tree.value tree)
 
         children ->
             let
                 renderedChildren : List String
                 renderedChildren =
-                    List.map (exportTree settings) children
+                    List.map (exportTree mathMacroDict settings) children
                         |> List.map String.lines
                         |> List.concat
 
                 root =
-                    exportBlock settings (Tree.value tree) |> String.lines
+                    exportBlock mathMacroDict settings (Tree.value tree) |> String.lines
             in
             case List.Extra.unconsLast root of
                 Nothing ->
@@ -207,12 +208,20 @@ exportTree settings tree =
 {-| -}
 rawExport : RenderSettings -> List (Tree ExpressionBlock) -> String
 rawExport settings ast =
+    let
+        -- mathMacroDict : Dict String ETeX.Transform.MacroBody
+        mathMacroDict =
+            ast
+                |> ASTTools.getVerbatimBlockValue "mathmacros"
+                |> ETeX.Transform.makeMacroDict
+                |> Debug.log "rawExport,  mathMacroDict"
+    in
     ast
         |> ASTTools.filterForestOnLabelNames (\name -> not (name == Just "runninghead"))
         |> Generic.Forest.map Generic.BlockUtilities.condenseUrls
         |> encloseLists
         |> Generic.Forest.map (counterValue ast |> oneOrTwo |> shiftSection)
-        |> List.map (exportTree settings)
+        |> List.map (exportTree mathMacroDict settings)
         |> String.join "\n\n"
 
 
@@ -403,8 +412,8 @@ nextState tree state =
             { state | output = tree :: state.output, input = List.drop 1 state.input }
 
 
-exportBlock : RenderSettings -> ExpressionBlock -> String
-exportBlock settings block =
+exportBlock : ETeX.Transform.MathMacroDict -> RenderSettings -> ExpressionBlock -> String
+exportBlock mathMacroDict settings block =
     case block.heading of
         Paragraph ->
             case block.body of
@@ -412,7 +421,7 @@ exportBlock settings block =
                     mapChars2 str
 
                 Right exprs_ ->
-                    exportExprList settings exprs_
+                    exportExprList mathMacroDict settings exprs_
 
         Ordinary "table" ->
             case block.body of
@@ -438,13 +447,13 @@ exportBlock settings block =
 
                                 stringTable : List (List String)
                                 stringTable =
-                                    cellTable |> List.map (List.map (exportCell settings))
+                                    cellTable |> List.map (List.map exportCell)
 
-                                exportCell : RenderSettings -> Expression -> String
-                                exportCell settings_ expr =
+                                exportCell : Expression -> String
+                                exportCell expr =
                                     case expr of
                                         Fun "cell" exprs2 _ ->
-                                            exportExprList settings_ exprs2
+                                            exportExprList mathMacroDict settings exprs2
 
                                         _ ->
                                             "error constructing table cell"
@@ -480,10 +489,10 @@ exportBlock settings block =
                 Right exprs_ ->
                     case Dict.get name blockDict of
                         Just f ->
-                            f settings block.args (exportExprList settings exprs_)
+                            f settings block.args (exportExprList mathMacroDict settings exprs_)
 
                         Nothing ->
-                            environment name (exportExprList settings exprs_)
+                            environment name (exportExprList mathMacroDict settings exprs_)
 
         Verbatim name ->
             case block.body of
@@ -497,6 +506,7 @@ exportBlock settings block =
                                         |> String.lines
                                         |> List.filter (\line -> String.left 2 line /= "$$")
                                         |> String.join "\n"
+                                        |> ETeX.Transform.transformETeX mathMacroDict
                                         |> MicroLaTeX.Util.transformLabel
                             in
                             -- TODO: This should be fixed upstream
@@ -534,11 +544,11 @@ exportBlock settings block =
                         "equation" ->
                             -- TODO: there should be a trailing "$$"
                             -- TODO: equation numbers and label
-                            [ "\\begin{equation}", str |> Debug.log "@@EQUATION" |> MicroLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
+                            [ "\\begin{equation}", str |> ETeX.Transform.transformETeX mathMacroDict |> MicroLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
 
                         "aligned" ->
                             -- TODO: equation numbers and label
-                            [ "\\begin{align}", str |> MicroLaTeX.Util.transformLabel, "\\end{align}" ] |> String.join "\n"
+                            [ "\\begin{align}", str |> ETeX.Transform.transformETeX mathMacroDict |> MicroLaTeX.Util.transformLabel, "\\end{align}" ] |> String.join "\n"
 
                         "code" ->
                             str |> fixChars |> (\s -> "\\begin{verbatim}\n" ++ s ++ "\n\\end{verbatim}")
@@ -556,7 +566,7 @@ exportBlock settings block =
                             ""
 
                         "mathmacros" ->
-                            str
+                            str |> ETeX.Transform.toLaTeXNewCommands
 
                         "texComment" ->
                             str |> String.lines |> texComment
@@ -655,9 +665,10 @@ fixChars str =
     str |> String.replace "{" "\\{" |> String.replace "}" "\\}"
 
 
-renderDefs settings exprs =
+renderDefs : ETeX.Transform.MathMacroDict -> RenderSettings -> List Expression -> String
+renderDefs mathMacroDict settings exprs =
     "%% Macro definitions from Markup text:\n"
-        ++ exportExprList settings exprs
+        ++ exportExprList mathMacroDict settings exprs
 
 
 mapChars1 : String -> String
@@ -1003,20 +1014,20 @@ macro1 name arg =
                 "\\" ++ fName ++ "{" ++ mapChars2 (String.trimLeft arg) ++ "}"
 
 
-exportExprList : RenderSettings -> List Expression -> String
-exportExprList settings exprs =
-    List.map (exportExpr settings) exprs |> String.join "" |> mapChars1
+exportExprList : ETeX.Transform.MathMacroDict -> RenderSettings -> List Expression -> String
+exportExprList mathMacroDict settings exprs =
+    List.map (exportExpr mathMacroDict settings) exprs |> String.join "" |> mapChars1
 
 
 {-| -}
-exportExpr : RenderSettings -> Expression -> String
-exportExpr settings expr =
+exportExpr : ETeX.Transform.MathMacroDict -> RenderSettings -> Expression -> String
+exportExpr mathMacroDict settings expr =
     case expr of
         Fun name exps_ _ ->
             if name == "lambda" then
                 case Generic.TextMacro.extract expr of
                     Just lambda ->
-                        Generic.TextMacro.toString (exportExpr settings) lambda
+                        Generic.TextMacro.toString (exportExpr mathMacroDict settings) lambda
 
                     Nothing ->
                         "Error extracting lambda"
@@ -1027,13 +1038,13 @@ exportExpr settings expr =
                         f settings exps_
 
                     Nothing ->
-                        "\\" ++ unalias name ++ (List.map (encloseWithBraces << exportExpr settings) exps_ |> String.join "")
+                        "\\" ++ unalias name ++ (List.map (encloseWithBraces << exportExpr mathMacroDict settings) exps_ |> String.join "")
 
         Text str _ ->
             mapChars2 str
 
         VFun name body _ ->
-            renderVerbatim name body
+            renderVerbatim mathMacroDict name body
 
         ExprList exprList _ ->
             "[ExprList]"
@@ -1065,15 +1076,15 @@ encloseWithBraces str_ =
     "{" ++ String.trim str_ ++ "}"
 
 
-renderVerbatim : String -> String -> String
-renderVerbatim name body =
+renderVerbatim : ETeX.Transform.MathMacroDict -> String -> String -> String
+renderVerbatim mathMacroDict name body =
     case Dict.get name verbatimExprDict of
         Nothing ->
             name ++ "(" ++ body ++ ") — unimplemented "
 
         Just f ->
             if List.member name [ "equation", "aligned", "math" ] then
-                body |> MicroLaTeX.Util.transformLabel |> f
+                body |> MicroLaTeX.Util.transformLabel |> ETeX.Transform.transformETeX mathMacroDict |> f
 
             else
                 body |> fixChars |> MicroLaTeX.Util.transformLabel |> f
