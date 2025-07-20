@@ -534,7 +534,7 @@ exportBlock settings block =
                         "equation" ->
                             -- TODO: there should be a trailing "$$"
                             -- TODO: equation numbers and label
-                            [ "\\begin{equation}", str |> MicroLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
+                            [ "\\begin{equation}", str |> Debug.log "@@EQUATION" |> MicroLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
 
                         "aligned" ->
                             -- TODO: equation numbers and label

@@ -116,7 +116,7 @@ markupDict =
         , ( "underscore", \g acc s attr exprList -> underscore g acc s attr exprList )
         , ( "ref", \_ acc _ attr exprList -> ref acc exprList )
         , ( "reflink", \_ acc _ attr exprList -> reflink acc exprList )
-        , ( "eqref", \_ acc _ attr exprList -> eqref acc exprList )
+        , ( "eqref", \_ acc s attr exprList -> eqref acc s exprList )
         , ( "underline", \g acc s attr exprList -> underline g acc s attr exprList )
         , ( "u", \g acc s attr exprList -> underline g acc s attr exprList )
         , ( "hide", \_ _ _ _ _ -> Element.none )
@@ -896,8 +896,8 @@ reflink acc exprList =
         }
 
 
-eqref : Accumulator -> List Expression -> Element MarkupMsg
-eqref acc exprList =
+eqref : Accumulator -> RenderSettings -> List Expression -> Element MarkupMsg
+eqref acc settings exprList =
     let
         key =
             List.map ASTTools.getText exprList
@@ -916,7 +916,7 @@ eqref acc exprList =
             ref_ |> Maybe.map .id |> Maybe.withDefault ""
     in
     Element.link
-        [ Font.color (Element.rgb 0 0 0.7)
+        [ Font.color settings.linkColor
         , Events.onClick (SelectId id)
 
         --, Events.onClick (HighlightId id)

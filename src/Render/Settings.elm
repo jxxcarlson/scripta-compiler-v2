@@ -113,7 +113,7 @@ lightTheme =
     , codeText = gray900
     , renderedBackground = indigo100
     , renderedText = gray900
-    , link = blue600
+    , link = blue500
     , highlight = transparentIndigo500
     }
 
