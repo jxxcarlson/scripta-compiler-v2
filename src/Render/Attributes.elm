@@ -21,6 +21,7 @@ import Generic.Language exposing (ExpressionBlock)
 import Render.BlockType as BlockType exposing (BlockType(..))
 import Render.Color
 import Render.Settings exposing (RenderSettings)
+import Render.Theme
 import Render.Utility
 
 
@@ -40,13 +41,13 @@ getBlockAttributes block settings =
             [ Render.Utility.idAttributeFromInt block.meta.lineNumber
             ]
     in
-    standardAttrs ++ getTypeSpecificAttributes blockType
+    standardAttrs ++ getTypeSpecificAttributes settings.theme blockType
 
 
 {-| Get attributes specific to a block type
 -}
-getTypeSpecificAttributes : BlockType -> List (Element.Attribute msg)
-getTypeSpecificAttributes blockType =
+getTypeSpecificAttributes : Render.Theme.Theme -> BlockType -> List (Element.Attribute msg)
+getTypeSpecificAttributes theme blockType =
     case blockType of
         TextBlock textType ->
             case textType of
@@ -71,7 +72,7 @@ getTypeSpecificAttributes blockType =
         ContainerBlock containerType ->
             case containerType of
                 BlockType.Box ->
-                    getBoxAttributes
+                    getBoxAttributes theme
 
                 _ ->
                     []
@@ -93,11 +94,11 @@ getItalicAttributes =
 
 {-| Get attributes for box blocks
 -}
-getBoxAttributes : List (Element.Attribute msg)
-getBoxAttributes =
+getBoxAttributes : Render.Theme.Theme -> List (Element.Attribute msg)
+getBoxAttributes theme =
     [ Element.spacing standardSpacing
     , Element.paddingXY standardLeftPadding standardLeftPadding
-    , Background.color Render.Color.boxBackground
+    , Background.color (Render.Color.boxBackground theme)
     ]
 
 

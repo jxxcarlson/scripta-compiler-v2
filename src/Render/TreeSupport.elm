@@ -32,7 +32,7 @@ renderAttributes settings block =
             Element.focused [] :: syncAttributes settings block
 
         Ordinary name ->
-            syncAttributes settings block ++ Element.focused [] :: Render.OrdinaryBlock.getAttributes name
+            syncAttributes settings block ++ Element.focused [] :: Render.OrdinaryBlock.getAttributes settings.theme name
 
         Verbatim _ ->
             Element.focused [] :: syncAttributes settings block

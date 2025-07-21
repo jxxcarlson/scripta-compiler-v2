@@ -1,14 +1,4 @@
-module Render.Color exposing 
-    ( blue
-    , lightBlue
-    , paleBlue
-    , paleGreen
-    , pink
-    , boxBackground
-    , redText
-    , white
-    , black
-    )
+module Render.Color exposing (blue, lightBlue, paleBlue, paleGreen, pink, boxBackground, redText, white, black)
 
 {-| This module provides color constants for use in the rendering system.
 
@@ -17,6 +7,8 @@ module Render.Color exposing
 -}
 
 import Element as E
+import Render.Settings
+import Render.Theme
 
 
 {-| Blue color for text
@@ -56,9 +48,9 @@ paleGreen =
 
 {-| Background color for box elements - light warm gray
 -}
-boxBackground : E.Color
-boxBackground =
-    E.rgb 0.95 0.93 0.93
+boxBackground : Render.Theme.Theme -> E.Color
+boxBackground theme =
+    Render.Settings.getThemedElementColor .offsetBackground theme
 
 
 {-| Color for red text

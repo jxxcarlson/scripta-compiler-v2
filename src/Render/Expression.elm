@@ -30,12 +30,16 @@ import String.Extra
 
 render : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> Expression -> Element MarkupMsg
 render generation acc settings attrs expr =
+    let
+        background =
+            Background.color <| Render.Settings.getThemedElementColor .offsetBackground settings.theme
+    in
     case expr of
         Text string meta ->
-            Element.el ([ Events.onClick (SendMeta meta), htmlId meta.id ] ++ attrs) (Element.text string)
+            Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ] ++ attrs) (Element.text string)
 
         Fun name exprList meta ->
-            Element.el [ Events.onClick (SendMeta meta), htmlId meta.id ] (renderMarked name generation acc settings attrs exprList)
+            Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ]) (renderMarked name generation acc settings attrs exprList)
 
         VFun name str meta ->
             -- TODO: Events.onClick (SendMeta meta)?
@@ -43,7 +47,7 @@ render generation acc settings attrs expr =
 
         ExprList exprList meta ->
             Element.column []
-                [ Element.paragraph [ Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ] (List.map (render generation acc settings attrs) exprList)
+                [ Element.paragraph (background :: [ Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ]) (List.map (render generation acc settings attrs) exprList)
                 ]
 
 

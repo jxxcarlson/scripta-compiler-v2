@@ -1,13 +1,6 @@
 module Render.AttributesExtended exposing
-    ( getBlockAttributes
-    , getItalicAttributes
-    , getBoxAttributes
-    , getContainerAttributes
-    , getDocumentAttributes
-    , getIndentAttributes
-    , getQuotationAttributes
-    , italicBlockNames
-    , getBlockMarkupAttributes
+    ( getBlockAttributes, getItalicAttributes, getBoxAttributes, getContainerAttributes, getDocumentAttributes, getIndentAttributes, getQuotationAttributes
+    , italicBlockNames, getBlockMarkupAttributes
     )
 
 {-| This module extends Render.Attributes with both generic and specific versions of attribute functions.
@@ -106,6 +99,7 @@ getTypeSpecificAttributes blockType =
         _ ->
             if List.member (BlockType.toString blockType) italicBlockNames then
                 getItalicAttributes
+
             else
                 []
 
@@ -146,6 +140,7 @@ getTypeSpecificMarkupAttributes blockType =
         _ ->
             if List.member (BlockType.toString blockType) italicBlockNames then
                 getItalicAttributes
+
             else
                 []
 
@@ -163,7 +158,7 @@ getBoxAttributes : List (Element.Attribute msg)
 getBoxAttributes =
     [ Element.spacing 11
     , Font.italic
-    , Element.paddingXY 12 12
+    , Element.paddingXY 96 96
     , Background.color (Element.rgb 0.95 0.93 0.93)
     ]
 

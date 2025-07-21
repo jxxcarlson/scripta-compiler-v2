@@ -23,25 +23,25 @@ import Render.Blocks.Interactive as InteractiveBlocks
 import Render.Blocks.Text as TextBlocks
 import Render.Color
 import Render.Footnote
-import Render.Helper
 import Render.Indentation
 import Render.List
 import Render.Settings exposing (RenderSettings)
 import Render.Table
+import Render.Theme
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
 {-| Get attributes for a specific block type by name
 -}
-getAttributes : String -> List (Element.Attribute MarkupMsg)
-getAttributes name =
+getAttributes : Render.Theme.Theme -> String -> List (Element.Attribute MarkupMsg)
+getAttributes theme name =
     let
         blockType =
             Render.BlockType.fromString name
     in
     case blockType of
         ContainerBlock Box ->
-            [ Background.color Render.Color.boxBackground ]
+            [ Background.color (Render.Color.boxBackground theme) ]
 
         _ ->
             if List.member name Render.Attributes.italicBlockNames then
@@ -53,14 +53,14 @@ getAttributes name =
 
 {-| Get attributes for a block
 -}
-getAttributesForBlock : ExpressionBlock -> List (Element.Attribute MarkupMsg)
-getAttributesForBlock block =
+getAttributesForBlock : Render.Theme.Theme -> ExpressionBlock -> List (Element.Attribute MarkupMsg)
+getAttributesForBlock theme block =
     case Generic.BlockUtilities.getExpressionBlockName block of
         Nothing ->
             []
 
         Just name ->
-            getAttributes name
+            getAttributes theme name
 
 
 {-| Initialize the registry with all renderers

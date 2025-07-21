@@ -27,7 +27,10 @@ renderAttributes settings block =
             focusedAttribute :: standardAttributes settings block
 
         Ordinary name ->
-            standardAttributes settings block ++ focusedAttribute :: Render.OrdinaryBlock.getAttributes name
+            standardAttributes settings block
+                ++ focusedAttribute
+                :: Render.OrdinaryBlock.getAttributes settings.theme
+                    name
 
         Verbatim _ ->
             focusedAttribute :: standardAttributes settings block

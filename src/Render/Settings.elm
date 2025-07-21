@@ -1,6 +1,6 @@
 module Render.Settings exposing
     ( Display(..), defaultSettings, makeSettings, RenderSettings, default
-    , ThemedStyles, darkTheme, getThemedElementColor, lightTheme, toElementColor, unrollTheme
+    , ThemedStyles, darkTheme, getThemedColor, getThemedElementColor, lightTheme, toElementColor, unrollTheme
     )
 
 {-| The Settings record holds information needed to render a
@@ -61,8 +61,8 @@ type alias ThemedStyles =
     , text : Color
     , codeBackground : Color
     , codeText : Color
-    , renderedBackground : Color
-    , renderedText : Color
+    , offsetBackground : Color
+    , offsetText : Color
     , link : Color
     , highlight : Color
     }
@@ -109,12 +109,12 @@ lightTheme : ThemedStyles
 lightTheme =
     { background = indigo100
     , text = gray950
-    , codeBackground = Color.rgba 0.835 0.847 0.882 1
+    , codeBackground = Color.rgba 0.835 0.847 0.882 1 --- 0.8 0 0 0.2 -- 0.835 0.847 0.882 1
     , codeText = gray900
-    , renderedBackground = indigo100
-    , renderedText = gray900
+    , offsetBackground = indigo100 --indigo300 |> Render.NewColor.setOpacity 0.25
+    , offsetText = gray800
     , link = blue500
-    , highlight = transparentIndigo500
+    , highlight = indigo200
     }
 
 
@@ -122,10 +122,12 @@ darkTheme : ThemedStyles
 darkTheme =
     { background = gray900
     , text = gray100
-    , codeBackground = Color.rgba 0.298 0.314 0.329 1
+    , codeBackground = Color.rgba 0.298 0.314 0.329 1 --
     , codeText = gray100
-    , renderedBackground = indigo100
-    , renderedText = gray900
+    , offsetBackground = gray900
+    , offsetText = gray200 |> Render.NewColor.setOpacity 0.25
+
+    --, offsetText = teal600 |> Render.NewColor.setOpacity 0.25
     , link = blue300
     , highlight = indigo500
     }

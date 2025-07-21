@@ -7,6 +7,8 @@ module Render.Tree exposing (renderTree)
 -}
 
 import Element exposing (Element)
+import Element.Background
+import Element.Border
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock, Heading(..))
 import Render.Attributes
@@ -32,12 +34,75 @@ renderTree :
     -> Element MarkupMsg
 renderTree theme count accumulator settings attrs_ tree =
     let
+        root : ExpressionBlock
         root =
             RoseTree.Tree.value tree
 
-        blockAttrs : List (Element.Attribute MarkupMsg)
+        isBoxLike : ExpressionBlock -> Bool
+        isBoxLike block =
+            case Generic.Language.getName block of
+                Nothing ->
+                    False
+
+                Just name ->
+                    name == "box"
+
+        backgroundColor =
+            Render.Settings.getThemedElementColor .offsetBackground settings.theme
+
+        bgColorAttr : Element.Color
+        bgColorAttr =
+            Render.Settings.getThemedElementColor .offsetBackground settings.theme
+
+        -- Determine if the root block is a box-like block
+        --blockAttrs : List (Element.Attribute MarkupMsg)
+        borderColor =
+            case theme of
+                Render.Theme.Light ->
+                    Element.rgba 0.7 0.8 0.9 1
+
+                Render.Theme.Dark ->
+                    Element.rgba 0.6 0.6 0.6 0.5
+
         blockAttrs =
-            OrdinaryBlock.getAttributesForBlock root
+            case RoseTree.Tree.children tree of
+                [] ->
+                    [ Element.Background.color bgColorAttr ]
+
+                _ ->
+                    Element.Border.color borderColor :: Element.Border.width 2 :: Element.Background.color bgColorAttr :: []
+    in
+    if isBoxLike root then
+        Element.column [ Element.paddingXY 12 12 ]
+            [ Element.column blockAttrs
+                [ renderTree_ theme
+                    count
+                    accumulator
+                    { settings
+                        | width = settings.width - 24
+                        , backgroundColor = backgroundColor
+                    }
+                    []
+                    tree
+                ]
+            ]
+
+    else
+        Element.column [] [ renderTree_ theme count accumulator settings [] tree ]
+
+
+renderTree_ :
+    Render.Theme.Theme
+    -> Int
+    -> Accumulator
+    -> RenderSettings
+    -> List (Element.Attribute MarkupMsg)
+    -> RoseTree.Tree.Tree ExpressionBlock
+    -> Element MarkupMsg
+renderTree_ theme count accumulator settings attrs_ tree =
+    let
+        root =
+            RoseTree.Tree.value tree
     in
     case RoseTree.Tree.children tree of
         [] ->
@@ -115,13 +180,13 @@ renderBoxBranch :
 renderBoxBranch theme count accumulator settings attrs_ blockAttrs root children =
     let
         settings_ =
-            { settings | width = settings.width - 100, backgroundColor = Render.Color.boxBackground }
+            { settings | width = settings.width - 100, backgroundColor = Render.Settings.getThemedElementColor .offsetBackground theme }
     in
     Element.column [ Element.paddingEach { left = 18, right = 18, top = 0, bottom = 0 } ]
         [ Element.column (Render.TreeSupport.renderAttributes settings_ root ++ getBlockAttributes root settings)
             (Render.TreeSupport.renderBody theme count accumulator settings_ attrs_ root
                 --++ List.map (renderTree count accumulator settings_ (attrs_ ++ getInnerAttributes root settings_ ++ blockAttrs)) children
-                ++ List.map (renderTree theme count accumulator settings_ (attrs_ ++ blockAttrs)) children
+                ++ List.map (renderTree_ theme count accumulator settings_ (attrs_ ++ blockAttrs)) children
             )
         ]
 
@@ -148,7 +213,7 @@ renderStandardBranch :
 renderStandardBranch theme count accumulator settings attrs_ blockAttrs root children =
     Element.column (Element.spacing 12 :: getBlockAttributes root settings)
         (Render.TreeSupport.renderBody theme count accumulator settings [] root
-            ++ List.map (renderTree theme count accumulator settings (attrs_ ++ getBlockAttributes root settings ++ blockAttrs)) children
+            ++ List.map (renderTree_ theme count accumulator settings (attrs_ ++ getBlockAttributes root settings ++ blockAttrs)) children
         )
 
 
@@ -181,7 +246,7 @@ getInnerAttributes block settings =
     in
     case blockType of
         ContainerBlock Box ->
-            Render.Attributes.getBoxAttributes
+            []
 
         _ ->
             if List.member (Render.BlockType.toString blockType) Render.Attributes.italicBlockNames then

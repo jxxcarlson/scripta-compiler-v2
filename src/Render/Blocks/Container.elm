@@ -14,6 +14,7 @@ module Render.Blocks.Container exposing
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Element exposing (Element)
+import Element.Background as Background
 import Element.Font as Font
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
@@ -25,7 +26,6 @@ import Render.Expression
 import Render.Helper
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
-import Render.Sync2
 import Render.Utility exposing (elementAttribute)
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 import String.Extra
@@ -119,11 +119,37 @@ renderNumberedLabel settings k =
 -}
 box : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 box count acc settings attr block =
-    Element.column (Element.spacing 8 :: Render.Sync.attributes settings block)
-        [ Element.row [ Font.bold ] [ Element.text (blockHeading block), Element.el [] (Element.text (String.join " " block.args)) ]
+    let
+        numbering : Element msg
+        numbering =
+            if List.member "numbered" block.args then
+                Element.el [] (Element.text (blockHeading block))
+
+            else
+                Element.none
+
+        caption : Element msg
+        caption =
+            case Dict.get "caption" block.properties of
+                Just c ->
+                    Element.el [] (Element.text c)
+
+                Nothing ->
+                    Element.text "Box"
+
+        bgColorAttr =
+            Background.color (Render.Settings.getThemedElementColor .offsetBackground settings.theme)
+
+        heading : Element MarkupMsg
+        heading =
+            Element.row [ Font.size 16, Font.underline, Font.color (Render.Settings.getThemedElementColor .offsetText settings.theme), bgColorAttr ]
+                [ numbering, caption ]
+    in
+    Element.column (Element.spacing 8 :: bgColorAttr :: Render.Sync.attributes settings block)
+        [ heading
         , Element.paragraph
-            [ Element.paddingXY 0 0 ]
-            (Render.Helper.renderWithDefault "" count acc settings attr (Generic.Language.getExpressionContent block))
+            [ Element.paddingXY 0 0, bgColorAttr ]
+            (Render.Helper.renderWithDefault "" count acc settings (bgColorAttr :: attr) (Generic.Language.getExpressionContent block))
         ]
 
 
