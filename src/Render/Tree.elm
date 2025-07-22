@@ -185,7 +185,6 @@ renderBoxBranch theme count accumulator settings attrs_ blockAttrs root children
     Element.column [ Element.paddingEach { left = 18, right = 18, top = 0, bottom = 0 } ]
         [ Element.column (Render.TreeSupport.renderAttributes settings_ root ++ getBlockAttributes root settings)
             (Render.TreeSupport.renderBody theme count accumulator settings_ attrs_ root
-                --++ List.map (renderTree count accumulator settings_ (attrs_ ++ getInnerAttributes root settings_ ++ blockAttrs)) children
                 ++ List.map (renderTree_ theme count accumulator settings_ (attrs_ ++ blockAttrs)) children
             )
         ]

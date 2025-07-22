@@ -142,7 +142,13 @@ box count acc settings attr block =
 
         heading : Element MarkupMsg
         heading =
-            Element.row [ Font.size 16, Font.underline, Font.color (Render.Settings.getThemedElementColor .offsetText settings.theme), bgColorAttr ]
+            Element.row
+                [ Font.size 16
+                , Element.paddingEach { left = 0, right = 0, top = 18, bottom = 4 }
+                , Font.underline
+                , Font.color (Render.Settings.getThemedElementColor .text settings.theme)
+                , bgColorAttr
+                ]
                 [ numbering, caption ]
     in
     Element.column (Element.spacing 8 :: bgColorAttr :: Render.Sync.attributes settings block)

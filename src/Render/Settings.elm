@@ -53,6 +53,8 @@ type alias RenderSettings =
     , topMarginForChildren : Int
     , data : Dict String String
     , theme : Render.Theme.Theme
+    , paddingTop : Int
+    , paddingBottom : Int
     }
 
 
@@ -111,8 +113,8 @@ lightTheme =
     , text = gray950
     , codeBackground = Color.rgba 0.835 0.847 0.882 1 --- 0.8 0 0 0.2 -- 0.835 0.847 0.882 1
     , codeText = gray900
-    , offsetBackground = indigo100 --indigo300 |> Render.NewColor.setOpacity 0.25
-    , offsetText = whiteAlpha100
+    , offsetBackground = whiteAlpha100 --indigo300 |> Render.NewColor.setOpacity 0.25
+    , offsetText = gray950
     , link = blue500
     , highlight = indigo200
     }
@@ -185,4 +187,6 @@ makeSettings theme selectedId selectedSlug scale windowWidth data =
     , topMarginForChildren = 6
     , data = data
     , theme = theme
+    , paddingTop = 0
+    , paddingBottom = 0
     }
