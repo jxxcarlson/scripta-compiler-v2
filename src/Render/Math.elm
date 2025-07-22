@@ -2,6 +2,7 @@ module Render.Math exposing
     ( DisplayMode(..)
     , aligned
     , array
+    , chem
     , displayedMath
     , equation
     , evalMath
@@ -35,6 +36,20 @@ import ScriptaV2.Msg exposing (MarkupMsg(..))
 type DisplayMode
     = InlineMathMode
     | DisplayMathMode
+
+
+chem : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+chem count acc settings attrs_ block =
+    let
+        newBlock =
+            case block.body of
+                Left s ->
+                    { block | body = Left ("\\ce{" ++ s ++ "}") }
+
+                Right _ ->
+                    block
+    in
+    displayedMath count acc settings attrs_ newBlock
 
 
 displayedMath : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg

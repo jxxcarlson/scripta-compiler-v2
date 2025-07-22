@@ -63,6 +63,7 @@ verbatimDict : Dict String (Int -> Accumulator -> RenderSettings -> List (Elemen
 verbatimDict =
     Dict.fromList
         [ ( "math", Render.Math.displayedMath )
+        , ( "chem", Render.Math.chem )
         , ( "equation", Render.Math.equation )
         , ( "aligned", Render.Math.aligned )
         , ( "array", Render.Math.array )

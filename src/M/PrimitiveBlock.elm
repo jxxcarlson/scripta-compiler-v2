@@ -188,6 +188,7 @@ hasVerbatimWord line =
 
 verbatimWords =
     [ "math"
+    , "chem"
     , "compute"
     , "equation"
     , "aligned"

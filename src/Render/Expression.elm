@@ -39,7 +39,11 @@ render generation acc settings attrs expr =
             Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ] ++ attrs) (Element.text string)
 
         Fun name exprList meta ->
-            Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ]) (renderMarked name generation acc settings attrs exprList)
+            if List.member name [ "chem", "math", "code" ] then
+                renderVerbatim name generation acc settings meta (ASTTools.exprListToStringList exprList |> String.join " ")
+
+            else
+                Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ]) (renderMarked name generation acc settings attrs exprList)
 
         VFun name str meta ->
             -- TODO: Events.onClick (SendMeta meta)?
@@ -217,6 +221,7 @@ verbatimDict =
         , ( "`", \g a s m str -> code g a s m str )
         , ( "code", \g a s m str -> code g a s m str )
         , ( "math", \g a s m str -> math g a s m str )
+        , ( "chem", \g a s m str -> chem g a s m str )
         ]
 
 
@@ -443,6 +448,13 @@ math g a s m str =
     Element.el
         (Render.Sync.highlightIfIdSelected m.id s [])
         (mathElement g a s m str)
+
+
+chem : Int -> { a | mathMacroDict : ETeX.Transform.MathMacroDict } -> Render.Settings.RenderSettings -> { b | id : String } -> String -> Element msg
+chem g a s m str =
+    Element.el
+        (Render.Sync.highlightIfIdSelected m.id s [])
+        (mathElement g a s m ("\\ce{" ++ str ++ "}"))
 
 
 table : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
