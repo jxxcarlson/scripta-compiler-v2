@@ -107,12 +107,12 @@ toElementColor color =
 -}
 lightTheme : ThemedStyles
 lightTheme =
-    { background = indigo100
+    { background = whiteAlpha100
     , text = gray950
     , codeBackground = Color.rgba 0.835 0.847 0.882 1 --- 0.8 0 0 0.2 -- 0.835 0.847 0.882 1
     , codeText = gray900
     , offsetBackground = indigo100 --indigo300 |> Render.NewColor.setOpacity 0.25
-    , offsetText = gray800
+    , offsetText = whiteAlpha100
     , link = blue500
     , highlight = indigo200
     }
