@@ -1,0 +1,232 @@
+--module KeyboardHandler exposing
+--    ( handleKeypress
+--    , character, modifierString, keysToString
+--    )
+--
+--{-| This module handles keyboard input and shortcuts.
+--
+--It provides OS-specific keyboard mappings and utilities for processing
+--keyboard events, including modifier keys and keyboard shortcuts.
+--
+--
+--# Main Handler
+--
+--@docs handleKeypress
+--
+--
+--# Keyboard Mapping
+--
+--@docs keyboardMap
+--
+--
+--# Utilities
+--
+--@docs character, modifierString, keysToString
+--
+---}
+--
+--import Browser.Dom as Dom
+--import Dict
+--import File.Download
+--import Keyboard
+--import Process
+--import Render.Export.LaTeX
+--import Render.Settings
+--import Set exposing (Set)
+--import Task
+--import Theme
+--
+--
+--{-| Handle keyboard events and update the model accordingly.
+--
+--Supported shortcuts:
+--
+--  - Ctrl+S: Toggle sync mode
+--  - Ctrl+1: Clear selected ID
+--  - Ctrl+[: Go back in history
+--  - Ctrl+]: Go forward in history
+--  - Ctrl+L: Toggle log display
+--
+---}
+--
+--
+--
+---- handleKeypress : Model -> Keyboard.Msg -> ( LoadedModel, Command restriction toMsg FrontendMsg )
+---- handleKeypress : { a | pressedKeys : List Keyboard.Key, theme : Theme.Theme } -> Keyboard.Msg -> ( { a | pressedKeys : List Keyboard.Key, theme : Theme.Theme }, ( { b | pressedKeys : List Keyboard.Key, theme : Theme.Theme }, Cmd msg ) )
+--
+--
+--handleKeypress model keyMsg =
+--    let
+--        pressedKeys : List Keyboard.Key
+--        pressedKeys =
+--            Keyboard.update keyMsg model.pressedKeys |> Debug.log "@@handleKeypress"
+--
+--        cmd =
+--            if
+--                List.member Keyboard.Control pressedKeys
+--                    && List.member (Keyboard.Character "T") pressedKeys
+--            then
+--                case model.theme of
+--                    Theme.Light ->
+--                        ( { model | theme = Theme.Dark }, Cmd.none )
+--
+--                    Theme.Dark ->
+--                        ( { model | theme = Theme.Light }, Cmd.none )
+--
+--            else if
+--                List.member Keyboard.Control pressedKeys
+--                    && List.member (Keyboard.Character "E") pressedKeys
+--            then
+--                ( model, File.Download.string "out.tex" "application/x-latex" (Render.Export.LaTeX.export model.currentTime (Render.Settings.makeSettings (Theme.mapTheme model.theme) "-" Nothing 1.0 model.windoWidth Dict.empty) model.editRecord.tree) )
+--
+--            else
+--                ( model, Cmd.none )
+--    in
+--    ( { model | pressedKeys = pressedKeys }
+--    , cmd
+--    )
+--
+--
+--{-| Trigger a message immediately on the next frame.
+---}
+--trigger : msg -> Cmd msg
+--trigger msg =
+--    performLater 0 msg
+--
+--
+--{-| Delay a message by the given number of milliseconds.
+---}
+--performLater : Float -> msg -> Cmd msg
+--performLater sleepInterval msg =
+--    Process.sleep sleepInterval
+--        |> Task.perform (always msg)
+--
+--
+--{-| Convert a list of keys to a readable string format.
+--
+--    keysToString [Control, Character "S"]
+--    -- Returns "[Control, S]"
+--
+---}
+--keysToString : List Keyboard.Key -> String
+--keysToString keys =
+--    List.map keyToString keys
+--        |> String.join ", "
+--        |> (\x -> "[" ++ x ++ "]")
+--
+--
+--keyToString : Keyboard.Key -> String
+--keyToString key =
+--    case key of
+--        Keyboard.Character c ->
+--            c
+--
+--        Keyboard.Shift ->
+--            "Shift"
+--
+--        Keyboard.Control ->
+--            "Control"
+--
+--        Keyboard.Alt ->
+--            "Alt"
+--
+--        Keyboard.Meta ->
+--            "Meta"
+--
+--        _ ->
+--            "Other"
+--
+--
+--
+---- KEYBOARD MAP
+--
+--
+--{-| Map keyboard shortcuts to frontend messages based on OS type.
+--
+--Handles OS-specific keyboard shortcuts:
+--
+--  - Escape key closes popups on all platforms
+--  - Mac has specific shortcuts (Cmd+E for editor, etc.)
+--  - Windows and Linux support is not yet implemented
+--
+---}
+--
+--
+--
+---- HELPER FUNCTIONS
+----{-| Returns Just the character if exactly one character key is pressed,
+----Nothing otherwise (including when multiple characters are pressed).
+----
+----    character [Alt, Control, Character "W"]
+----    -- Returns Just "W"
+----
+----    character [Alt, Control, Character "W", Character "X"]
+----    -- Returns Nothing (multiple characters)
+----
+-----}
+--
+--
+--character keys =
+--    let
+--        xx =
+--            List.filterMap
+--                character_
+--                keys
+--    in
+--    if List.length xx == 1 then
+--        List.head xx
+--
+--    else
+--        Nothing
+--
+--
+--character_ : Keyboard.Key -> Maybe String
+--character_ key =
+--    case key of
+--        Keyboard.Character char ->
+--            Just char
+--
+--        _ ->
+--            Nothing
+--
+--
+--{-| Convert modifier keys to a sorted string code.
+--
+--Modifier codes:
+--
+--  - A: Alt
+--
+--  - C: Control
+--
+--  - M: Meta (Command on Mac)
+--
+--  - S: Shift
+--
+--    modifierString [Control, Alt]
+--    -- Returns "AC" (sorted alphabetically)
+--
+---}
+--modifierString : List Keyboard.Key -> String
+--modifierString keys =
+--    List.foldl
+--        (\key output ->
+--            case key of
+--                Keyboard.Shift ->
+--                    "S" :: output
+--
+--                Keyboard.Control ->
+--                    "C" :: output
+--
+--                Keyboard.Alt ->
+--                    "A" :: output
+--
+--                Keyboard.Meta ->
+--                    "M" :: output
+--
+--                _ ->
+--                    output
+--        )
+--        []
+--        keys
+--        |> List.sort
+--        |> String.join ""
