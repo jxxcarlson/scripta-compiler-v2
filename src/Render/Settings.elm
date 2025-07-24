@@ -109,7 +109,7 @@ toElementColor color =
 -}
 lightTheme : ThemedStyles
 lightTheme =
-    { background = whiteAlpha100
+    { background = Color.rgba 1 1 1 1
     , text = gray950
     , codeBackground = Color.rgba 0.835 0.847 0.882 1 --- 0.8 0 0 0.2 -- 0.835 0.847 0.882 1
     , codeText = gray900
@@ -123,11 +123,11 @@ lightTheme =
 darkTheme : ThemedStyles
 darkTheme =
     { background = gray900
-    , text = gray100
+    , text = Color.rgba 0.835 0.847 0.882 1 -- gray100
     , codeBackground = Color.rgba 0.298 0.314 0.329 1 --
     , codeText = gray100
     , offsetBackground = gray900
-    , offsetText = gray200 |> Render.NewColor.setOpacity 0.25
+    , offsetText = Color.rgba 0.835 0.847 0.882 1 -- gray200 |> Render.NewColor.setOpacity 0.25
 
     --, offsetText = teal600 |> Render.NewColor.setOpacity 0.25
     , link = blue300

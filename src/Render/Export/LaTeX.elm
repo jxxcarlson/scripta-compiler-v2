@@ -548,7 +548,17 @@ exportBlock mathMacroDict settings block =
 
                         "aligned" ->
                             -- TODO: equation numbers and label
-                            [ "\\begin{align}", str |> ETeX.Transform.transformETeX mathMacroDict |> MicroLaTeX.Util.transformLabel, "\\end{align}" ] |> String.join "\n"
+                            let
+                                -- Process each line separately to preserve \\ line breaks
+                                processedLines =
+                                    str
+                                        |> String.split "\\\\"
+                                        |> List.map String.trim
+                                        |> List.map (ETeX.Transform.transformETeX mathMacroDict)
+                                        |> List.map MicroLaTeX.Util.transformLabel
+                                        |> String.join "\\\\\n"
+                            in
+                            [ "\\begin{align}", processedLines, "\\end{align}" ] |> String.join "\n"
 
                         "code" ->
                             str |> fixChars |> (\s -> "\\begin{verbatim}\n" ++ s ++ "\n\\end{verbatim}")

@@ -1,4 +1,4 @@
-module M.PrimitiveBlock exposing (ib, p, parse, py)
+module M.PrimitiveBlock exposing (ib, l, ll, p, parse, py)
 
 import Dict exposing (Dict)
 import Generic.Language exposing (Heading(..), PrimitiveBlock)
@@ -14,6 +14,18 @@ xx =
 1 & 2 & 3.1234
 4 & 5 & 6.11
 """
+
+
+l =
+    """- Eggs
+ """
+
+
+ll =
+    """- Eggs
+- Milk
+- Bread
+ """
 
 
 ib =

@@ -64,10 +64,10 @@ itemList count acc settings attr block =
             Element.row [ Element.width (Element.px (settings.width - Render.Constants.defaultIndentWidth)) ]
                 [ renderLabel settings
                 , Element.paragraph (Render.Sync.attributes settings_ block)
-                    (Render.Expression.render 0 acc settings [] expr :: [])
+                    (Render.Expression.render count acc settings [] expr :: [])
                 ]
     in
-    Element.column (Element.spacing 8 :: Render.Sync.attributes settings block)
+    Element.column (Element.spacing 2 :: Render.Sync.attributes settings block)
         (List.map (renderItem settings) listOfExprList)
 
 
@@ -77,6 +77,7 @@ renderLabel settings =
         , Element.alignTop
         , Element.width (Element.px Render.Constants.defaultIndentWidth)
         , Render.Utility.leftPadding (settings.leftIndentation + 12)
+        , Font.color (Render.Settings.getThemedElementColor .text settings.theme)
         ]
         (Element.text (String.fromChar '•'))
 
@@ -101,7 +102,7 @@ numberedList count acc settings attr block =
                     (Render.Expression.render 0 acc settings [] expr :: [])
                 ]
     in
-    Element.column (Element.spacing 8 :: Render.Sync.attributes settings block)
+    Element.column (Element.spacing 2 :: Render.Sync.attributes settings block)
         (List.indexedMap renderNumberedItem listOfExprList)
 
 
@@ -111,6 +112,7 @@ renderNumberedLabel settings k =
         , Element.alignTop
         , Element.width (Element.px Render.Constants.defaultIndentWidth)
         , Render.Utility.leftPadding (settings.leftIndentation + 12)
+        , Font.color (Render.Settings.getThemedElementColor .text settings.theme)
         ]
         (Element.text <| String.fromInt (k + 1) ++ ".")
 
@@ -137,6 +139,14 @@ box count acc settings attr block =
                 Nothing ->
                     Element.text "Box"
 
+        style =
+            case Dict.get "style" block.properties of
+                Just "italic" ->
+                    Font.italic
+
+                _ ->
+                    Font.unitalicized
+
         bgColorAttr =
             Background.color (Render.Settings.getThemedElementColor .offsetBackground settings.theme)
 
@@ -151,11 +161,11 @@ box count acc settings attr block =
                 ]
                 [ numbering, caption ]
     in
-    Element.column (Element.spacing 8 :: bgColorAttr :: Render.Sync.attributes settings block)
+    Element.column (Element.width (Element.px (settings.width - 0)) :: Element.spacing 8 :: bgColorAttr :: Render.Sync.attributes settings block)
         [ heading
         , Element.paragraph
-            [ Element.paddingXY 0 0, bgColorAttr ]
-            (Render.Helper.renderWithDefault "" count acc settings (bgColorAttr :: attr) (Generic.Language.getExpressionContent block))
+            [ Element.paddingXY 0 0, Element.centerX, bgColorAttr ]
+            (Render.Helper.renderWithDefault "" count acc { settings | width = settings.width - 180 } (style :: bgColorAttr :: attr) (Generic.Language.getExpressionContent block))
         ]
 
 

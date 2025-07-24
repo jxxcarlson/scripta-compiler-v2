@@ -818,7 +818,7 @@ processTokensWithLookahead knownMacros tokens =
 
         (SimpleWord word) :: (SimpleSymbol "^") :: rest ->
             -- Word followed by ^ - likely a macro reference
-            if List.member word knownMacros || List.member word [ "reals", "nat", "space" ] then
+            if isKaTeX word || List.member word knownMacros then
                 SimpleWord ("\\" ++ word) :: SimpleSymbol "^" :: processTokensWithLookahead knownMacros rest
 
             else
@@ -831,7 +831,7 @@ processTokensWithLookahead knownMacros tokens =
                 let
                     ( args, remaining ) =
                         extractParenArgs rest []
-                    
+
                     processedArgs =
                         args |> List.map (processTokensWithLookahead knownMacros)
                 in
@@ -936,7 +936,10 @@ tokenToString token =
             "#" ++ String.fromInt n
 
 
+
 -- Convert simple macro syntax to LaTeX newcommands
+
+
 toLaTeXNewCommands : String -> String
 toLaTeXNewCommands input =
     input
@@ -949,20 +952,31 @@ toLaTeXNewCommands input =
         |> String.join "\n"
 
 
+
 -- Convert a single simple macro line to LaTeX newcommand
+
+
 simpleMacroToLaTeX : String -> String
 simpleMacroToLaTeX line =
     if String.contains ":" line then
         case parseSimpleMacroWithContext [] line of
             Just ( name, MacroBody arity _ ) ->
                 let
-                    processedBody = processSimpleMacroBody (String.split ":" line |> List.drop 1 |> String.join ":" |> String.trim)
-                    arityStr = if arity > 0 then "[" ++ String.fromInt arity ++ "]" else ""
+                    processedBody =
+                        processSimpleMacroBody (String.split ":" line |> List.drop 1 |> String.join ":" |> String.trim)
+
+                    arityStr =
+                        if arity > 0 then
+                            "[" ++ String.fromInt arity ++ "]"
+
+                        else
+                            ""
                 in
                 "\\newcommand{\\" ++ name ++ "}" ++ arityStr ++ "{" ++ processedBody ++ "}"
-            
+
             Nothing ->
                 ""
+
     else
         ""
 

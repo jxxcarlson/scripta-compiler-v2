@@ -42,4 +42,4 @@ compileStringWithTitle : Render.Theme.Theme -> String -> ScriptaV2.Compiler.Comp
 compileStringWithTitle theme title params str =
     ScriptaV2.Compiler.compile theme params (String.lines str)
         |> ScriptaV2.Compiler.viewBodyOnly params.docWidth
-        |> (\x -> Element.el [ Element.height (Element.px 96) ] (Element.text title) :: x)
+        |> (\x -> Element.el [ Element.height (Element.px 130), Element.Font.size 24, Element.paddingEach { left = 0, right = 0, top = 8, bottom = 24 } ] (Element.text title) :: x)

@@ -6,9 +6,11 @@ module Render.Tree exposing (renderTree)
 
 -}
 
+import Dict
 import Element exposing (Element)
 import Element.Background
 import Element.Border
+import Element.Font
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock, Heading(..))
 import Render.Attributes
@@ -50,6 +52,14 @@ renderTree theme count accumulator settings attrs_ tree =
         backgroundColor =
             Render.Settings.getThemedElementColor .offsetBackground settings.theme
 
+        style =
+            case Dict.get "style" root.properties of
+                Just "italic" ->
+                    Element.Font.italic
+
+                _ ->
+                    Element.Font.unitalicized
+
         bgColorAttr : Element.Color
         bgColorAttr =
             Render.Settings.getThemedElementColor .offsetBackground settings.theme
@@ -64,17 +74,15 @@ renderTree theme count accumulator settings attrs_ tree =
                 Render.Theme.Dark ->
                     Element.rgba 0.6 0.6 0.6 0.5
 
-        blockAttrs =
-            case RoseTree.Tree.children tree of
-                [] ->
-                    [ Element.Background.color bgColorAttr ]
+        width2 =
+            Element.width <| Element.px (settings.width - 60)
 
-                _ ->
-                    Element.Border.color borderColor :: Element.Border.width 2 :: Element.Background.color bgColorAttr :: []
+        blockAttrs =
+            style :: (Element.width <| Element.px (settings.width - 0)) :: Element.Background.color bgColorAttr :: []
     in
     if isBoxLike root then
-        Element.column [ Element.paddingXY 12 12 ]
-            [ Element.column blockAttrs
+        Element.column blockAttrs
+            [ Element.column [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 18 }, Element.Border.color borderColor, Element.Border.width 2, Element.centerX, width2 ]
                 [ renderTree_ theme
                     count
                     accumulator
@@ -88,7 +96,7 @@ renderTree theme count accumulator settings attrs_ tree =
             ]
 
     else
-        Element.column [] [ renderTree_ theme count accumulator settings [] tree ]
+        Element.column [ style ] [ renderTree_ theme count accumulator settings [ style ] tree ]
 
 
 renderTree_ :
@@ -107,7 +115,7 @@ renderTree_ theme count accumulator settings attrs_ tree =
     case RoseTree.Tree.children tree of
         [] ->
             -- Leaf node: just render the block
-            renderLeafNode theme count accumulator settings [] root
+            renderLeafNode theme count accumulator settings attrs_ root
 
         children ->
             -- Branch node: render based on block type
