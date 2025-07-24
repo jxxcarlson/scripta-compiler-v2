@@ -3,15 +3,16 @@ module Document exposing (text)
 
 text =
     """
+  
 
 | title
-Example!!
+Example
 
-| image figure:2 caption: Humming bird
-rem
+| image figure:1 caption: Humming bird
+ https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg
 
 
-# Notes
+# About Scripta
 
 - This is a demo of the [u Scripta Markup Language].  Compare source and rendered text to see how it works. Your document is rendered as you type.  There is no setup ... just have at it.
 
@@ -21,7 +22,7 @@ rem
 
 - Note the use of our experimental  [u ergonomic TeX]: TeX without backslashes.
 
-- Press ctrl-E to export your file to LaTeX.  This feature does not yet work with images, so for now you will have to delete or hide them with a [u hide] or
+- Press ctrl-E to export your file to LaTeX.  This feature does not yet work with images, so for now you will have to hide them with a [u hide] or
 [u code] block.  A fix is on its way
 
 
@@ -52,7 +53,7 @@ secpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))  qquad "W
 Note:
 
 | aligned
-nat &= set("positive whole numbers and zero")\\\\
+nat &= set("positive whole numbers and zero")\\
 nat &= sett(n " is a whole number", n > 0)
 
 
@@ -71,7 +72,5 @@ nat &= sett(n " is a whole number", n > 0)
   4 & 5
 \\end{pmatrix}
 
-| hide
- | image figure:1 caption: Humming bird
- https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg
-  """
+
+"""

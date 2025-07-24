@@ -43,15 +43,18 @@ echo "Output directory: $OUTPUT_DIR"
 echo
 
 # Extract URLs ending with .jpg, .jpeg, or .png
-# Using grep with extended regex to find URLs
-grep -Eo 'https?://[^[:space:]"{}()]+\.(jpg|jpeg|png)' "$INPUT_FILE" | sort -u | while read -r url; do
+# Using grep with extended regex to find URLs (including those with spaces before them)
+grep -Eo 'https?://[^"{}]+\.(jpg|jpeg|png)(\?[^"{}]*)?' "$INPUT_FILE" | sort -u | while read -r url; do
+    # Remove query parameters if present
+    url_without_query="${url%%\?*}"
+    
     # Extract path after domain
     # Remove protocol and domain to get just the path
-    path_after_domain=$(echo "$url" | sed -E 's|https?://[^/]*/?||')
+    path_after_domain=$(echo "$url_without_query" | sed -E 's|https?://[^/]*/?||')
     # Remove file extension
     path_without_ext="${path_after_domain%.*}"
-    # Replace slashes with hyphens
-    eps_base_name=$(echo "$path_without_ext" | tr '/' '-')
+    # Replace slashes with hyphens and remove special characters
+    eps_base_name=$(echo "$path_without_ext" | tr '/' '-' | tr -d '():=')
     eps_filename="${eps_base_name}.eps"
     
     # Get original filename for download
@@ -74,9 +77,8 @@ grep -Eo 'https?://[^[:space:]"{}()]+\.(jpg|jpeg|png)' "$INPUT_FILE" | sort -u |
             echo "  ✓ Successfully converted to EPS"
             
             # Replace URL with EPS filename in the temporary file
-            # Escape special characters in URL for sed
-            escaped_url=$(printf '%s\n' "$url" | sed 's/[[\.*^$()+?{|]/\\&/g')
-            sed -i '' "s|$escaped_url|$eps_filename|g" "$TEMP_FILE"
+            # Use perl for more reliable replacement
+            perl -i -pe "s|\Q$url\E|$eps_filename|g" "$TEMP_FILE"
             echo "  ✓ Replaced URL in LaTeX file"
             
             # Remove the original downloaded file
@@ -98,3 +100,5 @@ mv "$TEMP_FILE" "$INPUT_FILE"
 eps_count=$(find "$OUTPUT_DIR" -name "*.eps" -type f | wc -l)
 echo "Completed! Created $eps_count EPS files in $OUTPUT_DIR"
 echo "LaTeX file has been updated with local EPS references"
+echo "Cleaning up"
+rm -f *.aux *.log *.toc  *.synctex.gz
