@@ -468,8 +468,6 @@ inputText model =
         , Background.color (backgroundColor model.theme)
         , forceColorStyle
         , Element.htmlAttribute (Html.Attributes.id "source-text-input")
-        , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
-        , Element.htmlAttribute (Html.Attributes.style "flex-shrink" "1")
         ]
         { onChange = InputText
         , text = model.sourceText
@@ -518,4 +516,3 @@ jumpToTopOf id =
     Browser.Dom.getViewportOf id
         |> Task.andThen (\info -> Browser.Dom.setViewportOf id 0 0)
         |> Task.attempt (\_ -> NoOp)
-ui
