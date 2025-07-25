@@ -82,10 +82,20 @@ frontMatter currentTime ast =
             Dict.get "author4" dict
 
         authors =
-            [ author1, author2, author3, author4 ]
-                |> Maybe.Extra.values
-                |> String.join "\n\\and\n"
-                |> (\s -> "\\author{\n" ++ s ++ "\n}")
+            let
+                authorList : List String
+                authorList =
+                    [ author1, author2, author3, author4 ]
+                        |> List.filterMap identity
+            in
+            case authorList of
+                [] ->
+                    "\\author{}"
+
+                _ ->
+                    authorList
+                        |> String.join "\n\\and\n"
+                        |> (\s -> "\\author{\n" ++ s ++ "\n}")
 
         title =
             ASTTools.title ast |> (\title_ -> "\\title{" ++ title_ ++ "}")

@@ -10,6 +10,7 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed
 import File.Download
 import Html exposing (Html)
 import Html.Attributes
@@ -138,16 +139,12 @@ update msg model =
             ( { model | windowWidth = width, windowHeight = height }, Cmd.none )
 
         InputText str ->
-            let
-                normalizedText =
-                    normalize str
-            in
             ( { model
-                | sourceText = normalizedText
+                | sourceText = str
                 , count = model.count + 1
-                , title = getTitle normalizedText
+                , title = getTitle str
                 , editRecord =
-                    ScriptaV2.DifferentialCompiler.update model.editRecord normalizedText
+                    ScriptaV2.DifferentialCompiler.update model.editRecord str
               }
             , Cmd.none
             )
@@ -191,7 +188,6 @@ update msg model =
 
                     else
                         pressedKeys
-                , count = model.count + 1
               }
             , cmd
             )
@@ -287,7 +283,7 @@ mainColumn model =
         [ column [ width (px <| appWidth model - 20), height (px <| appHeight model), clipY ]
             [ header model
             , row [ spacing margin.between, centerX ]
-                [ Element.el [ moveUp 2 ] (inputText model)
+                [ Element.el [ moveUp 2, alignTop ] (inputText model)
                 , displayRenderedText model |> Element.map Render
                 , sidebar model
                 ]
@@ -306,16 +302,18 @@ sidebar model =
                 Theme.Dark ->
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
-    Element.column [ Element.paddingEach { top = 16, bottom = 0, left = 0, right = 0 } ]
+    Element.column [ Element.paddingEach { top = 16, bottom = 0, left = 0, right = 0 }, panelHeight model ]
         [ Element.column
             [ Element.width <| px <| sidebarWidth
             , panelHeight model
+            , alignTop
             , Font.color (textColor model.theme)
             , Element.paddingXY 16 16
             , Element.spacing 6
             , Font.size 14
             , background_ model --            , Background.color <| Render.Settings.getThemedElementColor .background (Theme.mapTheme model.theme)
             , forceColorStyle
+            , scrollbarY
             ]
             [ Element.el [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 12 } ]
                 (Download.downloadButton "Download script" "process_images.sh" "application/x-sh" AppData.processImagesText)
@@ -352,17 +350,20 @@ displayRenderedText model =
                 Theme.Dark ->
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
-    column [ spacing 8, Font.size 14 ]
+    column [ spacing 8, Font.size 14, panelHeight model ]
         [ column
             [ spacing 4
             , background_ model
             , width <| px <| panelWidth model -- width (px <| (panelWidth model - 0 * innerMarginWidth))
             , panelHeight model
             , htmlId "rendered-text"
+            , alignTop
             , scrollbarY
             , centerX
             , Font.color (textColor model.theme)
             , forceColorStyle
+            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+            , Element.htmlAttribute (Html.Attributes.style "flex-shrink" "1")
 
             --            , Background.color (Element.rgba 0.8 0.8 0.95 1.0)
             ]
@@ -460,13 +461,15 @@ inputText model =
     in
     Input.multiline
         [ width (px <| (panelWidth model - 2 * innerMarginWidth))
-        , height (px <| headerHeight)
         , panelHeight model
         , Font.size 14
         , Element.alignTop
         , Font.color (textColor model.theme)
         , Background.color (backgroundColor model.theme)
         , forceColorStyle
+        , Element.htmlAttribute (Html.Attributes.id "source-text-input")
+        , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+        , Element.htmlAttribute (Html.Attributes.style "flex-shrink" "1")
         ]
         { onChange = InputText
         , text = model.sourceText
@@ -489,6 +492,7 @@ mainColumnStyle =
     , centerY
     , bgGray 0.4
     , paddingXY 20 20
+    , height fill
     ]
 
 
@@ -514,3 +518,4 @@ jumpToTopOf id =
     Browser.Dom.getViewportOf id
         |> Task.andThen (\info -> Browser.Dom.setViewportOf id 0 0)
         |> Task.attempt (\_ -> NoOp)
+ui

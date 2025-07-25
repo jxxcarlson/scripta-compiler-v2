@@ -84,6 +84,36 @@ processImagesText =
     """
 #!/bin/bash
 
+ # Usage:
+ #
+ # sh ./process_images.sh <input_file> : gives a way
+ #
+ # Purpose: process LaTeX exported from scripta files that contain images,
+ # first creating a corresponding LaTeX file, then
+ # a pdf file.
+ #
+ # Prerequisite software installation:
+ # - ImageMagick (for converting images to EPS)
+ # - pdflatex (for making PDFs LaTeX files)
+ #
+ # Setup:
+ # Make a folder call "tex" and make a subfolder "image" in it.
+ # Put this script in the "tex" folder.
+ # Put your file downloaded from Scripta Live or Scripta.io in the "tex" folder.
+ # Run the script with the same filename as an argument: `sh ./process_file.sh myfile.tex`
+ #
+ # Plans:
+ # This work will be automated in the near future, so that you can just
+ # Press a button to do all the work
+ #
+ # Detail: the script processes its inputs follows:
+ # First, it examines the file, finding all urls pointing to images (JPEG or PNG).
+ # Next, it downloads the corresponding images, constructing a filename for each
+ # image based on its URL, and converts them to EPS format using ImageMagick.
+ # These images are then stored in the directory "./image". The URLS in the
+ # original LaTeX file are replaced with the local EPS filenames.
+
+
 # Check if correct number of arguments provided
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <input_file>"
@@ -93,18 +123,9 @@ fi
 
 INPUT_FILE="$1"
 
-# Copy file from Downloads to current directory
-if [ -f ~/Downloads/"$INPUT_FILE" ]; then
-    echo "Copying $INPUT_FILE from ~/Downloads to current directory..."
-    cp ~/Downloads/"$INPUT_FILE" ./"$INPUT_FILE"
-else
-    echo "Error: File ~/Downloads/$INPUT_FILE not found"
-    exit 1
-fi
-
 # Check if input file exists in current directory
 if [ ! -f "$INPUT_FILE" ]; then
-    echo "Error: Failed to copy file to current directory"
+    echo "Error: File $INPUT_FILE not found in current directory"
     exit 1
 fi
 
@@ -184,6 +205,37 @@ mv "$TEMP_FILE" "$INPUT_FILE"
 eps_count=$(find "$OUTPUT_DIR" -name "*.eps" -type f | wc -l)
 echo "Completed! Created $eps_count EPS files in $OUTPUT_DIR"
 echo "LaTeX file has been updated with local EPS references"
-echo "Cleaning up"
-rm -f *.aux *.log *.toc  *.synctex.gz
+
+# Check if pdflatex is installed
+if command -v pdflatex &> /dev/null; then
+    echo
+    echo "Running pdflatex on $INPUT_FILE..."
+
+    # Get base filename without extension
+    BASE_NAME="${INPUT_FILE%.tex}"
+
+    # Run pdflatex twice (for references, TOC, etc.)
+    for i in 1 2; do
+        echo "Pass $i of 2..."
+        if pdflatex -interaction=nonstopmode "$INPUT_FILE" > /dev/null 2>&1; then
+            echo "  ✓ Pass $i completed"
+        else
+            echo "  ✗ Pass $i failed"
+            echo "  Check the .log file for errors"
+        fi
+    done
+
+    if [ -f "${BASE_NAME}.pdf" ]; then
+        echo "✓ PDF generated: ${BASE_NAME}.pdf"
+    fi
+else
+    echo "Warning: pdflatex not found. Skipping PDF generation."
+fi
+
+# Cleanup auxiliary files
+echo
+echo "Cleaning up auxiliary files..."
+rm -f *.aux *.log *.toc *.out *.synctex.gz *.fls *.fdb_latexmk
+
+echo "Done!"
 """
