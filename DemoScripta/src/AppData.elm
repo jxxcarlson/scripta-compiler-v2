@@ -4,7 +4,7 @@ module AppData exposing (defaultDocumentText, processImagesText)
 defaultDocumentText : String
 defaultDocumentText =
     """| title
-  Example 2
+  Announcement
   
   | image figure:1 caption: Humming bird
    https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg

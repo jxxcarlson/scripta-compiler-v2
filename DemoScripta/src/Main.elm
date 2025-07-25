@@ -63,28 +63,11 @@ textColor : Theme.Theme -> Element.Color
 textColor theme =
     case theme of
         Theme.Light ->
-            getThemedElementColor .text (Theme.mapTheme theme)
+            Element.rgb255 213 216 225
 
+        -- getThemedElementColor .text (Theme.mapTheme theme)
         Theme.Dark ->
             Element.rgb255 240 240 240
-
-
-
--- Light gray/white for dark mode
-
-
-headerBackgrounColor : Theme.Theme -> Element.Color
-headerBackgrounColor theme =
-    case theme of
-        Theme.Light ->
-            getThemedElementColor .background (Theme.mapTheme theme)
-
-        Theme.Dark ->
-            Element.rgb255 48 54 59
-
-
-
--- Darker background for dark mode rgba 0.19 0.21 0.23 1
 
 
 backgroundColor : Theme.Theme -> Element.Color
@@ -95,10 +78,6 @@ backgroundColor theme =
 
         Theme.Dark ->
             Element.rgb255 48 54 59
-
-
-
--- Darker background for dark mode
 
 
 type Msg
@@ -190,7 +169,7 @@ update msg model =
                             exportText =
                                 Render.Export.LaTeX.export model.currentTime settings model.editRecord.tree
                         in
-                        File.Download.string "out.tex" "application/x-latex" exportText
+                        File.Download.string (model.title ++ ".tex") "application/x-latex" exportText
 
                     else if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "R") pressedKeys then
                         let
@@ -200,7 +179,7 @@ update msg model =
                             exportText =
                                 Render.Export.LaTeX.rawExport settings model.editRecord.tree
                         in
-                        File.Download.string "out.tex" "application/x-latex" exportText
+                        File.Download.string (model.title ++ ".tex") "application/x-latex" exportText
 
                     else
                         Cmd.none
@@ -253,14 +232,6 @@ update msg model =
 
 background_ model =
     Background.color <| backgroundColor model.theme
-
-
-text_ model =
-    Font.color <| textColor model.theme
-
-
-offsetBackground_ model =
-    Background.color <| getThemedElementColor .offsetBackground (Theme.mapTheme model.theme)
 
 
 view : Model -> Html Msg
@@ -468,7 +439,7 @@ header model =
             , Font.color debugTextColor
             , forceColorStyle
             ]
-            (Element.text <| "Scripta Live: " ++ model.title ++ " (" ++ themeLabel ++ ")")
+            (Element.text <| "Scripta Live: " ++ model.title)
         ]
 
 
