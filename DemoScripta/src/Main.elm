@@ -264,7 +264,7 @@ marginWidth =
 
 panelWidth : Model -> Int
 panelWidth model =
-    (appWidth model - sidebarWidth - 2 * marginWidth) // 2
+    (appWidth model - sidebarWidth - 16 - 4 - 16) // 2  -- 16 for padding, 4 for spacing, 16 for padding
 
 
 panelHeight : Model -> Attribute msg
@@ -273,7 +273,7 @@ panelHeight model =
 
 
 margin =
-    { left = 0, right = 0, top = 2, bottom = 0, between = 2 }
+    { left = 0, right = 0, top = 2, bottom = 0, between = 4 }
 
 
 headerHeight =
@@ -284,33 +284,26 @@ mainColumn : Model -> Element Msg
 mainColumn model =
     column (background_ model :: mainColumnStyle)
         [ column 
-            [ width (px <| appWidth model - 20)
+            [ width (px <| appWidth model)
             , height (px <| appHeight model)
             , clipY
             , Element.htmlAttribute (Html.Attributes.style "display" "flex")
             , Element.htmlAttribute (Html.Attributes.style "flex-direction" "column")
             ]
             [ header model
-            , row 
-                [ spacing margin.between
-                , centerX
-                , height (px <| appHeight model - 45)  -- Account for header height
-                , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
-                , Element.htmlAttribute (Html.Attributes.style "flex" "1")
-                , Element.htmlAttribute (Html.Attributes.style "display" "flex")
-                ]
-                [ Element.el 
-                    [ moveUp 2
-                    , alignTop
-                    , height (px <| appHeight model - 45)
-                    , width (px <| panelWidth model)
-                    , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
-                    , Element.htmlAttribute (Html.Attributes.style "position" "relative")
-                    ] 
-                    (inputText model)
-                , displayRenderedText model |> Element.map Render
-                , sidebar model
-                ]
+            , Element.el [ paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ]
+                (row 
+                    [ spacing 4  -- Reduce spacing between panels
+                    , width (px <| appWidth model)
+                    , height (px <| appHeight model - 45 - 8)  -- Account for header height and top padding
+                    , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
+                    , paddingXY 8 0  -- Add horizontal padding to prevent overhang
+                    ]
+                    [ inputText model
+                    , displayRenderedText model |> Element.map Render
+                    , sidebar model
+                    ]
+                )
             ]
         ]
 
@@ -378,10 +371,12 @@ displayRenderedText model =
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
     Element.el
-        [ width (px <| panelWidth model)
+        [ alignTop
         , height (px <| appHeight model - 45)
+        , width (px <| panelWidth model)
         , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
         , Element.htmlAttribute (Html.Attributes.style "position" "relative")
+        , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
         ]
         (Element.el
             [ width fill
@@ -393,6 +388,7 @@ displayRenderedText model =
             , Element.htmlAttribute (Html.Attributes.style "left" "0")
             , Element.htmlAttribute (Html.Attributes.style "right" "0")
             , Element.htmlAttribute (Html.Attributes.style "bottom" "0")
+            , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
             ]
             (column [ spacing 8, Font.size 14, height fill, width fill ]
                 [ column
@@ -471,7 +467,7 @@ header model =
     in
     Element.row
         [ Element.height <| Element.px <| 45
-        , Element.width <| Element.px <| (appWidth model - 4 * marginWidth)
+        , Element.width <| Element.px <| appWidth model
         , Element.spacing 32
         , Element.centerX
         , Font.color debugTextColor
@@ -503,35 +499,45 @@ inputText model =
                 Theme.Dark ->
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
-    Element.el
-        [ width fill
-        , height fill
-        , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
-        , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
-        , Element.htmlAttribute (Html.Attributes.style "position" "absolute")
-        , Element.htmlAttribute (Html.Attributes.style "top" "0")
-        , Element.htmlAttribute (Html.Attributes.style "left" "0")
-        , Element.htmlAttribute (Html.Attributes.style "right" "0")
-        , Element.htmlAttribute (Html.Attributes.style "bottom" "0")
-        ]
-        (Input.multiline
-            [ width (px <| (panelWidth model - 2 * innerMarginWidth))
+    Element.el 
+        [ alignTop
+        , height (px <| appHeight model - 45)
+        , width (px <| panelWidth model)
+        , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
+        , Element.htmlAttribute (Html.Attributes.style "position" "relative")
+        , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
+        ] 
+        (Element.el
+            [ width fill
             , height fill
-            , Font.size 14
-            , Element.alignTop
-            , Font.color (textColor model.theme)
-            , Background.color (backgroundColor model.theme)
-            , forceColorStyle
-            , Element.htmlAttribute (Html.Attributes.id "source-text-input")
-            , Element.htmlAttribute (Html.Attributes.style "min-height" "100%")
+            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+            , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+            , Element.htmlAttribute (Html.Attributes.style "position" "absolute")
+            , Element.htmlAttribute (Html.Attributes.style "top" "0")
+            , Element.htmlAttribute (Html.Attributes.style "left" "0")
+            , Element.htmlAttribute (Html.Attributes.style "right" "0")
+            , Element.htmlAttribute (Html.Attributes.style "bottom" "0")
             , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
             ]
-            { onChange = InputText
-            , text = model.sourceText
-            , placeholder = Nothing
-            , label = Input.labelAbove [] <| el [] (text "")
-            , spellcheck = False
-            }
+            (Input.multiline
+                [ width fill
+                , height fill
+                , Font.size 14
+                , Element.alignTop
+                , Font.color (textColor model.theme)
+                , Background.color (backgroundColor model.theme)
+                , forceColorStyle
+                , Element.htmlAttribute (Html.Attributes.id "source-text-input")
+                , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
+                , Element.htmlAttribute (Html.Attributes.style "padding" "8px")
+                ]
+                { onChange = InputText
+                , text = model.sourceText
+                , placeholder = Nothing
+                , label = Input.labelAbove [] <| el [] (text "")
+                , spellcheck = False
+                }
+            )
         )
 
 
