@@ -87,10 +87,6 @@ type alias Flags =
     { window : { windowWidth : Int, windowHeight : Int } }
 
 
-setSourceText currentLanguage =
-    AppData.defaultDocumentText
-
-
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
@@ -143,6 +139,7 @@ update msg model =
             ( { model
                 | sourceText = normalizedText
                 , count = model.count + 1
+                , title = getTitle normalizedText
                 , editRecord =
                     ScriptaV2.DifferentialCompiler.update model.editRecord normalizedText
               }
@@ -231,6 +228,10 @@ background_ model =
     Background.color <| getThemedElementColor .background (Theme.mapTheme model.theme)
 
 
+text_ model =
+    Font.color <| getThemedElementColor .text (Theme.mapTheme model.theme)
+
+
 offsetBackground_ model =
     Background.color <| getThemedElementColor .offsetBackground (Theme.mapTheme model.theme)
 
@@ -238,7 +239,7 @@ offsetBackground_ model =
 view : Model -> Html Msg
 view model =
     layoutWith { options = [ Element.focusStyle noFocus ] }
-        (background_ model :: [])
+        (text_ model :: background_ model :: [])
         (mainColumn model)
 
 
@@ -288,7 +289,7 @@ mainColumn model =
         [ column [ width (px <| appWidth model - 20), height (px <| appHeight model), clipY ]
             [ header model
             , row [ spacing margin.between, centerX ]
-                [ inputText model
+                [ Element.el [ moveUp 2 ] (inputText model)
                 , displayRenderedText model |> Element.map Render
                 , sidebar model
                 ]
@@ -382,11 +383,15 @@ header model =
         , Element.width <| Element.px <| (appWidth model - 4 * marginWidth)
         , Element.spacing 32
         , Element.centerX
-        , paddingEach { left = 18, right = 18, top = 0, bottom = 0 }
         , Font.color (getThemedElementColor .text (Theme.mapTheme model.theme))
         , Background.color (getThemedElementColor .background (Theme.mapTheme model.theme))
+        , paddingEach { left = 18, right = 18, top = 0, bottom = 0 }
         ]
-        [ Element.el [ centerX ]
+        [ Element.el
+            [ centerX
+            , Font.color <| Element.rgb 1 0 0 -- (getThemedElementColor .text (Theme.mapTheme model.theme))
+            , Background.color (getThemedElementColor .background (Theme.mapTheme model.theme))
+            ]
             (Element.text <| "Scripta Live: " ++ model.title)
         ]
 
