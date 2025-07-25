@@ -14,6 +14,7 @@ import File.Download
 import Html exposing (Html)
 import Html.Attributes
 import Keyboard
+import List.Extra
 import Render.Export.LaTeX
 import Render.Settings exposing (getThemedElementColor)
 import ScriptaV2.API
@@ -50,6 +51,7 @@ type alias Model =
     , windowHeight : Int
     , currentLanguage : ScriptaV2.Language.Language
     , selectId : String
+    , title : String
     , theme : Theme.Theme
     , pressedKeys : List Keyboard.Key
     , currentTime : Time.Posix
@@ -62,8 +64,8 @@ textColor theme =
     getThemedElementColor .text (Theme.mapTheme theme)
 
 
-headeBackgrounColor : Theme.Theme -> Element.Color
-headeBackgrounColor theme =
+headerBackgrounColor : Theme.Theme -> Element.Color
+headerBackgrounColor theme =
     getThemedElementColor .text (Theme.mapTheme theme)
 
 
@@ -94,6 +96,9 @@ init flags =
     let
         normalizedTex =
             normalize AppData.defaultDocumentText
+
+        title_ =
+            getTitle normalizedTex
     in
     ( { sourceText = normalizedTex
       , count = 1
@@ -101,6 +106,7 @@ init flags =
       , windowHeight = flags.window.windowHeight
       , currentLanguage = ScriptaV2.Language.EnclosureLang
       , selectId = "@InitID"
+      , title = title_
       , theme = Theme.Light
       , pressedKeys = []
       , currentTime = Time.millisToPosix 0
@@ -108,6 +114,16 @@ init flags =
       }
     , Cmd.none
     )
+
+
+getTitle : String -> String
+getTitle str =
+    str
+        |> String.lines
+        |> List.map String.trim
+        |> List.Extra.dropWhile (\line -> line == "" || String.startsWith "|" line)
+        |> List.head
+        |> Maybe.withDefault "No title yet"
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -344,7 +360,7 @@ compile : Model -> List (Element MarkupMsg)
 compile model =
     ScriptaV2.API.compileStringWithTitle
         (Theme.mapTheme model.theme)
-        "Example"
+        ""
         { filter = ScriptaV2.Compiler.SuppressDocumentBlocks
         , lang = ScriptaV2.Language.EnclosureLang
         , docWidth = panelWidth model - 200 --5 * xPadding
@@ -359,18 +375,19 @@ htmlId str =
     Element.htmlAttribute (Html.Attributes.id str)
 
 
+header : Model -> Element msg
 header model =
     Element.row
-        [ Element.height <| Element.px <| 90
-        , Element.width <| Element.px <| (appWidth model - 2 * marginWidth)
+        [ Element.height <| Element.px <| 45
+        , Element.width <| Element.px <| (appWidth model - 4 * marginWidth)
         , Element.spacing 32
         , Element.centerX
-        , paddingEach { left = 0, right = 0, top = 0, bottom = 12 }
+        , paddingEach { left = 18, right = 18, top = 0, bottom = 0 }
         , Font.color (getThemedElementColor .text (Theme.mapTheme model.theme))
         , Background.color (getThemedElementColor .background (Theme.mapTheme model.theme))
         ]
-        [ Element.el []
-            (Element.text "Scripta Live: Sample Doc")
+        [ Element.el [ centerX ]
+            (Element.text <| "Scripta Live: " ++ model.title)
         ]
 
 

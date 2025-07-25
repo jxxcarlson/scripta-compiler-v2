@@ -3,8 +3,7 @@ module AppData exposing (defaultDocumentText, processImagesText)
 
 defaultDocumentText : String
 defaultDocumentText =
-    """
-  | title
+    """| title
   Example
   
   | image figure:1 caption: Humming bird
