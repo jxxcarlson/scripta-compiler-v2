@@ -61,17 +61,44 @@ type alias Model =
 
 textColor : Theme.Theme -> Element.Color
 textColor theme =
-    getThemedElementColor .text (Theme.mapTheme theme)
+    case theme of
+        Theme.Light ->
+            getThemedElementColor .text (Theme.mapTheme theme)
+
+        Theme.Dark ->
+            Element.rgb255 240 240 240
+
+
+
+-- Light gray/white for dark mode
 
 
 headerBackgrounColor : Theme.Theme -> Element.Color
 headerBackgrounColor theme =
-    getThemedElementColor .text (Theme.mapTheme theme)
+    case theme of
+        Theme.Light ->
+            getThemedElementColor .background (Theme.mapTheme theme)
+
+        Theme.Dark ->
+            Element.rgb255 48 54 59
+
+
+
+-- Darker background for dark mode rgba 0.19 0.21 0.23 1
 
 
 backgroundColor : Theme.Theme -> Element.Color
 backgroundColor theme =
-    getThemedElementColor .background (Theme.mapTheme theme)
+    case theme of
+        Theme.Light ->
+            getThemedElementColor .background (Theme.mapTheme theme)
+
+        Theme.Dark ->
+            Element.rgb255 48 54 59
+
+
+
+-- Darker background for dark mode
 
 
 type Msg
@@ -225,11 +252,11 @@ update msg model =
 
 
 background_ model =
-    Background.color <| getThemedElementColor .background (Theme.mapTheme model.theme)
+    Background.color <| backgroundColor model.theme
 
 
 text_ model =
-    Font.color <| getThemedElementColor .text (Theme.mapTheme model.theme)
+    Font.color <| textColor model.theme
 
 
 offsetBackground_ model =
@@ -239,7 +266,7 @@ offsetBackground_ model =
 view : Model -> Html Msg
 view model =
     layoutWith { options = [ Element.focusStyle noFocus ] }
-        (text_ model :: background_ model :: [])
+        [ background_ model ]
         (mainColumn model)
 
 
@@ -299,6 +326,15 @@ mainColumn model =
 
 sidebar : Model -> Element.Element msg
 sidebar model =
+    let
+        forceColorStyle =
+            case model.theme of
+                Theme.Light ->
+                    Element.htmlAttribute (Html.Attributes.style "color" "black")
+
+                Theme.Dark ->
+                    Element.htmlAttribute (Html.Attributes.style "color" "white")
+    in
     Element.column [ Element.paddingEach { top = 16, bottom = 0, left = 0, right = 0 } ]
         [ Element.column
             [ Element.width <| px <| sidebarWidth
@@ -308,6 +344,7 @@ sidebar model =
             , Element.spacing 6
             , Font.size 14
             , background_ model --            , Background.color <| Render.Settings.getThemedElementColor .background (Theme.mapTheme model.theme)
+            , forceColorStyle
             ]
             [ Element.el [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 12 } ]
                 (Download.downloadButton "Download script" "process_images.sh" "application/x-sh" AppData.processImagesText)
@@ -335,6 +372,15 @@ title str =
 
 displayRenderedText : Model -> Element MarkupMsg
 displayRenderedText model =
+    let
+        forceColorStyle =
+            case model.theme of
+                Theme.Light ->
+                    Element.htmlAttribute (Html.Attributes.style "color" "black")
+
+                Theme.Dark ->
+                    Element.htmlAttribute (Html.Attributes.style "color" "white")
+    in
     column [ spacing 8, Font.size 14 ]
         [ column
             [ spacing 4
@@ -345,6 +391,7 @@ displayRenderedText model =
             , scrollbarY
             , centerX
             , Font.color (textColor model.theme)
+            , forceColorStyle
 
             --            , Background.color (Element.rgba 0.8 0.8 0.95 1.0)
             ]
@@ -378,21 +425,50 @@ htmlId str =
 
 header : Model -> Element msg
 header model =
+    let
+        debugTextColor =
+            case model.theme of
+                Theme.Light ->
+                    Element.rgb255 0 0 0
+
+                -- Black for light mode
+                Theme.Dark ->
+                    Element.rgb255 255 255 255
+
+        -- Pure white for dark mode
+        themeLabel =
+            case model.theme of
+                Theme.Light ->
+                    "Light Mode"
+
+                Theme.Dark ->
+                    "Dark Mode"
+
+        -- Force color with HTML style attribute
+        forceColorStyle =
+            case model.theme of
+                Theme.Light ->
+                    Element.htmlAttribute (Html.Attributes.style "color" "black")
+
+                Theme.Dark ->
+                    Element.htmlAttribute (Html.Attributes.style "color" "white")
+    in
     Element.row
         [ Element.height <| Element.px <| 45
         , Element.width <| Element.px <| (appWidth model - 4 * marginWidth)
         , Element.spacing 32
         , Element.centerX
-        , Font.color (getThemedElementColor .text (Theme.mapTheme model.theme))
-        , Background.color (getThemedElementColor .background (Theme.mapTheme model.theme))
+        , Font.color debugTextColor
+        , Background.color (backgroundColor model.theme)
         , paddingEach { left = 18, right = 18, top = 0, bottom = 0 }
+        , forceColorStyle
         ]
         [ Element.el
             [ centerX
-            , Font.color <| Element.rgb 1 0 0 -- (getThemedElementColor .text (Theme.mapTheme model.theme))
-            , Background.color (getThemedElementColor .background (Theme.mapTheme model.theme))
+            , Font.color debugTextColor
+            , forceColorStyle
             ]
-            (Element.text <| "Scripta Live: " ++ model.title)
+            (Element.text <| "Scripta Live: " ++ model.title ++ " (" ++ themeLabel ++ ")")
         ]
 
 
@@ -402,6 +478,15 @@ innerMarginWidth =
 
 inputText : Model -> Element Msg
 inputText model =
+    let
+        forceColorStyle =
+            case model.theme of
+                Theme.Light ->
+                    Element.htmlAttribute (Html.Attributes.style "color" "black")
+
+                Theme.Dark ->
+                    Element.htmlAttribute (Html.Attributes.style "color" "white")
+    in
     Input.multiline
         [ width (px <| (panelWidth model - 2 * innerMarginWidth))
         , height (px <| headerHeight)
@@ -410,6 +495,7 @@ inputText model =
         , Element.alignTop
         , Font.color (textColor model.theme)
         , Background.color (backgroundColor model.theme)
+        , forceColorStyle
         ]
         { onChange = InputText
         , text = model.sourceText
