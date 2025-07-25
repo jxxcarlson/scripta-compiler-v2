@@ -233,7 +233,10 @@ background_ model =
 view : Model -> Html Msg
 view model =
     layoutWith { options = [ Element.focusStyle noFocus ] }
-        [ background_ model ]
+        [ background_ model
+        , Element.htmlAttribute (Html.Attributes.style "height" "100vh")
+        , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
+        ]
         (mainColumn model)
 
 
@@ -280,10 +283,31 @@ headerHeight =
 mainColumn : Model -> Element Msg
 mainColumn model =
     column (background_ model :: mainColumnStyle)
-        [ column [ width (px <| appWidth model - 20), height (px <| appHeight model), clipY ]
+        [ column 
+            [ width (px <| appWidth model - 20)
+            , height (px <| appHeight model)
+            , clipY
+            , Element.htmlAttribute (Html.Attributes.style "display" "flex")
+            , Element.htmlAttribute (Html.Attributes.style "flex-direction" "column")
+            ]
             [ header model
-            , row [ spacing margin.between, centerX ]
-                [ Element.el [ moveUp 2, alignTop ] (inputText model)
+            , row 
+                [ spacing margin.between
+                , centerX
+                , height (px <| appHeight model - 45)  -- Account for header height
+                , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
+                , Element.htmlAttribute (Html.Attributes.style "flex" "1")
+                , Element.htmlAttribute (Html.Attributes.style "display" "flex")
+                ]
+                [ Element.el 
+                    [ moveUp 2
+                    , alignTop
+                    , height (px <| appHeight model - 45)
+                    , width (px <| panelWidth model)
+                    , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
+                    , Element.htmlAttribute (Html.Attributes.style "position" "relative")
+                    ] 
+                    (inputText model)
                 , displayRenderedText model |> Element.map Render
                 , sidebar model
                 ]
@@ -302,10 +326,10 @@ sidebar model =
                 Theme.Dark ->
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
-    Element.column [ Element.paddingEach { top = 16, bottom = 0, left = 0, right = 0 }, panelHeight model ]
+    Element.column [ Element.paddingEach { top = 16, bottom = 0, left = 0, right = 0 }, height fill ]
         [ Element.column
             [ Element.width <| px <| sidebarWidth
-            , panelHeight model
+            , height fill
             , alignTop
             , Font.color (textColor model.theme)
             , Element.paddingXY 16 16
@@ -314,6 +338,9 @@ sidebar model =
             , background_ model --            , Background.color <| Render.Settings.getThemedElementColor .background (Theme.mapTheme model.theme)
             , forceColorStyle
             , scrollbarY
+            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+            , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
+            , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
             ]
             [ Element.el [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 12 } ]
                 (Download.downloadButton "Download script" "process_images.sh" "application/x-sh" AppData.processImagesText)
@@ -350,25 +377,42 @@ displayRenderedText model =
                 Theme.Dark ->
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
-    column [ spacing 8, Font.size 14, panelHeight model ]
-        [ column
-            [ spacing 4
-            , background_ model
-            , width <| px <| panelWidth model -- width (px <| (panelWidth model - 0 * innerMarginWidth))
-            , panelHeight model
-            , htmlId "rendered-text"
-            , alignTop
-            , scrollbarY
-            , centerX
-            , Font.color (textColor model.theme)
-            , forceColorStyle
-            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
-            , Element.htmlAttribute (Html.Attributes.style "flex-shrink" "1")
-
-            --            , Background.color (Element.rgba 0.8 0.8 0.95 1.0)
-            ]
-            [ container compile model ]
+    Element.el
+        [ width (px <| panelWidth model)
+        , height (px <| appHeight model - 45)
+        , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
+        , Element.htmlAttribute (Html.Attributes.style "position" "relative")
         ]
+        (Element.el
+            [ width fill
+            , height fill
+            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+            , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+            , Element.htmlAttribute (Html.Attributes.style "position" "absolute")
+            , Element.htmlAttribute (Html.Attributes.style "top" "0")
+            , Element.htmlAttribute (Html.Attributes.style "left" "0")
+            , Element.htmlAttribute (Html.Attributes.style "right" "0")
+            , Element.htmlAttribute (Html.Attributes.style "bottom" "0")
+            ]
+            (column [ spacing 8, Font.size 14, height fill, width fill ]
+                [ column
+                    [ spacing 4
+                    , background_ model
+                    , width fill
+                    , htmlId "rendered-text"
+                    , alignTop
+                    , centerX
+                    , Font.color (textColor model.theme)
+                    , forceColorStyle
+                    , Element.htmlAttribute (Html.Attributes.style "padding" "16px")
+                    , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
+
+                    --            , Background.color (Element.rgba 0.8 0.8 0.95 1.0)
+                    ]
+                    [ container compile model ]
+                ]
+            )
+        )
 
 
 container : (a -> List (Element msg)) -> a -> Element msg
@@ -459,22 +503,36 @@ inputText model =
                 Theme.Dark ->
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
-    Input.multiline
-        [ width (px <| (panelWidth model - 2 * innerMarginWidth))
-        , panelHeight model
-        , Font.size 14
-        , Element.alignTop
-        , Font.color (textColor model.theme)
-        , Background.color (backgroundColor model.theme)
-        , forceColorStyle
-        , Element.htmlAttribute (Html.Attributes.id "source-text-input")
+    Element.el
+        [ width fill
+        , height fill
+        , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+        , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+        , Element.htmlAttribute (Html.Attributes.style "position" "absolute")
+        , Element.htmlAttribute (Html.Attributes.style "top" "0")
+        , Element.htmlAttribute (Html.Attributes.style "left" "0")
+        , Element.htmlAttribute (Html.Attributes.style "right" "0")
+        , Element.htmlAttribute (Html.Attributes.style "bottom" "0")
         ]
-        { onChange = InputText
-        , text = model.sourceText
-        , placeholder = Nothing
-        , label = Input.labelAbove [] <| el [] (text "")
-        , spellcheck = False
-        }
+        (Input.multiline
+            [ width (px <| (panelWidth model - 2 * innerMarginWidth))
+            , height fill
+            , Font.size 14
+            , Element.alignTop
+            , Font.color (textColor model.theme)
+            , Background.color (backgroundColor model.theme)
+            , forceColorStyle
+            , Element.htmlAttribute (Html.Attributes.id "source-text-input")
+            , Element.htmlAttribute (Html.Attributes.style "min-height" "100%")
+            , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
+            ]
+            { onChange = InputText
+            , text = model.sourceText
+            , placeholder = Nothing
+            , label = Input.labelAbove [] <| el [] (text "")
+            , spellcheck = False
+            }
+        )
 
 
 fontGray g =
