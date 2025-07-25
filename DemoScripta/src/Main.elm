@@ -1,10 +1,11 @@
 module Main exposing (main)
 
+import AppData
 import Browser
 import Browser.Dom
 import Browser.Events
 import Dict
-import Document
+import Download
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
@@ -61,6 +62,11 @@ textColor theme =
     getThemedElementColor .text (Theme.mapTheme theme)
 
 
+headeBackgrounColor : Theme.Theme -> Element.Color
+headeBackgrounColor theme =
+    getThemedElementColor .text (Theme.mapTheme theme)
+
+
 backgroundColor : Theme.Theme -> Element.Color
 backgroundColor theme =
     getThemedElementColor .background (Theme.mapTheme theme)
@@ -80,12 +86,16 @@ type alias Flags =
 
 
 setSourceText currentLanguage =
-    Document.text
+    AppData.defaultDocumentText
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { sourceText = Document.text
+    let
+        normalizedTex =
+            normalize AppData.defaultDocumentText
+    in
+    ( { sourceText = normalizedTex
       , count = 1
       , windowWidth = flags.window.windowWidth
       , windowHeight = flags.window.windowHeight
@@ -94,7 +104,7 @@ init flags =
       , theme = Theme.Light
       , pressedKeys = []
       , currentTime = Time.millisToPosix 0
-      , editRecord = ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.EnclosureLang Document.text
+      , editRecord = ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.EnclosureLang normalizedTex
       }
     , Cmd.none
     )
@@ -110,11 +120,15 @@ update msg model =
             ( { model | windowWidth = width, windowHeight = height }, Cmd.none )
 
         InputText str ->
+            let
+                normalizedText =
+                    normalize str
+            in
             ( { model
-                | sourceText = str
+                | sourceText = normalizedText
                 , count = model.count + 1
                 , editRecord =
-                    ScriptaV2.DifferentialCompiler.update model.editRecord model.sourceText
+                    ScriptaV2.DifferentialCompiler.update model.editRecord normalizedText
               }
             , Cmd.none
             )
@@ -201,6 +215,10 @@ background_ model =
     Background.color <| getThemedElementColor .background (Theme.mapTheme model.theme)
 
 
+offsetBackground_ model =
+    Background.color <| getThemedElementColor .offsetBackground (Theme.mapTheme model.theme)
+
+
 view : Model -> Html Msg
 view model =
     layoutWith { options = [ Element.focusStyle noFocus ] }
@@ -222,13 +240,17 @@ appHeight model =
     model.windowHeight - headerHeight
 
 
-tocWidth =
-    250
+sidebarWidth =
+    200
+
+
+marginWidth =
+    16
 
 
 panelWidth : Model -> Int
 panelWidth model =
-    (appWidth model - tocWidth - (margin.left + margin.right + 2 * margin.between)) // 2
+    (appWidth model - sidebarWidth - 2 * marginWidth) // 2
 
 
 panelHeight : Model -> Attribute msg
@@ -237,25 +259,17 @@ panelHeight model =
 
 
 margin =
-    { left = 20, right = 20, top = 20, bottom = 60, between = 20 }
-
-
-paddingZero =
-    { left = 0, right = 0, top = 0, bottom = 0 }
-
-
-xPadding =
-    16
+    { left = 0, right = 0, top = 2, bottom = 0, between = 2 }
 
 
 headerHeight =
-    40
+    18
 
 
 mainColumn : Model -> Element Msg
 mainColumn model =
     column (background_ model :: mainColumnStyle)
-        [ column [ width (px <| appWidth model), height (px <| appHeight model), clipY ]
+        [ column [ width (px <| appWidth model - 20), height (px <| appHeight model), clipY ]
             [ header model
             , row [ spacing margin.between, centerX ]
                 [ inputText model
@@ -270,15 +284,17 @@ sidebar : Model -> Element.Element msg
 sidebar model =
     Element.column [ Element.paddingEach { top = 16, bottom = 0, left = 0, right = 0 } ]
         [ Element.column
-            [ Element.width Element.fill
+            [ Element.width <| px <| sidebarWidth
             , panelHeight model
             , Font.color (textColor model.theme)
             , Element.paddingXY 16 16
             , Element.spacing 6
             , Font.size 14
-            , Background.color <| Render.Settings.getThemedElementColor .background (Theme.mapTheme model.theme)
+            , background_ model --            , Background.color <| Render.Settings.getThemedElementColor .background (Theme.mapTheme model.theme)
             ]
-            [ Element.text "Bare bones:"
+            [ Element.el [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 12 } ]
+                (Download.downloadButton "Download script" "process_images.sh" "application/x-sh" AppData.processImagesText)
+            , Element.text "Bare bones:"
             , Element.text "ctrl-T: toggle theme"
             , Element.text "ctrl-E: export to LaTeX"
             , Element.text "ctrl-R: export to Raw LaTeX"
@@ -303,30 +319,40 @@ title str =
 displayRenderedText : Model -> Element MarkupMsg
 displayRenderedText model =
     column [ spacing 8, Font.size 14 ]
-        [ el [ fontGray 0.9 ] (text "Rendered Text")
-        , column
+        [ column
             [ spacing 4
             , background_ model
-            , width (px <| panelWidth model)
+            , width <| px <| panelWidth model -- width (px <| (panelWidth model - 0 * innerMarginWidth))
             , panelHeight model
-            , paddingXY 16 32
             , htmlId "rendered-text"
             , scrollbarY
+            , centerX
             , Font.color (textColor model.theme)
+
+            --            , Background.color (Element.rgba 0.8 0.8 0.95 1.0)
             ]
-            (ScriptaV2.API.compileStringWithTitle
-                (Theme.mapTheme model.theme)
-                "Example"
-                { filter = ScriptaV2.Compiler.SuppressDocumentBlocks
-                , lang = ScriptaV2.Language.EnclosureLang
-                , docWidth = panelWidth model - 3 * xPadding
-                , editCount = model.count
-                , selectedId = model.selectId
-                , idsOfOpenNodes = []
-                }
-                model.sourceText
-            )
+            [ container compile model ]
         ]
+
+
+container : (a -> List (Element msg)) -> a -> Element msg
+container f model_ =
+    Element.column [ Element.centerX ] (f model_)
+
+
+compile : Model -> List (Element MarkupMsg)
+compile model =
+    ScriptaV2.API.compileStringWithTitle
+        (Theme.mapTheme model.theme)
+        "Example"
+        { filter = ScriptaV2.Compiler.SuppressDocumentBlocks
+        , lang = ScriptaV2.Language.EnclosureLang
+        , docWidth = panelWidth model - 200 --5 * xPadding
+        , editCount = model.count
+        , selectedId = model.selectId
+        , idsOfOpenNodes = []
+        }
+        model.sourceText
 
 
 htmlId str =
@@ -334,15 +360,29 @@ htmlId str =
 
 
 header model =
-    Element.row [ Element.spacing 32, Element.centerX, paddingEach { left = 0, right = 0, top = 0, bottom = 12 } ]
-        [ Element.el [ Element.alignLeft, Font.color (Element.rgb 1 1 1) ] (Element.text "Scripta Live")
+    Element.row
+        [ Element.height <| Element.px <| 90
+        , Element.width <| Element.px <| (appWidth model - 2 * marginWidth)
+        , Element.spacing 32
+        , Element.centerX
+        , paddingEach { left = 0, right = 0, top = 0, bottom = 12 }
+        , Font.color (getThemedElementColor .text (Theme.mapTheme model.theme))
+        , Background.color (getThemedElementColor .background (Theme.mapTheme model.theme))
         ]
+        [ Element.el []
+            (Element.text "Scripta Live: Sample Doc")
+        ]
+
+
+innerMarginWidth =
+    16
 
 
 inputText : Model -> Element Msg
 inputText model =
     Input.multiline
-        [ width (px <| panelWidth model)
+        [ width (px <| (panelWidth model - 2 * innerMarginWidth))
+        , height (px <| headerHeight)
         , panelHeight model
         , Font.size 14
         , Element.alignTop
@@ -352,7 +392,7 @@ inputText model =
         { onChange = InputText
         , text = model.sourceText
         , placeholder = Nothing
-        , label = Input.labelAbove [ fontGray 0.9 ] <| el [] (text "Source text")
+        , label = Input.labelAbove [] <| el [] (text "")
         , spellcheck = False
         }
 
@@ -371,6 +411,18 @@ mainColumnStyle =
     , bgGray 0.4
     , paddingXY 20 20
     ]
+
+
+
+-- HELPER FUNCTIONS
+
+
+normalize : String -> String
+normalize input =
+    input
+        |> String.lines
+        |> List.map String.trim
+        |> String.join "\n"
 
 
 scrollToTop : Cmd Msg
