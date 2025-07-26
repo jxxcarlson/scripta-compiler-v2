@@ -68,6 +68,7 @@ type alias ThemedStyles =
     , offsetText : Color
     , link : Color
     , highlight : Color
+    , border : Color
     }
 
 
@@ -118,6 +119,7 @@ lightTheme =
     , offsetText = gray950
     , link = blue500
     , highlight = indigo200
+    , border = gray300
     }
 
 
@@ -133,6 +135,7 @@ darkTheme =
     --, offsetText = teal600 |> Render.NewColor.setOpacity 0.25
     , link = blue300
     , highlight = indigo500
+    , border = gray700
     }
 
 

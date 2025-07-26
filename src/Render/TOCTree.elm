@@ -79,9 +79,25 @@ view theme viewParameters acc documentAst =
         |> List.map vee2
 
 
+style_ theme_ =
+    case theme_ of
+        Render.Theme.Dark ->
+            [ Element.Background.color (Render.Settings.getThemedElementColor .background theme_)
+            , Font.color (Render.Settings.getThemedElementColor .text theme_)
+            ]
+
+        Render.Theme.Light ->
+            [ Element.Background.color (Render.Settings.getThemedElementColor .background theme_)
+            , Font.color (Render.Settings.getThemedElementColor .text theme_)
+            ]
+
+
 viewTOCTree : Render.Theme.Theme -> ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
 viewTOCTree theme viewParameters acc depth indentation maybeFoundIds tocTree =
     let
+        style =
+            style_ theme
+
         val : TOCNodeValue
         val =
             RoseTree.Tree.value tocTree
@@ -106,11 +122,11 @@ viewTOCTree theme viewParameters acc depth indentation maybeFoundIds tocTree =
         Element.none
 
     else if List.isEmpty children then
-        Element.el [] (viewNodeWithChildren theme viewParameters acc indentation val hasChildren)
+        Element.el style (viewNodeWithChildren theme viewParameters acc indentation val hasChildren)
 
     else
         Element.column [ Element.spacing 8 ]
-            (Element.el [] (viewNodeWithChildren theme viewParameters acc indentation val hasChildren)
+            (Element.el style (viewNodeWithChildren theme viewParameters acc indentation val hasChildren)
                 :: List.map (viewTOCTree theme viewParameters acc (depth - 1) (indentation + 1) maybeFoundIds)
                     children
             )
@@ -206,7 +222,7 @@ viewTocItem_ theme viewParameters acc hasChildren ({ args, body, properties } as
                             [ Generic.Language.composeTextElement (String.Extra.softWrapWith 22 "..." (String.trim text)) meta ]
 
                 content =
-                    Element.row [ tocIndent args, Element.width (Element.px 180), Element.spacing 8 ] (sectionNumber :: List.map (Render.Expression.render viewParameters.counter acc viewParameters.settings viewParameters.attr) exprs2)
+                    Element.row ([ tocIndent args, Element.width (Element.px 180), Element.spacing 8 ] ++ style_ theme) (sectionNumber :: List.map (Render.Expression.render viewParameters.counter acc viewParameters.settings viewParameters.attr) exprs2)
 
                 color =
                     if id == viewParameters.selectedId then

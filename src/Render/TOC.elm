@@ -38,27 +38,7 @@ viewWithTitle counter acc attr ast =
 
 view : Render.Theme.Theme -> Render.TOCTree.ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
 view theme viewParameters acc ast =
-    let
-        maximumLevel =
-            case Dict.get "contentsdepth" acc.keyValueDict of
-                Just level ->
-                    String.toInt level |> Maybe.withDefault 3
-
-                Nothing ->
-                    3
-
-        defaultSettings =
-            Render.Settings.defaultSettings
-    in
-    --prepareTOC maximumLevel counter acc { defaultSettings | selectedId = selectedId } attr ast
     Render.TOCTree.view theme viewParameters acc ast
-
-
-
--- NEW TOC CODE
--- Need function
--- List ExpressionBlock ->  RoseTree.Tree ExpressionBlock
--- where the depth in the tree is determined by the level
 
 
 viewTocItem : String -> Int -> Accumulator -> Render.Settings.RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
