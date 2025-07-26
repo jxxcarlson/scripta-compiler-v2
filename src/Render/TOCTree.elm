@@ -44,11 +44,8 @@ view theme viewParameters acc documentAst =
         tocAST =
             Generic.ASTTools.tableOfContents 8 documentAst
 
-        -- I. The raw data: List TOCNodeValue
         nodes : List TOCNodeValue
         nodes =
-            -- Levels should be : [1,1,1,2,2,2,2]
-            -- But the actual result is [1]
             List.map (makeNodeValue viewParameters.idsOfOpenNodes) tocAST
 
         forest : List (Tree TOCNodeValue)
@@ -67,7 +64,8 @@ view theme viewParameters acc documentAst =
                     if data.length > 0 then
                         [ Font.italic
                         , Font.color (Render.Settings.getThemedElementColor .text theme)
-                        , Element.Background.color (Render.Settings.getThemedElementColor .background theme)
+
+                        --, Element.Background.color (Render.Settings.getThemedElementColor .background theme)
                         ]
 
                     else
