@@ -136,13 +136,14 @@ ilink docTitle selectedId selecteSlug docId =
 
 
 {-| Render a section heading
+TODO: re-examine how we compute adn display hierarchical section numbers.
 -}
 section : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 section count acc settings attr block =
     -- level 1 is reserved for titles
     let
         maxNumberedLevel =
-            1
+            3
 
         headingLevel : Float
         headingLevel =

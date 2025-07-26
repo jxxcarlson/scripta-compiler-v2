@@ -10,7 +10,6 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Input as Input
-import Element.Keyed
 import File.Download
 import Html exposing (Html)
 import Html.Attributes
@@ -264,7 +263,11 @@ marginWidth =
 
 panelWidth : Model -> Int
 panelWidth model =
-    (appWidth model - sidebarWidth - 16 - 4 - 16) // 2  -- 16 for padding, 4 for spacing, 16 for padding
+    (appWidth model - sidebarWidth - 16 - 4 - 16) // 2
+
+
+
+-- 16 for padding, 4 for spacing, 16 for padding
 
 
 panelHeight : Model -> Attribute msg
@@ -283,7 +286,7 @@ headerHeight =
 mainColumn : Model -> Element Msg
 mainColumn model =
     column (background_ model :: mainColumnStyle)
-        [ column 
+        [ column
             [ width (px <| appWidth model)
             , height (px <| appHeight model)
             , clipY
@@ -292,12 +295,12 @@ mainColumn model =
             ]
             [ header model
             , Element.el [ paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ]
-                (row 
-                    [ spacing 4  -- Reduce spacing between panels
+                (row
+                    [ spacing 4 -- Reduce spacing between panels
                     , width (px <| appWidth model)
-                    , height (px <| appHeight model - 45 - 8)  -- Account for header height and top padding
+                    , height (px <| appHeight model - 45 - 8) -- Account for header height and top padding
                     , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-                    , paddingXY 8 0  -- Add horizontal padding to prevent overhang
+                    , paddingXY 8 0 -- Add horizontal padding to prevent overhang
                     ]
                     [ inputText model
                     , displayRenderedText model |> Element.map Render
@@ -499,14 +502,14 @@ inputText model =
                 Theme.Dark ->
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
-    Element.el 
+    Element.el
         [ alignTop
         , height (px <| appHeight model - 45)
         , width (px <| panelWidth model)
         , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
         , Element.htmlAttribute (Html.Attributes.style "position" "relative")
         , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-        ] 
+        ]
         (Element.el
             [ width fill
             , height fill

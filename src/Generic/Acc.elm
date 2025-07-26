@@ -221,6 +221,8 @@ transformBlock acc block =
                 | properties =
                     block.properties
                         |> Dict.insert "label" (Vector.toString acc.headingIndex)
+                        |> Debug.log "@@transformBlock"
+                        -- TODO: think about this
                         |> Dict.insert "tag" (block.firstLine |> Tools.String.makeSlug)
             }
 

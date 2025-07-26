@@ -213,6 +213,7 @@ rawExport settings ast =
         |> ASTTools.filterForestOnLabelNames (\name -> not (name == Just "runninghead"))
         |> Generic.Forest.map Generic.BlockUtilities.condenseUrls
         |> encloseLists
+        -- TODO: think about the below
         |> Generic.Forest.map (counterValue ast |> oneOrTwo |> shiftSection)
         |> List.map (exportTree mathMacroDict settings)
         |> String.join "\n\n"
