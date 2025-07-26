@@ -9,6 +9,7 @@ import Array
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Element exposing (Element)
+import Element.Background
 import Element.Events as Events
 import Element.Font as Font
 import Generic.ASTTools
@@ -19,6 +20,7 @@ import Library.Forest
 import Library.Tree
 import Render.Expression
 import Render.Settings
+import Render.Theme
 import Render.Utility
 import RoseTree.Tree exposing (Tree)
 import ScriptaV2.Config as Config
@@ -35,8 +37,8 @@ type alias ViewParameters =
     }
 
 
-view : ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element MarkupMsg)
-view viewParameters acc documentAst =
+view : Render.Theme.Theme -> ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element MarkupMsg)
+view theme viewParameters acc documentAst =
     let
         tocAST : List ExpressionBlock
         tocAST =
@@ -54,7 +56,7 @@ view viewParameters acc documentAst =
             Library.Forest.makeForest Library.Tree.lev nodes
 
         vee t =
-            { length = t |> RoseTree.Tree.children >> List.length, view = viewTOCTree [] viewParameters acc 4 0 Nothing t }
+            { length = t |> RoseTree.Tree.children >> List.length, view = viewTOCTree theme viewParameters acc 4 0 Nothing t }
 
         vee2 t =
             let
@@ -63,7 +65,10 @@ view viewParameters acc documentAst =
 
                 format =
                     if data.length > 0 then
-                        [ Font.italic ]
+                        [ Font.italic
+                        , Font.color (Render.Settings.getThemedElementColor .text theme)
+                        , Element.Background.color (Render.Settings.getThemedElementColor .background theme)
+                        ]
 
                     else
                         []
@@ -74,11 +79,8 @@ view viewParameters acc documentAst =
         |> List.map vee2
 
 
-
--- viewTOCTree : ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
-
-
-viewTOCTree format viewParameters acc depth indentation maybeFoundIds tocTree =
+viewTOCTree : Render.Theme.Theme -> ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
+viewTOCTree theme viewParameters acc depth indentation maybeFoundIds tocTree =
     let
         val : TOCNodeValue
         val =
@@ -104,24 +106,24 @@ viewTOCTree format viewParameters acc depth indentation maybeFoundIds tocTree =
         Element.none
 
     else if List.isEmpty children then
-        Element.el [] (viewNodeWithChildren viewParameters acc indentation val hasChildren)
+        Element.el [] (viewNodeWithChildren theme viewParameters acc indentation val hasChildren)
 
     else
         Element.column [ Element.spacing 8 ]
-            (Element.el [] (viewNodeWithChildren viewParameters acc indentation val hasChildren)
-                :: List.map (viewTOCTree [] viewParameters acc (depth - 1) (indentation + 1) maybeFoundIds)
+            (Element.el [] (viewNodeWithChildren theme viewParameters acc indentation val hasChildren)
+                :: List.map (viewTOCTree theme viewParameters acc (depth - 1) (indentation + 1) maybeFoundIds)
                     children
             )
 
 
-viewNode : ViewParameters -> Accumulator -> Int -> TOCNodeValue -> Element MarkupMsg
-viewNode viewParameters acc indentation node =
-    viewTocItem_ viewParameters acc False node.block
+viewNode : Render.Theme.Theme -> ViewParameters -> Accumulator -> Int -> TOCNodeValue -> Element MarkupMsg
+viewNode theme viewParameters acc indentation node =
+    viewTocItem_ theme viewParameters acc False node.block
 
 
-viewNodeWithChildren : ViewParameters -> Accumulator -> Int -> TOCNodeValue -> Bool -> Element MarkupMsg
-viewNodeWithChildren viewParameters acc indentation node hasChildren =
-    viewTocItem_ viewParameters acc hasChildren node.block
+viewNodeWithChildren : Render.Theme.Theme -> ViewParameters -> Accumulator -> Int -> TOCNodeValue -> Bool -> Element MarkupMsg
+viewNodeWithChildren theme viewParameters acc indentation node hasChildren =
+    viewTocItem_ theme viewParameters acc hasChildren node.block
 
 
 tocForest : List String -> Forest ExpressionBlock -> List (Tree TOCNodeValue)
@@ -155,8 +157,8 @@ makeNodeValue idsOfOpenNodes block =
     { block = newBlock, visible = True }
 
 
-viewTocItem_ : ViewParameters -> Accumulator -> Bool -> ExpressionBlock -> Element MarkupMsg
-viewTocItem_ viewParameters acc hasChildren ({ args, body, properties } as block) =
+viewTocItem_ : Render.Theme.Theme -> ViewParameters -> Accumulator -> Bool -> ExpressionBlock -> Element MarkupMsg
+viewTocItem_ theme viewParameters acc hasChildren ({ args, body, properties } as block) =
     let
         maximumNumberedTocLevel =
             1
@@ -208,7 +210,7 @@ viewTocItem_ viewParameters acc hasChildren ({ args, body, properties } as block
 
                 color =
                     if id == viewParameters.selectedId then
-                        Element.rgb 0.8 0 0.0
+                        Render.Settings.getThemedElementColor .text theme
 
                     else
                         Element.rgb 0 0 0.8

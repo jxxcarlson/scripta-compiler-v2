@@ -16,6 +16,7 @@ import List.Extra
 import Render.Expression
 import Render.Settings
 import Render.TOCTree
+import Render.Theme
 import Render.Utility
 import ScriptaV2.Config as Config
 import ScriptaV2.Msg exposing (MarkupMsg(..))
@@ -35,8 +36,8 @@ viewWithTitle counter acc attr ast =
     prepareTOCWithTitle maximumLevel counter acc Render.Settings.defaultSettings attr ast
 
 
-view : Render.TOCTree.ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
-view viewParameters acc ast =
+view : Render.Theme.Theme -> Render.TOCTree.ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
+view theme viewParameters acc ast =
     let
         maximumLevel =
             case Dict.get "contentsdepth" acc.keyValueDict of
@@ -50,7 +51,7 @@ view viewParameters acc ast =
             Render.Settings.defaultSettings
     in
     --prepareTOC maximumLevel counter acc { defaultSettings | selectedId = selectedId } attr ast
-    Render.TOCTree.view viewParameters acc ast
+    Render.TOCTree.view theme viewParameters acc ast
 
 
 

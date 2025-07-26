@@ -316,7 +316,7 @@ render theme params forest_ =
             -- this value is used in DemoTOC for the document TOC
             -- it is NOT used for the documentTOC in Lamdera
             --Render.TOCTree.view viewParameters accumulator forest_
-            Render.TOCTree.view viewParameters accumulator forest_
+            Render.TOCTree.view theme viewParameters accumulator forest_
 
         banner : Maybe (Element MarkupMsg)
         banner =
@@ -341,9 +341,23 @@ render theme params forest_ =
     renderForest count renderSettings accumulator
 
 -}
-renderForest : Render.Theme.Theme -> Int -> Render.Settings.RenderSettings -> Generic.Acc.Accumulator -> List (RoseTree.Tree.Tree ExpressionBlock) -> List (Element MarkupMsg)
-renderForest theme count renderSettings accumulator =
-    List.map (Render.Tree.renderTree theme count accumulator renderSettings [])
+renderForest :
+    Render.Theme.Theme
+    -> Int
+    -> Render.Settings.RenderSettings
+    -> Generic.Acc.Accumulator
+    -> List (RoseTree.Tree.Tree ExpressionBlock)
+    -> List (Element MarkupMsg)
+renderForest theme count renderSettings accumulator forest =
+    let
+        _ =
+            Generic.ASTTools.getBlockByName "title" forest
+                |> Debug.log "@@::title blocks"
+
+        _ =
+            Debug.log "@@::renderForest" forest
+    in
+    List.map (Render.Tree.renderTree theme count accumulator renderSettings []) forest
 
 
 

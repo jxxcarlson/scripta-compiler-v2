@@ -55,6 +55,7 @@ type alias RenderSettings =
     , theme : Render.Theme.Theme
     , paddingTop : Int
     , paddingBottom : Int
+    , properties : Dict String String
     }
 
 
@@ -189,4 +190,5 @@ makeSettings theme selectedId selectedSlug scale windowWidth data =
     , theme = theme
     , paddingTop = 0
     , paddingBottom = 0
+    , properties = Dict.empty
     }

@@ -18,6 +18,8 @@ module Generic.ASTTools exposing
     , filterOutExpressionsOnName
     , frontMatterDict
     , getBlockArgsByName
+    , getBlockByName
+    , getBlocksByName
     , getText
     , getValue
     , getVerbatimBlockValue
@@ -215,6 +217,14 @@ getBlockByName name ast =
         |> List.concat
         |> filterBlocksOnName name
         |> List.head
+
+
+getBlocksByName : String -> List (Tree.Tree ExpressionBlock) -> List ExpressionBlock
+getBlocksByName name ast =
+    ast
+        |> List.map Library.Tree.flatten
+        |> List.concat
+        |> filterBlocksOnName name
 
 
 banner : List (Tree ExpressionBlock) -> Maybe ExpressionBlock

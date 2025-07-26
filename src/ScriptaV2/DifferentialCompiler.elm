@@ -72,7 +72,7 @@ editRecordToCompilerOutput theme filter displaySettings editRecord =
 
         toc : List (Element MarkupMsg)
         toc =
-            Render.TOCTree.view viewParameters editRecord.accumulator editRecord.tree
+            Render.TOCTree.view theme viewParameters editRecord.accumulator editRecord.tree
 
         banner : Maybe (Element MarkupMsg)
         banner =
@@ -80,12 +80,20 @@ editRecordToCompilerOutput theme filter displaySettings editRecord =
                 |> Maybe.map (Render.Block.renderBody displaySettings.counter editRecord.accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
                 |> Maybe.map (Element.row [ Element.height (Element.px 40) ])
 
+        titleData : Maybe ExpressionBlock
+        titleData =
+            Generic.ASTTools.getBlockByName "title" editRecord.tree
+
+        properties =
+            Maybe.map .properties titleData |> Maybe.withDefault Dict.empty
+
+        -- DEBUGGING
         title : Element MarkupMsg
         title =
             Element.paragraph [] [ Element.text <| Generic.ASTTools.title editRecord.tree ]
     in
     { body =
-        ScriptaV2.Compiler.renderForest theme displaySettings.counter renderSettings editRecord.accumulator (ScriptaV2.Compiler.filterForest2 editRecord.tree)
+        ScriptaV2.Compiler.renderForest theme displaySettings.counter { renderSettings | properties = properties } editRecord.accumulator (ScriptaV2.Compiler.filterForest2 editRecord.tree)
     , banner = banner
     , toc = toc -- THIS IS WHERE THE SIDEBAR TOC IS COMPUTED
     , title = title

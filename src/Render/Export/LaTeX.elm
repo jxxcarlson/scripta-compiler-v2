@@ -932,11 +932,12 @@ argString args =
 
 section : RenderSettings -> List String -> String -> String
 section settings args body =
-    if settings.isStandaloneDocument then
-        section1 args body
+    case Dict.get "chapter" settings.properties of
+        Nothing ->
+            section1 args body
 
-    else
-        section2 args body
+        Just chapter ->
+            section2 args body
 
 
 section1 : List String -> String -> String
