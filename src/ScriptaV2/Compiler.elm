@@ -349,14 +349,6 @@ renderForest :
     -> List (RoseTree.Tree.Tree ExpressionBlock)
     -> List (Element MarkupMsg)
 renderForest theme count renderSettings accumulator forest =
-    let
-        _ =
-            Generic.ASTTools.getBlockByName "title" forest
-                |> Debug.log "@@::title blocks"
-
-        _ =
-            Debug.log "@@::renderForest" forest
-    in
     List.map (Render.Tree.renderTree theme count accumulator renderSettings []) forest
 
 
