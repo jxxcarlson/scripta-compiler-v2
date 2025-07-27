@@ -77,15 +77,3 @@ type alias DisplaySettings =
     , data : Dict String String
     , idsOfOpenNodes : List String
     }
-
-
-
--- From ScriptaV2.Compiler
--- type alias CompilerParameters =
---    { lang : Language
---    , docWidth : Int
---    , editCount : Int
---    , selectedId : String
---    , idsOfOpenNodes : List String
---    , filter : Filter
---    }

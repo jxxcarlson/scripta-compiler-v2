@@ -8,9 +8,11 @@ import Dict
 import Download
 import Element exposing (..)
 import Element.Background as Background
+import Element.Border
 import Element.Font as Font
 import Element.Input as Input
 import File.Download
+import Generic.Compiler
 import Html exposing (Html)
 import Html.Attributes
 import Keyboard
@@ -45,7 +47,8 @@ subscriptions _ =
 
 
 type alias Model =
-    { sourceText : String
+    { displaySettings : Generic.Compiler.DisplaySettings
+    , sourceText : String
     , count : Int
     , windowWidth : Int
     , windowHeight : Int
@@ -55,6 +58,7 @@ type alias Model =
     , theme : Theme.Theme
     , pressedKeys : List Keyboard.Key
     , currentTime : Time.Posix
+    , compilerOutput : ScriptaV2.Compiler.CompilerOutput
     , editRecord : ScriptaV2.DifferentialCompiler.EditRecord
     }
 
@@ -93,29 +97,68 @@ type alias Flags =
     { window : { windowWidth : Int, windowHeight : Int } }
 
 
+initialDisplaySettings flags =
+    { windowWidth = flags.window.windowWidth // 3
+    , counter = 0
+    , selectedId = "nada"
+    , selectedSlug = Nothing
+    , scale = 1.0
+    , longEquationLimit = flags.window.windowWidth |> toFloat
+    , data = Dict.empty
+    , idsOfOpenNodes = []
+    }
+
+
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
+        theme =
+            Theme.Dark
+
+        displaySettings =
+            initialDisplaySettings flags
+
         normalizedTex =
             normalize AppData.defaultDocumentText
 
         title_ =
             getTitle normalizedTex
+
+        editRecord =
+            ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.EnclosureLang normalizedTex
     in
-    ( { sourceText = normalizedTex
+    ( { displaySettings = displaySettings
+      , sourceText = normalizedTex
       , count = 1
       , windowWidth = flags.window.windowWidth
       , windowHeight = flags.window.windowHeight
       , currentLanguage = ScriptaV2.Language.EnclosureLang
       , selectId = "@InitID"
       , title = title_
-      , theme = Theme.Light
+      , theme = theme
       , pressedKeys = []
       , currentTime = Time.millisToPosix 0
-      , editRecord = ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.EnclosureLang normalizedTex
+      , compilerOutput =
+            ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput (Theme.mapTheme theme) ScriptaV2.Compiler.SuppressDocumentBlocks displaySettings editRecord
+      , editRecord = editRecord
       }
     , Cmd.none
     )
+
+
+
+--type alias CompilerOutput =
+--    { body : List (Element MarkupMsg)
+--    , banner : Maybe (Element MarkupMsg)
+--    , toc : List (Element MarkupMsg)
+--    , title : Element MarkupMsg
+--    }
+--titleData : Maybe ExpressionBlock
+--titleData =
+--        Generic.ASTTools.getBlockByName "title" editRecord.tree
+--
+--properties =
+--    Maybe.map .properties titleData |> Maybe.withDefault Dict.empty
 
 
 getTitle : String -> String
@@ -138,12 +181,32 @@ update msg model =
             ( { model | windowWidth = width, windowHeight = height }, Cmd.none )
 
         InputText str ->
+            let
+                editRecord =
+                    ScriptaV2.DifferentialCompiler.update model.editRecord str
+
+                oldDisplaySettings =
+                    model.displaySettings
+
+                newDisplaySettings =
+                    { oldDisplaySettings
+                        | --windowWidth = model.windowWidth
+                          counter = model.count + 1
+                        , selectedId = model.selectId
+                    }
+            in
             ( { model
                 | sourceText = str
                 , count = model.count + 1
+                , displaySettings = newDisplaySettings
                 , title = getTitle str
                 , editRecord =
-                    ScriptaV2.DifferentialCompiler.update model.editRecord str
+                    editRecord
+                , compilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput (Theme.mapTheme model.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        newDisplaySettings
+                        editRecord
               }
             , Cmd.none
             )
@@ -154,10 +217,11 @@ update msg model =
                     Keyboard.update keyMsg model.pressedKeys
 
                 cmd =
-                    if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "T") pressedKeys then
-                        Task.perform (always ToggleTheme) (Task.succeed ())
-
-                    else if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "E") pressedKeys then
+                    --if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "T") pressedKeys then
+                    --    Task.perform (always ToggleTheme) (Task.succeed ())
+                    --
+                    --else
+                    if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "E") pressedKeys then
                         let
                             settings =
                                 Render.Settings.makeSettings (Theme.mapTheme model.theme) "-" Nothing 1.0 model.windowWidth Dict.empty
@@ -280,7 +344,7 @@ margin =
 
 
 headerHeight =
-    18
+    90
 
 
 mainColumn : Model -> Element Msg
@@ -296,8 +360,7 @@ mainColumn model =
             [ header model
             , Element.el [ paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ]
                 (row
-                    [ spacing 4 -- Reduce spacing between panels
-                    , width (px <| appWidth model)
+                    [ width (px <| appWidth model)
                     , height (px <| appHeight model - 45 - 8) -- Account for header height and top padding
                     , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
                     , paddingXY 8 0 -- Add horizontal padding to prevent overhang
@@ -338,13 +401,18 @@ sidebar model =
             , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
             , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
             ]
-            [ Element.el [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 12 } ]
+            [ Element.el
+                [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 12 }
+                , Element.Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
+                , Element.Border.color (Element.rgb255 1 0 0)
+                ]
                 (Download.downloadButton "Download script" "process_images.sh" "application/x-sh" AppData.processImagesText)
             , Element.text "Bare bones:"
-            , Element.text "ctrl-T: toggle theme"
+
+            -- , Element.text "ctrl-T: toggle theme"
             , Element.text "ctrl-E: export to LaTeX"
             , Element.text "ctrl-R: export to Raw LaTeX"
-            , Element.text "Alas: no way to save docs"
+            , Element.text "No way to save docs (yet)"
             ]
         ]
 
@@ -393,10 +461,10 @@ displayRenderedText model =
             , Element.htmlAttribute (Html.Attributes.style "bottom" "0")
             , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
             ]
-            (column [ spacing 8, Font.size 14, height fill, width fill ]
+            (column [ Font.size 14, height fill, width fill ]
                 [ column
-                    [ spacing 4
-                    , background_ model
+                    [ background_ model
+                    , spacing 24
                     , width fill
                     , htmlId "rendered-text"
                     , alignTop
@@ -405,18 +473,20 @@ displayRenderedText model =
                     , forceColorStyle
                     , Element.htmlAttribute (Html.Attributes.style "padding" "16px")
                     , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-
-                    --            , Background.color (Element.rgba 0.8 0.8 0.95 1.0)
                     ]
-                    [ container compile model ]
+                    [ container model model.compilerOutput.body ]
                 ]
             )
         )
 
 
-container : (a -> List (Element msg)) -> a -> Element msg
-container f model_ =
-    Element.column [ Element.centerX ] (f model_)
+
+--container : (a -> List (Element msg)) -> a -> Element msg
+
+
+container : Model -> List (Element msg) -> Element msg
+container model elements_ =
+    Element.column (background_ model :: [ Element.centerX, spacing 24 ]) elements_
 
 
 compile : Model -> List (Element MarkupMsg)
@@ -469,11 +539,10 @@ header model =
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
     Element.row
-        [ Element.height <| Element.px <| 45
+        [ Element.height <| Element.px <| headerHeight
         , Element.width <| Element.px <| appWidth model
         , Element.spacing 32
         , Element.centerX
-        , Font.color debugTextColor
         , Background.color (backgroundColor model.theme)
         , paddingEach { left = 18, right = 18, top = 0, bottom = 0 }
         , forceColorStyle
@@ -482,6 +551,8 @@ header model =
             [ centerX
             , Font.color debugTextColor
             , forceColorStyle
+            , Element.Border.widthEach { left = 0, right = 0, top = 0, bottom = 1 }
+            , Element.Border.color (Element.rgb255 1 1 1)
             ]
             (Element.text <| "Scripta Live: " ++ model.title)
         ]

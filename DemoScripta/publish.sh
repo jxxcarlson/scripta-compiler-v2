@@ -3,3 +3,8 @@ cp assets/main.js  /Users/carlson/dev/elm-work/scripta/jxxcarlson.github.io/scri
 cp assets/index.html   /Users/carlson/dev/elm-work/scripta/jxxcarlson.github.io/scripta-live/
 cp assets/katex.js /Users/carlson/dev/elm-work/scripta/jxxcarlson.github.io/scripta-live/
 
+cp assets/main.js  /Users/carlson/dev/elm-work/scripta/jxxcarlson.github.io/scripta-live/dist
+cp assets/index.html   /Users/carlson/dev/elm-work/scripta/jxxcarlson.github.io/scripta-live/dist
+cp assets/katex.js /Users/carlson/dev/elm-work/scripta/jxxcarlson.github.io/scripta-live/dist
+
+
