@@ -98,6 +98,30 @@ type InListState
     | SNotInList
 
 
+init : InitialAccumulatorData -> Accumulator
+init data =
+    { headingIndex = Vector.init data.vectorSize
+    , deltaLevel = 0
+    , documentIndex = Vector.init data.vectorSize
+    , inListState = SNotInList
+    , counter = Dict.empty
+    , blockCounter = 0
+    , itemVector = Vector.init data.vectorSize
+    , numberedItemDict = Dict.empty
+    , numberedBlockNames = Generic.Settings.numberedBlockNames
+    , reference = Dict.empty
+    , terms = Dict.empty
+    , footnotes = Dict.empty
+    , footnoteNumbers = Dict.empty
+    , mathMacroDict = Dict.empty
+    , textMacroDict = Dict.empty
+    , keyValueDict = Dict.empty
+    , qAndAList = []
+    , qAndADict = Dict.empty
+    }
+        |> updateWithMathMacros data.mathMacros
+
+
 {-| Note that function transformAccumulate operates on initialized accumulator.
 -}
 transformAccumulate : InitialAccumulatorData -> List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
@@ -127,30 +151,6 @@ type alias InitialAccumulatorData =
     , vectorSize : Int
     , language : Language
     }
-
-
-init : InitialAccumulatorData -> Accumulator
-init data =
-    { headingIndex = Vector.init data.vectorSize
-    , deltaLevel = 0
-    , documentIndex = Vector.init data.vectorSize
-    , inListState = SNotInList
-    , counter = Dict.empty
-    , blockCounter = 0
-    , itemVector = Vector.init data.vectorSize
-    , numberedItemDict = Dict.empty
-    , numberedBlockNames = Generic.Settings.numberedBlockNames
-    , reference = Dict.empty
-    , terms = Dict.empty
-    , footnotes = Dict.empty
-    , footnoteNumbers = Dict.empty
-    , mathMacroDict = Dict.empty
-    , textMacroDict = Dict.empty
-    , keyValueDict = Dict.empty
-    , qAndAList = []
-    , qAndADict = Dict.empty
-    }
-        |> updateWithMathMacros data.mathMacros
 
 
 mapper ast_ ( acc_, tree_ ) =
