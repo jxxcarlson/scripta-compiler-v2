@@ -52,6 +52,19 @@ export currentTime settings_ ast =
         settings =
             { settings_ | properties = properties }
 
+        counterValue_ =
+            Dict.get "first-section" properties
+                |> Maybe.andThen String.toInt
+                |> Maybe.map (\x -> x - 1)
+
+        setTheFirstSection =
+            case counterValue_ of
+                Nothing ->
+                    ""
+
+                Just k ->
+                    "\n\\setcounter{section}{" ++ String.fromInt k ++ "}\n"
+
         rawBlockNames =
             ASTTools.rawBlockNames ast
 
@@ -65,11 +78,11 @@ export currentTime settings_ ast =
             Generic.TextMacro.getTextMacroFunctionNames textMacroDefinitions
     in
     Render.Export.Preamble.make
-        rawBlockNames
+        (rawBlockNames |> Debug.log "@@@EXPORT_RAW_BLOCK_NAMES")
         expressionNames
         ++ frontMatter currentTime ast
-        ++ ("\n\\setcounter{section}{" ++ (counterValue ast |> zeroOrSome |> String.fromInt) ++ "}\n")
         ++ tableofcontents rawBlockNames
+        ++ setTheFirstSection
         ++ "\n\n"
         ++ rawExport settings ast
         ++ "\n\n\\end{document}\n"
