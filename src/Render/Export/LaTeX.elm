@@ -40,6 +40,18 @@ counterValue ast =
 export : Time.Posix -> RenderSettings -> List (Tree ExpressionBlock) -> String
 export currentTime settings_ ast =
     let
+        titleData : Maybe ExpressionBlock
+        titleData =
+            ASTTools.getBlockByName "title" ast
+
+        properties =
+            Maybe.map .properties titleData
+                |> Maybe.withDefault Dict.empty
+                |> Debug.log "@@@@EXPORT_PROPERTIES"
+
+        settings =
+            { settings_ | properties = properties }
+
         rawBlockNames =
             ASTTools.rawBlockNames ast
 
@@ -59,7 +71,7 @@ export currentTime settings_ ast =
         ++ ("\n\\setcounter{section}{" ++ (counterValue ast |> zeroOrSome |> String.fromInt) ++ "}\n")
         ++ tableofcontents rawBlockNames
         ++ "\n\n"
-        ++ rawExport settings_ ast
+        ++ rawExport settings ast
         ++ "\n\n\\end{document}\n"
 
 
@@ -932,17 +944,14 @@ argString args =
 
 section : RenderSettings -> List String -> String -> String
 section settings args body =
-    case Dict.get "chapter" settings.properties of
-        Nothing ->
-            section1 args body
-
-        Just chapter ->
-            section2 args body
-
-
-section1 : List String -> String -> String
-section1 args body =
     let
+        maxNumberedLevel : Float
+        maxNumberedLevel =
+            Dict.get "number-to-level" settings.properties
+                |> Debug.log "@@@@maxNumberedLevel"
+                |> Maybe.andThen String.toFloat
+                |> Maybe.withDefault 3
+
         tag =
             body
                 |> String.words
@@ -961,19 +970,42 @@ section1 args body =
 
                 Just _ ->
                     ""
+
+        levelAsString =
+            Utility.getArg "4" 0 args
+
+        levelAsFloat =
+            case String.toFloat levelAsString of
+                Just n ->
+                    n
+
+                Nothing ->
+                    0
     in
-    case Utility.getArg "4" 0 args of
+    case levelAsString of
         "1" ->
             macro1 ("title" ++ suffix) body ++ label
 
         "2" ->
-            macro1 ("section" ++ suffix) body ++ label
+            if levelAsFloat <= maxNumberedLevel then
+                macro1 ("section" ++ suffix) body ++ label
+
+            else
+                macro1 ("section*" ++ suffix) body ++ label
 
         "3" ->
-            macro1 ("subsection" ++ suffix) body ++ label
+            if levelAsFloat <= maxNumberedLevel then
+                macro1 ("subsection" ++ suffix) body ++ label
+
+            else
+                macro1 ("subsection*" ++ suffix) body ++ label
 
         "4" ->
-            macro1 ("subsubsection" ++ suffix) body ++ label
+            if levelAsFloat <= maxNumberedLevel then
+                macro1 ("subsubsection" ++ suffix) body ++ label
+
+            else
+                macro1 ("subsubsection*" ++ suffix) body ++ label
 
         _ ->
             macro1 ("subheading" ++ suffix) body ++ label
