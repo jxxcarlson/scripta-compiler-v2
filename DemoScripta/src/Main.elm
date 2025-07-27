@@ -358,6 +358,12 @@ mainColumn model =
             , Element.htmlAttribute (Html.Attributes.style "flex-direction" "column")
             ]
             [ header model
+            , Element.el
+                [ width fill
+                , height (px 1)
+                , Background.color (borderColor model)
+                ]
+                Element.none
             , Element.el [ paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ]
                 (row
                     [ width (px <| appWidth model)
@@ -366,7 +372,19 @@ mainColumn model =
                     , paddingXY 8 0 -- Add horizontal padding to prevent overhang
                     ]
                     [ inputText model
+                    , Element.el
+                        [ width (px 1)
+                        , height fill
+                        , Background.color (borderColor model)
+                        ]
+                        Element.none
                     , displayRenderedText model |> Element.map Render
+                    , Element.el
+                        [ width (px 1)
+                        , height fill
+                        , Background.color (borderColor model)
+                        ]
+                        Element.none
                     , sidebar model
                     ]
                 )
@@ -400,11 +418,11 @@ sidebar model =
             , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
             , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
             , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
+            , Element.Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
+            , Element.Border.color (Element.rgb 0.5 0.5 0.5)
             ]
             [ Element.el
                 [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 12 }
-                , Element.Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
-                , Element.Border.color (Element.rgb255 1 0 0)
                 ]
                 (Download.downloadButton "Download script" "process_images.sh" "application/x-sh" AppData.processImagesText)
             , Element.text "Bare bones:"
@@ -546,16 +564,25 @@ header model =
         , Background.color (backgroundColor model.theme)
         , paddingEach { left = 18, right = 18, top = 0, bottom = 0 }
         , forceColorStyle
+        , Element.Border.widthEach { left = 0, right = 0, top = 0, bottom = 1 }
+        , Element.Border.color (borderColor model)
         ]
         [ Element.el
             [ centerX
             , Font.color debugTextColor
             , forceColorStyle
-            , Element.Border.widthEach { left = 0, right = 0, top = 0, bottom = 1 }
-            , Element.Border.color (Element.rgb255 1 1 1)
             ]
             (Element.text <| "Scripta Live: " ++ model.title)
         ]
+
+
+borderColor model =
+    case model.theme of
+        Theme.Light ->
+            Element.rgb 0.5 0.5 0.5
+
+        Theme.Dark ->
+            Element.rgb 0.5 0.5 0.5
 
 
 innerMarginWidth =
@@ -584,6 +611,7 @@ inputText model =
         (Element.el
             [ width fill
             , height fill
+            , Element.paddingXY 0 12
             , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
             , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
             , Element.htmlAttribute (Html.Attributes.style "position" "absolute")
