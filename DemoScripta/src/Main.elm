@@ -64,6 +64,15 @@ port loadTheme : () -> Cmd msg
 port themeLoaded : (String -> msg) -> Sub msg
 
 
+port saveUserName : String -> Cmd msg
+
+
+port loadUserName : () -> Cmd msg
+
+
+port userNameLoaded : (String -> msg) -> Sub msg
+
+
 main =
     Browser.element
         { init = init
@@ -81,6 +90,7 @@ subscriptions model =
         , documentsLoaded DocumentsLoaded
         , documentLoaded DocumentLoaded
         , themeLoaded ThemeLoaded
+        , userNameLoaded UserNameLoaded
         , Time.every (30 * 1000) AutoSave -- Auto-save every 30 seconds
         ]
 
@@ -103,6 +113,7 @@ type alias Model =
     , currentDocument : Maybe Document
     , showDocumentList : Bool
     , lastSaved : Time.Posix
+    , userName : String
     }
 
 
@@ -197,6 +208,8 @@ type Msg
     | ExportToRawLaTeX
     | DownloadScript
     | ThemeLoaded String
+    | InputUserName String
+    | UserNameLoaded String
 
 
 type alias Flags =
@@ -265,10 +278,12 @@ init flags =
       , currentDocument = Nothing
       , showDocumentList = True
       , lastSaved = currentTime
+      , userName = ""
       }
     , Cmd.batch
         [ loadDocuments ()
         , Task.perform Tick Time.now
+        , loadUserName ()
         ]
     )
 
@@ -435,20 +450,26 @@ update msg model =
 
         GeneratedId id ->
             let
+                newDocumentContent =
+                    "| title\nNew Document\n"
+                
                 newDoc =
-                    Document.newDocument id "Untitled Document" "" "" model.theme model.currentTime
+                    Document.newDocument id "New Document" model.userName newDocumentContent model.theme model.currentTime
+                
+                editRecord =
+                    ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage newDocumentContent
             in
             ( { model
                 | currentDocument = Just newDoc
-                , sourceText = ""
-                , title = "Untitled Document"
-                , editRecord = ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage ""
+                , sourceText = newDocumentContent
+                , title = "New Document"
+                , editRecord = editRecord
                 , compilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
                         (Theme.mapTheme model.theme)
                         ScriptaV2.Compiler.SuppressDocumentBlocks
                         model.displaySettings
-                        (ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage "")
+                        editRecord
               }
             , saveDocument (Document.encodeDocument newDoc)
             )
@@ -533,7 +554,7 @@ update msg model =
                                             { existingDoc
                                                 | content = normalize AppData.defaultDocumentText
                                                 , modifiedAt = model.currentTime
-                                                , author = "James Carlson"
+                                                , author = model.userName
                                             }
                                     in
                                     saveDocument (Document.encodeDocument updatedDoc)
@@ -618,7 +639,7 @@ update msg model =
                 initialDoc =
                     { id = id
                     , title = title
-                    , author = "James Carlson"
+                    , author = model.userName
                     , content = content
                     , theme = theme
                     , createdAt = currentTime
@@ -653,6 +674,16 @@ update msg model =
                 | theme = newTheme
                 , compilerOutput = newCompilerOutput
               }
+            , Cmd.none
+            )
+
+        InputUserName name ->
+            ( { model | userName = name }
+            , saveUserName name
+            )
+
+        UserNameLoaded name ->
+            ( { model | userName = name }
             , Cmd.none
             )
 
@@ -800,8 +831,27 @@ sidebar model =
             , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
             , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
             ]
-            [ -- Document management section
+            [ -- User name section
               Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
+                (Element.text "Your Name")
+            , Input.text
+                [ width fill
+                , paddingXY 8 4
+                , Border.width 1
+                , Border.rounded 4
+                , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
+                , Background.color (backgroundColor model.theme)
+                , Font.color (textColor model.theme)
+                , Font.size 14
+                ]
+                { onChange = InputUserName
+                , text = model.userName
+                , placeholder = Just (Input.placeholder [] (text "Enter your name"))
+                , label = Input.labelHidden "Your name"
+                }
+            
+            -- Document management section
+            , Element.el [ Font.bold, paddingEach { top = 16, bottom = 8, left = 0, right = 0 } ]
                 (Element.text "Documents")
             , Element.row [ spacing 8, width fill ]
                 []
