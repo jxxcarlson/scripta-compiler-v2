@@ -146,6 +146,26 @@
             }
         });
         
+        // User name persistence
+        const USER_NAME_KEY = 'scripta-user-name';
+        
+        app.ports.saveUserName.subscribe((name) => {
+            localStorage.setItem(USER_NAME_KEY, name);
+            console.log('User name saved:', name);
+        });
+        
+        app.ports.loadUserName.subscribe(() => {
+            const userName = localStorage.getItem(USER_NAME_KEY);
+            if (userName) {
+                console.log('Loading saved user name:', userName);
+                setTimeout(() => {
+                    app.ports.userNameLoaded.send(userName);
+                }, 50);
+            } else {
+                console.log('No saved user name found');
+            }
+        });
+        
         // Debug helper functions - you can run these in the browser console
         window.debugScripta = {
             // Check what's in localStorage
