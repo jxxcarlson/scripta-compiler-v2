@@ -29,11 +29,13 @@
 <script>
 
 		var root = document.getElementById('main');
+		var savedTheme = localStorage.getItem('scripta-theme');
 		var app = Elm.Main.init({
 		    node: root, 
 		    flags: {
 		        window: {windowWidth: window.innerWidth, windowHeight: window.innerHeight },
-		        currentTime: Date.now()
+		        currentTime: Date.now(),
+		        theme: savedTheme
 		    }
 		});
         
@@ -50,6 +52,7 @@
         // Local Storage Management
         const STORAGE_KEY = 'scripta-documents';
         const CURRENT_DOC_KEY = 'scripta-current-document';
+        const THEME_KEY = 'scripta-theme';
         
         // Load all documents from local storage
         app.ports.loadDocuments.subscribe(() => {
@@ -125,15 +128,35 @@
             app.ports.documentsLoaded.send(docs);
         });
         
+        // Theme persistence
+        app.ports.saveTheme.subscribe((theme) => {
+            localStorage.setItem(THEME_KEY, theme);
+            console.log('Theme saved:', theme);
+        });
+        
+        app.ports.loadTheme.subscribe(() => {
+            const theme = localStorage.getItem(THEME_KEY);
+            if (theme) {
+                console.log('Loading saved theme:', theme);
+                setTimeout(() => {
+                    app.ports.themeLoaded.send(theme);
+                }, 50);
+            } else {
+                console.log('No saved theme found, using default');
+            }
+        });
+        
         // Debug helper functions - you can run these in the browser console
         window.debugScripta = {
             // Check what's in localStorage
             checkStorage: function() {
                 const docs = localStorage.getItem('scripta-documents');
                 const currentId = localStorage.getItem('scripta-current-document');
+                const theme = localStorage.getItem('scripta-theme');
                 console.log('=== Scripta Storage Debug ===');
                 console.log('Documents in storage:', docs ? JSON.parse(docs) : 'No documents found');
                 console.log('Current document ID:', currentId || 'None');
+                console.log('Current theme:', theme || 'None');
                 console.log('===========================');
                 return docs ? JSON.parse(docs) : null;
             },

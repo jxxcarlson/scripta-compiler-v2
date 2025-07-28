@@ -55,6 +55,15 @@ port documentLoaded : (Encode.Value -> msg) -> Sub msg
 port deleteDocument : String -> Cmd msg
 
 
+port saveTheme : String -> Cmd msg
+
+
+port loadTheme : () -> Cmd msg
+
+
+port themeLoaded : (String -> msg) -> Sub msg
+
+
 main =
     Browser.element
         { init = init
@@ -71,6 +80,7 @@ subscriptions model =
         , Sub.map KeyMsg Keyboard.subscriptions
         , documentsLoaded DocumentsLoaded
         , documentLoaded DocumentLoaded
+        , themeLoaded ThemeLoaded
         , Time.every (30 * 1000) AutoSave -- Auto-save every 30 seconds
         ]
 
@@ -121,7 +131,7 @@ buttonTextColor : Theme.Theme -> Element.Color
 buttonTextColor theme =
     case theme of
         Theme.Light ->
-            Element.rgb255 255 140 0
+            Element.rgb255 255 165 0
 
         -- Darker orange for light mode
         Theme.Dark ->
@@ -132,11 +142,33 @@ electricBlueColor : Theme.Theme -> Element.Color
 electricBlueColor theme =
     case theme of
         Theme.Light ->
-            Element.rgb255 0 123 255
+            Element.rgb255 20 123 255
 
         -- Bright electric blue for light mode
         Theme.Dark ->
             Element.rgb255 0 191 255
+
+
+buttonBackgroundColor : Theme.Theme -> Element.Color
+buttonBackgroundColor theme =
+    case theme of
+        Theme.Light ->
+            Element.rgb255 25 25 35
+
+        -- Light gray for light mode
+        Theme.Dark ->
+            backgroundColor theme
+
+
+rightPanelBackgroundColor : Theme.Theme -> Element.Color
+rightPanelBackgroundColor theme =
+    case theme of
+        Theme.Light ->
+            Element.rgb255 230 230 230
+
+        -- Light gray for light mode
+        Theme.Dark ->
+            backgroundColor theme
 
 
 
@@ -164,11 +196,13 @@ type Msg
     | ExportToLaTeX
     | ExportToRawLaTeX
     | DownloadScript
+    | ThemeLoaded String
 
 
 type alias Flags =
     { window : { windowWidth : Int, windowHeight : Int }
     , currentTime : Int
+    , theme : Maybe String
     }
 
 
@@ -188,7 +222,15 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
         theme =
-            Theme.Dark
+            case flags.theme of
+                Just "light" ->
+                    Theme.Light
+
+                Just "dark" ->
+                    Theme.Dark
+
+                _ ->
+                    Theme.Dark
 
         displaySettings =
             initialDisplaySettings flags
@@ -376,7 +418,14 @@ update msg model =
                 , compilerOutput = newCompilerOutput
                 , count = model.count + 1
               }
-            , Cmd.none
+            , saveTheme
+                (case newTheme of
+                    Theme.Light ->
+                        "light"
+
+                    Theme.Dark ->
+                        "dark"
+                )
             )
 
         CreateNewDocument ->
@@ -509,11 +558,10 @@ update msg model =
                         | currentDocument = Just doc
                         , sourceText = doc.content
                         , title = doc.title
-                        , theme = doc.theme
                         , editRecord = editRecord
                         , compilerOutput =
                             ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
-                                (Theme.mapTheme doc.theme)
+                                (Theme.mapTheme model.theme)
                                 ScriptaV2.Compiler.SuppressDocumentBlocks
                                 model.displaySettings
                                 editRecord
@@ -581,6 +629,33 @@ update msg model =
             , saveDocument (Document.encodeDocument initialDoc)
             )
 
+        ThemeLoaded themeStr ->
+            let
+                newTheme =
+                    case themeStr of
+                        "light" ->
+                            Theme.Light
+
+                        "dark" ->
+                            Theme.Dark
+
+                        _ ->
+                            Theme.Dark
+
+                newCompilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme newTheme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        model.displaySettings
+                        model.editRecord
+            in
+            ( { model
+                | theme = newTheme
+                , compilerOutput = newCompilerOutput
+              }
+            , Cmd.none
+            )
+
 
 
 --
@@ -590,6 +665,10 @@ update msg model =
 
 background_ model =
     Background.color <| backgroundColor model.theme
+
+
+rightPanelBackground_ model =
+    Background.color <| rightPanelBackgroundColor model.theme
 
 
 view : Model -> Html Msg
@@ -705,7 +784,7 @@ sidebar model =
         , height fill
         , Font.color (textColor model.theme)
         , Font.size 14
-        , background_ model
+        , rightPanelBackground_ model
         , forceColorStyle
         , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
         , Border.color (Element.rgb 0.5 0.5 0.5)
@@ -756,7 +835,7 @@ sidebar model =
             [ Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
                 (Element.text "Tools:")
             , Input.button
-                [ Background.color (backgroundColor model.theme)
+                [ Background.color (buttonBackgroundColor model.theme)
                 , Font.color (electricBlueColor model.theme)
                 , paddingXY 12 8
                 , Border.rounded 4
@@ -796,7 +875,7 @@ crudButtons model =
 
 newButton model =
     Input.button
-        [ Background.color (backgroundColor model.theme)
+        [ Background.color (buttonBackgroundColor model.theme)
         , Font.color (buttonTextColor model.theme)
         , paddingXY 12 8
         , Border.rounded 4
@@ -824,7 +903,7 @@ newButton model =
 
 saveButton model =
     Input.button
-        [ Background.color (backgroundColor model.theme)
+        [ Background.color (buttonBackgroundColor model.theme)
         , Font.color (buttonTextColor model.theme)
         , paddingXY 12 8
         , Border.rounded 4
@@ -862,7 +941,7 @@ lastSaveInfo model =
 
 listButton model =
     Input.button
-        [ Background.color (backgroundColor model.theme)
+        [ Background.color (buttonBackgroundColor model.theme)
         , Font.color (buttonTextColor model.theme)
         , paddingXY 12 8
         , Border.rounded 4
@@ -891,7 +970,7 @@ listButton model =
 exportStuff model =
     Element.row [ spacing 8, width fill ]
         [ Input.button
-            [ Background.color (backgroundColor model.theme)
+            [ Background.color (buttonBackgroundColor model.theme)
             , Font.color (buttonTextColor model.theme)
             , paddingXY 12 8
             , Border.rounded 4
@@ -916,7 +995,7 @@ exportStuff model =
             , label = text "LaTeX"
             }
         , Input.button
-            [ Background.color (backgroundColor model.theme)
+            [ Background.color (buttonBackgroundColor model.theme)
             , Font.color (buttonTextColor model.theme)
             , paddingXY 12 8
             , Border.rounded 4
@@ -954,21 +1033,31 @@ documentItem model doc =
                 Nothing ->
                     False
 
-        bgColor =
+        borderAttrs =
             if isActive then
-                Element.rgb 0.3 0.3 0.5
+                [ Border.width 1
+                , Border.color
+                    (case model.theme of
+                        Theme.Light ->
+                            Element.rgb255 64 64 64  -- Dark gray for light mode
+
+                        Theme.Dark ->
+                            Element.rgb255 220 220 220  -- Almost white for dark mode
+                    )
+                ]
 
             else
-                Element.rgba 0 0 0 0
+                []
     in
     Element.row
-        [ width fill
-        , padding 8
-        , Background.color bgColor
-        , Border.rounded 4
-        , spacing 8
-        , mouseOver [ Background.color (Element.rgb 0.4 0.4 0.5) ]
-        ]
+        ([ width fill
+         , padding 8
+         , Border.rounded 4
+         , spacing 8
+         , mouseOver [ Background.color (Element.rgba 0.5 0.5 0.5 0.2) ]
+         ]
+            ++ borderAttrs
+        )
         [ Input.button
             [ width fill ]
             { onPress = Just (LoadDocument doc.id)
