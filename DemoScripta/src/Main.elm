@@ -590,7 +590,7 @@ margin =
     { left = 0, right = 0, top = 2, bottom = 0, between = 4 }
 
 
-headerHeight =
+TheaderHeight =
     90
 
 
@@ -598,8 +598,8 @@ mainColumn : Model -> Element Msg
 mainColumn model =
     column (background_ model :: mainColumnStyle)
         [ column
-            [ width (px <| appWidth model)
-            , height (px <| appHeight model)
+            [ width fill
+            , height fill
             , clipY
             , Element.htmlAttribute (Html.Attributes.style "display" "flex")
             , Element.htmlAttribute (Html.Attributes.style "flex-direction" "column")
@@ -611,30 +611,28 @@ mainColumn model =
                 , Background.color (borderColor model)
                 ]
                 Element.none
-            , Element.el [ paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ]
-                (row
-                    [ width (px <| appWidth model)
-                    , height (px <| appHeight model - 45 - 8) -- Account for header height and top padding
-                    , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-                    , paddingXY 8 0 -- Add horizontal padding to prevent overhang
+            , row
+                [ width fill
+                , height fill
+                , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
+                , paddingXY 0 0
+                ]
+                [ inputText model
+                , Element.el
+                    [ width (px 1)
+                    , height fill
+                    , Background.color (borderColor model)
                     ]
-                    [ inputText model
-                    , Element.el
-                        [ width (px 1)
-                        , height fill
-                        , Background.color (borderColor model)
-                        ]
-                        Element.none
-                    , displayRenderedText model |> Element.map Render
-                    , Element.el
-                        [ width (px 1)
-                        , height fill
-                        , Background.color (borderColor model)
-                        ]
-                        Element.none
-                    , sidebar model
+                    Element.none
+                , displayRenderedText model |> Element.map Render
+                , Element.el
+                    [ width (px 1)
+                    , height fill
+                    , Background.color (borderColor model)
                     ]
-                )
+                    Element.none
+                , sidebar model
+                ]
             ]
         ]
 
@@ -965,7 +963,7 @@ displayRenderedText model =
     in
     Element.el
         [ alignTop
-        , height (px <| appHeight model - 45)
+        , height fill
         , width (px <| panelWidth model)
         , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
         , Element.htmlAttribute (Html.Attributes.style "position" "relative")
@@ -1111,7 +1109,7 @@ inputText model =
     in
     Element.el
         [ alignTop
-        , height (px <| appHeight model - 45)
+        , height fill
         , width (px <| panelWidth model)
         , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
         , Element.htmlAttribute (Html.Attributes.style "position" "relative")
@@ -1161,10 +1159,7 @@ bgGray g =
 
 
 mainColumnStyle =
-    [ centerX
-    , centerY
-    , bgGray 0.4
-    , paddingXY 20 20
+    [ width fill
     , height fill
     ]
 
