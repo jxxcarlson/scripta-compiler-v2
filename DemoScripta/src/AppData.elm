@@ -3,7 +3,7 @@ module AppData exposing (defaultDocumentText, processImagesText)
 
 defaultDocumentText : String
 defaultDocumentText =
-    """|| title number-to-level:0
+    """| title number-to-level:0
 Announcement
 
 [vspace 30]
@@ -16,23 +16,25 @@ https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_u
 \\label{wave-equation}
 secpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))  quad "Wave Equation"
 
-[large [i Beautiful things, created simply ...]][vspace 30]
+[large [i Make beautiful things with simply simple tools...]][vspace 30]
 
 
-# About Scripta
+# About Scripta Live
 
-Scripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax — not the usual swarm backslashes and  curly braces (see examples below).  Better yet: what you write (here, on the left) is rendered
-[i instantaneously ] in the right-hand window pane.
+Scripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax.
+Better yet: what you write (here, on the left) is rendered
+[i instantaneously ] in the right-hand window pane. No setup required.
+Just click the "New" button and start writing.
 
 - Your documents are saved in the browser's local storage.  If you refresh the
-browser or close it and com back to it later, it weill be there, waiting for you..
+browser or close it and come back to it later, it weill be there, waiting for you..
 
 - Use the megaphone icon on the right to report bugs, ask questions, and make suggestions.
 
 - Scripta documents can be exported to standard LaTeX.  If there are no images
 in the document, it can be turned into a pdf file using `pdflatex`.  Otherwise,
-use the downloadable shell script — use the button  [blue Download Script]
-to download a text file that provides both instructions and a shell script.  We
+use the downloadable shell script — get it by clicking on the button  [blue Download Script],
+lower right corner.  We
 will soon proved a simpler solution.
 
 
