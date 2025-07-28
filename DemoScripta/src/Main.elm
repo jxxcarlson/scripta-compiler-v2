@@ -363,8 +363,21 @@ update msg model =
 
                         Theme.Dark ->
                             Theme.Light
+
+                newCompilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme newTheme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        model.displaySettings
+                        model.editRecord
             in
-            ( { model | theme = newTheme }, Cmd.none )
+            ( { model
+                | theme = newTheme
+                , compilerOutput = newCompilerOutput
+                , count = model.count + 1
+              }
+            , Cmd.none
+            )
 
         CreateNewDocument ->
             ( model
@@ -458,24 +471,24 @@ update msg model =
             case Decode.decodeValue (Decode.list Document.documentDecoder) value of
                 Ok docs ->
                     let
-                        announcementDoc = 
+                        announcementDoc =
                             List.filter (\doc -> doc.title == "Announcement") docs
                                 |> List.head
-                                
-                        cmd = 
+
+                        cmd =
                             case announcementDoc of
                                 Just existingDoc ->
                                     -- Update existing announcement
                                     let
-                                        updatedDoc = 
-                                            { existingDoc 
+                                        updatedDoc =
+                                            { existingDoc
                                                 | content = normalize AppData.defaultDocumentText
                                                 , modifiedAt = model.currentTime
                                                 , author = "James Carlson"
                                             }
                                     in
                                     saveDocument (Document.encodeDocument updatedDoc)
-                                    
+
                                 Nothing ->
                                     -- Create new announcement
                                     Random.generate (InitialDocumentId (normalize AppData.defaultDocumentText) "Announcement" model.currentTime model.theme) generateId
