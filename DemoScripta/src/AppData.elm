@@ -31,7 +31,7 @@ browser or close it and com back to it later, it weill be there, waiting for you
 
 - Scripta documents can be exported to standard LaTeX.  If there are no images
 in the document, it can be turned into a pdf file using `pdflatex`.  Otherwise,
-use the downloadable shell scrip;t — use the button  [blue Download Script]
+use the downloadable shell script — use the button  [blue Download Script]
 to download a text file that provides both instructions and a shell script.  We
 will soon proved a simpler solution.
 

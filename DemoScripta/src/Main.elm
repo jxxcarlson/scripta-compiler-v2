@@ -227,7 +227,6 @@ init flags =
     , Cmd.batch
         [ loadDocuments ()
         , Task.perform Tick Time.now
-        , Random.generate (InitialDocumentId normalizedTex title_ currentTime theme) generateId
         ]
     )
 
@@ -303,11 +302,10 @@ update msg model =
                     Keyboard.update keyMsg model.pressedKeys
 
                 cmd =
-                    --if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "T") pressedKeys then
-                    --    Task.perform (always ToggleTheme) (Task.succeed ())
-                    --
-                    --else
-                    if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "E") pressedKeys then
+                    if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "T") pressedKeys then
+                        Task.perform (always ToggleTheme) (Task.succeed ())
+
+                    else if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "E") pressedKeys then
                         let
                             settings =
                                 Render.Settings.makeSettings (Theme.mapTheme model.theme) "-" Nothing 1.0 model.windowWidth Dict.empty
@@ -459,7 +457,30 @@ update msg model =
         DocumentsLoaded value ->
             case Decode.decodeValue (Decode.list Document.documentDecoder) value of
                 Ok docs ->
-                    ( { model | documents = docs }, Cmd.none )
+                    let
+                        announcementDoc = 
+                            List.filter (\doc -> doc.title == "Announcement") docs
+                                |> List.head
+                                
+                        cmd = 
+                            case announcementDoc of
+                                Just existingDoc ->
+                                    -- Update existing announcement
+                                    let
+                                        updatedDoc = 
+                                            { existingDoc 
+                                                | content = normalize AppData.defaultDocumentText
+                                                , modifiedAt = model.currentTime
+                                                , author = "James Carlson"
+                                            }
+                                    in
+                                    saveDocument (Document.encodeDocument updatedDoc)
+                                    
+                                Nothing ->
+                                    -- Create new announcement
+                                    Random.generate (InitialDocumentId (normalize AppData.defaultDocumentText) "Announcement" model.currentTime model.theme) generateId
+                    in
+                    ( { model | documents = docs }, cmd )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -666,7 +687,7 @@ sidebar model =
                 Theme.Dark ->
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
-    Element.column 
+    Element.column
         [ Element.width <| px <| sidebarWidth
         , height fill
         , Font.color (textColor model.theme)
@@ -709,6 +730,7 @@ sidebar model =
               else
                 Element.none
             ]
+
         -- Tools section at the bottom
         , Element.column
             [ width fill
