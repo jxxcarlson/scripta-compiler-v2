@@ -160,6 +160,7 @@ type Msg
     | AutoSave Time.Posix
     | Tick Time.Posix
     | GeneratedId String
+    | InitialDocumentId String String Time.Posix Theme.Theme String
     | ExportToLaTeX
     | ExportToRawLaTeX
     | DownloadScript
@@ -226,6 +227,7 @@ init flags =
     , Cmd.batch
         [ loadDocuments ()
         , Task.perform Tick Time.now
+        , Random.generate (InitialDocumentId normalizedTex title_ currentTime theme) generateId
         ]
     )
 
@@ -529,6 +531,22 @@ update msg model =
         DownloadScript ->
             ( model, File.Download.string "process_images.sh" "application/x-sh" AppData.processImagesText )
 
+        InitialDocumentId content title currentTime theme id ->
+            let
+                initialDoc =
+                    { id = id
+                    , title = title
+                    , author = "James Carlson"
+                    , content = content
+                    , theme = theme
+                    , createdAt = currentTime
+                    , modifiedAt = currentTime
+                    }
+            in
+            ( { model | currentDocument = Just initialDoc }
+            , saveDocument (Document.encodeDocument initialDoc)
+            )
+
 
 
 --
@@ -590,7 +608,7 @@ margin =
     { left = 0, right = 0, top = 2, bottom = 0, between = 4 }
 
 
-TheaderHeight =
+headerHeight =
     90
 
 
@@ -648,23 +666,26 @@ sidebar model =
                 Theme.Dark ->
                     Element.htmlAttribute (Html.Attributes.style "color" "white")
     in
-    Element.column [ Element.paddingEach { top = 16, bottom = 0, left = 0, right = 0 }, height fill ]
-        [ Element.column
-            [ Element.width <| px <| sidebarWidth
+    Element.column 
+        [ Element.width <| px <| sidebarWidth
+        , height fill
+        , Font.color (textColor model.theme)
+        , Font.size 14
+        , background_ model
+        , forceColorStyle
+        , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
+        , Border.color (Element.rgb 0.5 0.5 0.5)
+        ]
+        [ -- Documents section that can grow
+          Element.column
+            [ width fill
             , height fill
-            , alignTop
-            , Font.color (textColor model.theme)
             , Element.paddingXY 16 16
             , Element.spacing 12
-            , Font.size 14
-            , background_ model
-            , forceColorStyle
             , scrollbarY
             , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
             , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
             , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-            , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
-            , Border.color (Element.rgb 0.5 0.5 0.5)
             ]
             [ -- Document management section
               Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
@@ -687,7 +708,17 @@ sidebar model =
 
               else
                 Element.none
-            , Element.el [ paddingEach { top = 20, bottom = 0, left = 0, right = 0 } ]
+            ]
+        -- Tools section at the bottom
+        , Element.column
+            [ width fill
+            , alignBottom
+            , Element.paddingXY 16 16
+            , Element.spacing 12
+            , Border.widthEach { left = 0, right = 0, top = 1, bottom = 0 }
+            , Border.color (Element.rgb 0.5 0.5 0.5)
+            ]
+            [ Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
                 (Element.text "Tools:")
             , Input.button
                 [ Background.color (backgroundColor model.theme)
@@ -945,8 +976,8 @@ noFocus =
     }
 
 
-title : String -> Element msg
-title str =
+titleElement : String -> Element msg
+titleElement str =
     row [ centerX, Font.bold, fontGray 0.9 ] [ text str ]
 
 
@@ -1118,7 +1149,6 @@ inputText model =
         (Element.el
             [ width fill
             , height fill
-            , Element.paddingXY 0 12
             , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
             , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
             , Element.htmlAttribute (Html.Attributes.style "position" "absolute")
@@ -1138,7 +1168,7 @@ inputText model =
                 , forceColorStyle
                 , Element.htmlAttribute (Html.Attributes.id "source-text-input")
                 , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-                , Element.htmlAttribute (Html.Attributes.style "padding" "8px")
+                , Element.htmlAttribute (Html.Attributes.style "padding" "8px 8px 24px 8px")
                 ]
                 { onChange = InputText
                 , text = model.sourceText

@@ -3,86 +3,85 @@ module AppData exposing (defaultDocumentText, processImagesText)
 
 defaultDocumentText : String
 defaultDocumentText =
-    """| title number-to-level:0
-       Announcement
+    """|| title number-to-level:0
+Announcement
 
-       [vspace 30]
-       [large [italic This is what you can do:]]
+[vspace 30]
+[large [italic This is what you can do with Scripta Live:]]
 
-       | image figure:1 caption: Humming bird
-       https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg
+| image figure:1 caption: Humming bird
+https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg
 
-       | equation numbered
-       \\label{wave-equation}
-       secpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))  quad "Wave Equation"
+| equation numbered
+\\label{wave-equation}
+secpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))  quad "Wave Equation"
 
-       [large [i Beautiful things, created simply ...]][vspace 30]
-
-
-       # About Scripta
-
-       Scripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax — no backslashes, no curly braces (see examples below).
-       What you write (here, on the left) is rendered instantaneously in the right-hand window pane.
-
-       - You can't save documents right now, but you will be able to do that when Scripta.io goes into alpha release.
-
-       - Use the megaphone icon on the right to report bugs, ask questions, and make suggestions.
-         Right now we are gathering bug reports and suggestions on the Scripta language.
-
-       - Press ctrl-E to export your file to LaTeX.
-       If your document has no images, you can run pdfatex on it as is. Otherwise, download the
-       shell script to process it using the button (upper right corner)
+[large [i Beautiful things, created simply ...]][vspace 30]
 
 
-       # Examples
+# About Scripta
 
-       | mathmacros
-       secpder:  frac(partial^2 #1, partial #2^2)
-       nat:    mathbb N
-       reals: mathbb R
-       pder:  frac(partial #1, partial #2)
-       set:    \\{ #1 \\}
-       sett:   \\{ #1 \\ | \\ #2 \\}
+Scripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax — not the usual swarm backslashes and  curly braces (see examples below).  Better yet: what you write (here, on the left) is rendered
+[i instantaneously ] in the right-hand window pane.
 
-       Pythagoras said: $a^2 + b^2 = c^2$.
+- Your documents are saved in the browser's local storage.  If you refresh the
+browser or close it and com back to it later, it weill be there, waiting for you..
 
+- Use the megaphone icon on the right to report bugs, ask questions, and make suggestions.
 
-       This will be on the test:
-
-       | equation
-       int_0^1 x^n dx = frac(1,n+1)
-
-       and so will this:
+- Scripta documents can be exported to standard LaTeX.  If there are no images
+in the document, it can be turned into a pdf file using `pdflatex`.  Otherwise,
+use the downloadable shell scrip;t — use the button  [blue Download Script]
+to download a text file that provides both instructions and a shell script.  We
+will soon proved a simpler solution.
 
 
+# Examples
+
+| mathmacros
+secpder:  frac(partial^2 #1, partial #2^2)
+nat:    mathbb N
+reals: mathbb R
+pder:  frac(partial #1, partial #2)
+set:    \\{ #1 \\}
+sett:   \\{ #1 \\ | \\ #2 \\}
+
+Pythagoras said: $a^2 + b^2 = c^2$.
+
+This will be on the test:
+
+| equation
+int_0^1 x^n dx = frac(1,n+1)
+
+and so will this:
+
+Both of the above equalities were written using an `equation` block.  If you look
+at the source text you will see that [eqref wave-equation] an [u argument] `numbered` and
+a property, namely  `label:wave-equation`. That property is used for cross-referencing: we say `[eqref wave-equation]` to make a hot link to [eqref wave-equation].  Click on it now
+to see what happens.
+
+Here is an [u aligned] block:
+
+| aligned
+nat &= set("positive whole numbers and zero")
+nat &= sett(n " is a whole number", n > 0)
 
 
-       Both of the above equalities were written using an `equation` block.  If you look
-       at the source text you will see that [eqref wave-equation] an [u argument] `numbered` and
-       a property, namely  `label:wave-equation`. That property is used for cross-referencing: we say `[eqref wave-equation]` to make a hot link to [eqref wave-equation].  Click on it now
-       to see what happens.
+| equation
+\\begin{pmatrix}
+2 & 1 \\\\
+1 & 2
+\\end{pmatrix}
+\\begin{pmatrix}
+2 & 1 \\\\
+1 & 2
+\\end{pmatrix}
+=
+\\begin{pmatrix}
+5 & 4 \\\\
+4 & 5
+\\end{pmatrix}
 
-       Here is an [u aligned] block:
-
-       | aligned
-       nat &= set("positive whole numbers and zero")
-       nat &= sett(n " is a whole number", n > 0)
-
-
-       | equation
-       \\begin{pmatrix}
-       2 & 1 \\\\
-       1 & 2
-       \\end{pmatrix}
-       \\begin{pmatrix}
-       2 & 1 \\\\
-       1 & 2
-       \\end{pmatrix}
-       =
-       \\begin{pmatrix}
-       5 & 4 \\\\
-       4 & 5
-       \\end{pmatrix}
 
 
 
