@@ -16,21 +16,22 @@ defaultDocumentText =
        \\label{wave-equation}
        secpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))  quad "Wave Equation"
 
-       [large [i Beautiful things, created with ease ...]][vspace 30]
+       [large [i Beautiful things, created simply ...]][vspace 30]
 
 
        # About Scripta
 
-       Scripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax — no backslashes, no curly braces (see examples below). What you write (here, on the left) is rendered instanteneosly in the right-hand window pane.
+       Scripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax — no backslashes, no curly braces (see examples below).
+       What you write (here, on the left) is rendered instantaneously in the right-hand window pane.
 
-       - You can't save documents right now, but you will be able to do that as soon as the full scripta app is released.
+       - You can't save documents right now, but you will be able to do that when Scripta.io goes into alpha release.
 
-       - Use the megaphone icon on the right to report bugs, ask questions, and make suggestions.  This an early alpha release of Scripta, so you [b will] find bugs. We love to hear about them.
+       - Use the megaphone icon on the right to report bugs, ask questions, and make suggestions.
+         Right now we are gathering bug reports and suggestions on the Scripta language.
 
-       - Note the use of our experimental  [u ergonomic TeX]: TeX without backslashes.
-
-       - Press ctrl-E to export your file to LaTeX.  This feature does not yet work with images, so for now you will have to hide them with a [u hide] or
-       [u code] block.  A fix is on its way
+       - Press ctrl-E to export your file to LaTeX.
+       If your document has no images, you can run pdfatex on it as is. Otherwise, download the
+       shell script to process it using the button (upper right corner)
 
 
        # Examples

@@ -47,7 +47,6 @@ export currentTime settings_ ast =
         properties =
             Maybe.map .properties titleData
                 |> Maybe.withDefault Dict.empty
-                |> Debug.log "@@@@EXPORT_PROPERTIES"
 
         settings =
             { settings_ | properties = properties }
@@ -78,11 +77,11 @@ export currentTime settings_ ast =
             Generic.TextMacro.getTextMacroFunctionNames textMacroDefinitions
     in
     Render.Export.Preamble.make
-        (rawBlockNames |> Debug.log "@@@EXPORT_RAW_BLOCK_NAMES")
+        rawBlockNames
         expressionNames
         ++ frontMatter currentTime ast
-        ++ tableofcontents rawBlockNames
         ++ setTheFirstSection
+        ++ tableofcontents rawBlockNames
         ++ "\n\n"
         ++ rawExport settings ast
         ++ "\n\n\\end{document}\n"
@@ -249,7 +248,6 @@ rawExport settings ast =
             ast
                 |> ASTTools.getVerbatimBlockValue "mathmacros"
                 |> ETeX.Transform.makeMacroDict
-                |> Debug.log "rawExport,  mathMacroDict"
     in
     ast
         |> ASTTools.filterForestOnLabelNames (\name -> not (name == Just "runninghead"))
@@ -961,7 +959,6 @@ section settings args body =
         maxNumberedLevel : Float
         maxNumberedLevel =
             Dict.get "number-to-level" settings.properties
-                |> Debug.log "@@@@maxNumberedLevel"
                 |> Maybe.andThen String.toFloat
                 |> Maybe.withDefault 3
 

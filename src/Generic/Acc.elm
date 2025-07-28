@@ -221,8 +221,6 @@ transformBlock acc block =
                 | properties =
                     block.properties
                         |> Dict.insert "label" (Vector.toString acc.headingIndex)
-                        |> Debug.log "@@transformBlock"
-                        -- TODO: think about this
                         |> Dict.insert "tag" (block.firstLine |> Tools.String.makeSlug)
             }
 
@@ -571,6 +569,23 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
 
                 _ ->
                     accumulator
+
+        Ordinary "title" ->
+            let
+                headingIndex =
+                    case Dict.get "first-section" block.properties of
+                        Nothing ->
+                            { content = [ 0, 0, 0, 0 ], size = 4 }
+
+                        Just firstSection_ ->
+                            case String.toInt firstSection_ of
+                                Just n ->
+                                    { content = [ max (n - 1) 0, 0, 0, 0 ], size = 4 }
+
+                                Nothing ->
+                                    { content = [ 0, 0, 0, 0 ], size = 4 }
+            in
+            { accumulator | headingIndex = headingIndex }
 
         Ordinary "setcounter" ->
             let
@@ -985,7 +1000,7 @@ extractFootnote : Maybe String -> String -> Expression -> Maybe TermData2
 extractFootnote mSourceId id_ expr =
     case expr of
         Fun "footnote" [ Text content { begin, end, index, id } ] _ ->
-            Just { term = content, loc = { begin = begin, end = end, id = id, mSourceId = mSourceId } } |> Debug.log ("@@TermData " ++ id ++ ", " ++ id_)
+            Just { term = content, loc = { begin = begin, end = end, id = id, mSourceId = mSourceId } }
 
         _ ->
             Nothing
