@@ -1,22 +1,26 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import AppData
 import Browser
 import Browser.Dom
 import Browser.Events
 import Dict
+import Document exposing (Document)
 import Download
 import Element exposing (..)
 import Element.Background as Background
-import Element.Border
+import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import File.Download
 import Generic.Compiler
 import Html exposing (Html)
 import Html.Attributes
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Keyboard
 import List.Extra
+import Random
 import Render.Export.LaTeX
 import Render.Settings exposing (getThemedElementColor)
 import ScriptaV2.API
@@ -29,6 +33,28 @@ import Theme
 import Time
 
 
+
+-- PORTS
+
+
+port saveDocument : Encode.Value -> Cmd msg
+
+
+port loadDocuments : () -> Cmd msg
+
+
+port documentsLoaded : (Encode.Value -> msg) -> Sub msg
+
+
+port loadDocument : String -> Cmd msg
+
+
+port documentLoaded : (Encode.Value -> msg) -> Sub msg
+
+
+port deleteDocument : String -> Cmd msg
+
+
 main =
     Browser.element
         { init = init
@@ -39,10 +65,13 @@ main =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.batch
         [ Browser.Events.onResize GotNewWindowDimensions
         , Sub.map KeyMsg Keyboard.subscriptions
+        , documentsLoaded DocumentsLoaded
+        , documentLoaded DocumentLoaded
+        , Time.every (30 * 1000) AutoSave -- Auto-save every 30 seconds
         ]
 
 
@@ -60,6 +89,10 @@ type alias Model =
     , currentTime : Time.Posix
     , compilerOutput : ScriptaV2.Compiler.CompilerOutput
     , editRecord : ScriptaV2.DifferentialCompiler.EditRecord
+    , documents : List Document
+    , currentDocument : Maybe Document
+    , showDocumentList : Bool
+    , lastSaved : Time.Posix
     }
 
 
@@ -67,9 +100,9 @@ textColor : Theme.Theme -> Element.Color
 textColor theme =
     case theme of
         Theme.Light ->
-            Element.rgb255 213 216 225
+            Element.rgb255 33 33 33
 
-        -- getThemedElementColor .text (Theme.mapTheme theme)
+        -- Dark gray for light mode
         Theme.Dark ->
             Element.rgb255 240 240 240
 
@@ -84,6 +117,32 @@ backgroundColor theme =
             Element.rgb255 48 54 59
 
 
+buttonTextColor : Theme.Theme -> Element.Color
+buttonTextColor theme =
+    case theme of
+        Theme.Light ->
+            Element.rgb255 255 140 0
+
+        -- Darker orange for light mode
+        Theme.Dark ->
+            Element.rgb255 255 165 0
+
+
+electricBlueColor : Theme.Theme -> Element.Color
+electricBlueColor theme =
+    case theme of
+        Theme.Light ->
+            Element.rgb255 0 123 255
+
+        -- Bright electric blue for light mode
+        Theme.Dark ->
+            Element.rgb255 0 191 255
+
+
+
+-- Brighter orange for dark mode
+
+
 type Msg
     = NoOp
     | InputText String
@@ -91,10 +150,25 @@ type Msg
     | GotNewWindowDimensions Int Int
     | KeyMsg Keyboard.Msg
     | ToggleTheme
+    | CreateNewDocument
+    | SaveDocument
+    | LoadDocument String
+    | DeleteDocument String
+    | DocumentsLoaded Encode.Value
+    | DocumentLoaded Encode.Value
+    | ToggleDocumentList
+    | AutoSave Time.Posix
+    | Tick Time.Posix
+    | GeneratedId String
+    | ExportToLaTeX
+    | ExportToRawLaTeX
+    | DownloadScript
 
 
 type alias Flags =
-    { window : { windowWidth : Int, windowHeight : Int } }
+    { window : { windowWidth : Int, windowHeight : Int }
+    , currentTime : Int
+    }
 
 
 initialDisplaySettings flags =
@@ -126,6 +200,9 @@ init flags =
 
         editRecord =
             ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.EnclosureLang normalizedTex
+
+        currentTime =
+            Time.millisToPosix flags.currentTime
     in
     ( { displaySettings = displaySettings
       , sourceText = normalizedTex
@@ -137,12 +214,19 @@ init flags =
       , title = title_
       , theme = theme
       , pressedKeys = []
-      , currentTime = Time.millisToPosix 0
+      , currentTime = currentTime
       , compilerOutput =
             ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput (Theme.mapTheme theme) ScriptaV2.Compiler.SuppressDocumentBlocks displaySettings editRecord
       , editRecord = editRecord
+      , documents = []
+      , currentDocument = Nothing
+      , showDocumentList = True
+      , lastSaved = currentTime
       }
-    , Cmd.none
+    , Cmd.batch
+        [ loadDocuments ()
+        , Task.perform Tick Time.now
+        ]
     )
 
 
@@ -282,6 +366,169 @@ update msg model =
             in
             ( { model | theme = newTheme }, Cmd.none )
 
+        CreateNewDocument ->
+            ( model
+            , Random.generate GeneratedId generateId
+            )
+
+        GeneratedId id ->
+            let
+                newDoc =
+                    Document.newDocument id "Untitled Document" "" "" model.theme model.currentTime
+            in
+            ( { model
+                | currentDocument = Just newDoc
+                , sourceText = ""
+                , title = "Untitled Document"
+                , editRecord = ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage ""
+                , compilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme model.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        model.displaySettings
+                        (ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage "")
+              }
+            , saveDocument (Document.encodeDocument newDoc)
+            )
+
+        SaveDocument ->
+            case model.currentDocument of
+                Just doc ->
+                    let
+                        updatedDoc =
+                            { doc
+                                | content = model.sourceText
+                                , title = model.title
+                                , modifiedAt = model.currentTime
+                                , theme = model.theme
+                            }
+                    in
+                    ( { model
+                        | currentDocument = Just updatedDoc
+                        , lastSaved = model.currentTime
+                      }
+                    , saveDocument (Document.encodeDocument updatedDoc)
+                    )
+
+                Nothing ->
+                    -- Create a new document if none exists
+                    update CreateNewDocument model
+
+        LoadDocument id ->
+            ( model, loadDocument id )
+
+        DeleteDocument id ->
+            let
+                updatedDocuments =
+                    List.filter (\d -> d.id /= id) model.documents
+
+                needNewDoc =
+                    case model.currentDocument of
+                        Just doc ->
+                            doc.id == id
+
+                        Nothing ->
+                            False
+            in
+            ( { model
+                | documents = updatedDocuments
+                , currentDocument =
+                    if needNewDoc then
+                        Nothing
+
+                    else
+                        model.currentDocument
+                , sourceText =
+                    if needNewDoc then
+                        ""
+
+                    else
+                        model.sourceText
+                , title =
+                    if needNewDoc then
+                        "Untitled Document"
+
+                    else
+                        model.title
+              }
+            , deleteDocument id
+            )
+
+        DocumentsLoaded value ->
+            case Decode.decodeValue (Decode.list Document.documentDecoder) value of
+                Ok docs ->
+                    ( { model | documents = docs }, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
+        DocumentLoaded value ->
+            case Decode.decodeValue Document.documentDecoder value of
+                Ok doc ->
+                    let
+                        editRecord =
+                            ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage doc.content
+                    in
+                    ( { model
+                        | currentDocument = Just doc
+                        , sourceText = doc.content
+                        , title = doc.title
+                        , theme = doc.theme
+                        , editRecord = editRecord
+                        , compilerOutput =
+                            ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                                (Theme.mapTheme doc.theme)
+                                ScriptaV2.Compiler.SuppressDocumentBlocks
+                                model.displaySettings
+                                editRecord
+                      }
+                    , Cmd.none
+                    )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
+        ToggleDocumentList ->
+            ( { model | showDocumentList = not model.showDocumentList }, Cmd.none )
+
+        AutoSave _ ->
+            case model.currentDocument of
+                Just doc ->
+                    if model.sourceText /= doc.content then
+                        update SaveDocument model
+
+                    else
+                        ( model, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Tick time ->
+            ( { model | currentTime = time }, Cmd.none )
+
+        ExportToLaTeX ->
+            let
+                settings =
+                    Render.Settings.makeSettings (Theme.mapTheme model.theme) "-" Nothing 1.0 model.windowWidth Dict.empty
+
+                exportText =
+                    Render.Export.LaTeX.export model.currentTime settings model.editRecord.tree
+            in
+            ( model, File.Download.string (model.title ++ ".tex") "application/x-latex" exportText )
+
+        ExportToRawLaTeX ->
+            let
+                settings =
+                    Render.Settings.makeSettings (Theme.mapTheme model.theme) "-" Nothing 1.0 model.windowWidth Dict.empty
+
+                exportText =
+                    Render.Export.LaTeX.rawExport settings model.editRecord.tree
+            in
+            ( model, File.Download.string (model.title ++ ".tex") "application/x-latex" exportText )
+
+        DownloadScript ->
+            ( model, File.Download.string "process_images.sh" "application/x-sh" AppData.processImagesText )
+
 
 
 --
@@ -318,7 +565,7 @@ appHeight model =
 
 
 sidebarWidth =
-    200
+    260
 
 
 marginWidth =
@@ -392,7 +639,7 @@ mainColumn model =
         ]
 
 
-sidebar : Model -> Element.Element msg
+sidebar : Model -> Element.Element Msg
 sidebar model =
     let
         forceColorStyle =
@@ -410,29 +657,286 @@ sidebar model =
             , alignTop
             , Font.color (textColor model.theme)
             , Element.paddingXY 16 16
-            , Element.spacing 6
+            , Element.spacing 12
             , Font.size 14
-            , background_ model --            , Background.color <| Render.Settings.getThemedElementColor .background (Theme.mapTheme model.theme)
+            , background_ model
             , forceColorStyle
             , scrollbarY
             , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
             , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
             , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-            , Element.Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
-            , Element.Border.color (Element.rgb 0.5 0.5 0.5)
+            , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
+            , Border.color (Element.rgb 0.5 0.5 0.5)
             ]
-            [ Element.el
-                [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 12 }
-                ]
-                (Download.downloadButton "Download script" "process_images.sh" "application/x-sh" AppData.processImagesText)
-            , Element.text "Bare bones:"
+            [ -- Document management section
+              Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
+                (Element.text "Documents")
+            , Element.row [ spacing 8, width fill ]
+                []
+            , crudButtons model
+            , exportStuff model
+            , if model.showDocumentList then
+                Element.column
+                    [ spacing 4
+                    , paddingEach { top = 12, bottom = 0, left = 0, right = 0 }
+                    , width fill
+                    , height (px 300)
+                    , scrollbarY
+                    , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+                    , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+                    ]
+                    (List.map (documentItem model) model.documents)
 
-            -- , Element.text "ctrl-T: toggle theme"
-            , Element.text "ctrl-E: export to LaTeX"
-            , Element.text "ctrl-R: export to Raw LaTeX"
-            , Element.text "No way to save docs (yet)"
+              else
+                Element.none
+            , Element.el [ paddingEach { top = 20, bottom = 0, left = 0, right = 0 } ]
+                (Element.text "Tools:")
+            , Input.button
+                [ Background.color (backgroundColor model.theme)
+                , Font.color (electricBlueColor model.theme)
+                , paddingXY 12 8
+                , Border.rounded 4
+                , Border.width 1
+                , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
+                , mouseOver
+                    [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
+                    , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
+                    ]
+                , Element.htmlAttribute
+                    (Html.Attributes.style "color"
+                        (case model.theme of
+                            Theme.Light ->
+                                "rgb(0, 123, 255)"
+
+                            Theme.Dark ->
+                                "rgb(0, 191, 255)"
+                        )
+                    )
+                , width fill
+                ]
+                { onPress = Just DownloadScript
+                , label = text "Download script"
+                }
             ]
         ]
+
+
+crudButtons : Model -> Element Msg
+crudButtons model =
+    Element.row [ spacing 8, width fill ]
+        [ newButton model
+        , saveButton model
+        , listButton model
+        ]
+
+
+newButton model =
+    Input.button
+        [ Background.color (backgroundColor model.theme)
+        , Font.color (buttonTextColor model.theme)
+        , paddingXY 12 8
+        , Border.rounded 4
+        , Border.width 1
+        , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
+        , mouseOver
+            [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
+            , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
+            ]
+        , Element.htmlAttribute
+            (Html.Attributes.style "color"
+                (case model.theme of
+                    Theme.Light ->
+                        "rgb(255, 140, 0)"
+
+                    Theme.Dark ->
+                        "rgb(255, 165, 0)"
+                )
+            )
+        ]
+        { onPress = Just CreateNewDocument
+        , label = text "New"
+        }
+
+
+saveButton model =
+    Input.button
+        [ Background.color (backgroundColor model.theme)
+        , Font.color (buttonTextColor model.theme)
+        , paddingXY 12 8
+        , Border.rounded 4
+        , Border.width 1
+        , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
+        , mouseOver
+            [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
+            , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
+            ]
+        , Element.htmlAttribute
+            (Html.Attributes.style "color"
+                (case model.theme of
+                    Theme.Light ->
+                        "rgb(255, 140, 0)"
+
+                    Theme.Dark ->
+                        "rgb(255, 165, 0)"
+                )
+            )
+        ]
+        { onPress = Just SaveDocument
+        , label = text "Save"
+        }
+
+
+lastSaveInfo model =
+    case model.currentDocument of
+        Just doc ->
+            Element.el [ paddingEach { top = 12, bottom = 0, left = 0, right = 0 }, Font.size 14 ]
+                (text <| "Last saved: " ++ formatTime model.lastSaved)
+
+        Nothing ->
+            Element.none
+
+
+listButton model =
+    Input.button
+        [ Background.color (backgroundColor model.theme)
+        , Font.color (buttonTextColor model.theme)
+        , paddingXY 12 8
+        , Border.rounded 4
+        , Border.width 1
+        , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
+        , mouseOver
+            [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
+            , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
+            ]
+        , Element.htmlAttribute
+            (Html.Attributes.style "color"
+                (case model.theme of
+                    Theme.Light ->
+                        "rgb(255, 140, 0)"
+
+                    Theme.Dark ->
+                        "rgb(255, 165, 0)"
+                )
+            )
+        ]
+        { onPress = Just ToggleDocumentList
+        , label = text "List"
+        }
+
+
+exportStuff model =
+    Element.row [ spacing 8, width fill ]
+        [ Input.button
+            [ Background.color (backgroundColor model.theme)
+            , Font.color (buttonTextColor model.theme)
+            , paddingXY 12 8
+            , Border.rounded 4
+            , Border.width 1
+            , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
+            , mouseOver
+                [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
+                , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
+                ]
+            , Element.htmlAttribute
+                (Html.Attributes.style "color"
+                    (case model.theme of
+                        Theme.Light ->
+                            "rgb(255, 140, 0)"
+
+                        Theme.Dark ->
+                            "rgb(255, 165, 0)"
+                    )
+                )
+            ]
+            { onPress = Just ExportToLaTeX
+            , label = text "LaTeX"
+            }
+        , Input.button
+            [ Background.color (backgroundColor model.theme)
+            , Font.color (buttonTextColor model.theme)
+            , paddingXY 12 8
+            , Border.rounded 4
+            , Border.width 1
+            , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
+            , mouseOver
+                [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
+                , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
+                ]
+            , Element.htmlAttribute
+                (Html.Attributes.style "color"
+                    (case model.theme of
+                        Theme.Light ->
+                            "rgb(255, 140, 0)"
+
+                        Theme.Dark ->
+                            "rgb(255, 165, 0)"
+                    )
+                )
+            ]
+            { onPress = Just ExportToRawLaTeX
+            , label = text "Raw LaTeX"
+            }
+        ]
+
+
+documentItem : Model -> Document -> Element Msg
+documentItem model doc =
+    let
+        isActive =
+            case model.currentDocument of
+                Just currentDoc ->
+                    currentDoc.id == doc.id
+
+                Nothing ->
+                    False
+
+        bgColor =
+            if isActive then
+                Element.rgb 0.3 0.3 0.5
+
+            else
+                Element.rgba 0 0 0 0
+    in
+    Element.row
+        [ width fill
+        , padding 8
+        , Background.color bgColor
+        , Border.rounded 4
+        , spacing 8
+        , mouseOver [ Background.color (Element.rgb 0.4 0.4 0.5) ]
+        ]
+        [ Input.button
+            [ width fill ]
+            { onPress = Just (LoadDocument doc.id)
+            , label =
+                Element.column [ spacing 2 ]
+                    [ Element.el [ Font.size 13 ] (text doc.title)
+                    , Element.el [ Font.size 11, Font.color (Element.rgb 0.7 0.7 0.7) ]
+                        (text <| formatTime doc.modifiedAt)
+                    ]
+            }
+        , Input.button
+            [ Font.color (Element.rgb 1 0.5 0.5)
+            , mouseOver [ Font.color (Element.rgb 1 0.3 0.3) ]
+            ]
+            { onPress = Just (DeleteDocument doc.id)
+            , label = text "×"
+            }
+        ]
+
+
+formatTime : Time.Posix -> String
+formatTime time =
+    let
+        millis =
+            Time.posixToMillis time
+    in
+    if millis == 0 then
+        "Never"
+
+    else
+        -- Simple format - you might want to use a proper date formatting library
+        "Recently"
 
 
 noFocus : Element.FocusStyle
@@ -558,18 +1062,23 @@ header model =
     in
     Element.row
         [ Element.height <| Element.px <| headerHeight
-        , Element.width <| Element.px <| appWidth model
+        , Element.width <| Element.fill
+
+        -- , Element.width <| Element.px <| appWidth model
         , Element.spacing 32
         , Element.centerX
         , Background.color (backgroundColor model.theme)
         , paddingEach { left = 18, right = 18, top = 0, bottom = 0 }
         , forceColorStyle
-        , Element.Border.widthEach { left = 0, right = 0, top = 0, bottom = 1 }
-        , Element.Border.color (borderColor model)
+        , Border.widthEach { left = 0, right = 0, top = 0, bottom = 1 }
+        , Border.color (borderColor model)
         ]
         [ Element.el
             [ centerX
+            , centerY
             , Font.color debugTextColor
+            , Font.size 18
+            , Font.semiBold
             , forceColorStyle
             ]
             (Element.text <| "Scripta Live: " ++ model.title)
@@ -682,3 +1191,13 @@ jumpToTopOf id =
     Browser.Dom.getViewportOf id
         |> Task.andThen (\info -> Browser.Dom.setViewportOf id 0 0)
         |> Task.attempt (\_ -> NoOp)
+
+
+
+-- ID GENERATION
+
+
+generateId : Random.Generator String
+generateId =
+    Random.int 100000 999999
+        |> Random.map (\n -> "doc-" ++ String.fromInt n)
