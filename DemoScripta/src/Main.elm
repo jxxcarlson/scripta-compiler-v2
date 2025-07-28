@@ -20,6 +20,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Keyboard
 import List.Extra
+import Process
 import Random
 import Render.Export.LaTeX
 import Render.Settings exposing (getThemedElementColor)
@@ -91,7 +92,7 @@ subscriptions model =
         , documentLoaded DocumentLoaded
         , themeLoaded ThemeLoaded
         , userNameLoaded UserNameLoaded
-        , Time.every (30 * 1000) AutoSave -- Auto-save every 30 seconds
+        , Time.every (30 * 1000) AutoSave -- Auto-save every 30 seconds        , Time.every 1000 Tick -- Update time every second
         ]
 
 
@@ -210,6 +211,7 @@ type Msg
     | ThemeLoaded String
     | InputUserName String
     | UserNameLoaded String
+    | LoadUserNameDelayed
 
 
 type alias Flags =
@@ -283,7 +285,8 @@ init flags =
     , Cmd.batch
         [ loadDocuments ()
         , Task.perform Tick Time.now
-        , loadUserName ()
+        , Process.sleep 100
+            |> Task.perform (always LoadUserNameDelayed)
         ]
     )
 
@@ -452,10 +455,10 @@ update msg model =
             let
                 newDocumentContent =
                     "| title\nNew Document\n"
-                
+
                 newDoc =
                     Document.newDocument id "New Document" model.userName newDocumentContent model.theme model.currentTime
-                
+
                 editRecord =
                     ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage newDocumentContent
             in
@@ -580,6 +583,7 @@ update msg model =
                         , sourceText = doc.content
                         , title = doc.title
                         , editRecord = editRecord
+                        , lastSaved = doc.modifiedAt
                         , compilerOutput =
                             ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
                                 (Theme.mapTheme model.theme)
@@ -609,7 +613,7 @@ update msg model =
                     ( model, Cmd.none )
 
         Tick time ->
-            ( { model | currentTime = time }, Cmd.none )
+            ( { model | currentTime = time, count = model.count + 1 }, Cmd.none )
 
         ExportToLaTeX ->
             let
@@ -683,8 +687,18 @@ update msg model =
             )
 
         UserNameLoaded name ->
+            let
+                _ =
+                    Debug.log "@@!!@@ UserNameLoaded received" name
+            in
             ( { model | userName = name }
             , Cmd.none
+            )
+        
+        LoadUserNameDelayed ->
+            ( model
+            , loadUserName ()
+                |> Debug.log "@@!!@@ Loading username after delay"
             )
 
 
@@ -849,13 +863,14 @@ sidebar model =
                 , placeholder = Just (Input.placeholder [] (text "Enter your name"))
                 , label = Input.labelHidden "Your name"
                 }
-            
+
             -- Document management section
             , Element.el [ Font.bold, paddingEach { top = 16, bottom = 8, left = 0, right = 0 } ]
                 (Element.text "Documents")
             , Element.row [ spacing 8, width fill ]
                 []
             , crudButtons model
+            , lastSaveInfo model
             , exportStuff model
             , if model.showDocumentList then
                 Element.column
@@ -894,6 +909,10 @@ sidebar model =
                 , mouseOver
                     [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
                     , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
+                    ]
+                , mouseDown
+                    [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
+                    , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
                     ]
                 , Element.htmlAttribute
                     (Html.Attributes.style "color"
@@ -935,6 +954,10 @@ newButton model =
             [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
             , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
             ]
+        , mouseDown
+            [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
+            , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
+            ]
         , Element.htmlAttribute
             (Html.Attributes.style "color"
                 (case model.theme of
@@ -963,6 +986,10 @@ saveButton model =
             [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
             , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
             ]
+        , mouseDown
+            [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
+            , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
+            ]
         , Element.htmlAttribute
             (Html.Attributes.style "color"
                 (case model.theme of
@@ -983,7 +1010,7 @@ lastSaveInfo model =
     case model.currentDocument of
         Just doc ->
             Element.el [ paddingEach { top = 12, bottom = 0, left = 0, right = 0 }, Font.size 14 ]
-                (text <| "Last saved: " ++ formatTime model.lastSaved)
+                (text <| "Last saved: " ++ formatRelativeTime model.currentTime model.lastSaved)
 
         Nothing ->
             Element.none
@@ -1000,6 +1027,10 @@ listButton model =
         , mouseOver
             [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
             , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
+            ]
+        , mouseDown
+            [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
+            , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
             ]
         , Element.htmlAttribute
             (Html.Attributes.style "color"
@@ -1030,6 +1061,10 @@ exportStuff model =
                 [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
                 , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
                 ]
+            , mouseDown
+                [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
+                , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
+                ]
             , Element.htmlAttribute
                 (Html.Attributes.style "color"
                     (case model.theme of
@@ -1054,6 +1089,10 @@ exportStuff model =
             , mouseOver
                 [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
                 , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
+                ]
+            , mouseDown
+                [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
+                , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
                 ]
             , Element.htmlAttribute
                 (Html.Attributes.style "color"
@@ -1089,10 +1128,12 @@ documentItem model doc =
                 , Border.color
                     (case model.theme of
                         Theme.Light ->
-                            Element.rgb255 64 64 64  -- Dark gray for light mode
+                            Element.rgb255 64 64 64
 
+                        -- Dark gray for light mode
                         Theme.Dark ->
-                            Element.rgb255 220 220 220  -- Almost white for dark mode
+                            Element.rgb255 220 220 220
+                     -- Almost white for dark mode
                     )
                 ]
 
@@ -1115,12 +1156,13 @@ documentItem model doc =
                 Element.column [ spacing 2 ]
                     [ Element.el [ Font.size 13 ] (text doc.title)
                     , Element.el [ Font.size 11, Font.color (Element.rgb 0.7 0.7 0.7) ]
-                        (text <| formatTime doc.modifiedAt)
+                        (text <| formatRelativeTime model.currentTime doc.modifiedAt)
                     ]
             }
         , Input.button
             [ Font.color (Element.rgb 1 0.5 0.5)
             , mouseOver [ Font.color (Element.rgb 1 0.3 0.3) ]
+            , mouseDown [ Font.color (Element.rgb 1 0.2 0.2) ]
             ]
             { onPress = Just (DeleteDocument doc.id)
             , label = text "×"
@@ -1133,13 +1175,94 @@ formatTime time =
     let
         millis =
             Time.posixToMillis time
+
+        seconds =
+            millis // 1000
+
+        minutes =
+            seconds // 60
+
+        hours =
+            minutes // 60
     in
     if millis == 0 then
         "Never"
 
+    else if seconds < 60 then
+        "Just now"
+
+    else if minutes < 60 then
+        String.fromInt minutes ++ " min ago"
+
+    else if hours < 24 then
+        String.fromInt hours ++ " hr ago"
+
     else
-        -- Simple format - you might want to use a proper date formatting library
-        "Recently"
+        String.fromInt (hours // 24) ++ " days ago"
+
+
+formatRelativeTime : Time.Posix -> Time.Posix -> String
+formatRelativeTime currentTime savedTime =
+    let
+        currentMillis =
+            Time.posixToMillis currentTime
+
+        savedMillis =
+            Time.posixToMillis savedTime
+
+        diffMillis =
+            currentMillis - savedMillis
+
+        seconds =
+            diffMillis // 1000
+
+        minutes =
+            seconds // 60
+
+        hours =
+            minutes // 60
+    in
+    if savedMillis == 0 then
+        "Never"
+
+    else if seconds < 5 then
+        "Just now"
+
+    else if seconds < 60 then
+        String.fromInt seconds ++ " seconds ago"
+
+    else if minutes < 60 then
+        String.fromInt minutes
+            ++ " minute"
+            ++ (if minutes == 1 then
+                    ""
+
+                else
+                    "s"
+               )
+            ++ " ago"
+
+    else if hours < 24 then
+        String.fromInt hours
+            ++ " hour"
+            ++ (if hours == 1 then
+                    ""
+
+                else
+                    "s"
+               )
+            ++ " ago"
+
+    else
+        String.fromInt (hours // 24)
+            ++ " day"
+            ++ (if hours // 24 == 1 then
+                    ""
+
+                else
+                    "s"
+               )
+            ++ " ago"
 
 
 noFocus : Element.FocusStyle

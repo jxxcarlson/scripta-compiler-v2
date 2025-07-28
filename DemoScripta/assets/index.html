@@ -40,7 +40,7 @@
 		});
         
         // Initialize KaTeX
-        init(app);
+        initKatex();
         
         // Force a re-render after KaTeX is loaded to ensure math elements are rendered
         setTimeout(() => {
@@ -149,22 +149,38 @@
         // User name persistence
         const USER_NAME_KEY = 'scripta-user-name';
         
-        app.ports.saveUserName.subscribe((name) => {
-            localStorage.setItem(USER_NAME_KEY, name);
-            console.log('User name saved:', name);
-        });
+        console.log('@@!!@@ Setting up user name ports...');
+        console.log('@@!!@@ app.ports available:', Object.keys(app.ports));
+        console.log('@@!!@@ loadUserName port exists?', !!app.ports.loadUserName);
+        console.log('@@!!@@ saveUserName port exists?', !!app.ports.saveUserName);
+        console.log('@@!!@@ userNameLoaded port exists?', !!app.ports.userNameLoaded);
         
-        app.ports.loadUserName.subscribe(() => {
-            const userName = localStorage.getItem(USER_NAME_KEY);
-            if (userName) {
-                console.log('Loading saved user name:', userName);
-                setTimeout(() => {
-                    app.ports.userNameLoaded.send(userName);
-                }, 50);
-            } else {
-                console.log('No saved user name found');
-            }
-        });
+        if (app.ports.saveUserName) {
+            app.ports.saveUserName.subscribe((name) => {
+                console.log('@@!!@@ saveUserName port called with:', name);
+                localStorage.setItem(USER_NAME_KEY, name);
+                console.log('@@!!@@ User name saved:', name);
+            });
+        }
+        
+        if (app.ports.loadUserName) {
+            app.ports.loadUserName.subscribe(() => {
+                console.log('@@!!@@ loadUserName port called');
+                const userName = localStorage.getItem(USER_NAME_KEY);
+                console.log('@@!!@@ Current saved username:', userName);
+                if (userName) {
+                    console.log('@@!!@@ Loading saved user name:', userName);
+                    setTimeout(() => {
+                        console.log('@@!!@@ Sending username to Elm:', userName);
+                        app.ports.userNameLoaded.send(userName);
+                    }, 50);
+                } else {
+                    console.log('@@!!@@ No saved user name found');
+                }
+            });
+        } else {
+            console.log('@@!!@@ ERROR: loadUserName port not found!');
+        }
         
         // Debug helper functions - you can run these in the browser console
         window.debugScripta = {
@@ -173,10 +189,12 @@
                 const docs = localStorage.getItem('scripta-documents');
                 const currentId = localStorage.getItem('scripta-current-document');
                 const theme = localStorage.getItem('scripta-theme');
+                const userName = localStorage.getItem('scripta-user-name');
                 console.log('=== Scripta Storage Debug ===');
                 console.log('Documents in storage:', docs ? JSON.parse(docs) : 'No documents found');
                 console.log('Current document ID:', currentId || 'None');
                 console.log('Current theme:', theme || 'None');
+                console.log('Saved user name:', userName || 'None');
                 console.log('===========================');
                 return docs ? JSON.parse(docs) : null;
             },
