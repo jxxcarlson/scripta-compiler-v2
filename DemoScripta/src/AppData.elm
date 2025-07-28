@@ -90,6 +90,63 @@ nat &= sett(n " is a whole number", n > 0)
 """
 
 
+text2 =
+    """
+| title
+The Scripta Markup Language
+
+Scripta is a markup language for making documents with equations and images:
+
+| equation
+int_0^1 x^n dx = frac(1, n + 1)
+
+| image caption: Cloud Chamber
+https://www.researchgate.net/publication/329220318/figure/fig2/AS:697638865338375@1543341475684/Trajectories-in-a-Cloud-Chamber-the-core-evidence-for-the-local-particle-nature-of.png
+
+Here is how we wrote it:
+
+| code
+| equation
+int_0^1 x^n dx = frac(1, n + 1)
+
+In TeX, we would have written
+
+| code
+\\begin{equation}
+\\int_0^1 x^n dx = \\frac{1, n + 1}
+\\end{equation}
+
+A Scripta document
+
+If you already know TeX or LaTeX, you already know how to do $90^\u{0003}%$ guess most of what you need to know:
+
+. Write simple subscripts as in `x_1` and compliadted ones as in `x_{32}`
+
+| mathmacros
+secpder:  frac(partial^2 #1, partial #2^2)
+nat:    mathbb N
+reals: mathbb R
+pder:  frac(partial #1, partial #2)
+set:    \\{ #1 \\}
+sett:   \\{ #1 \\ | \\ #2 \\}
+
+
+| image figure:1 caption: Humming bird
+https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg
+
+| equation numbered
+\\label{wave-equation}
+secpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))  quad "Wave Equation"
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus mattis dignissim eros, vitae varius lacus rutrum in. Donec congue pharetra pharetra. In molestie justo non lacinia congue. Etiam sollicitudin facilisis vehicula. Pellentesque egestas rhoncus tellus, eget malesuada eros facilisis eu. Nulla quis consequat tellus, sit amet gravida mauris. Ut viverra pulvinar enim et placerat. Ut eu tincidunt velit, vitae bibendum nibh. Aliquam mauris nisl, luctus sed consectetur vitae, porta ac velit. In scelerisque efficitur eleifend. In est lorem, pulvinar ac placerat et, eleifend id dui. Maecenas pretium risus justo, eget vehicula magna condimentum a. Proin eget est feugiat, lobortis neque sit amet, vestibulum felis.
+
+Pellentesque consectetur facilisis velit sit amet elementum. Pellentesque tincidunt aliquam nisi nec scelerisque. Vivamus id mi sed diam accumsan ultrices elementum vel turpis. Nullam vitae molestie purus, id convallis neque. Maecenas vitae placerat risus, euismod venenatis tortor. Sed tristique convallis ex ac tempus. Sed ac eros ac dui commodo viverra.
+
+Quisque leo mi, ullamcorper eu nulla pulvinar, ultricies elementum dui. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec consectetur quam id malesuada tristique. Proin non risus eu justo condimentum mattis sed quis lorem. Nunc vitae eleifend leo. Ut magna augue, suscipit non justo quis, tempor tincidunt nunc. Donec a tristique quam. Nullam vestibulum, odio non faucibus dapibus, neque urna lacinia magna, sit amet sollicitudin tellus ante non dolor. Cras vulputate posuere magna eget consequat. Nulla leo libero, viverra quis tellus et, lacinia sodales libero. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nam non magna at diam condimentum ultrices. Sed bibendum efficitur quam eu pharetra. Nullam bibendum, justo at semper fringilla, tortor est tincidunt nisl, quis rhoncus est elit eu lectus.
+
+"""
+
+
 processImagesText =
     """
 #!/bin/bash

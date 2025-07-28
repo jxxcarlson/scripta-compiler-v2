@@ -1,4 +1,4 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 import AppData
 import Browser
@@ -20,6 +20,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Keyboard
 import List.Extra
+import Ports
 import Process
 import Random
 import Render.Export.LaTeX
@@ -32,46 +33,6 @@ import ScriptaV2.Msg exposing (MarkupMsg)
 import Task
 import Theme
 import Time
-
-
-
--- PORTS
-
-
-port saveDocument : Encode.Value -> Cmd msg
-
-
-port loadDocuments : () -> Cmd msg
-
-
-port documentsLoaded : (Encode.Value -> msg) -> Sub msg
-
-
-port loadDocument : String -> Cmd msg
-
-
-port documentLoaded : (Encode.Value -> msg) -> Sub msg
-
-
-port deleteDocument : String -> Cmd msg
-
-
-port saveTheme : String -> Cmd msg
-
-
-port loadTheme : () -> Cmd msg
-
-
-port themeLoaded : (String -> msg) -> Sub msg
-
-
-port saveUserName : String -> Cmd msg
-
-
-port loadUserName : () -> Cmd msg
-
-
-port userNameLoaded : (String -> msg) -> Sub msg
 
 
 main =
@@ -88,11 +49,9 @@ subscriptions model =
     Sub.batch
         [ Browser.Events.onResize GotNewWindowDimensions
         , Sub.map KeyMsg Keyboard.subscriptions
-        , documentsLoaded DocumentsLoaded
-        , documentLoaded DocumentLoaded
-        , themeLoaded ThemeLoaded
-        , userNameLoaded UserNameLoaded
-        , Time.every (30 * 1000) AutoSave -- Auto-save every 30 seconds        , Time.every 1000 Tick -- Update time every second
+        , Ports.receive PortMsgReceived
+        , Time.every (30 * 1000) AutoSave -- Auto-save every 30 seconds
+        , Time.every 1000 Tick -- Update time every second
         ]
 
 
@@ -114,7 +73,7 @@ type alias Model =
     , currentDocument : Maybe Document
     , showDocumentList : Bool
     , lastSaved : Time.Posix
-    , userName : String
+    , userName : Maybe String
     }
 
 
@@ -198,8 +157,6 @@ type Msg
     | SaveDocument
     | LoadDocument String
     | DeleteDocument String
-    | DocumentsLoaded Encode.Value
-    | DocumentLoaded Encode.Value
     | ToggleDocumentList
     | AutoSave Time.Posix
     | Tick Time.Posix
@@ -208,10 +165,9 @@ type Msg
     | ExportToLaTeX
     | ExportToRawLaTeX
     | DownloadScript
-    | ThemeLoaded String
     | InputUserName String
-    | UserNameLoaded String
     | LoadUserNameDelayed
+    | PortMsgReceived (Result Decode.Error Ports.IncomingMsg)
 
 
 type alias Flags =
@@ -280,10 +236,10 @@ init flags =
       , currentDocument = Nothing
       , showDocumentList = True
       , lastSaved = currentTime
-      , userName = ""
+      , userName = Nothing
       }
     , Cmd.batch
-        [ loadDocuments ()
+        [ Ports.send Ports.LoadDocuments
         , Task.perform Tick Time.now
         , Process.sleep 100
             |> Task.perform (always LoadUserNameDelayed)
@@ -314,6 +270,74 @@ getTitle str =
         |> List.Extra.dropWhile (\line -> line == "" || String.startsWith "|" line)
         |> List.head
         |> Maybe.withDefault "No title yet"
+
+
+handleIncomingPortMsg : Ports.IncomingMsg -> Model -> ( Model, Cmd Msg )
+handleIncomingPortMsg msg model =
+    case msg of
+        Ports.DocumentsLoaded docs ->
+            let
+                _ =
+                    Debug.log "@@!!@@ Documents loaded from localStorage" (List.length docs)
+            in
+            ( { model | documents = docs }, Cmd.none )
+
+        Ports.DocumentLoaded doc ->
+            let
+                _ =
+                    Debug.log "@@!!@@ Loaded document" doc.title
+
+                editRecord =
+                    ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage doc.content
+            in
+            ( { model
+                | currentDocument = Just doc
+                , sourceText = doc.content
+                , title = doc.title
+                , editRecord = editRecord
+                , lastSaved = doc.modifiedAt
+                , compilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme model.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        model.displaySettings
+                        editRecord
+              }
+            , Cmd.none
+            )
+
+        Ports.ThemeLoaded themeStr ->
+            let
+                newTheme =
+                    case themeStr of
+                        "light" ->
+                            Theme.Light
+
+                        _ ->
+                            Theme.Dark
+
+                newCompilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme newTheme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        model.displaySettings
+                        model.editRecord
+            in
+            ( { model
+                | theme = newTheme
+                , compilerOutput = newCompilerOutput
+              }
+            , Cmd.none
+            )
+
+        Ports.UserNameLoaded name ->
+            let
+                _ =
+                    Debug.log "@@!!@@ UserNameLoaded received" name
+            in
+            ( { model | userName = Just name }
+            , Cmd.none
+            )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -436,13 +460,15 @@ update msg model =
                 , compilerOutput = newCompilerOutput
                 , count = model.count + 1
               }
-            , saveTheme
-                (case newTheme of
-                    Theme.Light ->
-                        "light"
+            , Ports.send
+                (Ports.SaveTheme
+                    (case newTheme of
+                        Theme.Light ->
+                            "light"
 
-                    Theme.Dark ->
-                        "dark"
+                        Theme.Dark ->
+                            "dark"
+                    )
                 )
             )
 
@@ -457,7 +483,7 @@ update msg model =
                     "| title\nNew Document\n"
 
                 newDoc =
-                    Document.newDocument id "New Document" model.userName newDocumentContent model.theme model.currentTime
+                    Document.newDocument id "New Document" (Maybe.withDefault "" model.userName) newDocumentContent model.theme model.currentTime
 
                 editRecord =
                     ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage newDocumentContent
@@ -474,7 +500,7 @@ update msg model =
                         model.displaySettings
                         editRecord
               }
-            , saveDocument (Document.encodeDocument newDoc)
+            , Ports.send (Ports.SaveDocument newDoc)
             )
 
         SaveDocument ->
@@ -493,7 +519,7 @@ update msg model =
                         | currentDocument = Just updatedDoc
                         , lastSaved = model.currentTime
                       }
-                    , saveDocument (Document.encodeDocument updatedDoc)
+                    , Ports.send (Ports.SaveDocument updatedDoc)
                     )
 
                 Nothing ->
@@ -501,7 +527,7 @@ update msg model =
                     update CreateNewDocument model
 
         LoadDocument id ->
-            ( model, loadDocument id )
+            ( model, Ports.send (Ports.LoadDocument id) )
 
         DeleteDocument id ->
             let
@@ -537,65 +563,8 @@ update msg model =
                     else
                         model.title
               }
-            , deleteDocument id
+            , Ports.send (Ports.DeleteDocument id)
             )
-
-        DocumentsLoaded value ->
-            case Decode.decodeValue (Decode.list Document.documentDecoder) value of
-                Ok docs ->
-                    let
-                        announcementDoc =
-                            List.filter (\doc -> doc.title == "Announcement") docs
-                                |> List.head
-
-                        cmd =
-                            case announcementDoc of
-                                Just existingDoc ->
-                                    -- Update existing announcement
-                                    let
-                                        updatedDoc =
-                                            { existingDoc
-                                                | content = normalize AppData.defaultDocumentText
-                                                , modifiedAt = model.currentTime
-                                                , author = model.userName
-                                            }
-                                    in
-                                    saveDocument (Document.encodeDocument updatedDoc)
-
-                                Nothing ->
-                                    -- Create new announcement
-                                    Random.generate (InitialDocumentId (normalize AppData.defaultDocumentText) "Announcement" model.currentTime model.theme) generateId
-                    in
-                    ( { model | documents = docs }, cmd )
-
-                Err _ ->
-                    ( model, Cmd.none )
-
-        DocumentLoaded value ->
-            case Decode.decodeValue Document.documentDecoder value of
-                Ok doc ->
-                    let
-                        editRecord =
-                            ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage doc.content
-                    in
-                    ( { model
-                        | currentDocument = Just doc
-                        , sourceText = doc.content
-                        , title = doc.title
-                        , editRecord = editRecord
-                        , lastSaved = doc.modifiedAt
-                        , compilerOutput =
-                            ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
-                                (Theme.mapTheme model.theme)
-                                ScriptaV2.Compiler.SuppressDocumentBlocks
-                                model.displaySettings
-                                editRecord
-                      }
-                    , Cmd.none
-                    )
-
-                Err _ ->
-                    ( model, Cmd.none )
 
         ToggleDocumentList ->
             ( { model | showDocumentList = not model.showDocumentList }, Cmd.none )
@@ -641,69 +610,37 @@ update msg model =
         InitialDocumentId content title currentTime theme id ->
             let
                 initialDoc =
-                    { id = id
-                    , title = title
-                    , author = model.userName
-                    , content = content
-                    , theme = theme
-                    , createdAt = currentTime
-                    , modifiedAt = currentTime
-                    }
+                    Document.newDocument id title (Maybe.withDefault "" model.userName) content theme currentTime
             in
             ( { model | currentDocument = Just initialDoc }
-            , saveDocument (Document.encodeDocument initialDoc)
-            )
-
-        ThemeLoaded themeStr ->
-            let
-                newTheme =
-                    case themeStr of
-                        "light" ->
-                            Theme.Light
-
-                        "dark" ->
-                            Theme.Dark
-
-                        _ ->
-                            Theme.Dark
-
-                newCompilerOutput =
-                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
-                        (Theme.mapTheme newTheme)
-                        ScriptaV2.Compiler.SuppressDocumentBlocks
-                        model.displaySettings
-                        model.editRecord
-            in
-            ( { model
-                | theme = newTheme
-                , compilerOutput = newCompilerOutput
-              }
-            , Cmd.none
+            , Ports.send (Ports.SaveDocument initialDoc)
             )
 
         InputUserName name ->
-            ( { model | userName = name }
-            , saveUserName name
+            ( { model | userName = Just name }
+            , Ports.send (Ports.SaveUserName name)
             )
 
-        UserNameLoaded name ->
-            let
-                _ =
-                    Debug.log "@@!!@@ UserNameLoaded received" name
-            in
-            ( { model | userName = name }
-            , Cmd.none
-            )
-        
         LoadUserNameDelayed ->
             ( model
-            , loadUserName ()
+            , Ports.send Ports.LoadUserName
                 |> Debug.log "@@!!@@ Loading username after delay"
             )
 
+        PortMsgReceived result ->
+            case result of
+                Ok incomingMsg ->
+                    handleIncomingPortMsg incomingMsg model
+
+                Err error ->
+                    let
+                        _ =
+                            Debug.log "@@!!@@ Port decoding error" error
+                    in
+                    ( model, Cmd.none )
 
 
---
+
 -- VIEW
 --
 
@@ -859,7 +796,7 @@ sidebar model =
                 , Font.size 14
                 ]
                 { onChange = InputUserName
-                , text = model.userName
+                , text = Maybe.withDefault "" model.userName
                 , placeholder = Just (Input.placeholder [] (text "Enter your name"))
                 , label = Input.labelHidden "Your name"
                 }
