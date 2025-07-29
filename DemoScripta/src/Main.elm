@@ -23,15 +23,17 @@ import Ports
 import Process
 import Random
 import Render.Export.LaTeX
-import Render.Settings exposing (getThemedElementColor)
+import Render.Settings
 import ScriptaV2.API
 import ScriptaV2.Compiler
 import ScriptaV2.DifferentialCompiler
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
+import Style
 import Task
 import Theme
 import Time
+import Widget
 
 
 main =
@@ -44,7 +46,7 @@ main =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.batch
         [ Browser.Events.onResize GotNewWindowDimensions
         , Sub.map KeyMsg Keyboard.subscriptions
@@ -75,75 +77,6 @@ type alias Model =
     , lastChanged : Time.Posix
     , userName : Maybe String
     }
-
-
-textColor : Theme.Theme -> Element.Color
-textColor theme =
-    case theme of
-        Theme.Light ->
-            Element.rgb255 33 33 33
-
-        -- Dark gray for light mode
-        Theme.Dark ->
-            Element.rgb255 240 240 240
-
-
-backgroundColor : Theme.Theme -> Element.Color
-backgroundColor theme =
-    case theme of
-        Theme.Light ->
-            getThemedElementColor .background (Theme.mapTheme theme)
-
-        Theme.Dark ->
-            Element.rgb255 48 54 59
-
-
-buttonTextColor : Theme.Theme -> Element.Color
-buttonTextColor theme =
-    case theme of
-        Theme.Light ->
-            Element.rgb255 255 165 0
-
-        -- Darker orange for light mode
-        Theme.Dark ->
-            Element.rgb255 255 165 0
-
-
-electricBlueColor : Theme.Theme -> Element.Color
-electricBlueColor theme =
-    case theme of
-        Theme.Light ->
-            Element.rgb255 20 123 255
-
-        -- Bright electric blue for light mode
-        Theme.Dark ->
-            Element.rgb255 0 191 255
-
-
-buttonBackgroundColor : Theme.Theme -> Element.Color
-buttonBackgroundColor theme =
-    case theme of
-        Theme.Light ->
-            Element.rgb255 25 25 35
-
-        -- Light gray for light mode
-        Theme.Dark ->
-            backgroundColor theme
-
-
-rightPanelBackgroundColor : Theme.Theme -> Element.Color
-rightPanelBackgroundColor theme =
-    case theme of
-        Theme.Light ->
-            Element.rgb255 230 230 230
-
-        -- Light gray for light mode
-        Theme.Dark ->
-            backgroundColor theme
-
-
-
--- Brighter orange for dark mode
 
 
 type Msg
@@ -246,21 +179,6 @@ init flags =
             |> Task.perform (always LoadUserNameDelayed)
         ]
     )
-
-
-
---type alias CompilerOutput =
---    { body : List (Element MarkupMsg)
---    , banner : Maybe (Element MarkupMsg)
---    , toc : List (Element MarkupMsg)
---    , title : Element MarkupMsg
---    }
---titleData : Maybe ExpressionBlock
---titleData =
---        Generic.ASTTools.getBlockByName "title" editRecord.tree
---
---properties =
---    Maybe.map .properties titleData |> Maybe.withDefault Dict.empty
 
 
 getTitle : String -> String
@@ -490,12 +408,13 @@ update msg model =
                             , Random.generate GeneratedId generateId
                             ]
                         )
+
                     else
                         -- No unsaved changes
                         ( model
                         , Random.generate GeneratedId generateId
                         )
-                
+
                 Nothing ->
                     -- No current document
                     ( model
@@ -565,7 +484,7 @@ update msg model =
                                     , modifiedAt = model.currentTime
                                     , theme = model.theme
                                 }
-                            
+
                             ( newModel, saveCmd ) =
                                 update SaveDocument model
                         in
@@ -575,10 +494,11 @@ update msg model =
                             , Ports.send (Ports.LoadDocument id)
                             ]
                         )
+
                     else
                         -- No unsaved changes, just load the new document
                         ( model, Ports.send (Ports.LoadDocument id) )
-                
+
                 Nothing ->
                     -- No current document, just load the new one
                     ( model, Ports.send (Ports.LoadDocument id) )
@@ -715,18 +635,10 @@ update msg model =
 --
 
 
-background_ model =
-    Background.color <| backgroundColor model.theme
-
-
-rightPanelBackground_ model =
-    Background.color <| rightPanelBackgroundColor model.theme
-
-
 view : Model -> Html Msg
 view model =
     layoutWith { options = [ Element.focusStyle noFocus ] }
-        [ background_ model
+        [ Style.background_ model.theme
         , Element.htmlAttribute (Html.Attributes.style "height" "100vh")
         , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
         ]
@@ -751,26 +663,9 @@ sidebarWidth =
     260
 
 
-marginWidth =
-    16
-
-
 panelWidth : Model -> Int
 panelWidth model =
     (appWidth model - sidebarWidth - 16 - 4 - 16) // 2
-
-
-
--- 16 for padding, 4 for spacing, 16 for padding
-
-
-panelHeight : Model -> Attribute msg
-panelHeight model =
-    height (px <| model.windowHeight - 100)
-
-
-margin =
-    { left = 0, right = 0, top = 2, bottom = 0, between = 4 }
 
 
 headerHeight =
@@ -779,7 +674,7 @@ headerHeight =
 
 mainColumn : Model -> Element Msg
 mainColumn model =
-    column (background_ model :: mainColumnStyle)
+    column (Style.background_ model.theme :: mainColumnStyle)
         [ column
             [ width fill
             , height fill
@@ -791,7 +686,7 @@ mainColumn model =
             , Element.el
                 [ width fill
                 , height (px 1)
-                , Background.color (borderColor model)
+                , Background.color (Style.borderColor model.theme)
                 ]
                 Element.none
             , row
@@ -804,14 +699,14 @@ mainColumn model =
                 , Element.el
                     [ width (px 1)
                     , height fill
-                    , Background.color (borderColor model)
+                    , Background.color (Style.borderColor model.theme)
                     ]
                     Element.none
                 , displayRenderedText model |> Element.map Render
                 , Element.el
                     [ width (px 1)
                     , height fill
-                    , Background.color (borderColor model)
+                    , Background.color (Style.borderColor model.theme)
                     ]
                     Element.none
                 , sidebar model
@@ -822,103 +717,44 @@ mainColumn model =
 
 sidebar : Model -> Element.Element Msg
 sidebar model =
-    let
-        forceColorStyle =
-            case model.theme of
-                Theme.Light ->
-                    Element.htmlAttribute (Html.Attributes.style "color" "black")
-
-                Theme.Dark ->
-                    Element.htmlAttribute (Html.Attributes.style "color" "white")
-    in
     Element.column
         [ Element.width <| px <| sidebarWidth
         , height fill
-        , Font.color (textColor model.theme)
+        , Font.color (Style.textColor model.theme)
         , Font.size 14
-        , rightPanelBackground_ model
-        , forceColorStyle
+        , Style.rightPanelBackground_ model.theme
+        , Style.forceColorStyle model.theme
         , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
         , Border.color (Element.rgb 0.5 0.5 0.5)
         ]
         [ -- Documents section that can grow
           Element.column
-            [ width fill
-            , height fill
-            , Element.paddingXY 16 16
-            , Element.spacing 12
-            , scrollbarY
-            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
-            , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
-            , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-            ]
+            Style.innerColumn
             [ -- User name section
               case model.userName of
                 Just name ->
                     if String.trim name /= "" then
                         -- Show just the username when it's filled
-                        Input.text
-                            [ width fill
-                            , paddingXY 8 4
-                            , Border.width 1
-                            , Border.rounded 4
-                            , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
-                            , Background.color (backgroundColor model.theme)
-                            , Font.color (textColor model.theme)
-                            , Font.size 14
-                            , Font.bold
-                            ]
-                            { onChange = InputUserName
-                            , text = name
-                            , placeholder = Nothing
-                            , label = Input.labelHidden "Your name"
-                            }
+                        Widget.inputTextWidget model.theme name InputUserName
+
                     else
                         -- Show label and input when empty
                         Element.column [ spacing 8 ]
                             [ Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
                                 (Element.text "Your Name")
-                            , Input.text
-                                [ width fill
-                                , paddingXY 8 4
-                                , Border.width 1
-                                , Border.rounded 4
-                                , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
-                                , Background.color (backgroundColor model.theme)
-                                , Font.color (textColor model.theme)
-                                , Font.size 14
-                                ]
-                                { onChange = InputUserName
-                                , text = ""
-                                , placeholder = Just (Input.placeholder [] (text "Enter your name"))
-                                , label = Input.labelHidden "Your name"
-                                }
+                            , Widget.inputTextWidget model.theme name InputUserName
                             ]
-                
+
                 Nothing ->
                     -- Show label and input when Nothing
                     Element.column [ spacing 8 ]
                         [ Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
                             (Element.text "Your Name")
-                        , Input.text
-                            [ width fill
-                            , paddingXY 8 4
-                            , Border.width 1
-                            , Border.rounded 4
-                            , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
-                            , Background.color (backgroundColor model.theme)
-                            , Font.color (textColor model.theme)
-                            , Font.size 14
-                            ]
-                            { onChange = InputUserName
-                            , text = ""
-                            , placeholder = Just (Input.placeholder [] (text "Enter your name"))
-                            , label = Input.labelHidden "Your name"
-                            }
+                        , Widget.inputTextWidget model.theme "" InputUserName
                         ]
 
             -- Theme toggle and Document management section
-            , Element.row 
+            , Element.row
                 [ paddingEach { top = 16, bottom = 8, left = 0, right = 0 }
                 , width fill
                 , spacing 8
@@ -934,13 +770,15 @@ sidebar model =
                         [ paddingXY 12 6
                         , Background.color
                             (if model.theme == Theme.Dark then
-                                buttonBackgroundColor model.theme
+                                Style.buttonBackgroundColor model.theme
+
                              else
                                 Element.rgb255 230 230 230
                             )
                         , Font.color
                             (if model.theme == Theme.Dark then
-                                buttonTextColor model.theme
+                                Style.buttonTextColor model.theme
+
                              else
                                 Element.rgb255 100 100 100
                             )
@@ -951,32 +789,13 @@ sidebar model =
                         { onPress = Just ToggleTheme
                         , label = Element.text "Dark"
                         }
-                    , Input.button
-                        [ paddingXY 12 6
-                        , Background.color
-                            (if model.theme == Theme.Light then
-                                Element.rgb255 255 255 255
-                             else
-                                Element.rgb255 80 80 80
-                            )
-                        , Font.color
-                            (if model.theme == Theme.Light then
-                                Element.rgb255 50 50 50
-                             else
-                                Element.rgb255 150 150 150
-                            )
-                        , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 4, bottomRight = 4 }
-                        , Font.size 14
-                        , Font.bold
-                        ]
-                        { onPress = Just ToggleTheme
-                        , label = Element.text "Light"
-                        }
+                    , Widget.sidebarButton model.theme (Just ToggleTheme) "Light"
                     ]
                 ]
             , Element.row [ spacing 8, width fill ]
                 []
             , crudButtons model
+
             -- , lastSaveInfo model  -- Now shown per document
             , exportStuff model
             , if model.showDocumentList then
@@ -1007,8 +826,8 @@ sidebar model =
             [ Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
                 (Element.text "Tools:")
             , Input.button
-                [ Background.color (buttonBackgroundColor model.theme)
-                , Font.color (electricBlueColor model.theme)
+                [ Background.color (Style.buttonBackgroundColor model.theme)
+                , Font.color (Style.electricBlueColor model.theme)
                 , paddingXY 12 8
                 , Border.rounded 4
                 , Border.width 1
@@ -1050,171 +869,36 @@ crudButtons model =
 
 
 newButton model =
-    Input.button
-        [ Background.color (buttonBackgroundColor model.theme)
-        , Font.color (buttonTextColor model.theme)
-        , paddingXY 12 8
-        , Border.rounded 4
-        , Border.width 1
-        , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
-        , mouseOver
-            [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
-            , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
-            ]
-        , mouseDown
-            [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
-            , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
-            ]
-        , Element.htmlAttribute
-            (Html.Attributes.style "color"
-                (case model.theme of
-                    Theme.Light ->
-                        "rgb(255, 140, 0)"
-
-                    Theme.Dark ->
-                        "rgb(255, 165, 0)"
-                )
-            )
-        ]
-        { onPress = Just CreateNewDocument
-        , label = text "New"
-        }
+    Widget.sidebarButton model.theme (Just CreateNewDocument) "New"
 
 
 saveButton model =
-    Input.button
-        [ Background.color (buttonBackgroundColor model.theme)
-        , Font.color (buttonTextColor model.theme)
-        , paddingXY 12 8
-        , Border.rounded 4
-        , Border.width 1
-        , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
-        , mouseOver
-            [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
-            , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
-            ]
-        , mouseDown
-            [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
-            , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
-            ]
-        , Element.htmlAttribute
-            (Html.Attributes.style "color"
-                (case model.theme of
-                    Theme.Light ->
-                        "rgb(255, 140, 0)"
-
-                    Theme.Dark ->
-                        "rgb(255, 165, 0)"
-                )
-            )
-        ]
-        { onPress = Just SaveDocument
-        , label = text "Save"
-        }
-
-
-lastSaveInfo model =
-    case model.currentDocument of
-        Just doc ->
-            Element.el [ paddingEach { top = 12, bottom = 0, left = 0, right = 0 }, Font.size 14 ]
-                (text <| "Last saved: " ++ formatRelativeTime model.currentTime model.lastSaved)
-
-        Nothing ->
-            Element.none
+    Widget.sidebarButton model.theme (Just SaveDocument) "Save"
 
 
 listButton model =
-    Input.button
-        [ Background.color (buttonBackgroundColor model.theme)
-        , Font.color (buttonTextColor model.theme)
-        , paddingXY 12 8
-        , Border.rounded 4
-        , Border.width 1
-        , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
-        , mouseOver
-            [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
-            , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
-            ]
-        , mouseDown
-            [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
-            , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
-            ]
-        , Element.htmlAttribute
-            (Html.Attributes.style "color"
-                (case model.theme of
-                    Theme.Light ->
-                        "rgb(255, 140, 0)"
+    Widget.sidebarButton model.theme (Just ToggleDocumentList) "List"
 
-                    Theme.Dark ->
-                        "rgb(255, 165, 0)"
-                )
-            )
-        ]
-        { onPress = Just ToggleDocumentList
-        , label = text "List"
+
+compile : Model -> List (Element MarkupMsg)
+compile model =
+    ScriptaV2.API.compileStringWithTitle
+        (Theme.mapTheme model.theme)
+        ""
+        { filter = ScriptaV2.Compiler.SuppressDocumentBlocks
+        , lang = ScriptaV2.Language.EnclosureLang
+        , docWidth = panelWidth model - 200 --5 * xPadding
+        , editCount = model.count
+        , selectedId = model.selectId
+        , idsOfOpenNodes = []
         }
+        model.sourceText
 
 
 exportStuff model =
     Element.row [ spacing 8, width fill ]
-        [ Input.button
-            [ Background.color (buttonBackgroundColor model.theme)
-            , Font.color (buttonTextColor model.theme)
-            , paddingXY 12 8
-            , Border.rounded 4
-            , Border.width 1
-            , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
-            , mouseOver
-                [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
-                , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
-                ]
-            , mouseDown
-                [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
-                , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
-                ]
-            , Element.htmlAttribute
-                (Html.Attributes.style "color"
-                    (case model.theme of
-                        Theme.Light ->
-                            "rgb(255, 140, 0)"
-
-                        Theme.Dark ->
-                            "rgb(255, 165, 0)"
-                    )
-                )
-            ]
-            { onPress = Just ExportToLaTeX
-            , label = text "LaTeX"
-            }
-        , Input.button
-            [ Background.color (buttonBackgroundColor model.theme)
-            , Font.color (buttonTextColor model.theme)
-            , paddingXY 12 8
-            , Border.rounded 4
-            , Border.width 1
-            , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
-            , mouseOver
-                [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
-                , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
-                ]
-            , mouseDown
-                [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
-                , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
-                ]
-            , Element.htmlAttribute
-                (Html.Attributes.style "color"
-                    (case model.theme of
-                        Theme.Light ->
-                            "rgb(255, 140, 0)"
-
-                        Theme.Dark ->
-                            "rgb(255, 165, 0)"
-                    )
-                )
-            ]
-            { onPress = Just ExportToRawLaTeX
-            , label = text "Raw LaTeX"
-            }
+        [ Widget.sidebarButton model.theme (Just ExportToLaTeX) "LaTeX"
+        , Widget.sidebarButton model.theme (Just ExportToRawLaTeX) "Raw LaTeX"
         ]
 
 
@@ -1262,18 +946,20 @@ documentItem model doc =
             , label =
                 Element.column [ spacing 2 ]
                     [ Element.el [ Font.size 13 ] (text doc.title)
-                    , Element.el 
+                    , Element.el
                         [ Font.size 11
-                        , Font.color 
+                        , Font.color
                             (case model.theme of
                                 Theme.Light ->
-                                    Element.rgb 0.4 0.4 0.4  -- Darker gray for light mode
-                                
+                                    Element.rgb 0.4 0.4 0.4
+
+                                -- Darker gray for light mode
                                 Theme.Dark ->
-                                    Element.rgb 0.7 0.7 0.7  -- Original lighter gray for dark mode
+                                    Element.rgb 0.7 0.7 0.7
+                             -- Original lighter gray for dark mode
                             )
                         ]
-                        (text <| formatRelativeTime model.currentTime doc.modifiedAt)
+                        (text <| Style.formatRelativeTime model.currentTime doc.modifiedAt)
                     ]
             }
         , Input.button
@@ -1287,101 +973,6 @@ documentItem model doc =
         ]
 
 
-formatTime : Time.Posix -> String
-formatTime time =
-    let
-        millis =
-            Time.posixToMillis time
-
-        seconds =
-            millis // 1000
-
-        minutes =
-            seconds // 60
-
-        hours =
-            minutes // 60
-    in
-    if millis == 0 then
-        "Never"
-
-    else if seconds < 60 then
-        "Just now"
-
-    else if minutes < 60 then
-        String.fromInt minutes ++ " min ago"
-
-    else if hours < 24 then
-        String.fromInt hours ++ " hr ago"
-
-    else
-        String.fromInt (hours // 24) ++ " days ago"
-
-
-formatRelativeTime : Time.Posix -> Time.Posix -> String
-formatRelativeTime currentTime savedTime =
-    let
-        currentMillis =
-            Time.posixToMillis currentTime
-
-        savedMillis =
-            Time.posixToMillis savedTime
-
-        diffMillis =
-            currentMillis - savedMillis
-
-        seconds =
-            diffMillis // 1000
-
-        minutes =
-            seconds // 60
-
-        hours =
-            minutes // 60
-    in
-    if savedMillis == 0 then
-        "Never"
-
-    else if seconds < 5 then
-        "Just now"
-
-    else if seconds < 60 then
-        String.fromInt seconds ++ " seconds ago"
-
-    else if minutes < 60 then
-        String.fromInt minutes
-            ++ " minute"
-            ++ (if minutes == 1 then
-                    ""
-
-                else
-                    "s"
-               )
-            ++ " ago"
-
-    else if hours < 24 then
-        String.fromInt hours
-            ++ " hour"
-            ++ (if hours == 1 then
-                    ""
-
-                else
-                    "s"
-               )
-            ++ " ago"
-
-    else
-        String.fromInt (hours // 24)
-            ++ " day"
-            ++ (if hours // 24 == 1 then
-                    ""
-
-                else
-                    "s"
-               )
-            ++ " ago"
-
-
 noFocus : Element.FocusStyle
 noFocus =
     { borderColor = Nothing
@@ -1390,22 +981,8 @@ noFocus =
     }
 
 
-titleElement : String -> Element msg
-titleElement str =
-    row [ centerX, Font.bold, fontGray 0.9 ] [ text str ]
-
-
 displayRenderedText : Model -> Element MarkupMsg
 displayRenderedText model =
-    let
-        forceColorStyle =
-            case model.theme of
-                Theme.Light ->
-                    Element.htmlAttribute (Html.Attributes.style "color" "black")
-
-                Theme.Dark ->
-                    Element.htmlAttribute (Html.Attributes.style "color" "white")
-    in
     Element.el
         [ alignTop
         , height fill
@@ -1415,27 +992,17 @@ displayRenderedText model =
         , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
         ]
         (Element.el
-            [ width fill
-            , height fill
-            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
-            , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
-            , Element.htmlAttribute (Html.Attributes.style "position" "absolute")
-            , Element.htmlAttribute (Html.Attributes.style "top" "0")
-            , Element.htmlAttribute (Html.Attributes.style "left" "0")
-            , Element.htmlAttribute (Html.Attributes.style "right" "0")
-            , Element.htmlAttribute (Html.Attributes.style "bottom" "0")
-            , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-            ]
+            Style.displayColumn
             (column [ Font.size 14, height fill, width fill ]
                 [ column
-                    [ background_ model
+                    [ Style.background_ model.theme
                     , spacing 24
                     , width fill
-                    , htmlId "rendered-text"
+                    , Style.htmlId "rendered-text"
                     , alignTop
                     , centerX
-                    , Font.color (textColor model.theme)
-                    , forceColorStyle
+                    , Font.color (Style.textColor model.theme)
+                    , Style.forceColorStyle model.theme
                     , Element.htmlAttribute (Html.Attributes.style "padding" "16px")
                     , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
                     ]
@@ -1445,113 +1012,38 @@ displayRenderedText model =
         )
 
 
-
---container : (a -> List (Element msg)) -> a -> Element msg
-
-
 container : Model -> List (Element msg) -> Element msg
 container model elements_ =
-    Element.column (background_ model :: [ Element.centerX, spacing 24 ]) elements_
-
-
-compile : Model -> List (Element MarkupMsg)
-compile model =
-    ScriptaV2.API.compileStringWithTitle
-        (Theme.mapTheme model.theme)
-        ""
-        { filter = ScriptaV2.Compiler.SuppressDocumentBlocks
-        , lang = ScriptaV2.Language.EnclosureLang
-        , docWidth = panelWidth model - 200 --5 * xPadding
-        , editCount = model.count
-        , selectedId = model.selectId
-        , idsOfOpenNodes = []
-        }
-        model.sourceText
-
-
-htmlId str =
-    Element.htmlAttribute (Html.Attributes.id str)
+    Element.column (Style.background_ model.theme :: [ Element.centerX, spacing 24 ]) elements_
 
 
 header : Model -> Element msg
 header model =
-    let
-        debugTextColor =
-            case model.theme of
-                Theme.Light ->
-                    Element.rgb255 0 0 0
-
-                -- Black for light mode
-                Theme.Dark ->
-                    Element.rgb255 255 255 255
-
-        -- Pure white for dark mode
-        themeLabel =
-            case model.theme of
-                Theme.Light ->
-                    "Light Mode"
-
-                Theme.Dark ->
-                    "Dark Mode"
-
-        -- Force color with HTML style attribute
-        forceColorStyle =
-            case model.theme of
-                Theme.Light ->
-                    Element.htmlAttribute (Html.Attributes.style "color" "black")
-
-                Theme.Dark ->
-                    Element.htmlAttribute (Html.Attributes.style "color" "white")
-    in
     Element.row
         [ Element.height <| Element.px <| headerHeight
         , Element.width <| Element.fill
-
-        -- , Element.width <| Element.px <| appWidth model
         , Element.spacing 32
         , Element.centerX
-        , Background.color (backgroundColor model.theme)
+        , Background.color (Style.backgroundColor model.theme)
         , paddingEach { left = 18, right = 18, top = 0, bottom = 0 }
-        , forceColorStyle
+        , Style.forceColorStyle model.theme
         , Border.widthEach { left = 0, right = 0, top = 0, bottom = 1 }
-        , Border.color (borderColor model)
+        , Border.color (Style.borderColor model.theme)
         ]
         [ Element.el
             [ centerX
             , centerY
-            , Font.color debugTextColor
+            , Font.color (Style.debugTextColor model.theme)
             , Font.size 18
             , Font.semiBold
-            , forceColorStyle
+            , Style.forceColorStyle model.theme
             ]
             (Element.text <| "Scripta Live: " ++ model.title)
         ]
 
 
-borderColor model =
-    case model.theme of
-        Theme.Light ->
-            Element.rgb 0.5 0.5 0.5
-
-        Theme.Dark ->
-            Element.rgb 0.5 0.5 0.5
-
-
-innerMarginWidth =
-    16
-
-
 inputText : Model -> Element Msg
 inputText model =
-    let
-        forceColorStyle =
-            case model.theme of
-                Theme.Light ->
-                    Element.htmlAttribute (Html.Attributes.style "color" "black")
-
-                Theme.Dark ->
-                    Element.htmlAttribute (Html.Attributes.style "color" "white")
-    in
     Element.el
         [ alignTop
         , height fill
@@ -1561,29 +1053,8 @@ inputText model =
         , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
         ]
         (Element.el
-            [ width fill
-            , height fill
-            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
-            , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
-            , Element.htmlAttribute (Html.Attributes.style "position" "absolute")
-            , Element.htmlAttribute (Html.Attributes.style "top" "0")
-            , Element.htmlAttribute (Html.Attributes.style "left" "0")
-            , Element.htmlAttribute (Html.Attributes.style "right" "0")
-            , Element.htmlAttribute (Html.Attributes.style "bottom" "0")
-            , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-            ]
-            (Input.multiline
-                [ width fill
-                , height fill
-                , Font.size 14
-                , Element.alignTop
-                , Font.color (textColor model.theme)
-                , Background.color (backgroundColor model.theme)
-                , forceColorStyle
-                , Element.htmlAttribute (Html.Attributes.id "source-text-input")
-                , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-                , Element.htmlAttribute (Html.Attributes.style "padding" "8px 8px 24px 8px")
-                ]
+            (Style.multiline Element.width Element.height)
+            (Input.multiline (Style.innerMultiline model.theme)
                 { onChange = InputText
                 , text = model.sourceText
                 , placeholder = Nothing
@@ -1594,12 +1065,8 @@ inputText model =
         )
 
 
-fontGray g =
-    Font.color (Element.rgb g g g)
 
-
-bgGray g =
-    Background.color (Element.rgb g g g)
+-- STYLE
 
 
 mainColumnStyle =
