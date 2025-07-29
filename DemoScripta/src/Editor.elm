@@ -15,17 +15,13 @@ import Model exposing (Model, Msg(..))
 
 view model =
     Element.el
-        [ Element.alignTop
-        , Element.height Element.fill
+        [ Element.height Element.fill
         , Element.width (Element.px <| panelWidth model)
         , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
-        , Element.htmlAttribute (Html.Attributes.style "position" "relative")
-        , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
+        , Element.htmlAttribute (Html.Attributes.style "display" "flex")
+        , Element.htmlAttribute (Html.Attributes.style "flex-direction" "column")
         ]
-        (Element.el
-            []
-            (view_ model)
-        )
+        (view_ model)
 
 
 panelWidth : Model -> Int
@@ -47,7 +43,6 @@ view_ model =
     Element.Keyed.el
         [ -- RECEIVE INFORMATION FROM CODEMIRROR
           Element.htmlAttribute onSelectionChange -- receive info from codemirror
-        , Element.alignBottom
         , Element.htmlAttribute onTextChange -- receive info from codemirror
 
         -- , Element.htmlAttribute onCursorChange -- receive info from codemirror

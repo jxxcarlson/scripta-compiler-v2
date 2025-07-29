@@ -556,7 +556,6 @@ view model =
     layoutWith { options = [ Element.focusStyle noFocus ] }
         [ Style.background_ model.theme
         , Element.htmlAttribute (Html.Attributes.style "height" "100vh")
-        , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
         ]
         (mainColumn model)
 
@@ -589,7 +588,6 @@ mainColumn model =
         [ column
             [ width fill
             , height fill
-            , clipY
             , Element.htmlAttribute (Html.Attributes.style "display" "flex")
             , Element.htmlAttribute (Html.Attributes.style "flex-direction" "column")
             ]
@@ -603,8 +601,7 @@ mainColumn model =
             , row
                 [ width fill
                 , height fill
-                , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-                , paddingXY 0 0
+                , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
                 ]
                 [ Editor.view model
 
@@ -900,28 +897,21 @@ displayRenderedText model =
         [ alignTop
         , height fill
         , width (px <| panelWidth model)
-        , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
-        , Element.htmlAttribute (Html.Attributes.style "position" "relative")
-        , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
+        , Element.scrollbarY
         ]
-        (Element.el
-            Style.displayColumn
-            (column [ Font.size 14, height fill, width fill ]
-                [ column
-                    [ Style.background_ model.theme
-                    , spacing 24
-                    , width fill
-                    , Style.htmlId "rendered-text"
-                    , alignTop
-                    , centerX
-                    , Font.color (Style.textColor model.theme)
-                    , Style.forceColorStyle model.theme
-                    , Element.htmlAttribute (Html.Attributes.style "padding" "16px")
-                    , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
-                    ]
-                    [ container model model.compilerOutput.body ]
+        (column [ Font.size 14, padding 16, spacing 24, width fill ]
+            [ column
+                [ Style.background_ model.theme
+                , spacing 24
+                , width fill
+                , Style.htmlId "rendered-text"
+                , alignTop
+                , centerX
+                , Font.color (Style.textColor model.theme)
+                , Style.forceColorStyle model.theme
                 ]
-            )
+                [ container model model.compilerOutput.body ]
+            ]
         )
 
 
