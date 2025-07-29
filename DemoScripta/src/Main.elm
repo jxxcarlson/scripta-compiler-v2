@@ -7,18 +7,18 @@ import Browser.Events
 import Constants exposing (constants)
 import Dict
 import Document exposing (Document)
+import Editor
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import File.Download
-import Generic.Compiler
 import Html exposing (Html)
 import Html.Attributes
-import Json.Decode as Decode
 import Keyboard
 import List.Extra
+import Model exposing (Model, Msg(..))
 import Ports
 import Process
 import Random
@@ -38,7 +38,7 @@ import Widget
 
 main =
     Browser.element
-        { init = init
+        { init = Model.init
         , view = view
         , update = update
         , subscriptions = subscriptions
@@ -56,139 +56,17 @@ subscriptions _ =
         ]
 
 
-type alias Model =
-    { displaySettings : Generic.Compiler.DisplaySettings
-    , sourceText : String
-    , count : Int
-    , windowWidth : Int
-    , windowHeight : Int
-    , currentLanguage : ScriptaV2.Language.Language
-    , selectId : String
-    , title : String
-    , theme : Theme.Theme
-    , pressedKeys : List Keyboard.Key
-    , currentTime : Time.Posix
-    , compilerOutput : ScriptaV2.Compiler.CompilerOutput
-    , editRecord : ScriptaV2.DifferentialCompiler.EditRecord
-    , documents : List Document
-    , currentDocument : Maybe Document
-    , showDocumentList : Bool
-    , lastSaved : Time.Posix
-    , lastChanged : Time.Posix
-    , userName : Maybe String
-    }
 
-
-type Msg
-    = NoOp
-    | InputText String
-    | Render MarkupMsg
-    | GotNewWindowDimensions Int Int
-    | KeyMsg Keyboard.Msg
-    | ToggleTheme
-    | CreateNewDocument
-    | SaveDocument
-    | LoadDocument String
-    | DeleteDocument String
-    | ToggleDocumentList
-    | AutoSave Time.Posix
-    | Tick Time.Posix
-    | GeneratedId String
-    | InitialDocumentId String String Time.Posix Theme.Theme String
-    | ExportToLaTeX
-    | ExportToRawLaTeX
-    | DownloadScript
-    | InputUserName String
-    | LoadUserNameDelayed
-    | PortMsgReceived (Result Decode.Error Ports.IncomingMsg)
-
-
-type alias Flags =
-    { window : { windowWidth : Int, windowHeight : Int }
-    , currentTime : Int
-    , theme : Maybe String
-    }
-
-
-initialDisplaySettings flags =
-    { windowWidth = flags.window.windowWidth // 3
-    , counter = 0
-    , selectedId = "nada"
-    , selectedSlug = Nothing
-    , scale = 1.0
-    , longEquationLimit = flags.window.windowWidth |> toFloat
-    , data = Dict.empty
-    , idsOfOpenNodes = []
-    }
-
-
-init : Flags -> ( Model, Cmd Msg )
-init flags =
-    let
-        theme =
-            case flags.theme of
-                Just "light" ->
-                    Theme.Light
-
-                Just "dark" ->
-                    Theme.Dark
-
-                _ ->
-                    Theme.Dark
-
-        displaySettings =
-            initialDisplaySettings flags
-
-        normalizedTex =
-            normalize AppData.defaultDocumentText
-
-        title_ =
-            getTitle normalizedTex
-
-        editRecord =
-            ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.EnclosureLang normalizedTex
-
-        currentTime =
-            Time.millisToPosix flags.currentTime
-    in
-    ( { displaySettings = displaySettings
-      , sourceText = normalizedTex
-      , count = 1
-      , windowWidth = flags.window.windowWidth
-      , windowHeight = flags.window.windowHeight
-      , currentLanguage = ScriptaV2.Language.EnclosureLang
-      , selectId = "@InitID"
-      , title = title_
-      , theme = theme
-      , pressedKeys = []
-      , currentTime = currentTime
-      , compilerOutput =
-            ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput (Theme.mapTheme theme) ScriptaV2.Compiler.SuppressDocumentBlocks displaySettings editRecord
-      , editRecord = editRecord
-      , documents = []
-      , currentDocument = Nothing
-      , showDocumentList = True
-      , lastSaved = currentTime
-      , lastChanged = currentTime
-      , userName = Nothing
-      }
-    , Cmd.batch
-        [ Ports.send Ports.LoadDocuments
-        , Task.perform Tick Time.now
-        , Process.sleep 100
-            |> Task.perform (always LoadUserNameDelayed)
-        ]
-    )
-
-
-getTitle : String -> String
-getTitle str =
-    str
-        |> String.lines
-        |> List.map String.trim
-        |> List.Extra.dropWhile (\line -> line == "" || String.startsWith "|" line)
-        |> List.head
-        |> Maybe.withDefault "No title yet"
+--
+--getTitle : String -> String
+--getTitle str =
+--    str
+--        |> String.lines
+--        |> List.map String.trim
+--        |> List.Extra.dropWhile (\line -> line == "" || String.startsWith "|" line)
+--        |> List.head
+--        |> Maybe.withDefault "No title yet"
+--
 
 
 handleIncomingPortMsg : Ports.IncomingMsg -> Model -> ( Model, Cmd Msg )
@@ -287,10 +165,40 @@ update msg model =
                 | sourceText = str
                 , count = model.count + 1
                 , displaySettings = newDisplaySettings
-                , title = getTitle str
+                , title = Model.getTitle str
                 , lastChanged = model.currentTime
                 , editRecord =
                     editRecord
+                , compilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput (Theme.mapTheme model.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        newDisplaySettings
+                        editRecord
+              }
+            , Cmd.none
+            )
+
+        InputText2 { position, source } ->
+            let
+                editRecord =
+                    ScriptaV2.DifferentialCompiler.update model.editRecord source
+
+                oldDisplaySettings =
+                    model.displaySettings
+
+                newDisplaySettings =
+                    { oldDisplaySettings
+                        | counter = model.count + 1
+                        , selectedId = model.selectId
+                    }
+            in
+            ( { model
+                | sourceText = source
+                , count = model.count + 1
+                , displaySettings = newDisplaySettings
+                , title = Model.getTitle source
+                , lastChanged = model.currentTime
+                , editRecord = editRecord
                 , compilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput (Theme.mapTheme model.theme)
                         ScriptaV2.Compiler.SuppressDocumentBlocks
@@ -629,6 +537,9 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
+        _ ->
+            ( model, Cmd.none )
+
 
 
 -- VIEW
@@ -652,11 +563,6 @@ view model =
 appWidth : Model -> Int
 appWidth model =
     model.windowWidth
-
-
-appHeight : Model -> Int
-appHeight model =
-    model.windowHeight - headerHeight
 
 
 sidebarWidth =
@@ -695,7 +601,9 @@ mainColumn model =
                 , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
                 , paddingXY 0 0
                 ]
-                [ inputText model
+                [ Editor.view model
+
+                -- inputText model
                 , Element.el
                     [ width (px 1)
                     , height fill

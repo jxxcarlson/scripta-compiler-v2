@@ -17,6 +17,12 @@ type alias Document =
     }
 
 
+{-| Record containing source text and a position within it.
+-}
+type alias SourceTextRecord =
+    { position : Int, source : String }
+
+
 
 -- ENCODERS
 

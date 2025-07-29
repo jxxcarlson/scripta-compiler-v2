@@ -1,0 +1,160 @@
+module Editor exposing (..)
+
+import Document
+import Element exposing (Element)
+import Element.Background as Background
+import Element.Font as Font
+import Element.Keyed
+import Html
+import Html.Attributes
+import Html.Events
+import Json.Decode
+import Json.Encode
+import Model exposing (Model, Msg(..))
+
+
+view model =
+    Element.el
+        [ Element.alignTop
+        , Element.height Element.fill
+        , Element.width (Element.px <| panelWidth model)
+        , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
+        , Element.htmlAttribute (Html.Attributes.style "position" "relative")
+        , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
+        ]
+        (Element.el
+            []
+            (view_ model)
+        )
+
+
+panelWidth : Model -> Int
+panelWidth model =
+    (appWidth model - sidebarWidth - 16 - 4 - 16) // 2
+
+
+appWidth : Model -> Int
+appWidth model =
+    model.windowWidth
+
+
+sidebarWidth =
+    260
+
+
+view_ : Model -> Element Msg
+view_ model =
+    Element.Keyed.el
+        [ -- RECEIVE INFORMATION FROM CODEMIRROR
+          Element.htmlAttribute onSelectionChange -- receive info from codemirror
+        , Element.alignBottom
+        , Element.htmlAttribute onTextChange -- receive info from codemirror
+
+        -- , Element.htmlAttribute onCursorChange -- receive info from codemirror
+        , htmlId "editor-here"
+        , Element.height Element.fill
+        , Element.width Element.fill
+        , Background.color (Element.rgb255 0 68 85)
+
+        --, Background.color (View.Color.gray 0.1)
+        , Font.color (Element.rgb 0.85 0.85 0.85)
+        , Font.size 12
+        ]
+        ( stringOfBool False
+        , Element.html
+            (Html.node "codemirror-editor"
+                [ -- SEND INFORMATION TO CODEMIRROR
+                  -- Use "load" attribute to set initial text when editor opens
+                  Html.Attributes.attribute "load" model.sourceText
+                , Html.Attributes.attribute "text" model.sourceText
+                , Html.Attributes.attribute "editordata" (model.editorData |> encodeEditorData)
+                , case model.maybeSelectionOffset of
+                    Nothing ->
+                        Html.Attributes.attribute "noOp" "true"
+
+                    Just refinedSelection ->
+                        Html.Attributes.attribute "refineselection" (encodeRefinedSelection refinedSelection model.editorData)
+
+                -- TODO: remove this hardcoded value
+                , Html.Attributes.attribute "selection" (stringOfBool model.doSync)
+                ]
+                []
+            )
+        )
+
+
+
+-- HELPERS
+
+
+onSelectionChange =
+    textDecoder
+        |> Json.Decode.map SelectedText
+        |> Html.Events.on "selected-text"
+
+
+dataDecoder : Json.Decode.Decoder Document.SourceTextRecord
+dataDecoder =
+    dataDecoder_
+        |> Json.Decode.at [ "detail" ]
+
+
+dataDecoder_ : Json.Decode.Decoder Document.SourceTextRecord
+dataDecoder_ =
+    Json.Decode.map2 Document.SourceTextRecord
+        (Json.Decode.field "position" Json.Decode.int)
+        (Json.Decode.field "source" Json.Decode.string)
+
+
+textDecoder : Json.Decode.Decoder String
+textDecoder =
+    Json.Decode.string
+        |> Json.Decode.at [ "detail" ]
+
+
+onTextChange : Html.Attribute Msg
+onTextChange =
+    dataDecoder
+        |> Json.Decode.map InputText2
+        |> Html.Events.on "text-change"
+
+
+encodeRefinedSelection : { focusOffset : Int, anchorOffset : Int, text : String } -> { begin : Int, end : Int } -> String
+encodeRefinedSelection { focusOffset, anchorOffset, text } { begin, end } =
+    let
+        _ =
+            Debug.log "@@encodeRefinedSelection.elm(1)" ( focusOffset, anchorOffset )
+
+        _ =
+            Debug.log "@@encodeRefinedSelection.elm(2)" ( text, begin, end )
+    in
+    Json.Encode.object
+        [ ( "focusOffset", Json.Encode.int focusOffset )
+        , ( "anchorOffset", Json.Encode.int anchorOffset )
+        , ( "text", Json.Encode.string text )
+        , ( "begin", Json.Encode.int begin )
+        , ( "end", Json.Encode.int end )
+        ]
+        |> Json.Encode.encode 2
+
+
+encodeEditorData : { begin : Int, end : Int } -> String
+encodeEditorData { begin, end } =
+    Json.Encode.object
+        [ ( "begin", Json.Encode.int begin )
+        , ( "end", Json.Encode.int end )
+        ]
+        |> Json.Encode.encode 2
+
+
+stringOfBool : Bool -> String
+stringOfBool bool =
+    if bool then
+        "true"
+
+    else
+        "false"
+
+
+htmlId str =
+    Element.htmlAttribute (Html.Attributes.id str)
