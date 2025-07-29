@@ -15,9 +15,10 @@ https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_u
 
 | equation numbered
 \\label{wave-equation}
-secpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))  quad "Wave Equation"
+secpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))
 
-[large [i ...make beautiful things with simple tools.]][vspace 30]
+[large [i ...make beautiful things with simple tools.]]
+[vspace 30]
 
 
 # About Scripta Live
@@ -36,7 +37,7 @@ browser or close it and come back to it later, it weill be there, waiting for yo
 in the document, it can be turned into a pdf file using `pdflatex`.  Otherwise,
 use the downloadable shell script — get it by clicking on the button  [blue Download Script],
 lower right corner.  We
-will soon proved a simpler solution.
+will soon provide a simpler solution.
 
 
 # Examples
@@ -56,7 +57,6 @@ This will be on the test:
 | equation
 int_0^1 x^n dx = frac(1,n+1)
 
-and so will this:
 
 Both of the above equalities were written using an `equation` block.  If you look
 at the source text you will see that [eqref wave-equation] an [u argument] `numbered` and
@@ -138,12 +138,6 @@ https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_u
 | equation numbered
 \\label{wave-equation}
 secpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))  quad "Wave Equation"
-
- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus mattis dignissim eros, vitae varius lacus rutrum in. Donec congue pharetra pharetra. In molestie justo non lacinia congue. Etiam sollicitudin facilisis vehicula. Pellentesque egestas rhoncus tellus, eget malesuada eros facilisis eu. Nulla quis consequat tellus, sit amet gravida mauris. Ut viverra pulvinar enim et placerat. Ut eu tincidunt velit, vitae bibendum nibh. Aliquam mauris nisl, luctus sed consectetur vitae, porta ac velit. In scelerisque efficitur eleifend. In est lorem, pulvinar ac placerat et, eleifend id dui. Maecenas pretium risus justo, eget vehicula magna condimentum a. Proin eget est feugiat, lobortis neque sit amet, vestibulum felis.
-
-Pellentesque consectetur facilisis velit sit amet elementum. Pellentesque tincidunt aliquam nisi nec scelerisque. Vivamus id mi sed diam accumsan ultrices elementum vel turpis. Nullam vitae molestie purus, id convallis neque. Maecenas vitae placerat risus, euismod venenatis tortor. Sed tristique convallis ex ac tempus. Sed ac eros ac dui commodo viverra.
-
-Quisque leo mi, ullamcorper eu nulla pulvinar, ultricies elementum dui. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec consectetur quam id malesuada tristique. Proin non risus eu justo condimentum mattis sed quis lorem. Nunc vitae eleifend leo. Ut magna augue, suscipit non justo quis, tempor tincidunt nunc. Donec a tristique quam. Nullam vestibulum, odio non faucibus dapibus, neque urna lacinia magna, sit amet sollicitudin tellus ante non dolor. Cras vulputate posuere magna eget consequat. Nulla leo libero, viverra quis tellus et, lacinia sodales libero. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nam non magna at diam condimentum ultrices. Sed bibendum efficitur quam eu pharetra. Nullam bibendum, justo at semper fringilla, tortor est tincidunt nisl, quis rhoncus est elit eu lectus.
 
 """
 
