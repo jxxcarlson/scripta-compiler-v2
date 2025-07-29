@@ -917,13 +917,67 @@ sidebar model =
                             }
                         ]
 
-            -- Document management section
-            , Element.el [ Font.bold, paddingEach { top = 16, bottom = 8, left = 0, right = 0 } ]
-                (Element.text "Documents")
+            -- Theme toggle and Document management section
+            , Element.row 
+                [ paddingEach { top = 16, bottom = 8, left = 0, right = 0 }
+                , width fill
+                , spacing 8
+                ]
+                [ -- Theme toggle button
+                  Element.row
+                    [ Border.width 1
+                    , Border.color (Element.rgb 0.7 0.7 0.7)
+                    , Border.rounded 4
+                    , height (px 30)
+                    ]
+                    [ Input.button
+                        [ paddingXY 12 6
+                        , Background.color
+                            (if model.theme == Theme.Dark then
+                                buttonBackgroundColor model.theme
+                             else
+                                Element.rgb255 230 230 230
+                            )
+                        , Font.color
+                            (if model.theme == Theme.Dark then
+                                buttonTextColor model.theme
+                             else
+                                Element.rgb255 100 100 100
+                            )
+                        , Border.roundEach { topLeft = 4, bottomLeft = 4, topRight = 0, bottomRight = 0 }
+                        , Font.size 14
+                        , Font.bold
+                        ]
+                        { onPress = Just ToggleTheme
+                        , label = Element.text "Dark"
+                        }
+                    , Input.button
+                        [ paddingXY 12 6
+                        , Background.color
+                            (if model.theme == Theme.Light then
+                                Element.rgb255 255 255 255
+                             else
+                                Element.rgb255 80 80 80
+                            )
+                        , Font.color
+                            (if model.theme == Theme.Light then
+                                Element.rgb255 50 50 50
+                             else
+                                Element.rgb255 150 150 150
+                            )
+                        , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 4, bottomRight = 4 }
+                        , Font.size 14
+                        , Font.bold
+                        ]
+                        { onPress = Just ToggleTheme
+                        , label = Element.text "Light"
+                        }
+                    ]
+                ]
             , Element.row [ spacing 8, width fill ]
                 []
             , crudButtons model
-            , lastSaveInfo model
+            -- , lastSaveInfo model  -- Now shown per document
             , exportStuff model
             , if model.showDocumentList then
                 Element.column
