@@ -4,9 +4,9 @@ import AppData
 import Browser
 import Browser.Dom
 import Browser.Events
+import Constants exposing (constants)
 import Dict
 import Document exposing (Document)
-import Download
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -17,7 +17,6 @@ import Generic.Compiler
 import Html exposing (Html)
 import Html.Attributes
 import Json.Decode as Decode
-import Json.Encode as Encode
 import Keyboard
 import List.Extra
 import Ports
@@ -73,6 +72,7 @@ type alias Model =
     , currentDocument : Maybe Document
     , showDocumentList : Bool
     , lastSaved : Time.Posix
+    , lastChanged : Time.Posix
     , userName : Maybe String
     }
 
@@ -236,6 +236,7 @@ init flags =
       , currentDocument = Nothing
       , showDocumentList = True
       , lastSaved = currentTime
+      , lastChanged = currentTime
       , userName = Nothing
       }
     , Cmd.batch
@@ -369,6 +370,7 @@ update msg model =
                 , count = model.count + 1
                 , displaySettings = newDisplaySettings
                 , title = getTitle str
+                , lastChanged = model.currentTime
                 , editRecord =
                     editRecord
                 , compilerOutput =
@@ -582,7 +584,23 @@ update msg model =
                     ( model, Cmd.none )
 
         Tick time ->
-            ( { model | currentTime = time, count = model.count + 1 }, Cmd.none )
+            let
+                timeSinceLastChange =
+                    (Time.posixToMillis time - Time.posixToMillis model.lastChanged) // 1000
+
+                shouldAutoSave =
+                    case model.currentDocument of
+                        Just doc ->
+                            model.sourceText /= doc.content && timeSinceLastChange >= constants.maxUnsavedDuration
+
+                        Nothing ->
+                            False
+            in
+            if shouldAutoSave then
+                update SaveDocument { model | currentTime = time, count = model.count + 1 }
+
+            else
+                ( { model | currentTime = time, count = model.count + 1 }, Cmd.none )
 
         ExportToLaTeX ->
             let
