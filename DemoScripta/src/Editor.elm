@@ -60,13 +60,15 @@ view_ model =
         , Font.color (Element.rgb 0.85 0.85 0.85)
         , Font.size 12
         ]
-        ( stringOfBool False
+        ( stringOfBool False  -- Keep the same key always
         , Element.html
             (Html.node "codemirror-editor"
                 [ -- SEND INFORMATION TO CODEMIRROR
-                  -- Use "load" attribute to set initial text when editor opens
-                  Html.Attributes.attribute "load" model.sourceText
-                , Html.Attributes.attribute "text" model.sourceText
+                  if model.loadDocumentIntoEditor then
+                    Html.Attributes.attribute "load" model.sourceText
+                  else
+                    Html.Attributes.attribute "noOp" "true"
+                , Html.Attributes.attribute "text" model.initialText
                 , Html.Attributes.attribute "editordata" (model.editorData |> encodeEditorData)
                 , case model.maybeSelectionOffset of
                     Nothing ->

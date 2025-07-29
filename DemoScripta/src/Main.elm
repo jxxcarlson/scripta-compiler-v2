@@ -17,10 +17,8 @@ import File.Download
 import Html exposing (Html)
 import Html.Attributes
 import Keyboard
-import List.Extra
 import Model exposing (Model, Msg(..))
 import Ports
-import Process
 import Random
 import Render.Export.LaTeX
 import Render.Settings
@@ -90,9 +88,12 @@ handleIncomingPortMsg msg model =
             ( { model
                 | currentDocument = Just doc
                 , sourceText = doc.content
+                , initialText = doc.content -- Set initialText when loading a document
                 , title = doc.title
                 , editRecord = editRecord
                 , lastSaved = doc.modifiedAt
+                , lastLoadedDocumentId = Just doc.id
+                , loadDocumentIntoEditor = True -- Trigger load
                 , compilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
                         (Theme.mapTheme model.theme)
@@ -199,6 +200,7 @@ update msg model =
                 , title = Model.getTitle source
                 , lastChanged = model.currentTime
                 , editRecord = editRecord
+                , loadDocumentIntoEditor = False -- Turn off loading after edit
                 , compilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput (Theme.mapTheme model.theme)
                         ScriptaV2.Compiler.SuppressDocumentBlocks
@@ -343,8 +345,11 @@ update msg model =
             ( { model
                 | currentDocument = Just newDoc
                 , sourceText = newDocumentContent
+                , initialText = newDocumentContent -- Set initialText for new document
                 , title = "New Document"
                 , editRecord = editRecord
+                , lastLoadedDocumentId = Just id
+                , loadDocumentIntoEditor = True -- Trigger load for new document
                 , compilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
                         (Theme.mapTheme model.theme)
