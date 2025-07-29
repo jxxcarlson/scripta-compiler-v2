@@ -6,7 +6,8 @@ defaultDocumentText =
     """| title number-to-level:0
 Announcement
 
-[vspace 30]
+[vspace 3
+0]
 [large [italic This is what you can do with Scripta Live:]]
 
 | image figure:1 caption: Humming bird
@@ -16,7 +17,7 @@ https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_u
 \\label{wave-equation}
 secpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))  quad "Wave Equation"
 
-[large [i Make beautiful things with simple tools...]][vspace 30]
+[large [i ...make beautiful things with simple tools.]][vspace 30]
 
 
 # About Scripta Live

@@ -475,9 +475,32 @@ update msg model =
             )
 
         CreateNewDocument ->
-            ( model
-            , Random.generate GeneratedId generateId
-            )
+            -- Save current document before creating new one
+            case model.currentDocument of
+                Just doc ->
+                    if model.sourceText /= doc.content then
+                        -- Current document has unsaved changes, save it first
+                        let
+                            ( newModel, saveCmd ) =
+                                update SaveDocument model
+                        in
+                        ( newModel
+                        , Cmd.batch
+                            [ saveCmd
+                            , Random.generate GeneratedId generateId
+                            ]
+                        )
+                    else
+                        -- No unsaved changes
+                        ( model
+                        , Random.generate GeneratedId generateId
+                        )
+                
+                Nothing ->
+                    -- No current document
+                    ( model
+                    , Random.generate GeneratedId generateId
+                    )
 
         GeneratedId id ->
             let
@@ -529,7 +552,36 @@ update msg model =
                     update CreateNewDocument model
 
         LoadDocument id ->
-            ( model, Ports.send (Ports.LoadDocument id) )
+            -- Save current document before loading new one
+            case model.currentDocument of
+                Just doc ->
+                    if model.sourceText /= doc.content then
+                        -- Current document has unsaved changes, save it first
+                        let
+                            updatedDoc =
+                                { doc
+                                    | content = model.sourceText
+                                    , title = model.title
+                                    , modifiedAt = model.currentTime
+                                    , theme = model.theme
+                                }
+                            
+                            ( newModel, saveCmd ) =
+                                update SaveDocument model
+                        in
+                        ( newModel
+                        , Cmd.batch
+                            [ saveCmd
+                            , Ports.send (Ports.LoadDocument id)
+                            ]
+                        )
+                    else
+                        -- No unsaved changes, just load the new document
+                        ( model, Ports.send (Ports.LoadDocument id) )
+                
+                Nothing ->
+                    -- No current document, just load the new one
+                    ( model, Ports.send (Ports.LoadDocument id) )
 
         DeleteDocument id ->
             let
@@ -801,23 +853,69 @@ sidebar model =
             , Element.htmlAttribute (Html.Attributes.style "box-sizing" "border-box")
             ]
             [ -- User name section
-              Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
-                (Element.text "Your Name")
-            , Input.text
-                [ width fill
-                , paddingXY 8 4
-                , Border.width 1
-                , Border.rounded 4
-                , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
-                , Background.color (backgroundColor model.theme)
-                , Font.color (textColor model.theme)
-                , Font.size 14
-                ]
-                { onChange = InputUserName
-                , text = Maybe.withDefault "" model.userName
-                , placeholder = Just (Input.placeholder [] (text "Enter your name"))
-                , label = Input.labelHidden "Your name"
-                }
+              case model.userName of
+                Just name ->
+                    if String.trim name /= "" then
+                        -- Show just the username when it's filled
+                        Input.text
+                            [ width fill
+                            , paddingXY 8 4
+                            , Border.width 1
+                            , Border.rounded 4
+                            , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
+                            , Background.color (backgroundColor model.theme)
+                            , Font.color (textColor model.theme)
+                            , Font.size 14
+                            , Font.bold
+                            ]
+                            { onChange = InputUserName
+                            , text = name
+                            , placeholder = Nothing
+                            , label = Input.labelHidden "Your name"
+                            }
+                    else
+                        -- Show label and input when empty
+                        Element.column [ spacing 8 ]
+                            [ Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
+                                (Element.text "Your Name")
+                            , Input.text
+                                [ width fill
+                                , paddingXY 8 4
+                                , Border.width 1
+                                , Border.rounded 4
+                                , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
+                                , Background.color (backgroundColor model.theme)
+                                , Font.color (textColor model.theme)
+                                , Font.size 14
+                                ]
+                                { onChange = InputUserName
+                                , text = ""
+                                , placeholder = Just (Input.placeholder [] (text "Enter your name"))
+                                , label = Input.labelHidden "Your name"
+                                }
+                            ]
+                
+                Nothing ->
+                    -- Show label and input when Nothing
+                    Element.column [ spacing 8 ]
+                        [ Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
+                            (Element.text "Your Name")
+                        , Input.text
+                            [ width fill
+                            , paddingXY 8 4
+                            , Border.width 1
+                            , Border.rounded 4
+                            , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
+                            , Background.color (backgroundColor model.theme)
+                            , Font.color (textColor model.theme)
+                            , Font.size 14
+                            ]
+                            { onChange = InputUserName
+                            , text = ""
+                            , placeholder = Just (Input.placeholder [] (text "Enter your name"))
+                            , label = Input.labelHidden "Your name"
+                            }
+                        ]
 
             -- Document management section
             , Element.el [ Font.bold, paddingEach { top = 16, bottom = 8, left = 0, right = 0 } ]
@@ -1110,7 +1208,17 @@ documentItem model doc =
             , label =
                 Element.column [ spacing 2 ]
                     [ Element.el [ Font.size 13 ] (text doc.title)
-                    , Element.el [ Font.size 11, Font.color (Element.rgb 0.7 0.7 0.7) ]
+                    , Element.el 
+                        [ Font.size 11
+                        , Font.color 
+                            (case model.theme of
+                                Theme.Light ->
+                                    Element.rgb 0.4 0.4 0.4  -- Darker gray for light mode
+                                
+                                Theme.Dark ->
+                                    Element.rgb 0.7 0.7 0.7  -- Original lighter gray for dark mode
+                            )
+                        ]
                         (text <| formatRelativeTime model.currentTime doc.modifiedAt)
                     ]
             }

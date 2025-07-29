@@ -21,7 +21,7 @@
     ></script>
 
 
-    <script src="main.js"></script>
+    <script src="main.js?v=1753748880"></script>
 
 </head>
 
@@ -253,6 +253,185 @@
                 } else {
                     console.log('No documents in storage');
                 }
+            },
+            
+            // Remove a document by title
+            removeDocumentByTitle: function(title) {
+                const docsJson = localStorage.getItem('scripta-documents');
+                if (!docsJson) {
+                    console.log('No documents in storage');
+                    return;
+                }
+                
+                const docs = JSON.parse(docsJson);
+                const filteredDocs = docs.filter(doc => doc.title !== title);
+                
+                if (docs.length === filteredDocs.length) {
+                    console.log('No document found with title:', title);
+                    return;
+                }
+                
+                // Save filtered documents back to localStorage
+                localStorage.setItem('scripta-documents', JSON.stringify(filteredDocs));
+                
+                // If the current document was the one removed, clear it
+                const currentDocId = localStorage.getItem('scripta-current-document');
+                const removedDoc = docs.find(doc => doc.title === title);
+                if (removedDoc && removedDoc.id === currentDocId) {
+                    localStorage.removeItem('scripta-current-document');
+                    console.log('Also cleared current document reference');
+                }
+                
+                console.log('Successfully removed document:', title);
+                console.log('Remaining documents:', filteredDocs.length);
+            },
+            
+            // Shortcut to remove Announcement document
+            removeAnnouncement: function() {
+                this.removeDocumentByTitle('Announcement');
+            },
+            
+            // Find all documents containing a string in their title
+            findDocumentsByTitleSubstring: function(substring) {
+                const docsJson = localStorage.getItem('scripta-documents');
+                if (!docsJson) {
+                    console.log('No documents in storage');
+                    return [];
+                }
+                
+                const docs = JSON.parse(docsJson);
+                const matchingDocs = docs.filter(doc => 
+                    doc.title && doc.title.toLowerCase().includes(substring.toLowerCase())
+                );
+                
+                console.log(`Found ${matchingDocs.length} documents containing "${substring}":`);
+                matchingDocs.forEach(doc => {
+                    console.log(`- Title: "${doc.title}", ID: ${doc.id}, Created: ${new Date(doc.created).toLocaleString()}`);
+                });
+                
+                return matchingDocs;
+            },
+            
+            // Remove all documents containing a string in their title
+            removeAllAnnouncementDocs: function() {
+                const docsJson = localStorage.getItem('scripta-documents');
+                if (!docsJson) {
+                    console.log('No documents in storage');
+                    return;
+                }
+                
+                const docs = JSON.parse(docsJson);
+                const filteredDocs = docs.filter(doc => 
+                    !doc.title || !doc.title.toLowerCase().includes('announcement')
+                );
+                
+                const removedCount = docs.length - filteredDocs.length;
+                console.log(`Removing ${removedCount} documents containing "announcement"`);
+                
+                localStorage.setItem('scripta-documents', JSON.stringify(filteredDocs));
+                
+                // Also clear current document if it was an announcement
+                const currentDocId = localStorage.getItem('scripta-current-document');
+                const currentDoc = docs.find(d => d.id === currentDocId);
+                if (currentDoc && currentDoc.title && currentDoc.title.toLowerCase().includes('announcement')) {
+                    localStorage.removeItem('scripta-current-document');
+                    console.log('Also cleared current document reference');
+                }
+                
+                console.log(`Successfully removed ${removedCount} announcement documents`);
+            },
+            
+            // Clear all Scripta data from localStorage
+            clearAllScriptaData: function() {
+                const keysToRemove = [
+                    'scripta-documents',
+                    'scripta-current-document',
+                    'scripta-theme',
+                    'scripta-user-name'
+                ];
+                
+                keysToRemove.forEach(key => {
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key);
+                        console.log(`Removed: ${key}`);
+                    }
+                });
+                
+                console.log('All Scripta data has been cleared from localStorage');
+                console.log('Reload the page to start fresh with the new default document');
+            },
+            
+            // Safe removal of Announcement document - creates a dummy doc to prevent recreation
+            safeRemoveAnnouncement: function() {
+                const docsJson = localStorage.getItem('scripta-documents');
+                if (!docsJson) {
+                    console.log('No documents in storage');
+                    return;
+                }
+                
+                const docs = JSON.parse(docsJson);
+                // Remove all announcement documents
+                const filteredDocs = docs.filter(doc => 
+                    !doc.title || !doc.title.toLowerCase().includes('announcement')
+                );
+                
+                // If we have other documents, just remove announcements
+                if (filteredDocs.length > 0) {
+                    localStorage.setItem('scripta-documents', JSON.stringify(filteredDocs));
+                    
+                    // Set the first remaining document as current to prevent default text loading
+                    const firstDoc = filteredDocs[0];
+                    localStorage.setItem('scripta-current-document', firstDoc.id);
+                    
+                    console.log('Removed Announcement document(s).');
+                    console.log(`Set "${firstDoc.title}" as current document.`);
+                    console.log('Please reload the page.');
+                } else {
+                    console.log('WARNING: Announcement is your only document.');
+                    console.log('If you remove it, the app will recreate it from default text.');
+                    console.log('Create a new document first, then remove Announcement.');
+                }
+            },
+            
+            // Force update the Announcement document with current default text
+            forceUpdateAnnouncement: function() {
+                // First remove all existing announcements
+                this.removeAllAnnouncementDocs();
+                
+                // Clear the current document reference
+                localStorage.removeItem('scripta-current-document');
+                
+                console.log('Removed old Announcement document(s).');
+                console.log('Reload the page to see the new Announcement from AppData.defaultDocumentText');
+            },
+            
+            // Show content of Announcement document if it exists
+            showAnnouncementContent: function() {
+                const docsJson = localStorage.getItem('scripta-documents');
+                if (!docsJson) {
+                    console.log('No documents in storage');
+                    return;
+                }
+                
+                const docs = JSON.parse(docsJson);
+                const announcementDocs = docs.filter(doc => 
+                    doc.title && doc.title.toLowerCase().includes('announcement')
+                );
+                
+                if (announcementDocs.length === 0) {
+                    console.log('No Announcement documents found');
+                    return;
+                }
+                
+                announcementDocs.forEach(doc => {
+                    console.log('=== Announcement Document ===');
+                    console.log('Title:', doc.title);
+                    console.log('ID:', doc.id);
+                    console.log('Created:', new Date(doc.created));
+                    console.log('Content preview (first 200 chars):');
+                    console.log(doc.content.substring(0, 200) + '...');
+                    console.log('===========================');
+                });
             }
         };
 
