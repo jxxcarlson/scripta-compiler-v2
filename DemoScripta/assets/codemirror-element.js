@@ -30432,9 +30432,7 @@ window.initCodeMirror = function () {
 
    class CodemirrorEditor extends HTMLElement {
 
-       // static get observedAttributes() { return ['selection', 'load', 'refineselection', 'editordata', 'text']; }
-       static get observedAttributes() { return ['selection', 'load', 'refineselection', 'text']; }
-       // static get observedAttributes() { return ['selection', 'load', 'editordata', 'text']; }
+       static get observedAttributes() { return ['selection', 'load', 'refineselection', 'editordata', 'text']; }
 
        constructor(self) {
 
