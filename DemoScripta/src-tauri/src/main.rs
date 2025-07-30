@@ -5,18 +5,14 @@ use tauri::Manager;
 
 fn main() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             // Get the main window - handle errors gracefully
-            if let Some(window) = app.get_webview_window("main") {
-                // Set window title
-                let _ = window.set_title("Scripta Live");
+            if let Some(window) = app.get_window("main") {
+                // Set minimum size
+                let _ = window.set_min_size(Some(tauri::LogicalSize::new(800.0, 600.0)));
                 
                 // Optional: Set window size
-                let _ = window.set_size(tauri::Size::Physical(tauri::PhysicalSize {
-                    width: 1400,
-                    height: 900,
-                }));
+                let _ = window.set_size(tauri::LogicalSize::new(1400.0, 900.0));
                 
                 // Center the window
                 let _ = window.center();
@@ -30,8 +26,17 @@ fn main() {
             
             Ok(())
         })
-        .on_window_event(|_window, event| {
-            match event {
+        .on_window_event(|event| {
+            match event.event() {
+                tauri::WindowEvent::Resized(size) => {
+                    // Ensure minimum size is respected
+                    if size.width < 800 || size.height < 600 {
+                        let _ = event.window().set_size(tauri::LogicalSize::new(
+                            (size.width as f64).max(800.0),
+                            (size.height as f64).max(600.0)
+                        ));
+                    }
+                }
                 tauri::WindowEvent::CloseRequested { .. } => {
                     println!("Window close requested");
                 }

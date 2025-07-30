@@ -156,7 +156,28 @@ update msg model =
             ( model, Cmd.none )
 
         GotNewWindowDimensions width height ->
-            ( { model | windowWidth = width, windowHeight = height }, Cmd.none )
+            let
+                oldDisplaySettings =
+                    model.displaySettings
+
+                newDisplaySettings =
+                    { oldDisplaySettings | windowWidth = width // 3 }
+
+                newCompilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme model.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        newDisplaySettings
+                        model.editRecord
+            in
+            ( { model
+                | windowWidth = width
+                , windowHeight = height
+                , displaySettings = newDisplaySettings
+                , compilerOutput = newCompilerOutput
+              }
+            , Cmd.none
+            )
 
         InputText str ->
             let
@@ -766,130 +787,21 @@ sidebar model =
           Element.column
             Style.innerColumn
             [ -- User name section
-              case model.userName of
-                Just name ->
-                    if String.trim name /= "" then
-                        -- Show just the username when it's filled
-                        Widget.inputTextWidget model.theme name InputUserName
-
-                    else
-                        -- Show label and input when empty
-                        Element.column [ spacing 8 ]
-                            [ Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
-                                (Element.text "Your Name")
-                            , Widget.inputTextWidget model.theme name InputUserName
-                            ]
-
-                Nothing ->
-                    -- Show label and input when Nothing
-                    Element.column [ spacing 8 ]
-                        [ Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
-                            (Element.text "Your Name")
-                        , Widget.inputTextWidget model.theme "" InputUserName
-                        ]
-
-            -- Theme toggle and Document management section
-            , Element.row
-                [ paddingEach { top = 16, bottom = 8, left = 0, right = 0 }
-                , width fill
-                , spacing 8
-                ]
-                [ -- Theme toggle button
-                  Element.row
-                    [ Border.width 1
-                    , Border.color (Element.rgb 0.7 0.7 0.7)
-                    , Border.rounded 4
-                    , height (px 30)
-                    ]
-                    [ Input.button
-                        [ paddingXY 12 6
-                        , Background.color
-                            (if model.theme == Theme.Dark then
-                                Style.buttonBackgroundColor model.theme
-
-                             else
-                                Element.rgb255 230 230 230
-                            )
-                        , Font.color
-                            (if model.theme == Theme.Dark then
-                                Style.buttonTextColor model.theme
-
-                             else
-                                Element.rgb255 100 100 100
-                            )
-                        , Border.roundEach { topLeft = 4, bottomLeft = 4, topRight = 0, bottomRight = 0 }
-                        , Font.size 14
-                        , Font.bold
-                        ]
-                        { onPress = Just ToggleTheme
-                        , label = Element.text "Dark"
-                        }
-                    , Widget.sidebarButton model.theme (Just ToggleTheme) "Light"
-                    ]
-                ]
-            , Element.row [ spacing 8, width fill ]
-                []
+              Widget.nameElement model
+            , Element.el [ Element.paddingXY 0 8, Element.width Element.fill ] (Element.text "")
+            , Widget.toggleTheme model
             , crudButtons model
-
-            -- , lastSaveInfo model  -- Now shown per document
             , exportStuff model
-            , if model.showDocumentList then
-                Element.column
-                    [ spacing 4
-                    , paddingEach { top = 12, bottom = 0, left = 0, right = 0 }
-                    , width fill
-                    , height (px 300)
-                    , scrollbarY
-                    , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
-                    , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
-                    ]
-                    (List.map (documentItem model) model.documents)
-
-              else
-                Element.none
-            ]
-
-        -- Tools section at the bottom
-        , Element.column
-            [ width fill
-            , alignBottom
-            , Element.paddingXY 16 16
-            , Element.spacing 12
-            , Border.widthEach { left = 0, right = 0, top = 1, bottom = 0 }
-            , Border.color (Element.rgb 0.5 0.5 0.5)
-            ]
-            [ Element.el [ Font.bold, paddingEach { top = 0, bottom = 8, left = 0, right = 0 } ]
-                (Element.text "Tools:")
-            , Input.button
-                [ Background.color (Style.buttonBackgroundColor model.theme)
-                , Font.color (Style.electricBlueColor model.theme)
-                , paddingXY 12 8
-                , Border.rounded 4
-                , Border.width 1
-                , Border.color (Element.rgba 0.5 0.5 0.5 0.3)
-                , mouseOver
-                    [ Background.color (Element.rgba 0.5 0.5 0.5 0.2)
-                    , Border.color (Element.rgba 0.5 0.5 0.5 0.5)
-                    ]
-                , mouseDown
-                    [ Background.color (Element.rgba 0.5 0.5 0.5 0.3)
-                    , Border.color (Element.rgba 0.5 0.5 0.5 0.7)
-                    ]
-                , Element.htmlAttribute
-                    (Html.Attributes.style "color"
-                        (case model.theme of
-                            Theme.Light ->
-                                "rgb(0, 123, 255)"
-
-                            Theme.Dark ->
-                                "rgb(0, 191, 255)"
-                        )
-                    )
+            , Element.el [ Element.paddingXY 0 8, Element.width Element.fill ] (Element.text "")
+            , Element.column
+                [ spacing 4
                 , width fill
+                , height (px 300)
+                , scrollbarY
+                , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+                , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
                 ]
-                { onPress = Just DownloadScript
-                , label = text "Download script"
-                }
+                (List.map (documentItem model) (List.sortBy (\d -> d.title) model.documents))
             ]
         ]
 
@@ -899,7 +811,6 @@ crudButtons model =
     Element.row [ spacing 8, width fill ]
         [ newButton model
         , saveButton model
-        , listButton model
         ]
 
 
@@ -1069,7 +980,7 @@ header model =
             , Font.semiBold
             , Style.forceColorStyle model.theme
             ]
-            (Element.text <| "Scripta Live v0.2c: " ++ model.title)
+            (Element.text model.title)
         ]
 
 
