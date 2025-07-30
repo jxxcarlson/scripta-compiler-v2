@@ -592,11 +592,11 @@ update msg model =
             let
                 initialDoc =
                     Document.newDocument id title (Maybe.withDefault "" model.userName) content theme currentTime
-                    
+
                 editRecord =
                     ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage content
             in
-            ( { model 
+            ( { model
                 | currentDocument = Just initialDoc
                 , sourceText = content
                 , initialText = content
@@ -698,7 +698,7 @@ sidebarWidth =
 
 panelWidth : Model -> Int
 panelWidth model =
-    (appWidth model - sidebarWidth - 16 - 4 - 16) // 2
+    max 200 ((appWidth model - sidebarWidth - 16 - 4 - 16) // 2)
 
 
 headerHeight =
@@ -1020,7 +1020,7 @@ displayRenderedText : Model -> Element MarkupMsg
 displayRenderedText model =
     Element.el
         [ alignTop
-        , height (px (model.windowHeight - headerHeight - 1)) -- Match editor height
+        , height (px (max 100 (model.windowHeight - headerHeight - 1))) -- Match editor height
         , width (px <| panelWidth model)
         , Element.clipY
         , Element.scrollbarY
@@ -1069,7 +1069,7 @@ header model =
             , Font.semiBold
             , Style.forceColorStyle model.theme
             ]
-            (Element.text <| "Scripta Live v0.2b.1: " ++ model.title)
+            (Element.text <| "Scripta Live v0.2c: " ++ model.title)
         ]
 
 

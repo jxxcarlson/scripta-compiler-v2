@@ -86,7 +86,8 @@ nat &= sett(n " is a whole number", n > 0)
 \\end{pmatrix}
 
 
-
+[b Note:] The equation [eqref wave-equation] is the wave equation in four dimensions —
+three of space and one of time.
 
 """
 

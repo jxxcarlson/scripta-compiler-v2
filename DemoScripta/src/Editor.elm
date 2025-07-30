@@ -59,12 +59,12 @@ view model =
 
 panelWidth : Model -> Int
 panelWidth model =
-    (appWidth model - sidebarWidth - 16 - 4 - 16) // 2
+    max 200 ((appWidth model - sidebarWidth - 16 - 4 - 16) // 2)
 
 
 editorHeight : Model -> Int
 editorHeight model =
-    model.windowHeight - headerHeight - 1
+    max 100 (model.windowHeight - headerHeight - 1)
 
 
 
