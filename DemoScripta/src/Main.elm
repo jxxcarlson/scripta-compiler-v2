@@ -1044,7 +1044,7 @@ header model =
             , Font.semiBold
             , Style.forceColorStyle model.theme
             ]
-            (Element.text <| "Scripta Live v0.1d: " ++ model.title)
+            (Element.text <| "Scripta Live v0.2: " ++ model.title)
         ]
 
 
