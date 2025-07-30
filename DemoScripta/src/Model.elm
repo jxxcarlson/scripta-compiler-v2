@@ -53,6 +53,12 @@ type alias Model =
     , initialText : String
     , loadDocumentIntoEditor : Bool
     , targetData : Maybe Document.EditorTargetData
+    , selectedId : String
+
+    --, syncState = SyncText sourceText
+    , foundIds : List String
+    , foundIdIndex : Int
+    , searchCount : Int
     }
 
 
@@ -85,8 +91,16 @@ type Msg
     | DownloadScript
     | InputUserName String
     | LoadUserNameDelayed
-    | SelectedText String
     | PortMsgReceived (Result Decode.Error Ports.IncomingMsg)
+      -- Editor
+    | SelectedText String
+    | GetSelection String
+    | ReceiveAnchorOffset (Maybe Sync.SelectionOffsets)
+    | RequestAnchorOffset
+    | StartSync
+    | LRSync String
+    | NextSync
+    | SyncText String
 
 
 initialDisplaySettings flags =
@@ -159,6 +173,12 @@ init flags =
       , initialText = normalizedTex -- Use the actual initial document content
       , loadDocumentIntoEditor = True -- Load initial document
       , targetData = Nothing
+      , selectedId = ""
+
+      --, syncState = SyncText sourceText
+      , foundIds = []
+      , foundIdIndex = 0
+      , searchCount = 0
       }
     , Cmd.batch
         [ Ports.send Ports.LoadDocuments

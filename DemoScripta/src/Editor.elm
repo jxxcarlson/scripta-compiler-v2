@@ -41,13 +41,13 @@ view model =
                   else
                     Html.Attributes.attribute "noOp" "true"
                 , Html.Attributes.attribute "text" model.initialText
-                , Html.Attributes.attribute "editordata" (model.editorData |> encodeEditorData)
+                , Html.Attributes.attribute "editordata" (model.editorData |> Debug.log "@@!!@@_editordata_ENCODE" |> encodeEditorData)
                 , case model.maybeSelectionOffset of
                     Nothing ->
                         Html.Attributes.attribute "noOp" "true"
 
                     Just refinedSelection ->
-                        Html.Attributes.attribute "refineselection" (encodeRefinedSelection refinedSelection model.editorData)
+                        Html.Attributes.attribute "refineselection" (encodeRefinedSelection (refinedSelection |> Debug.log "@@!!@@_refinedSelection_ENCODE") model.editorData)
 
                 -- TODO: remove this hardcoded value
                 , Html.Attributes.attribute "selection" (stringOfBool model.doSync)

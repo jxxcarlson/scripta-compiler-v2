@@ -30706,10 +30706,10 @@ window.initCodeMirror = function () {
 }
 
 
-exports.init = async function(app) {
-
-// The code is already bundled in this file, so we just need to call the function
-initCodeMirror();
-
-}
+// exports.init = async function(app) {
+//
+// // The code is already bundled in this file, so we just need to call the function
+// initCodeMirror();
+//
+// }
 

@@ -611,7 +611,35 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
-        _ ->
+        GetSelection str ->
+            --( { model | messages = Message.prepend model.messages { txt = "Selection: " ++ str, status = MSWhite } }, Cmd.none )
+            ( model, Cmd.none )
+
+        -- SYNC, PORTS
+        RequestAnchorOffset ->
+            --( model, Ports.getSelectionForAnchor_ () )
+            ( model, Cmd.none )
+
+        ReceiveAnchorOffset maybeSelectionOffset ->
+            ( { model | maybeSelectionOffset = maybeSelectionOffset }, Cmd.none )
+
+        StartSync ->
+            ( { model | doSync = not model.doSync }, Cmd.none )
+
+        SelectedText str ->
+            --Frontend.EditorSync.firstSyncLR model str
+            ( model, Cmd.none )
+
+        LRSync target ->
+            --Frontend.EditorSync.firstSyncLR model target
+            ( model, Cmd.none )
+
+        NextSync ->
+            --Frontend.EditorSync.nextSyncLR model
+            ( model, Cmd.none )
+
+        SyncText _ ->
+            --Frontend.EditorSync.firstSyncLR model ""
             ( model, Cmd.none )
 
 
