@@ -77,7 +77,16 @@ handleIncomingPortMsg msg model =
                 _ =
                     Debug.log "@@!!@@ Documents loaded from localStorage" (List.length docs)
             in
-            ( { model | documents = docs }, Cmd.none )
+            if List.isEmpty docs then
+                -- No documents in storage, create default document
+                ( { model | documents = docs }
+                , Random.generate
+                    (InitialDocumentId AppData.defaultDocumentText "Announcement" model.currentTime model.theme)
+                    generateId
+                )
+
+            else
+                ( { model | documents = docs }, Cmd.none )
 
         Ports.DocumentLoaded doc ->
             let
@@ -1044,7 +1053,7 @@ header model =
             , Font.semiBold
             , Style.forceColorStyle model.theme
             ]
-            (Element.text <| "Scripta Live v0.2: " ++ model.title)
+            (Element.text <| "Scripta Live v0.2b.1: " ++ model.title)
         ]
 
 
