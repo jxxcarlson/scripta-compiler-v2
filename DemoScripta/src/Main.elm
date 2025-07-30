@@ -894,26 +894,46 @@ noFocus =
 
 displayRenderedText : Model -> Element MarkupMsg
 displayRenderedText model =
-    Element.el
+    Element.column
         [ alignTop
         , height fill
         , width (px <| panelWidth model)
         , Element.scrollbarY
+        , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+        , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+        , Element.htmlAttribute (Html.Attributes.style "-webkit-overflow-scrolling" "touch")
+        , Element.htmlAttribute (Html.Attributes.style "position" "relative")
+        , Element.htmlAttribute (Html.Attributes.style "flex" "1")
+        , Element.htmlAttribute (Html.Attributes.style "display" "flex")
+        , Element.htmlAttribute (Html.Attributes.style "flex-direction" "column")
         ]
-        (column [ Font.size 14, padding 16, spacing 24, width fill ]
-            [ column
-                [ Style.background_ model.theme
+        [ Element.el
+            [ width fill
+            , height fill
+            , Element.scrollbarY
+            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+            , Element.htmlAttribute (Html.Attributes.style "flex" "1")
+            ]
+            (column
+                [ Font.size 14
+                , padding 16
                 , spacing 24
                 , width fill
                 , Style.htmlId "rendered-text"
-                , alignTop
-                , centerX
-                , Font.color (Style.textColor model.theme)
-                , Style.forceColorStyle model.theme
                 ]
-                [ container model model.compilerOutput.body ]
-            ]
-        )
+                [ column
+                    [ Style.background_ model.theme
+                    , spacing 24
+                    , width fill
+                    , alignTop
+                    , centerX
+                    , Font.color (Style.textColor model.theme)
+                    , Style.forceColorStyle model.theme
+                    ]
+                    [ container model model.compilerOutput.body ]
+                ]
+            )
+        ]
 
 
 container : Model -> List (Element msg) -> Element msg
@@ -942,7 +962,7 @@ header model =
             , Font.semiBold
             , Style.forceColorStyle model.theme
             ]
-            (Element.text <| "Scripta Live v0.1: " ++ model.title)
+            (Element.text <| "Scripta Live v0.1b: " ++ model.title)
         ]
 
 
