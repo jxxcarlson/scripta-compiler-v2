@@ -592,8 +592,24 @@ update msg model =
             let
                 initialDoc =
                     Document.newDocument id title (Maybe.withDefault "" model.userName) content theme currentTime
+                    
+                editRecord =
+                    ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage content
             in
-            ( { model | currentDocument = Just initialDoc }
+            ( { model 
+                | currentDocument = Just initialDoc
+                , sourceText = content
+                , initialText = content
+                , title = title
+                , editRecord = editRecord
+                , loadDocumentIntoEditor = True
+                , compilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme model.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        model.displaySettings
+                        editRecord
+              }
             , Ports.send (Ports.SaveDocument initialDoc)
             )
 

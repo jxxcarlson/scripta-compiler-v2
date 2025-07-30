@@ -132,11 +132,12 @@ init flags =
         displaySettings =
             initialDisplaySettings flags
 
+        -- Start with empty content to avoid flash
         normalizedTex =
-            normalize AppData.defaultDocumentText
+            ""
 
         title_ =
-            getTitle normalizedTex
+            "Loading..."
 
         editRecord =
             ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.EnclosureLang normalizedTex
