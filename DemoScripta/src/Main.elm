@@ -556,6 +556,7 @@ view model =
     layoutWith { options = [ Element.focusStyle noFocus ] }
         [ Style.background_ model.theme
         , Element.htmlAttribute (Html.Attributes.style "height" "100vh")
+        , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
         ]
         (mainColumn model)
 
