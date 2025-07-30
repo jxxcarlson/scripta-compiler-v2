@@ -17,6 +17,7 @@ import File.Download
 import Html exposing (Html)
 import Html.Attributes
 import Keyboard
+import List.Extra
 import Model exposing (Model, Msg(..))
 import Ports
 import Random
@@ -25,6 +26,7 @@ import Render.Settings
 import ScriptaV2.API
 import ScriptaV2.Compiler
 import ScriptaV2.DifferentialCompiler
+import ScriptaV2.Helper
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
 import Style
@@ -262,10 +264,77 @@ update msg model =
                     else
                         ( { model | selectId = id }, Cmd.none )
 
-                ScriptaV2.Msg.SendLineNumber line ->
-                    ( model, Cmd.none )
+                ScriptaV2.Msg.SendLineNumber editorData ->
+                    let
+                        _ =
+                            Debug.log "@@SendLineNumber, editorData" editorData
+                    in
+                    case model.currentDocument of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just doc ->
+                            let
+                                target : Maybe String
+                                target =
+                                    Maybe.map (.content >> String.lines) model.currentDocument
+                                        -- acquire the target lines
+                                        |> Maybe.map (List.Extra.removeIfIndex (\k -> k < editorData.begin - 1 || k > editorData.end))
+                                        |> Maybe.map (String.join "\n")
+                                        |> Maybe.map (String.split "\n\n")
+                                        |> Maybe.andThen List.head
+
+                                targetData : Maybe Document.EditorTargetData
+                                targetData =
+                                    case target of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just target_ ->
+                                            Just { target = target_, editorData = editorData }
+                            in
+                            -- FOR NOW: disable open-editor-on-click-in-rendered-text:
+                            -- it interferes with the normal operation of other features
+                            -- activated by a click in the rendered text.
+                            --
+                            --if model.showEditor == False && model.lastMarkupMsg == Nothing then
+                            --    Frontend.Editor.openEditor doc { model | targetData = targetData }
+                            --
+                            --else
+                            -- Ports.getSelectionForAnchor_ () will attempt to refine the selection
+                            -- Compute id_ to highlight the rendered text that was clicked on
+                            let
+                                foundIds_ =
+                                    ScriptaV2.Helper.matchingIdsInAST (target |> Maybe.withDefault "--xx--") model.editRecord.tree
+
+                                id_ =
+                                    List.head foundIds_ |> Maybe.withDefault "(nothing)"
+
+                                _ =
+                                    Debug.log "@@SendLineNumber, target" target
+
+                                _ =
+                                    Debug.log "@@SendLineNumber, foundIds" foundIds_
+
+                                _ =
+                                    Debug.log "@@SendLineNumber, sending to port with editorData" editorData
+                            in
+                            ( { model
+                                | editorData = editorData |> Debug.log "@@SetEditorData(2)"
+
+                                -- BELOW: Disable for now so that rendered text is not highlighted
+                                --, selectedId = id_
+                                , targetData = targetData
+                              }
+                              --, Ports.getSelectionForAnchor_ ()
+                            , Cmd.none
+                            )
 
                 _ ->
+                    let
+                        _ =
+                            Debug.log "@@!!@@ Render message received" msg_
+                    in
                     ( model, Cmd.none )
 
         ToggleTheme ->
@@ -603,6 +672,8 @@ mainColumn model =
                 [ width fill
                 , height fill
                 , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
+                , Element.htmlAttribute (Html.Attributes.style "flex" "1")
+                , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
                 ]
                 [ Editor.view model
 
@@ -894,46 +965,29 @@ noFocus =
 
 displayRenderedText : Model -> Element MarkupMsg
 displayRenderedText model =
-    Element.column
+    Element.el
         [ alignTop
-        , height fill
+        , height (px (model.windowHeight - headerHeight - 1)) -- Match editor height
         , width (px <| panelWidth model)
+        , Element.clipY
         , Element.scrollbarY
         , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
         , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
-        , Element.htmlAttribute (Html.Attributes.style "-webkit-overflow-scrolling" "touch")
-        , Element.htmlAttribute (Html.Attributes.style "position" "relative")
-        , Element.htmlAttribute (Html.Attributes.style "flex" "1")
-        , Element.htmlAttribute (Html.Attributes.style "display" "flex")
-        , Element.htmlAttribute (Html.Attributes.style "flex-direction" "column")
         ]
-        [ Element.el
-            [ width fill
-            , height fill
-            , Element.scrollbarY
-            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
-            , Element.htmlAttribute (Html.Attributes.style "flex" "1")
+        (column
+            [ Font.size 14
+            , padding 16
+            , spacing 24
+            , width fill
+            , Style.htmlId "rendered-text"
+            , Style.background_ model.theme
+            , alignTop
+            , centerX
+            , Font.color (Style.textColor model.theme)
+            , Style.forceColorStyle model.theme
             ]
-            (column
-                [ Font.size 14
-                , padding 16
-                , spacing 24
-                , width fill
-                , Style.htmlId "rendered-text"
-                ]
-                [ column
-                    [ Style.background_ model.theme
-                    , spacing 24
-                    , width fill
-                    , alignTop
-                    , centerX
-                    , Font.color (Style.textColor model.theme)
-                    , Style.forceColorStyle model.theme
-                    ]
-                    [ container model model.compilerOutput.body ]
-                ]
-            )
-        ]
+            [ container model model.compilerOutput.body ]
+        )
 
 
 container : Model -> List (Element msg) -> Element msg
@@ -962,7 +1016,7 @@ header model =
             , Font.semiBold
             , Style.forceColorStyle model.theme
             ]
-            (Element.text <| "Scripta Live v0.1b: " ++ model.title)
+            (Element.text <| "Scripta Live v0.1d: " ++ model.title)
         ]
 
 

@@ -52,6 +52,7 @@ type alias Model =
     , lastLoadedDocumentId : Maybe String
     , initialText : String
     , loadDocumentIntoEditor : Bool
+    , targetData : Maybe Document.EditorTargetData
     }
 
 
@@ -155,8 +156,9 @@ init flags =
       , doSync = False
       , maybeSelectionOffset = Nothing
       , lastLoadedDocumentId = Nothing
-      , initialText = normalizedTex  -- Use the actual initial document content
-      , loadDocumentIntoEditor = True  -- Load initial document
+      , initialText = normalizedTex -- Use the actual initial document content
+      , loadDocumentIntoEditor = True -- Load initial document
+      , targetData = Nothing
       }
     , Cmd.batch
         [ Ports.send Ports.LoadDocuments

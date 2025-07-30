@@ -23,6 +23,10 @@ type alias SourceTextRecord =
     { position : Int, source : String }
 
 
+type alias EditorTargetData =
+    { target : String, editorData : { begin : Int, end : Int } }
+
+
 
 -- ENCODERS
 
