@@ -14,53 +14,30 @@ import Model exposing (Model, Msg(..))
 
 
 view model =
-    Element.el
-        [ Element.height Element.fill
-        , Element.width (Element.px <| panelWidth model)
-        , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
-        , Element.htmlAttribute (Html.Attributes.style "display" "flex")
-        , Element.htmlAttribute (Html.Attributes.style "flex-direction" "column")
-        ]
-        (view_ model)
-
-
-panelWidth : Model -> Int
-panelWidth model =
-    (appWidth model - sidebarWidth - 16 - 4 - 16) // 2
-
-
-appWidth : Model -> Int
-appWidth model =
-    model.windowWidth
-
-
-sidebarWidth =
-    260
-
-
-view_ : Model -> Element Msg
-view_ model =
     Element.Keyed.el
         [ -- RECEIVE INFORMATION FROM CODEMIRROR
           Element.htmlAttribute onSelectionChange -- receive info from codemirror
+        , Element.alignTop
         , Element.htmlAttribute onTextChange -- receive info from codemirror
 
         -- , Element.htmlAttribute onCursorChange -- receive info from codemirror
         , htmlId "editor-here"
-        , Element.height Element.fill
-        , Element.width Element.fill
+        , Element.height (Element.px <| editorHeight model)
+        , Element.width (Element.px <| panelWidth model)
         , Background.color (Element.rgb255 0 68 85)
 
         --, Background.color (View.Color.gray 0.1)
         , Font.color (Element.rgb 0.85 0.85 0.85)
         , Font.size 12
         ]
-        ( stringOfBool False  -- Keep the same key always
+        ( stringOfBool False
+          -- Keep the same key always
         , Element.html
             (Html.node "codemirror-editor"
                 [ -- SEND INFORMATION TO CODEMIRROR
                   if model.loadDocumentIntoEditor then
                     Html.Attributes.attribute "load" model.sourceText
+
                   else
                     Html.Attributes.attribute "noOp" "true"
                 , Html.Attributes.attribute "text" model.initialText
@@ -78,6 +55,33 @@ view_ model =
                 []
             )
         )
+
+
+panelWidth : Model -> Int
+panelWidth model =
+    (appWidth model - sidebarWidth - 16 - 4 - 16) // 2
+
+
+editorHeight : Model -> Int
+editorHeight model =
+    model.windowHeight - headerHeight - 1
+
+
+
+-- -1 for the border
+
+
+appWidth : Model -> Int
+appWidth model =
+    model.windowWidth
+
+
+sidebarWidth =
+    260
+
+
+headerHeight =
+    90
 
 
 
