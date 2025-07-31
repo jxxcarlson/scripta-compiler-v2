@@ -30418,12 +30418,12 @@ window.initCodeMirror = function () {
            console.log("@@JS_resetEditorText, Error: str is not a string");
        }
        else {
-           console.log("@@JS_resetEditorText, replacing", editor.state.doc.length, "chars with", str.length, "chars:", str.slice(0, 50));
+           // console.log("@@JS_resetEditorText, str.length ", str.length, str.slice(0, 20)
 
            editor.dispatch({
                changes: {
                    from: 0,
-                   to: editor.state.doc.length,
+                   to: str.length,
                    insert: str
                }
            });
@@ -30433,7 +30433,6 @@ window.initCodeMirror = function () {
    class CodemirrorEditor extends HTMLElement {
 
        static get observedAttributes() { return ['selection', 'load', 'refineselection', 'editordata', 'text']; }
-       // static get observedAttributes() { return ['selection', 'load', 'editordata', 'text']; }
 
        constructor(self) {
 
@@ -30510,7 +30509,6 @@ window.initCodeMirror = function () {
 
                       case "load": // load the editor with the given text
                          // if (typeof newVal == 'string') {resetEditor(editor, newVal)}
-                          console.log("@@JS LOAD attribute changed:", newVal ? newVal.substring(0, 50) + "..." : "null");
                           if (typeof newVal == 'string') {resetEditorText(editor, newVal);}
                           break
 
@@ -30706,10 +30704,10 @@ window.initCodeMirror = function () {
 }
 
 
-exports.init = async function(app) {
-
-// The code is already bundled in this file, so we just need to call the function
-initCodeMirror();
-
-}
+// exports.init = async function(app) {
+//
+// // The code is already bundled in this file, so we just need to call the function
+// initCodeMirror();
+//
+// }
 

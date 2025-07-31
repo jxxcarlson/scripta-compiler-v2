@@ -1,4 +1,4 @@
-module MainSQLite exposing (main)
+module MainTauri exposing (main)
 
 import AppData
 import Browser
@@ -28,7 +28,7 @@ import ScriptaV2.Helper
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
 import Storage.Interface as Storage
-import Storage.SQLite
+import Storage.Tauri
 import Task
 import Theme
 import Time
@@ -51,7 +51,6 @@ main =
 
 type alias Model =
     { common : Common.CommonModel
-    , storageState : Storage.SQLite.State
     }
 
 
@@ -70,7 +69,7 @@ init flags =
             Common.initCommon flags
 
         storage =
-            Storage.SQLite.storage StorageMsg
+            Storage.Tauri.storage StorageMsg
 
         updatedCommon =
             { common 
@@ -78,13 +77,14 @@ init flags =
             }
     in
     ( { common = updatedCommon
-      , storageState = Storage.SQLite.init
       }
     , Cmd.batch
         [ storage.init
         , Task.perform (CommonMsg << Common.Tick) Time.now
         , Process.sleep 100
             |> Task.perform (always (CommonMsg Common.LoadUserNameDelayed))
+        , Process.sleep 200
+            |> Task.perform (always (StorageMsg (Storage.StorageInitialized (Ok ()))))
         ]
     )
 
@@ -106,7 +106,7 @@ updateCommon : Common.CommonMsg -> Model -> ( Model, Cmd Msg )
 updateCommon msg model =
     let
         storage =
-            Storage.SQLite.storage StorageMsg
+            Storage.Tauri.storage StorageMsg
 
         common =
             model.common
@@ -498,7 +498,7 @@ handleStorageMsg msg model =
 
                 compilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
-                        (Theme.mapTheme common.theme)
+                        (Theme.mapTheme doc.theme)
                         ScriptaV2.Compiler.SuppressDocumentBlocks
                         common.displaySettings
                         editRecord
@@ -509,6 +509,7 @@ handleStorageMsg msg model =
                         , sourceText = doc.content
                         , initialText = doc.content
                         , title = doc.title
+                        , theme = doc.theme
                         , editRecord = editRecord
                         , compilerOutput = compilerOutput
                         , loadDocumentIntoEditor = True
@@ -564,7 +565,7 @@ handleStorageMsg msg model =
             case maybeId of
                 Just id ->
                     ( { model | common = newCommon }
-                    , (Storage.SQLite.storage StorageMsg).loadDocument id
+                    , (Storage.Tauri.storage StorageMsg).loadDocument id
                     )
                 Nothing ->
                     ( { model | common = newCommon }
@@ -578,10 +579,10 @@ handleStorageMsg msg model =
             ( model, Cmd.none )
 
         Storage.StorageInitialized (Ok _) ->
-            ( { model | storageState = { initialized = True, dbReady = True } }
+            ( model
             , Cmd.batch
-                [ Storage.SQLite.storage StorageMsg |> .listDocuments
-                , Storage.SQLite.storage StorageMsg |> .loadLastDocumentId
+                [ Storage.Tauri.storage StorageMsg |> .listDocuments
+                , Storage.Tauri.storage StorageMsg |> .loadLastDocumentId
                 ]
             )
 
@@ -607,7 +608,7 @@ subscriptions model =
         , Keyboard.subscriptions |> Sub.map (CommonMsg << Common.KeyMsg)
         , Time.every (30 * 1000) (CommonMsg << Common.AutoSave)
         , Time.every constants.autoSaveCheckInterval (CommonMsg << Common.Tick)
-        , Storage.SQLite.subscriptions StorageMsg
+        , Storage.Tauri.subscriptions StorageMsg
         ]
 
 

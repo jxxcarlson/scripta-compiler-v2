@@ -58,6 +58,7 @@ type alias CommonModel =
     , foundIds : List String
     , foundIdIndex : Int
     , searchCount : Int
+    , lastSavedDocumentId : Maybe String
     }
 
 
@@ -86,6 +87,7 @@ type CommonMsg
     | LoadContentIntoEditorDelayed
     | ResetLoadFlag
     | PortMsgReceived (Result Decode.Error Ports.IncomingMsg)
+    | LoadLastSavedDocumentId (Maybe String)
       -- Editor
     | SelectedText String
     | GetSelection String
@@ -176,6 +178,7 @@ initCommon flags =
     , foundIds = []
     , foundIdIndex = 0
     , searchCount = 0
+    , lastSavedDocumentId = Nothing
     }
 
 

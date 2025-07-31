@@ -5653,11 +5653,14 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$element = _Browser_element;
 var $elm$json$Json$Decode$field = _Json_decodeField;
-var $author$project$MainSQLite$CommonMsg = function (a) {
+var $author$project$MainTauri$CommonMsg = function (a) {
 	return {$: 'CommonMsg', a: a};
 };
 var $author$project$Common$Model$LoadUserNameDelayed = {$: 'LoadUserNameDelayed'};
-var $author$project$MainSQLite$StorageMsg = function (a) {
+var $author$project$Storage$Interface$StorageInitialized = function (a) {
+	return {$: 'StorageInitialized', a: a};
+};
+var $author$project$MainTauri$StorageMsg = function (a) {
 	return {$: 'StorageMsg', a: a};
 };
 var $author$project$Common$Model$Tick = function (a) {
@@ -5673,7 +5676,6 @@ var $elm$core$Basics$composeL = F3(
 		return g(
 			f(x));
 	});
-var $author$project$Storage$SQLite$init = {dbReady: false, initialized: false};
 var $author$project$Theme$Dark = {$: 'Dark'};
 var $author$project$ScriptaV2$Language$EnclosureLang = {$: 'EnclosureLang'};
 var $author$project$Theme$Light = {$: 'Light'};
@@ -22558,73 +22560,73 @@ var $elm$json$Json$Encode$object = function (pairs) {
 			_Json_emptyObject(_Utils_Tuple0),
 			pairs));
 };
-var $author$project$Ports$sqliteExecute = _Platform_outgoingPort('sqliteExecute', $elm$core$Basics$identity);
 var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Storage$SQLite$deleteDocument = F2(
+var $author$project$Ports$tauriCommand = _Platform_outgoingPort('tauriCommand', $elm$core$Basics$identity);
+var $author$project$Storage$Tauri$deleteDocument = F2(
 	function (toMsg, id) {
-		return $author$project$Ports$sqliteExecute(
+		return $author$project$Ports$tauriCommand(
 			$elm$json$Json$Encode$object(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
-						'type',
+						'cmd',
 						$elm$json$Json$Encode$string('deleteDocument')),
 						_Utils_Tuple2(
 						'id',
 						$elm$json$Json$Encode$string(id))
 					])));
 	});
-var $author$project$Storage$SQLite$initStorage = function (toMsg) {
-	return $author$project$Ports$sqliteExecute(
+var $author$project$Storage$Tauri$initStorage = function (toMsg) {
+	return $author$project$Ports$tauriCommand(
 		$elm$json$Json$Encode$object(
 			_List_fromArray(
 				[
 					_Utils_Tuple2(
-					'type',
-					$elm$json$Json$Encode$string('init'))
+					'cmd',
+					$elm$json$Json$Encode$string('initDatabase'))
 				])));
 };
-var $author$project$Storage$SQLite$listDocuments = function (toMsg) {
-	return $author$project$Ports$sqliteExecute(
+var $author$project$Storage$Tauri$listDocuments = function (toMsg) {
+	return $author$project$Ports$tauriCommand(
 		$elm$json$Json$Encode$object(
 			_List_fromArray(
 				[
 					_Utils_Tuple2(
-					'type',
+					'cmd',
 					$elm$json$Json$Encode$string('listDocuments'))
 				])));
 };
-var $author$project$Storage$SQLite$loadDocument = F2(
+var $author$project$Storage$Tauri$loadDocument = F2(
 	function (toMsg, id) {
-		return $author$project$Ports$sqliteExecute(
+		return $author$project$Ports$tauriCommand(
 			$elm$json$Json$Encode$object(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
-						'type',
+						'cmd',
 						$elm$json$Json$Encode$string('loadDocument')),
 						_Utils_Tuple2(
 						'id',
 						$elm$json$Json$Encode$string(id))
 					])));
 	});
-var $author$project$Storage$SQLite$loadLastDocumentId = function (toMsg) {
-	return $author$project$Ports$sqliteExecute(
+var $author$project$Storage$Tauri$loadLastDocumentId = function (toMsg) {
+	return $author$project$Ports$tauriCommand(
 		$elm$json$Json$Encode$object(
 			_List_fromArray(
 				[
 					_Utils_Tuple2(
-					'type',
+					'cmd',
 					$elm$json$Json$Encode$string('loadLastDocumentId'))
 				])));
 };
-var $author$project$Storage$SQLite$loadUserName = function (toMsg) {
-	return $author$project$Ports$sqliteExecute(
+var $author$project$Storage$Tauri$loadUserName = function (toMsg) {
+	return $author$project$Ports$tauriCommand(
 		$elm$json$Json$Encode$object(
 			_List_fromArray(
 				[
 					_Utils_Tuple2(
-					'type',
+					'cmd',
 					$elm$json$Json$Encode$string('loadUserName'))
 				])));
 };
@@ -22669,82 +22671,89 @@ var $author$project$Document$encodeDocument = function (doc) {
 					$elm$time$Time$posixToMillis(doc.modifiedAt)))
 			]));
 };
-var $author$project$Storage$SQLite$saveDocument = F2(
+var $author$project$Storage$Tauri$saveDocument = F2(
 	function (toMsg, doc) {
-		return $author$project$Ports$sqliteExecute(
+		return $author$project$Ports$tauriCommand(
 			$elm$json$Json$Encode$object(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
-						'type',
+						'cmd',
 						$elm$json$Json$Encode$string('saveDocument')),
 						_Utils_Tuple2(
 						'document',
 						$author$project$Document$encodeDocument(doc))
 					])));
 	});
-var $author$project$Storage$SQLite$saveLastDocumentId = F2(
+var $author$project$Storage$Tauri$saveLastDocumentId = F2(
 	function (toMsg, id) {
-		return $author$project$Ports$sqliteExecute(
+		return $author$project$Ports$tauriCommand(
 			$elm$json$Json$Encode$object(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
-						'type',
+						'cmd',
 						$elm$json$Json$Encode$string('saveLastDocumentId')),
 						_Utils_Tuple2(
 						'id',
 						$elm$json$Json$Encode$string(id))
 					])));
 	});
-var $author$project$Storage$SQLite$saveUserName = F2(
+var $author$project$Storage$Tauri$saveUserName = F2(
 	function (toMsg, name) {
-		return $author$project$Ports$sqliteExecute(
+		return $author$project$Ports$tauriCommand(
 			$elm$json$Json$Encode$object(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
-						'type',
+						'cmd',
 						$elm$json$Json$Encode$string('saveUserName')),
 						_Utils_Tuple2(
 						'name',
 						$elm$json$Json$Encode$string(name))
 					])));
 	});
-var $author$project$Storage$SQLite$storage = function (toMsg) {
+var $author$project$Storage$Tauri$storage = function (toMsg) {
 	return {
-		deleteDocument: $author$project$Storage$SQLite$deleteDocument(toMsg),
-		init: $author$project$Storage$SQLite$initStorage(toMsg),
-		listDocuments: $author$project$Storage$SQLite$listDocuments(toMsg),
-		loadDocument: $author$project$Storage$SQLite$loadDocument(toMsg),
-		loadLastDocumentId: $author$project$Storage$SQLite$loadLastDocumentId(toMsg),
-		loadUserName: $author$project$Storage$SQLite$loadUserName(toMsg),
-		saveDocument: $author$project$Storage$SQLite$saveDocument(toMsg),
-		saveLastDocumentId: $author$project$Storage$SQLite$saveLastDocumentId(toMsg),
-		saveUserName: $author$project$Storage$SQLite$saveUserName(toMsg)
+		deleteDocument: $author$project$Storage$Tauri$deleteDocument(toMsg),
+		init: $author$project$Storage$Tauri$initStorage(toMsg),
+		listDocuments: $author$project$Storage$Tauri$listDocuments(toMsg),
+		loadDocument: $author$project$Storage$Tauri$loadDocument(toMsg),
+		loadLastDocumentId: $author$project$Storage$Tauri$loadLastDocumentId(toMsg),
+		loadUserName: $author$project$Storage$Tauri$loadUserName(toMsg),
+		saveDocument: $author$project$Storage$Tauri$saveDocument(toMsg),
+		saveLastDocumentId: $author$project$Storage$Tauri$saveLastDocumentId(toMsg),
+		saveUserName: $author$project$Storage$Tauri$saveUserName(toMsg)
 	};
 };
-var $author$project$MainSQLite$init = function (flags) {
-	var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
+var $author$project$MainTauri$init = function (flags) {
+	var storage = $author$project$Storage$Tauri$storage($author$project$MainTauri$StorageMsg);
 	var common = $author$project$Common$Model$initCommon(flags);
 	var updatedCommon = _Utils_update(
 		common,
 		{showDocumentList: true});
 	return _Utils_Tuple2(
-		{common: updatedCommon, storageState: $author$project$Storage$SQLite$init},
+		{common: updatedCommon},
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
 					storage.init,
 					A2(
 					$elm$core$Task$perform,
-					A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$Tick),
+					A2($elm$core$Basics$composeL, $author$project$MainTauri$CommonMsg, $author$project$Common$Model$Tick),
 					$elm$time$Time$now),
 					A2(
 					$elm$core$Task$perform,
 					$elm$core$Basics$always(
-						$author$project$MainSQLite$CommonMsg($author$project$Common$Model$LoadUserNameDelayed)),
-					$elm$core$Process$sleep(100))
+						$author$project$MainTauri$CommonMsg($author$project$Common$Model$LoadUserNameDelayed)),
+					$elm$core$Process$sleep(100)),
+					A2(
+					$elm$core$Task$perform,
+					$elm$core$Basics$always(
+						$author$project$MainTauri$StorageMsg(
+							$author$project$Storage$Interface$StorageInitialized(
+								$elm$core$Result$Ok(_Utils_Tuple0)))),
+					$elm$core$Process$sleep(200))
 				])));
 };
 var $elm$json$Json$Decode$int = _Json_decodeInt;
@@ -23250,9 +23259,6 @@ var $author$project$Storage$Interface$LastDocumentIdLoaded = function (a) {
 var $author$project$Storage$Interface$LastDocumentIdSaved = function (a) {
 	return {$: 'LastDocumentIdSaved', a: a};
 };
-var $author$project$Storage$Interface$StorageInitialized = function (a) {
-	return {$: 'StorageInitialized', a: a};
-};
 var $author$project$Storage$Interface$UserNameLoaded = function (a) {
 	return {$: 'UserNameLoaded', a: a};
 };
@@ -23303,7 +23309,7 @@ var $elm$json$Json$Decode$nullable = function (decoder) {
 				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, decoder)
 			]));
 };
-var $author$project$Storage$SQLite$sqliteResultDecoder = A2(
+var $author$project$Storage$Tauri$tauriResultDecoder = A2(
 	$elm$json$Json$Decode$andThen,
 	function (msgType) {
 		switch (msgType) {
@@ -23409,20 +23415,6 @@ var $author$project$Storage$SQLite$sqliteResultDecoder = A2(
 								$elm$core$Result$Ok,
 								A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string))
 							])));
-			case 'initialized':
-				return A2(
-					$elm$json$Json$Decode$map,
-					$author$project$Storage$Interface$StorageInitialized,
-					$elm$json$Json$Decode$oneOf(
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Err,
-								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
-								$elm$json$Json$Decode$succeed(
-								$elm$core$Result$Ok(_Utils_Tuple0))
-							])));
 			case 'lastDocumentIdLoaded':
 				return A2(
 					$elm$json$Json$Decode$map,
@@ -23458,13 +23450,27 @@ var $author$project$Storage$SQLite$sqliteResultDecoder = A2(
 								$elm$core$Result$Ok,
 								A2($elm$json$Json$Decode$field, 'id', $elm$json$Json$Decode$string))
 							])));
+			case 'databaseInitialized':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Storage$Interface$StorageInitialized,
+					$elm$json$Json$Decode$oneOf(
+						_List_fromArray(
+							[
+								A2(
+								$elm$json$Json$Decode$map,
+								$elm$core$Result$Err,
+								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
+								$elm$json$Json$Decode$succeed(
+								$elm$core$Result$Ok(_Utils_Tuple0))
+							])));
 			default:
 				return $elm$json$Json$Decode$fail('Unknown message type: ' + msgType);
 		}
 	},
 	A2($elm$json$Json$Decode$field, 'type', $elm$json$Json$Decode$string));
-var $author$project$Storage$SQLite$decodeSQLiteResult = function (value) {
-	var _v0 = A2($elm$json$Json$Decode$decodeValue, $author$project$Storage$SQLite$sqliteResultDecoder, value);
+var $author$project$Storage$Tauri$decodeTauriResult = function (value) {
+	var _v0 = A2($elm$json$Json$Decode$decodeValue, $author$project$Storage$Tauri$tauriResultDecoder, value);
 	if (_v0.$ === 'Ok') {
 		var msg = _v0.a;
 		return msg;
@@ -23476,34 +23482,34 @@ var $author$project$Storage$SQLite$decodeSQLiteResult = function (value) {
 	}
 };
 var $elm$json$Json$Decode$value = _Json_decodeValue;
-var $author$project$Ports$sqliteResult = _Platform_incomingPort('sqliteResult', $elm$json$Json$Decode$value);
-var $author$project$Storage$SQLite$subscriptions = function (toMsg) {
-	return $author$project$Ports$sqliteResult(
-		A2($elm$core$Basics$composeR, $author$project$Storage$SQLite$decodeSQLiteResult, toMsg));
+var $author$project$Ports$tauriResult = _Platform_incomingPort('tauriResult', $elm$json$Json$Decode$value);
+var $author$project$Storage$Tauri$subscriptions = function (toMsg) {
+	return $author$project$Ports$tauriResult(
+		A2($elm$core$Basics$composeR, $author$project$Storage$Tauri$decodeTauriResult, toMsg));
 };
-var $author$project$MainSQLite$subscriptions = function (model) {
+var $author$project$MainTauri$subscriptions = function (model) {
 	return $elm$core$Platform$Sub$batch(
 		_List_fromArray(
 			[
 				$elm$browser$Browser$Events$onResize(
 				F2(
 					function (w, h) {
-						return $author$project$MainSQLite$CommonMsg(
+						return $author$project$MainTauri$CommonMsg(
 							A2($author$project$Common$Model$GotNewWindowDimensions, w, h));
 					})),
 				A2(
 				$elm$core$Platform$Sub$map,
-				A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$KeyMsg),
+				A2($elm$core$Basics$composeL, $author$project$MainTauri$CommonMsg, $author$project$Common$Model$KeyMsg),
 				$ohanhi$keyboard$Keyboard$subscriptions),
 				A2(
 				$elm$time$Time$every,
 				30 * 1000,
-				A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$AutoSave)),
+				A2($elm$core$Basics$composeL, $author$project$MainTauri$CommonMsg, $author$project$Common$Model$AutoSave)),
 				A2(
 				$elm$time$Time$every,
 				$author$project$Constants$constants.autoSaveCheckInterval,
-				A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$Tick)),
-				$author$project$Storage$SQLite$subscriptions($author$project$MainSQLite$StorageMsg)
+				A2($elm$core$Basics$composeL, $author$project$MainTauri$CommonMsg, $author$project$Common$Model$Tick)),
+				$author$project$Storage$Tauri$subscriptions($author$project$MainTauri$StorageMsg)
 			]));
 };
 var $author$project$Common$Model$CreateNewDocument = {$: 'CreateNewDocument'};
@@ -53679,7 +53685,7 @@ var $elm$random$Random$int = F2(
 				}
 			});
 	});
-var $author$project$MainSQLite$generateId = A2(
+var $author$project$MainTauri$generateId = A2(
 	$elm$random$Random$map,
 	function (n) {
 		return 'doc-' + $elm$core$String$fromInt(n);
@@ -53736,7 +53742,7 @@ var $author$project$Theme$mapTheme = function (theme) {
 	}
 };
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$MainSQLite$handleStorageMsg = F2(
+var $author$project$MainTauri$handleStorageMsg = F2(
 	function (msg, model) {
 		var common = model.common;
 		switch (msg.$) {
@@ -53755,9 +53761,9 @@ var $author$project$MainSQLite$handleStorageMsg = F2(
 							$elm$random$Random$generate,
 							A2(
 								$elm$core$Basics$composeL,
-								$author$project$MainSQLite$CommonMsg,
+								$author$project$MainTauri$CommonMsg,
 								A4($author$project$Common$Model$InitialDocumentId, $author$project$AppData$defaultDocumentText, 'Announcement', common.currentTime, common.theme)),
-							$author$project$MainSQLite$generateId)) : _Utils_Tuple2(
+							$author$project$MainTauri$generateId)) : _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
@@ -53776,7 +53782,7 @@ var $author$project$MainSQLite$handleStorageMsg = F2(
 					var editRecord = A3($author$project$ScriptaV2$DifferentialCompiler$init, $elm$core$Dict$empty, common.currentLanguage, doc.content);
 					var compilerOutput = A4(
 						$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
-						$author$project$Theme$mapTheme(common.theme),
+						$author$project$Theme$mapTheme(doc.theme),
 						$author$project$ScriptaV2$Compiler$SuppressDocumentBlocks,
 						common.displaySettings,
 						editRecord);
@@ -53790,6 +53796,7 @@ var $author$project$MainSQLite$handleStorageMsg = F2(
 							lastLoadedDocumentId: $elm$core$Maybe$Just(doc.id),
 							loadDocumentIntoEditor: true,
 							sourceText: doc.content,
+							theme: doc.theme,
 							title: doc.title
 						});
 					return _Utils_Tuple2(
@@ -53878,7 +53885,7 @@ var $author$project$MainSQLite$handleStorageMsg = F2(
 							_Utils_update(
 								model,
 								{common: newCommon}),
-							$author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg).loadDocument(id));
+							$author$project$Storage$Tauri$storage($author$project$MainTauri$StorageMsg).loadDocument(id));
 					} else {
 						return _Utils_Tuple2(
 							_Utils_update(
@@ -53894,16 +53901,12 @@ var $author$project$MainSQLite$handleStorageMsg = F2(
 			default:
 				if (msg.a.$ === 'Ok') {
 					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								storageState: {dbReady: true, initialized: true}
-							}),
+						model,
 						$elm$core$Platform$Cmd$batch(
 							_List_fromArray(
 								[
-									$author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg).listDocuments,
-									$author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg).loadLastDocumentId
+									$author$project$Storage$Tauri$storage($author$project$MainTauri$StorageMsg).listDocuments,
+									$author$project$Storage$Tauri$storage($author$project$MainTauri$StorageMsg).loadLastDocumentId
 								])));
 				} else {
 					var error = msg.a.a;
@@ -54593,19 +54596,19 @@ var $author$project$ScriptaV2$DifferentialCompiler$update = F2(
 			text + '\n',
 			editRecord);
 	});
-var $author$project$MainSQLite$update = F2(
+var $author$project$MainTauri$update = F2(
 	function (msg, model) {
 		if (msg.$ === 'CommonMsg') {
 			var commonMsg = msg.a;
-			return A2($author$project$MainSQLite$updateCommon, commonMsg, model);
+			return A2($author$project$MainTauri$updateCommon, commonMsg, model);
 		} else {
 			var storageMsg = msg.a;
-			return A2($author$project$MainSQLite$handleStorageMsg, storageMsg, model);
+			return A2($author$project$MainTauri$handleStorageMsg, storageMsg, model);
 		}
 	});
-var $author$project$MainSQLite$updateCommon = F2(
+var $author$project$MainTauri$updateCommon = F2(
 	function (msg, model) {
-		var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
+		var storage = $author$project$Storage$Tauri$storage($author$project$MainTauri$StorageMsg);
 		var common = model.common;
 		switch (msg.$) {
 			case 'NoOp':
@@ -54736,8 +54739,8 @@ var $author$project$MainSQLite$updateCommon = F2(
 					var doc = _v2.a;
 					if (!_Utils_eq(common.sourceText, doc.content)) {
 						var _v3 = A2(
-							$author$project$MainSQLite$update,
-							$author$project$MainSQLite$CommonMsg($author$project$Common$Model$SaveDocument),
+							$author$project$MainTauri$update,
+							$author$project$MainTauri$CommonMsg($author$project$Common$Model$SaveDocument),
 							model);
 						var newModel = _v3.a;
 						var saveCmd = _v3.b;
@@ -54749,24 +54752,24 @@ var $author$project$MainSQLite$updateCommon = F2(
 										saveCmd,
 										A2(
 										$elm$random$Random$generate,
-										A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$GeneratedId),
-										$author$project$MainSQLite$generateId)
+										A2($elm$core$Basics$composeL, $author$project$MainTauri$CommonMsg, $author$project$Common$Model$GeneratedId),
+										$author$project$MainTauri$generateId)
 									])));
 					} else {
 						return _Utils_Tuple2(
 							model,
 							A2(
 								$elm$random$Random$generate,
-								A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$GeneratedId),
-								$author$project$MainSQLite$generateId));
+								A2($elm$core$Basics$composeL, $author$project$MainTauri$CommonMsg, $author$project$Common$Model$GeneratedId),
+								$author$project$MainTauri$generateId));
 					}
 				} else {
 					return _Utils_Tuple2(
 						model,
 						A2(
 							$elm$random$Random$generate,
-							A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$GeneratedId),
-							$author$project$MainSQLite$generateId));
+							A2($elm$core$Basics$composeL, $author$project$MainTauri$CommonMsg, $author$project$Common$Model$GeneratedId),
+							$author$project$MainTauri$generateId));
 				}
 			case 'GeneratedId':
 				var id = msg.a;
@@ -54840,8 +54843,8 @@ var $author$project$MainSQLite$updateCommon = F2(
 								])));
 				} else {
 					return A2(
-						$author$project$MainSQLite$update,
-						$author$project$MainSQLite$CommonMsg($author$project$Common$Model$CreateNewDocument),
+						$author$project$MainTauri$update,
+						$author$project$MainTauri$CommonMsg($author$project$Common$Model$CreateNewDocument),
 						model);
 				}
 			case 'LoadDocument':
@@ -54880,8 +54883,8 @@ var $author$project$MainSQLite$updateCommon = F2(
 				var time = msg.a;
 				var shouldSave = (($elm$time$Time$posixToMillis(time) - $elm$time$Time$posixToMillis(common.lastSaved)) > 30000) && ((common.sourceText !== '') && (!_Utils_eq(common.lastChanged, common.lastSaved)));
 				return shouldSave ? A2(
-					$author$project$MainSQLite$update,
-					$author$project$MainSQLite$CommonMsg($author$project$Common$Model$SaveDocument),
+					$author$project$MainTauri$update,
+					$author$project$MainTauri$CommonMsg($author$project$Common$Model$SaveDocument),
 					model) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			case 'Tick':
 				var time = msg.a;
@@ -54963,7 +54966,7 @@ var $author$project$MainSQLite$updateCommon = F2(
 					A2(
 						$elm$core$Task$perform,
 						$elm$core$Basics$always(
-							$author$project$MainSQLite$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
+							$author$project$MainTauri$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
 						$elm$core$Process$sleep(100)));
 			case 'ResetLoadFlag':
 				return _Utils_Tuple2(
@@ -57044,16 +57047,16 @@ var $author$project$Common$View$view = F3(
 				]),
 			A3($author$project$Common$View$mainColumn, toMsg, renderMsg, model));
 	});
-var $author$project$MainSQLite$view = function (model) {
+var $author$project$MainTauri$view = function (model) {
 	return A3(
 		$author$project$Common$View$view,
-		$author$project$MainSQLite$CommonMsg,
-		A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$Render),
+		$author$project$MainTauri$CommonMsg,
+		A2($elm$core$Basics$composeL, $author$project$MainTauri$CommonMsg, $author$project$Common$Model$Render),
 		model.common);
 };
-var $author$project$MainSQLite$main = $elm$browser$Browser$element(
-	{init: $author$project$MainSQLite$init, subscriptions: $author$project$MainSQLite$subscriptions, update: $author$project$MainSQLite$update, view: $author$project$MainSQLite$view});
-_Platform_export({'MainSQLite':{'init':$author$project$MainSQLite$main(
+var $author$project$MainTauri$main = $elm$browser$Browser$element(
+	{init: $author$project$MainTauri$init, subscriptions: $author$project$MainTauri$subscriptions, update: $author$project$MainTauri$update, view: $author$project$MainTauri$view});
+_Platform_export({'MainTauri':{'init':$author$project$MainTauri$main(
 	A2(
 		$elm$json$Json$Decode$andThen,
 		function (window) {

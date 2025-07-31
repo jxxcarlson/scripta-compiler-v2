@@ -1,7 +1,5 @@
-module Storage.SQLite exposing
-    ( State
-    , init
-    , storage
+module Storage.Tauri exposing
+    ( storage
     , subscriptions
     )
 
@@ -10,19 +8,6 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Ports
 import Storage.Interface exposing (StorageInterface, StorageMsg(..))
-
-
-type alias State =
-    { initialized : Bool
-    , dbReady : Bool
-    }
-
-
-init : State
-init =
-    { initialized = False
-    , dbReady = False
-    }
 
 
 storage : (StorageMsg -> msg) -> StorageInterface msg
@@ -41,89 +26,89 @@ storage toMsg =
 
 saveDocument : (StorageMsg -> msg) -> Document -> Cmd msg
 saveDocument toMsg doc =
-    Ports.sqliteExecute <|
+    Ports.tauriCommand <|
         Encode.object
-            [ ( "type", Encode.string "saveDocument" )
+            [ ( "cmd", Encode.string "saveDocument" )
             , ( "document", Document.encodeDocument doc )
             ]
 
 
 loadDocument : (StorageMsg -> msg) -> String -> Cmd msg
 loadDocument toMsg id =
-    Ports.sqliteExecute <|
+    Ports.tauriCommand <|
         Encode.object
-            [ ( "type", Encode.string "loadDocument" )
+            [ ( "cmd", Encode.string "loadDocument" )
             , ( "id", Encode.string id )
             ]
 
 
 deleteDocument : (StorageMsg -> msg) -> String -> Cmd msg
 deleteDocument toMsg id =
-    Ports.sqliteExecute <|
+    Ports.tauriCommand <|
         Encode.object
-            [ ( "type", Encode.string "deleteDocument" )
+            [ ( "cmd", Encode.string "deleteDocument" )
             , ( "id", Encode.string id )
             ]
 
 
 listDocuments : (StorageMsg -> msg) -> Cmd msg
 listDocuments toMsg =
-    Ports.sqliteExecute <|
+    Ports.tauriCommand <|
         Encode.object
-            [ ( "type", Encode.string "listDocuments" )
+            [ ( "cmd", Encode.string "listDocuments" )
             ]
 
 
 loadUserName : (StorageMsg -> msg) -> Cmd msg
 loadUserName toMsg =
-    Ports.sqliteExecute <|
+    Ports.tauriCommand <|
         Encode.object
-            [ ( "type", Encode.string "loadUserName" )
+            [ ( "cmd", Encode.string "loadUserName" )
             ]
 
 
 saveUserName : (StorageMsg -> msg) -> String -> Cmd msg
 saveUserName toMsg name =
-    Ports.sqliteExecute <|
+    Ports.tauriCommand <|
         Encode.object
-            [ ( "type", Encode.string "saveUserName" )
+            [ ( "cmd", Encode.string "saveUserName" )
             , ( "name", Encode.string name )
             ]
 
 
 saveLastDocumentId : (StorageMsg -> msg) -> String -> Cmd msg
 saveLastDocumentId toMsg id =
-    Ports.sqliteExecute <|
+    Ports.tauriCommand <|
         Encode.object
-            [ ( "type", Encode.string "saveLastDocumentId" )
+            [ ( "cmd", Encode.string "saveLastDocumentId" )
             , ( "id", Encode.string id )
             ]
 
 
 loadLastDocumentId : (StorageMsg -> msg) -> Cmd msg
 loadLastDocumentId toMsg =
-    Ports.sqliteExecute <|
+    Ports.tauriCommand <|
         Encode.object
-            [ ( "type", Encode.string "loadLastDocumentId" )
+            [ ( "cmd", Encode.string "loadLastDocumentId" )
             ]
 
 
 initStorage : (StorageMsg -> msg) -> Cmd msg
 initStorage toMsg =
-    Ports.sqliteExecute <|
+    Ports.tauriCommand <|
         Encode.object
-            [ ( "type", Encode.string "init" )
+            [ ( "cmd", Encode.string "initDatabase" )
             ]
 
 
 subscriptions : (StorageMsg -> msg) -> Sub msg
 subscriptions toMsg =
-    Ports.sqliteResult (decodeSQLiteResult >> toMsg)
+    Ports.tauriResult (decodeTauriResult >> toMsg)
 
 
-decodeSQLiteResult : Decode.Value -> StorageMsg
-decodeSQLiteResult value =
-    case Decode.decodeValue sqliteResultDecoder value of
+decodeTauriResult : Decode.Value -> StorageMsg
+decodeTauriResult value =
+    case Decode.decodeValue tauriResultDecoder value of
         Ok msg ->
             msg
 
@@ -131,8 +116,8 @@ decodeSQLiteResult value =
             DocumentsListed (Err (Decode.errorToString err))
 
 
-sqliteResultDecoder : Decode.Decoder StorageMsg
-sqliteResultDecoder =
+tauriResultDecoder : Decode.Decoder StorageMsg
+tauriResultDecoder =
     Decode.field "type" Decode.string
         |> Decode.andThen
             (\msgType ->
@@ -179,25 +164,25 @@ sqliteResultDecoder =
                                 , Decode.field "name" Decode.string |> Decode.map Ok
                                 ]
 
-                    "initialized" ->
-                        Decode.map StorageInitialized <|
-                            Decode.oneOf
-                                [ Decode.field "error" Decode.string |> Decode.map Err
-                                , Decode.succeed (Ok ())
-                                ]
-
                     "lastDocumentIdLoaded" ->
                         Decode.map LastDocumentIdLoaded <|
                             Decode.oneOf
                                 [ Decode.field "error" Decode.string |> Decode.map Err
                                 , Decode.field "lastDocumentId" (Decode.nullable Decode.string) |> Decode.map Ok
                                 ]
-
+                                
                     "lastDocumentIdSaved" ->
                         Decode.map LastDocumentIdSaved <|
                             Decode.oneOf
                                 [ Decode.field "error" Decode.string |> Decode.map Err
                                 , Decode.field "id" Decode.string |> Decode.map Ok
+                                ]
+                    
+                    "databaseInitialized" ->
+                        Decode.map StorageInitialized <|
+                            Decode.oneOf
+                                [ Decode.field "error" Decode.string |> Decode.map Err
+                                , Decode.succeed (Ok ())
                                 ]
 
                     _ ->

@@ -30,6 +30,8 @@ storage toMsg =
     , listDocuments = listDocuments toMsg
     , loadUserName = loadUserName toMsg
     , saveUserName = saveUserName toMsg
+    , saveLastDocumentId = saveLastDocumentId toMsg
+    , loadLastDocumentId = loadLastDocumentId toMsg
     , init = initStorage toMsg
     }
 
@@ -64,9 +66,20 @@ saveUserName toMsg name =
     Ports.sendMsg (Ports.SaveUserName name)
 
 
+saveLastDocumentId : (StorageMsg -> msg) -> String -> Cmd msg
+saveLastDocumentId toMsg id =
+    Ports.sendMsg (Ports.SaveLastDocumentId id)
+
+
+loadLastDocumentId : (StorageMsg -> msg) -> Cmd msg
+loadLastDocumentId toMsg =
+    Ports.sendMsg Ports.LoadLastDocumentId
+
+
 initStorage : (StorageMsg -> msg) -> Cmd msg
 initStorage toMsg =
     Cmd.batch
         [ listDocuments toMsg
         , loadUserName toMsg
+        , loadLastDocumentId toMsg
         ]

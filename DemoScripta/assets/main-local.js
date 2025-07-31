@@ -5656,7 +5656,6 @@ var $elm$json$Json$Decode$field = _Json_decodeField;
 var $author$project$MainLocal$CommonMsg = function (a) {
 	return {$: 'CommonMsg', a: a};
 };
-var $author$project$Ports$LoadDocuments = {$: 'LoadDocuments'};
 var $author$project$Common$Model$LoadUserNameDelayed = {$: 'LoadUserNameDelayed'};
 var $author$project$MainLocal$StorageMsg = function (a) {
 	return {$: 'StorageMsg', a: a};
@@ -22516,6 +22515,7 @@ var $author$project$Common$Model$initCommon = function (flags) {
 		lastChanged: currentTime,
 		lastLoadedDocumentId: $elm$core$Maybe$Nothing,
 		lastSaved: currentTime,
+		lastSavedDocumentId: $elm$core$Maybe$Nothing,
 		loadDocumentIntoEditor: false,
 		maybeSelectionOffset: $elm$core$Maybe$Nothing,
 		pressedKeys: _List_Nil,
@@ -22544,6 +22544,10 @@ var $elm$time$Time$Zone = F2(
 	});
 var $elm$time$Time$customZone = $elm$time$Time$Zone;
 var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
+var $elm$core$Process$sleep = _Process_sleep;
+var $author$project$Ports$DeleteDocument = function (a) {
+	return {$: 'DeleteDocument', a: a};
+};
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Document$encodeTheme = function (theme) {
 	if (theme.$ === 'Light') {
@@ -22677,13 +22681,33 @@ var $author$project$Ports$encodeOutgoing = function (msg) {
 						'data',
 						$elm$json$Json$Encode$string(name))
 					]));
-		default:
+		case 'LoadUserName':
 			return $elm$json$Json$Encode$object(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
 						'tag',
 						$elm$json$Json$Encode$string('LoadUserName'))
+					]));
+		case 'SaveLastDocumentId':
+			var id = msg.a;
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'tag',
+						$elm$json$Json$Encode$string('SaveLastDocumentId')),
+						_Utils_Tuple2(
+						'data',
+						$elm$json$Json$Encode$string(id))
+					]));
+		default:
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'tag',
+						$elm$json$Json$Encode$string('LoadLastDocumentId'))
 					]));
 	}
 };
@@ -22692,18 +22716,19 @@ var $author$project$Ports$send = function (msg) {
 	return $author$project$Ports$outgoing(
 		$author$project$Ports$encodeOutgoing(msg));
 };
-var $elm$core$Process$sleep = _Process_sleep;
-var $author$project$Ports$DeleteDocument = function (a) {
-	return {$: 'DeleteDocument', a: a};
-};
 var $author$project$Ports$sendMsg = $author$project$Ports$send;
 var $author$project$Storage$Local$deleteDocument = F2(
 	function (toMsg, id) {
 		return $author$project$Ports$sendMsg(
 			$author$project$Ports$DeleteDocument(id));
 	});
+var $author$project$Ports$LoadDocuments = {$: 'LoadDocuments'};
 var $author$project$Storage$Local$listDocuments = function (toMsg) {
 	return $author$project$Ports$sendMsg($author$project$Ports$LoadDocuments);
+};
+var $author$project$Ports$LoadLastDocumentId = {$: 'LoadLastDocumentId'};
+var $author$project$Storage$Local$loadLastDocumentId = function (toMsg) {
+	return $author$project$Ports$sendMsg($author$project$Ports$LoadLastDocumentId);
 };
 var $author$project$Ports$LoadUserName = {$: 'LoadUserName'};
 var $author$project$Storage$Local$loadUserName = function (toMsg) {
@@ -22714,7 +22739,8 @@ var $author$project$Storage$Local$initStorage = function (toMsg) {
 		_List_fromArray(
 			[
 				$author$project$Storage$Local$listDocuments(toMsg),
-				$author$project$Storage$Local$loadUserName(toMsg)
+				$author$project$Storage$Local$loadUserName(toMsg),
+				$author$project$Storage$Local$loadLastDocumentId(toMsg)
 			]));
 };
 var $author$project$Ports$LoadDocument = function (a) {
@@ -22733,6 +22759,14 @@ var $author$project$Storage$Local$saveDocument = F2(
 		return $author$project$Ports$sendMsg(
 			$author$project$Ports$SaveDocument(doc));
 	});
+var $author$project$Ports$SaveLastDocumentId = function (a) {
+	return {$: 'SaveLastDocumentId', a: a};
+};
+var $author$project$Storage$Local$saveLastDocumentId = F2(
+	function (toMsg, id) {
+		return $author$project$Ports$sendMsg(
+			$author$project$Ports$SaveLastDocumentId(id));
+	});
 var $author$project$Ports$SaveUserName = function (a) {
 	return {$: 'SaveUserName', a: a};
 };
@@ -22747,8 +22781,10 @@ var $author$project$Storage$Local$storage = function (toMsg) {
 		init: $author$project$Storage$Local$initStorage(toMsg),
 		listDocuments: $author$project$Storage$Local$listDocuments(toMsg),
 		loadDocument: $author$project$Storage$Local$loadDocument(toMsg),
+		loadLastDocumentId: $author$project$Storage$Local$loadLastDocumentId(toMsg),
 		loadUserName: $author$project$Storage$Local$loadUserName(toMsg),
 		saveDocument: $author$project$Storage$Local$saveDocument(toMsg),
+		saveLastDocumentId: $author$project$Storage$Local$saveLastDocumentId(toMsg),
 		saveUserName: $author$project$Storage$Local$saveUserName(toMsg)
 	};
 };
@@ -22763,7 +22799,7 @@ var $author$project$MainLocal$init = function (flags) {
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
-					$author$project$Ports$send($author$project$Ports$LoadDocuments),
+					storage.init,
 					A2(
 					$elm$core$Task$perform,
 					A2($elm$core$Basics$composeL, $author$project$MainLocal$CommonMsg, $author$project$Common$Model$Tick),
@@ -23239,6 +23275,9 @@ var $author$project$Ports$DocumentLoaded = function (a) {
 var $author$project$Ports$DocumentsLoaded = function (a) {
 	return {$: 'DocumentsLoaded', a: a};
 };
+var $author$project$Ports$LastDocumentIdLoaded = function (a) {
+	return {$: 'LastDocumentIdLoaded', a: a};
+};
 var $author$project$Ports$ThemeLoaded = function (a) {
 	return {$: 'ThemeLoaded', a: a};
 };
@@ -23305,6 +23344,11 @@ var $author$project$Ports$decodeByTag = function (tag) {
 			return A2(
 				$elm$json$Json$Decode$map,
 				$author$project$Ports$UserNameLoaded,
+				A2($elm$json$Json$Decode$field, 'data', $elm$json$Json$Decode$string));
+		case 'LastDocumentIdLoaded':
+			return A2(
+				$elm$json$Json$Decode$map,
+				$author$project$Ports$LastDocumentIdLoaded,
 				A2($elm$json$Json$Decode$field, 'data', $elm$json$Json$Decode$string));
 		default:
 			return $elm$json$Json$Decode$fail('Unknown tag: ' + tag);
@@ -53604,6 +53648,10 @@ var $author$project$Common$Model$InitialDocumentId = F5(
 	function (a, b, c, d, e) {
 		return {$: 'InitialDocumentId', a: a, b: b, c: c, d: d, e: e};
 	});
+var $author$project$Common$Model$LoadContentIntoEditorDelayed = {$: 'LoadContentIntoEditorDelayed'};
+var $author$project$Common$Model$LoadDocument = function (a) {
+	return {$: 'LoadDocument', a: a};
+};
 var $author$project$AppData$defaultDocumentText = '| title number-to-level:0\nAnnouncement\n\n[vspace 3\n0]\n[large [italic This is what you can do with Scripta Live:]]\n\n| image figure:1 caption: Humming bird\nhttps://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg\n\n| equation numbered\n\\label{wave-equation}\nsecpder(u,x) + secpder(u,y) + secpder(u,z) = frac(1,c^2) secpder(u,t))\n\n[large [i ...make beautiful things with simple tools.]]\n[vspace 30]\n\n\n# About Scripta Live\n\nScripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax.\nBetter yet: what you write (here, on the left) is rendered\n[i instantaneously ] in the right-hand window pane. No setup required.\nJust click the "New" button and start writing.\n\n- Your documents are saved in the browser\'s local storage.  If you refresh the\nbrowser or close it and come back to it later, it weill be there, waiting for you..\n\n- Use the megaphone icon on the right to report bugs, ask questions, and make suggestions.\n\n- Scripta documents can be exported to standard LaTeX.  If there are no images\nin the document, it can be turned into a pdf file using `pdflatex`.  Otherwise,\nuse the downloadable shell script — get it by clicking on the button  [blue Download Script],\nlower right corner.  We\nwill soon provide a simpler solution.\n\n\n# Examples\n\n| mathmacros\nsecpder:  frac(partial^2 #1, partial #2^2)\nnat:    mathbb N\nreals: mathbb R\npder:  frac(partial #1, partial #2)\nset:    \\{ #1 \\}\nsett:   \\{ #1 \\ | \\ #2 \\}\n\nPythagoras said: $a^2 + b^2 = c^2$.\n\nThis will be on the test:\n\n| equation\nint_0^1 x^n dx = frac(1,n+1)\n\n\nBoth of the above equalities were written using an `equation` block.  If you look\nat the source text you will see that [eqref wave-equation] an [u argument] `numbered` and\na property, namely  `label:wave-equation`. That property is used for cross-referencing: we say `[eqref wave-equation]` to make a hot link to [eqref wave-equation].  Click on it now\nto see what happens.\n\nHere is an [u aligned] block:\n\n| aligned\nnat &= set("positive whole numbers and zero")\nnat &= sett(n " is a whole number", n > 0)\n\n\n| equation\n\\begin{pmatrix}\n2 & 1 \\\\\n1 & 2\n\\end{pmatrix}\n\\begin{pmatrix}\n2 & 1 \\\\\n1 & 2\n\\end{pmatrix}\n=\n\\begin{pmatrix}\n5 & 4 \\\\\n4 & 5\n\\end{pmatrix}\n\n\n[b Note:] The equation [eqref wave-equation] is the wave equation in four dimensions —\nthree of space and one of time.\n\n';
 var $author$project$Render$Theme$Dark = {$: 'Dark'};
 var $author$project$Render$Theme$Light = {$: 'Light'};
@@ -53661,7 +53709,7 @@ var $author$project$MainLocal$handleIncomingPortMsg = F2(
 						editRecord: editRecord,
 						initialText: doc.content,
 						lastLoadedDocumentId: $elm$core$Maybe$Just(doc.id),
-						loadDocumentIntoEditor: true,
+						loadDocumentIntoEditor: false,
 						sourceText: doc.content,
 						title: doc.title
 					});
@@ -53669,7 +53717,11 @@ var $author$project$MainLocal$handleIncomingPortMsg = F2(
 					_Utils_update(
 						model,
 						{common: newCommon}),
-					$elm$core$Platform$Cmd$none);
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$always(
+							$author$project$MainLocal$CommonMsg($author$project$Common$Model$LoadContentIntoEditorDelayed)),
+						$elm$core$Process$sleep(200)));
 			case 'ThemeLoaded':
 				var themeStr = msg.a;
 				var theme = function () {
@@ -53687,7 +53739,7 @@ var $author$project$MainLocal$handleIncomingPortMsg = F2(
 						model,
 						{common: newCommon}),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 'UserNameLoaded':
 				var name = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -53699,6 +53751,27 @@ var $author$project$MainLocal$handleIncomingPortMsg = F2(
 									userName: $elm$core$Maybe$Just(name)
 								})
 						}),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var id = msg.a;
+				var newCommon = _Utils_update(
+					common,
+					{
+						lastSavedDocumentId: $elm$core$Maybe$Just(id)
+					});
+				return (id !== '') ? _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{common: newCommon}),
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$always(
+							$author$project$MainLocal$CommonMsg(
+								$author$project$Common$Model$LoadDocument(id))),
+						$elm$core$Process$sleep(1000))) : _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{common: newCommon}),
 					$elm$core$Platform$Cmd$none);
 		}
 	});
@@ -54604,9 +54677,21 @@ var $author$project$MainLocal$updateCommon = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{common: newCommon}),
-					$author$project$Ports$send(
-						$author$project$Ports$SaveDocument(newDoc)));
+						{
+							common: _Utils_update(
+								newCommon,
+								{
+									lastSavedDocumentId: $elm$core$Maybe$Just(newDoc.id)
+								})
+						}),
+					$elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[
+								$author$project$Ports$send(
+								$author$project$Ports$SaveDocument(newDoc)),
+								$author$project$Ports$send(
+								$author$project$Ports$SaveLastDocumentId(newDoc.id))
+							])));
 			case 'SaveDocument':
 				var _v5 = common.currentDocument;
 				if (_v5.$ === 'Just') {
@@ -54618,14 +54703,21 @@ var $author$project$MainLocal$updateCommon = F2(
 						common,
 						{
 							currentDocument: $elm$core$Maybe$Just(updatedDoc),
-							lastSaved: common.currentTime
+							lastSaved: common.currentTime,
+							lastSavedDocumentId: $elm$core$Maybe$Just(doc.id)
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{common: newCommon}),
-						$author$project$Ports$send(
-							$author$project$Ports$SaveDocument(updatedDoc)));
+						$elm$core$Platform$Cmd$batch(
+							_List_fromArray(
+								[
+									$author$project$Ports$send(
+									$author$project$Ports$SaveDocument(updatedDoc)),
+									$author$project$Ports$send(
+									$author$project$Ports$SaveLastDocumentId(doc.id))
+								])));
 				} else {
 					return A2(
 						$author$project$MainLocal$update,
@@ -54811,9 +54903,21 @@ var $author$project$MainLocal$updateCommon = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{common: newCommon}),
-					$author$project$Ports$send(
-						$author$project$Ports$SaveDocument(initialDoc)));
+						{
+							common: _Utils_update(
+								newCommon,
+								{
+									lastSavedDocumentId: $elm$core$Maybe$Just(initialDoc.id)
+								})
+						}),
+					$elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[
+								$author$project$Ports$send(
+								$author$project$Ports$SaveDocument(initialDoc)),
+								$author$project$Ports$send(
+								$author$project$Ports$SaveLastDocumentId(initialDoc.id))
+							])));
 			default:
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		}
@@ -55471,9 +55575,6 @@ var $author$project$Common$View$crudButtons = F2(
 	});
 var $author$project$Common$Model$DeleteDocument = function (a) {
 	return {$: 'DeleteDocument', a: a};
-};
-var $author$project$Common$Model$LoadDocument = function (a) {
-	return {$: 'LoadDocument', a: a};
 };
 var $author$project$Style$formatRelativeTime = F2(
 	function (currentTime, savedTime) {

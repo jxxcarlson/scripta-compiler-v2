@@ -147,6 +147,10 @@ handleIncomingPortMsg msg model =
             ( { model | userName = Just name }
             , Cmd.none
             )
+            
+        Ports.LastDocumentIdLoaded id ->
+            -- Main.elm doesn't use localStorage, so we ignore this message
+            ( model, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

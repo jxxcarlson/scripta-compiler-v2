@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scripta Live - SQLite Version</title>
+    <title>Scripta Live</title>
     
     <!-- Load the actual KaTeX library first -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
@@ -218,6 +218,22 @@
                             }
                             userStmt.free();
                             sendResult('userNameLoaded', { userName });
+                            break;
+                            
+                        case 'saveLastDocumentId':
+                            db.run(`INSERT OR REPLACE INTO settings (key, value) VALUES ('lastDocumentId', ?)`, [command.id]);
+                            saveDbToLocalStorage();
+                            sendResult('lastDocumentIdSaved', { id: command.id });
+                            break;
+                            
+                        case 'loadLastDocumentId':
+                            const lastDocStmt = db.prepare(`SELECT value FROM settings WHERE key = 'lastDocumentId'`);
+                            let lastDocumentId = null;
+                            if (lastDocStmt.step()) {
+                                lastDocumentId = lastDocStmt.get()[0];
+                            }
+                            lastDocStmt.free();
+                            sendResult('lastDocumentIdLoaded', { lastDocumentId });
                             break;
                             
                         default:

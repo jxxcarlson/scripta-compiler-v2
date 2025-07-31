@@ -15,6 +15,8 @@ type alias StorageInterface msg =
     , listDocuments : Cmd msg
     , loadUserName : Cmd msg
     , saveUserName : String -> Cmd msg
+    , saveLastDocumentId : String -> Cmd msg
+    , loadLastDocumentId : Cmd msg
     , init : Cmd msg
     }
 
@@ -26,6 +28,8 @@ type StorageMsg
     | DocumentsListed (Result String (List Document))
     | UserNameLoaded (Result String (Maybe String))
     | UserNameSaved (Result String String)
+    | LastDocumentIdLoaded (Result String (Maybe String))
+    | LastDocumentIdSaved (Result String String)
     | StorageInitialized (Result String ())
 
 

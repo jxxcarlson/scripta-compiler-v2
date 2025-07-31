@@ -1,15 +1,26 @@
 {
-  "name": "scripta-live-desktop",
+  "name": "scripta-desktop",
   "version": "0.2.0",
-  "description": "Scripta Live Desktop Application",
+  "description": "Scripta Desktop - Native SQLite-based Scripta editor",
   "scripts": {
     "tauri": "tauri",
-    "build": "elm make src/Main.elm --output=assets/main.js && tauri build",
-    "dev": "elm make src/Main.elm --output=assets/main.js && tauri dev",
+    
+    "// Scripta Live (Web versions)": "",
+    "build-live": "elm make src/MainLocal.elm --output=assets/main-local.js",
+    "build-live-sqlite": "elm make src/MainSQLite.elm --output=assets/main-sqlite.js",
+    
+    "// Scripta Local (Tauri + LocalStorage)": "",
+    "dev-local": "elm make src/Main.elm --output=assets/main.js && tauri dev",
+    "build-local": "elm make src/Main.elm --output=assets/main.js && tauri build",
+    
+    "// Scripta Desktop (Tauri + SQLite)": "",
+    "dev-desktop": "tauri dev",
+    "build-desktop": "elm make src/MainTauri.elm --output=assets/main-tauri.js && tauri build",
+    
+    "// Legacy/Development": "",
     "build-elm": "elm make src/Main.elm --output=assets/main.js",
-    "build-local": "elm make src/MainLocal.elm --output=assets/main-local.js",
-    "build-sqlite": "elm make src/MainSQLite.elm --output=assets/main-sqlite.js",
-    "build-all": "npm run build-elm && npm run build-local && npm run build-sqlite",
+    "build-all": "npm run build-elm && npm run build-live && npm run build-live-sqlite && npm run build-desktop-elm",
+    "build-desktop-elm": "elm make src/MainTauri.elm --output=assets/main-tauri.js",
     "install-deps": "npm install && cd src-tauri && cargo build"
   },
   "devDependencies": {

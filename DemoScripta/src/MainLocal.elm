@@ -81,7 +81,7 @@ init flags =
       , storageState = Storage.Local.init
       }
     , Cmd.batch
-        [ Ports.send Ports.LoadDocuments
+        [ storage.init
         , Task.perform (CommonMsg << Common.Tick) Time.now
         , Process.sleep 100
             |> Task.perform (always (CommonMsg Common.LoadUserNameDelayed))
@@ -304,8 +304,11 @@ updateCommon msg model =
                         , compilerOutput = compilerOutput
                     }
             in
-            ( { model | common = newCommon }
-            , Ports.send (Ports.SaveDocument newDoc)
+            ( { model | common = { newCommon | lastSavedDocumentId = Just newDoc.id } }
+            , Cmd.batch
+                [ Ports.send (Ports.SaveDocument newDoc)
+                , Ports.send (Ports.SaveLastDocumentId newDoc.id)
+                ]
             )
 
         Common.SaveDocument ->
@@ -324,10 +327,14 @@ updateCommon msg model =
                             { common
                                 | currentDocument = Just updatedDoc
                                 , lastSaved = common.currentTime
+                                , lastSavedDocumentId = Just doc.id
                             }
                     in
                     ( { model | common = newCommon }
-                    , Ports.send (Ports.SaveDocument updatedDoc)
+                    , Cmd.batch
+                        [ Ports.send (Ports.SaveDocument updatedDoc)
+                        , Ports.send (Ports.SaveLastDocumentId doc.id)
+                        ]
                     )
 
                 Nothing ->
@@ -465,8 +472,11 @@ updateCommon msg model =
                         , compilerOutput = compilerOutput
                     }
             in
-            ( { model | common = newCommon }
-            , Ports.send (Ports.SaveDocument initialDoc)
+            ( { model | common = { newCommon | lastSavedDocumentId = Just initialDoc.id } }
+            , Cmd.batch
+                [ Ports.send (Ports.SaveDocument initialDoc)
+                , Ports.send (Ports.SaveLastDocumentId initialDoc.id)
+                ]
             )
 
         _ ->
@@ -514,12 +524,13 @@ handleIncomingPortMsg msg model =
                         , title = doc.title
                         , editRecord = editRecord
                         , compilerOutput = compilerOutput
-                        , loadDocumentIntoEditor = True
+                        , loadDocumentIntoEditor = False  -- Will be set to True by LoadContentIntoEditorDelayed
                         , lastLoadedDocumentId = Just doc.id
                     }
             in
             ( { model | common = newCommon }
-            , Cmd.none  -- Editor content is loaded via loadDocumentIntoEditor flag
+            , Process.sleep 200
+                |> Task.perform (always (CommonMsg Common.LoadContentIntoEditorDelayed))
             )
 
         Ports.ThemeLoaded themeStr ->
@@ -542,6 +553,21 @@ handleIncomingPortMsg msg model =
             ( { model | common = { common | userName = Just name } }
             , Cmd.none
             )
+        
+        Ports.LastDocumentIdLoaded id ->
+            let
+                newCommon = { common | lastSavedDocumentId = Just id }
+            in
+            if id /= "" then
+                ( { model | common = newCommon }
+                -- Delay loading the document to ensure editor is ready
+                , Process.sleep 1000
+                    |> Task.perform (always (CommonMsg (Common.LoadDocument id)))
+                )
+            else
+                ( { model | common = newCommon }
+                , Cmd.none
+                )
 
 
 handleStorageMsg : Storage.StorageMsg -> Model -> ( Model, Cmd Msg )

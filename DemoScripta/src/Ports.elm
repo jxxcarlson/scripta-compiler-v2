@@ -7,6 +7,8 @@ port module Ports exposing
     , listDocuments
     , sqliteExecute
     , sqliteResult
+    , tauriCommand
+    , tauriResult
     )
 
 import Json.Encode as Encode
@@ -27,6 +29,8 @@ type OutgoingMsg
     | LoadTheme
     | SaveUserName String
     | LoadUserName
+    | SaveLastDocumentId String
+    | LoadLastDocumentId
 
 
 -- INCOMING MESSAGES (JS -> Elm)
@@ -37,6 +41,7 @@ type IncomingMsg
     | DocumentLoaded Document
     | ThemeLoaded String
     | UserNameLoaded String
+    | LastDocumentIdLoaded String
 
 
 -- Special export for compatibility
@@ -53,6 +58,10 @@ port incoming : (Encode.Value -> msg) -> Sub msg
 -- SQLite-specific ports
 port sqliteExecute : Encode.Value -> Cmd msg
 port sqliteResult : (Encode.Value -> msg) -> Sub msg
+
+-- Tauri-specific ports
+port tauriCommand : Encode.Value -> Cmd msg
+port tauriResult : (Encode.Value -> msg) -> Sub msg
 
 
 -- PUBLIC API
@@ -123,6 +132,17 @@ encodeOutgoing msg =
                 [ ( "tag", Encode.string "LoadUserName" )
                 ]
 
+        SaveLastDocumentId id ->
+            Encode.object
+                [ ( "tag", Encode.string "SaveLastDocumentId" )
+                , ( "data", Encode.string id )
+                ]
+
+        LoadLastDocumentId ->
+            Encode.object
+                [ ( "tag", Encode.string "LoadLastDocumentId" )
+                ]
+
 
 -- DECODERS
 
@@ -155,6 +175,10 @@ decodeByTag tag =
 
         "UserNameLoaded" ->
             Decode.map UserNameLoaded
+                (Decode.field "data" Decode.string)
+
+        "LastDocumentIdLoaded" ->
+            Decode.map LastDocumentIdLoaded
                 (Decode.field "data" Decode.string)
 
         _ ->

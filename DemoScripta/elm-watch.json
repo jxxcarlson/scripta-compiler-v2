@@ -17,6 +17,12 @@
                 "src/Main.elm"
             ],
             "output": "assets/main.js"
+        },
+        "Tauri": {
+            "inputs": [
+                "src/MainTauri.elm"
+            ],
+            "output": "assets/main-tauri.js"
         }
     }
 }

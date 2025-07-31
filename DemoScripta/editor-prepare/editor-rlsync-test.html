@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RLSync Highlight Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #editor-here {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 400px;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>RLSync Highlighting Test</h1>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Editor</h2>
+            <codemirror-editor id="editor"></codemirror-editor>
+            <div id="editor-here"></div>
+            
+            <div style="margin-top: 20px;">
+                <button onclick="testRLSync()">Test RLSync Selection (Yellow)</button>
+                <button onclick="testNormalSelection()">Test Normal Selection (Red)</button>
+                <button onclick="clearSelection()">Clear Selection</button>
+            </div>
+            
+            <div class="info">
+                <strong>Instructions:</strong><br>
+                1. Click "Test RLSync Selection" to simulate a selection from rendered text (should be bright yellow)<br>
+                2. Click "Test Normal Selection" to make a regular selection (should be red)<br>
+                3. Make manual selections in the editor (should clear the yellow highlight)
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Status</h2>
+            <div id="status" class="info">Ready</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import('./editor.js').then(() => {
+            console.log('Editor module loaded');
+            
+            // Wait for editor to be ready
+            const editorElement = document.getElementById('editor');
+            let editor = null;
+            
+            editorElement.addEventListener('editor-ready', (e) => {
+                editor = e.detail;
+                window.editor = editor; // Make it accessible globally
+                updateStatus('Editor initialized');
+                
+                // Load some sample text
+                editorElement.setAttribute('load', `// Sample code for testing RLSync highlighting
+function calculateSum(a, b) {
+    return a + b;
+}
+
+const result = calculateSum(5, 10);
+console.log("The sum is:", result);
+
+// This is a test of the RLSync selection system
+// Select text in the rendered view to see it highlighted in yellow here`);
+            });
+            
+            window.testRLSync = function() {
+                if (!editor) {
+                    updateStatus('Editor not ready');
+                    return;
+                }
+                
+                // Simulate RLSync selection data
+                const testData = {
+                    begin: 2,  // Line 2
+                    end: 4,    // Line 4
+                    anchorOffset: 5,
+                    focusOffset: 15,
+                    text: "return a + b;"
+                };
+                
+                updateStatus('Applying RLSync selection (should be bright yellow)');
+                editorElement.setAttribute('refineselection', JSON.stringify(testData));
+            };
+            
+            window.testNormalSelection = function() {
+                if (!editor) {
+                    updateStatus('Editor not ready');
+                    return;
+                }
+                
+                updateStatus('Making normal selection (should be red)');
+                // Select lines 6-7
+                const line6 = editor.state.doc.line(6);
+                const line7 = editor.state.doc.line(7);
+                editor.dispatch({
+                    selection: {anchor: line6.from, head: line7.to},
+                    scrollIntoView: true
+                });
+            };
+            
+            window.clearSelection = function() {
+                if (!editor) {
+                    updateStatus('Editor not ready');
+                    return;
+                }
+                
+                updateStatus('Clearing selection');
+                editor.dispatch({
+                    selection: {anchor: 0, head: 0}
+                });
+            };
+            
+            window.updateStatus = function(message) {
+                document.getElementById('status').innerHTML = `<strong>Status:</strong> ${message}<br><small>${new Date().toLocaleTimeString()}</small>`;
+            };
+        });
+    </script>
+</body>
+</html>

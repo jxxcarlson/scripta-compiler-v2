@@ -8,12 +8,15 @@ repository = ""
 edition = "2021"
 
 [build-dependencies]
-tauri-build = { version = "1.5", features = [] }
+tauri-build = { version = "2.0.0-rc", features = [] }
 
 [dependencies]
-tauri = { version = "1.6", features = ["shell-open"] }
+tauri = { version = "2.0.0-rc", features = [] }
+tauri-plugin-shell = "2.0.0-rc"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+rusqlite = { version = "0.31", features = ["bundled"] }
+chrono = { version = "0.4", features = ["serde"] }
 
 [features]
 default = ["custom-protocol"]

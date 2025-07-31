@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scripta Live - LocalStorage Version</title>
+    <title>Scripta Live</title>
     
     <!-- Load the actual KaTeX library first -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
@@ -113,6 +113,18 @@
                     app.ports.incoming.send({
                         tag: 'UserNameLoaded',
                         data: userName
+                    });
+                    break;
+                    
+                case 'SaveLastDocumentId':
+                    localStorage.setItem('lastDocumentId', message.data);
+                    break;
+                    
+                case 'LoadLastDocumentId':
+                    const lastDocumentId = localStorage.getItem('lastDocumentId') || '';
+                    app.ports.incoming.send({
+                        tag: 'LastDocumentIdLoaded',
+                        data: lastDocumentId
                     });
                     break;
             }

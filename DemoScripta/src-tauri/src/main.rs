@@ -1,13 +1,355 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::Manager;
+use rusqlite::{params, Connection};
+use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
+use tauri::{Manager, State};
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Document {
+    id: String,
+    title: String,
+    author: String,
+    content: String,
+    theme: String,
+    #[serde(rename = "createdAt")]
+    created_at: i64,
+    #[serde(rename = "modifiedAt")]
+    modified_at: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct CommandPayload {
+    cmd: String,
+    #[serde(default)]
+    id: Option<String>,
+    #[serde(default)]
+    document: Option<Document>,
+    #[serde(default)]
+    name: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct CommandResponse {
+    #[serde(rename = "type")]
+    response_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    document: Option<Document>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    documents: Option<Vec<Document>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "userName")]
+    user_name: Option<Option<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "lastDocumentId")]
+    last_document_id: Option<Option<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<String>,
+}
+
+struct AppState {
+    db: Mutex<Connection>,
+}
+
+#[tauri::command]
+fn handle_tauri_command(
+    state: State<'_, AppState>,
+    payload: CommandPayload,
+) -> Result<CommandResponse, String> {
+    println!("Received command: {:?}", payload.cmd);
+    
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    
+    match payload.cmd.as_str() {
+        "initDatabase" => init_database(&db),
+        "saveDocument" => save_document(&db, payload.document),
+        "loadDocument" => load_document(&db, payload.id),
+        "deleteDocument" => delete_document(&db, payload.id),
+        "listDocuments" => list_documents(&db),
+        "saveUserName" => save_user_name(&db, payload.name),
+        "loadUserName" => load_user_name(&db),
+        "saveLastDocumentId" => save_last_document_id(&db, payload.id),
+        "loadLastDocumentId" => load_last_document_id(&db),
+        _ => Err(format!("Unknown command: {}", payload.cmd)),
+    }
+}
+
+fn init_database(conn: &Connection) -> Result<CommandResponse, String> {
+    println!("Initializing database tables...");
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS documents (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            author TEXT NOT NULL,
+            content TEXT NOT NULL,
+            theme TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            modified_at INTEGER NOT NULL
+        )",
+        [],
+    )
+    .map_err(|e| e.to_string())?;
+    
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )",
+        [],
+    )
+    .map_err(|e| e.to_string())?;
+    
+    Ok(CommandResponse {
+        response_type: "databaseInitialized".to_string(),
+        document: None,
+        documents: None,
+        id: None,
+        user_name: None,
+        name: None,
+        last_document_id: None,
+        error: None,
+    })
+}
+
+fn save_document(conn: &Connection, document: Option<Document>) -> Result<CommandResponse, String> {
+    let doc = document.ok_or("Document is required")?;
+    
+    conn.execute(
+        "INSERT OR REPLACE INTO documents 
+         (id, title, author, content, theme, created_at, modified_at) 
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![
+            doc.id,
+            doc.title,
+            doc.author,
+            doc.content,
+            doc.theme,
+            doc.created_at,
+            doc.modified_at
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+    
+    Ok(CommandResponse {
+        response_type: "documentSaved".to_string(),
+        document: Some(doc),
+        documents: None,
+        id: None,
+        user_name: None,
+        name: None,
+        last_document_id: None,
+        error: None,
+    })
+}
+
+fn load_document(conn: &Connection, id: Option<String>) -> Result<CommandResponse, String> {
+    let doc_id = id.ok_or("Document ID is required")?;
+    
+    let doc = conn.query_row(
+        "SELECT id, title, author, content, theme, created_at, modified_at 
+         FROM documents WHERE id = ?1",
+        params![doc_id],
+        |row| {
+            Ok(Document {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                author: row.get(2)?,
+                content: row.get(3)?,
+                theme: row.get(4)?,
+                created_at: row.get(5)?,
+                modified_at: row.get(6)?,
+            })
+        },
+    )
+    .map_err(|e| e.to_string())?;
+    
+    Ok(CommandResponse {
+        response_type: "documentLoaded".to_string(),
+        document: Some(doc),
+        documents: None,
+        id: None,
+        user_name: None,
+        name: None,
+        last_document_id: None,
+        error: None,
+    })
+}
+
+fn delete_document(conn: &Connection, id: Option<String>) -> Result<CommandResponse, String> {
+    let doc_id = id.ok_or("Document ID is required")?;
+    
+    conn.execute("DELETE FROM documents WHERE id = ?1", params![doc_id])
+        .map_err(|e| e.to_string())?;
+    
+    Ok(CommandResponse {
+        response_type: "documentDeleted".to_string(),
+        document: None,
+        documents: None,
+        id: Some(doc_id),
+        user_name: None,
+        name: None,
+        last_document_id: None,
+        error: None,
+    })
+}
+
+fn list_documents(conn: &Connection) -> Result<CommandResponse, String> {
+    println!("Listing documents...");
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, title, author, content, theme, created_at, modified_at 
+             FROM documents ORDER BY modified_at DESC",
+        )
+        .map_err(|e| e.to_string())?;
+    
+    let documents = stmt
+        .query_map([], |row| {
+            Ok(Document {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                author: row.get(2)?,
+                content: row.get(3)?,
+                theme: row.get(4)?,
+                created_at: row.get(5)?,
+                modified_at: row.get(6)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())?;
+    
+    println!("Found {} documents", documents.len());
+    
+    Ok(CommandResponse {
+        response_type: "documentsListed".to_string(),
+        document: None,
+        documents: Some(documents),
+        id: None,
+        user_name: None,
+        name: None,
+        last_document_id: None,
+        error: None,
+    })
+}
+
+fn save_user_name(conn: &Connection, name: Option<String>) -> Result<CommandResponse, String> {
+    let user_name = name.ok_or("User name is required")?;
+    
+    conn.execute(
+        "INSERT OR REPLACE INTO settings (key, value) VALUES ('userName', ?1)",
+        params![user_name],
+    )
+    .map_err(|e| e.to_string())?;
+    
+    Ok(CommandResponse {
+        response_type: "userNameSaved".to_string(),
+        document: None,
+        documents: None,
+        id: None,
+        user_name: None,
+        last_document_id: None,
+        name: Some(user_name),
+        error: None,
+    })
+}
+
+fn load_user_name(conn: &Connection) -> Result<CommandResponse, String> {
+    let user_name = conn
+        .query_row(
+            "SELECT value FROM settings WHERE key = 'userName'",
+            [],
+            |row| row.get::<_, String>(0),
+        )
+        .ok();
+    
+    Ok(CommandResponse {
+        response_type: "userNameLoaded".to_string(),
+        document: None,
+        documents: None,
+        id: None,
+        user_name: Some(user_name),
+        name: None,
+        last_document_id: None,
+        error: None,
+    })
+}
+
+fn save_last_document_id(conn: &Connection, id: Option<String>) -> Result<CommandResponse, String> {
+    let doc_id = id.ok_or("Document ID is required")?;
+    
+    conn.execute(
+        "INSERT OR REPLACE INTO settings (key, value) VALUES ('lastDocumentId', ?1)",
+        params![doc_id],
+    )
+    .map_err(|e| e.to_string())?;
+    
+    Ok(CommandResponse {
+        response_type: "lastDocumentIdSaved".to_string(),
+        document: None,
+        documents: None,
+        id: Some(doc_id),
+        user_name: None,
+        name: None,
+        last_document_id: None,
+        error: None,
+    })
+}
+
+fn load_last_document_id(conn: &Connection) -> Result<CommandResponse, String> {
+    let last_doc_id = conn
+        .query_row(
+            "SELECT value FROM settings WHERE key = 'lastDocumentId'",
+            [],
+            |row| row.get::<_, String>(0),
+        )
+        .ok();
+    
+    Ok(CommandResponse {
+        response_type: "lastDocumentIdLoaded".to_string(),
+        document: None,
+        documents: None,
+        id: None,
+        user_name: None,
+        name: None,
+        last_document_id: Some(last_doc_id),
+        error: None,
+    })
+}
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
+            // Get app data directory and create database path
+            let app_dir = app.handle().path().app_data_dir()
+                .expect("Failed to get app data directory");
+            std::fs::create_dir_all(&app_dir)
+                .expect("Failed to create app data directory");
+            
+            let db_path = app_dir.join("scripta.db");
+            let conn = Connection::open(&db_path)
+                .expect("Failed to open database");
+            
+            // Initialize database tables
+            println!("About to initialize database at: {:?}", db_path);
+            init_database(&conn)
+                .expect("Failed to initialize database");
+            println!("Database initialized successfully");
+            
+            // Store connection in app state
+            app.manage(AppState {
+                db: Mutex::new(conn),
+            });
+            
+            println!("Looking for main window...");
             // Get the main window - handle errors gracefully
-            if let Some(window) = app.get_window("main") {
+            if let Some(window) = app.get_webview_window("main") {
+                println!("Found main window");
                 // Set minimum size
                 let _ = window.set_min_size(Some(tauri::LogicalSize::new(800.0, 600.0)));
                 
@@ -22,23 +364,29 @@ fn main() {
                 
                 // Set focus
                 let _ = window.set_focus();
+                println!("Window setup complete");
+            } else {
+                println!("WARNING: Main window not found!");
             }
             
+            println!("Setup complete");
             Ok(())
         })
-        .on_window_event(|event| {
-            match event.event() {
+        .on_window_event(|window, event| {
+            match event {
                 tauri::WindowEvent::Resized(size) => {
                     // Ensure minimum size is respected
                     if size.width < 800 || size.height < 600 {
-                        let _ = event.window().set_size(tauri::LogicalSize::new(
+                        let _ = window.set_size(tauri::LogicalSize::new(
                             (size.width as f64).max(800.0),
                             (size.height as f64).max(600.0)
                         ));
                     }
                 }
-                tauri::WindowEvent::CloseRequested { .. } => {
+                tauri::WindowEvent::CloseRequested { api, .. } => {
                     println!("Window close requested");
+                    // Prevent close for debugging
+                    api.prevent_close();
                 }
                 tauri::WindowEvent::Destroyed => {
                     println!("Window destroyed");
@@ -46,6 +394,7 @@ fn main() {
                 _ => {}
             }
         })
+        .invoke_handler(tauri::generate_handler![handle_tauri_command])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
