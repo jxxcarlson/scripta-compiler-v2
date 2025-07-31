@@ -58,7 +58,6 @@ type alias Model =
 type Msg
     = CommonMsg Common.CommonMsg
     | StorageMsg Storage.StorageMsg
-    | ViewMsg Common.View.Msg
 
 
 -- INIT
@@ -73,26 +72,9 @@ init flags =
         storage =
             Storage.Local.storage StorageMsg
 
-        -- Initialize with sample document content
-        initialContent =
-            AppData.defaultDocumentText
-
-        editRecord =
-            ScriptaV2.DifferentialCompiler.init Dict.empty common.currentLanguage initialContent
-
-        compilerOutput =
-            ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput 
-                (Theme.mapTheme common.theme) 
-                ScriptaV2.Compiler.SuppressDocumentBlocks 
-                common.displaySettings 
-                editRecord
-
         updatedCommon =
             { common 
-                | sourceText = initialContent
-                , editRecord = editRecord
-                , compilerOutput = compilerOutput
-                , showDocumentList = True
+                | showDocumentList = True
             }
     in
     ( { common = updatedCommon
@@ -118,11 +100,6 @@ update msg model =
 
         StorageMsg storageMsg ->
             handleStorageMsg storageMsg model
-
-        ViewMsg viewMsg ->
-            case viewMsg of
-                Common.View.CommonMsg commonMsg ->
-                    updateCommon commonMsg model
 
 
 updateCommon : Common.CommonMsg -> Model -> ( Model, Cmd Msg )
@@ -153,10 +130,36 @@ updateCommon msg model =
                 newCommon =
                     { common
                         | sourceText = str
+                        , title = Common.getTitleFromContent str
                         , editRecord = newEditRecord
                         , compilerOutput = newCompilerOutput
                         , lastChanged = common.currentTime
                         , count = common.count + 1
+                    }
+            in
+            ( { model | common = newCommon }, Cmd.none )
+
+        Common.InputText2 { position, source } ->
+            let
+                newEditRecord =
+                    ScriptaV2.DifferentialCompiler.update common.editRecord source
+
+                newCompilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme common.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        common.displaySettings
+                        newEditRecord
+
+                newCommon =
+                    { common
+                        | sourceText = source
+                        , title = Common.getTitleFromContent source
+                        , editRecord = newEditRecord
+                        , compilerOutput = newCompilerOutput
+                        , lastChanged = common.currentTime
+                        , count = common.count + 1
+                        , loadDocumentIntoEditor = False  -- Turn off loading after edit
                     }
             in
             ( { model | common = newCommon }, Cmd.none )
@@ -178,14 +181,26 @@ updateCommon msg model =
 
                 newDisplaySettings =
                     { displaySettings 
-                        | windowWidth = width
+                        | windowWidth = width // 3
                     }
+
+                newEditRecord =
+                    ScriptaV2.DifferentialCompiler.update common.editRecord common.sourceText
+
+                newCompilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme common.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        newDisplaySettings
+                        newEditRecord
 
                 newCommon =
                     { common 
                         | windowWidth = width
                         , windowHeight = height
                         , displaySettings = newDisplaySettings
+                        , editRecord = newEditRecord
+                        , compilerOutput = newCompilerOutput
                     }
             in
             ( { model | common = newCommon }, Cmd.none )
@@ -395,6 +410,65 @@ updateCommon msg model =
             , File.Download.string fileName "application/x-latex" exportText
             )
 
+        Common.ExportToRawLaTeX ->
+            let
+                settings =
+                    Render.Settings.makeSettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
+
+                exportText =
+                    Render.Export.LaTeX.rawExport settings common.editRecord.tree
+
+                fileName =
+                    common.title ++ ".tex"
+            in
+            ( model
+            , File.Download.string fileName "application/x-latex" exportText
+            )
+
+        Common.SelectedText str ->
+            ( model, Cmd.none )
+
+        Common.LoadContentIntoEditorDelayed ->
+            ( { model | common = { common | loadDocumentIntoEditor = True } }
+            , Process.sleep 100
+                |> Task.perform (always (CommonMsg Common.ResetLoadFlag))
+            )
+
+        Common.ResetLoadFlag ->
+            ( { model | common = { common | loadDocumentIntoEditor = False } }
+            , Cmd.none
+            )
+
+        Common.InitialDocumentId content title currentTime theme id ->
+            let
+                initialDoc =
+                    Document.newDocument id title (Maybe.withDefault "" common.userName) content theme currentTime
+
+                editRecord =
+                    ScriptaV2.DifferentialCompiler.init Dict.empty common.currentLanguage content
+
+                compilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme common.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        common.displaySettings
+                        editRecord
+
+                newCommon =
+                    { common
+                        | currentDocument = Just initialDoc
+                        , sourceText = content
+                        , initialText = content
+                        , title = title
+                        , editRecord = editRecord
+                        , loadDocumentIntoEditor = True
+                        , compilerOutput = compilerOutput
+                    }
+            in
+            ( { model | common = newCommon }
+            , Ports.send (Ports.SaveDocument initialDoc)
+            )
+
         _ ->
             -- Handle other messages with no-op for now
             ( model, Cmd.none )
@@ -408,9 +482,17 @@ handleIncomingPortMsg msg model =
     in
     case msg of
         Ports.DocumentsLoaded docs ->
-            ( { model | common = { common | documents = docs } }
-            , Cmd.none
-            )
+            if List.isEmpty docs then
+                -- No documents in storage, create default document
+                ( { model | common = { common | documents = docs } }
+                , Random.generate
+                    (CommonMsg << Common.InitialDocumentId AppData.defaultDocumentText "Announcement" common.currentTime common.theme)
+                    generateId
+                )
+            else
+                ( { model | common = { common | documents = docs } }
+                , Cmd.none
+                )
 
         Ports.DocumentLoaded doc ->
             let
@@ -473,8 +555,7 @@ handleStorageMsg msg model =
 
 view : Model -> Html Msg
 view model =
-    Common.View.view model.common
-        |> Html.map ViewMsg
+    Common.View.view CommonMsg (CommonMsg << Common.Render) model.common
 
 
 -- SUBSCRIPTIONS

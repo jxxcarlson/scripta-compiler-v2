@@ -3,6 +3,7 @@ module Common.Model exposing
     , CommonMsg(..)
     , Flags
     , getTitle
+    , getTitleFromContent
     , initCommon
     )
 
@@ -13,6 +14,7 @@ import Element
 import Generic.Compiler
 import Json.Decode as Decode
 import Keyboard
+import List.Extra
 import Ports
 import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.Compiler
@@ -81,6 +83,8 @@ type CommonMsg
     | DownloadScript
     | InputUserName String
     | LoadUserNameDelayed
+    | LoadContentIntoEditorDelayed
+    | ResetLoadFlag
     | PortMsgReceived (Result Decode.Error Ports.IncomingMsg)
       -- Editor
     | SelectedText String
@@ -127,7 +131,7 @@ initCommon flags =
             Time.millisToPosix flags.currentTime
     in
     { displaySettings = 
-        { windowWidth = flags.window.windowWidth
+        { windowWidth = flags.window.windowWidth // 3
         , longEquationLimit = 100.0
         , counter = 0
         , selectedId = "-"
@@ -140,7 +144,7 @@ initCommon flags =
     , count = 0
     , windowWidth = flags.window.windowWidth
     , windowHeight = flags.window.windowHeight
-    , currentLanguage = ScriptaV2.Language.SMarkdownLang
+    , currentLanguage = ScriptaV2.Language.EnclosureLang
     , selectId = ""
     , title = ""
     , theme = theme
@@ -152,7 +156,7 @@ initCommon flags =
         , toc = []
         , title = Element.text ""
         }
-    , editRecord = ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.SMarkdownLang ""
+    , editRecord = ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.EnclosureLang ""
     , documents = []
     , currentDocument = Nothing
     , showDocumentList = False
@@ -183,3 +187,13 @@ getTitle model =
 
         Just doc ->
             "Scripta: " ++ doc.title
+
+
+getTitleFromContent : String -> String
+getTitleFromContent str =
+    str
+        |> String.lines
+        |> List.map String.trim
+        |> List.Extra.dropWhile (\line -> line == "" || String.startsWith "|" line)
+        |> List.head
+        |> Maybe.withDefault "No title yet"

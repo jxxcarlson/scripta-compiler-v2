@@ -1,7 +1,4 @@
-module Common.View exposing
-    ( view
-    , Msg(..)
-    )
+module Common.View exposing (view)
 
 import Browser.Dom
 import Common.Model as Common
@@ -13,10 +10,12 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed
 import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Json.Decode
+import Json.Encode
 import Keyboard
 import List.Extra
 import Random
@@ -26,31 +25,24 @@ import ScriptaV2.DifferentialCompiler
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
 import Style
+import Sync
+import Task
 import Theme
 import Time
 import Widget
 
 
-type Msg
-    = CommonMsg Common.CommonMsg
+-- VIEW
 
 
-view : Common.CommonModel -> Html Msg
-view model =
+view : (Common.CommonMsg -> msg) -> (MarkupMsg -> msg) -> Common.CommonModel -> Html msg
+view toMsg renderMsg model =
     layoutWith { options = [ Element.focusStyle noFocus ] }
         [ Style.background_ model.theme
         , Element.htmlAttribute (Html.Attributes.style "height" "100vh")
         , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
         ]
-        (mainColumn model)
-
-
-noFocus : FocusStyle
-noFocus =
-    { borderColor = Nothing
-    , backgroundColor = Nothing
-    , shadow = Nothing
-    }
+        (mainColumn toMsg renderMsg model)
 
 
 -- GEOMETRY
@@ -74,8 +66,8 @@ headerHeight =
     90
 
 
-mainColumn : Common.CommonModel -> Element Msg
-mainColumn model =
+mainColumn : (Common.CommonMsg -> msg) -> (MarkupMsg -> msg) -> Common.CommonModel -> Element msg
+mainColumn toMsg renderMsg model =
     column (Style.background_ model.theme :: mainColumnStyle)
         [ column
             [ width fill
@@ -94,239 +86,478 @@ mainColumn model =
                 [ width fill
                 , height fill
                 , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
+                , Element.htmlAttribute (Html.Attributes.style "flex" "1")
+                , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
                 ]
-                [ sidebar model
-                , editorPanel model
-                , outputPanel model
+                [ editorView toMsg model
+                , Element.el
+                    [ width (px 1)
+                    , height fill
+                    , Background.color (Style.borderColor model.theme)
+                    ]
+                    Element.none
+                , displayRenderedText renderMsg model
+                , Element.el
+                    [ width (px 1)
+                    , height fill
+                    , Background.color (Style.borderColor model.theme)
+                    ]
+                    Element.none
+                , sidebar toMsg model
                 ]
             ]
         ]
 
 
-mainColumnStyle : List (Attribute msg)
+sidebar : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
+sidebar toMsg model =
+    Element.column
+        [ Element.width <| px <| sidebarWidth
+        , height fill
+        , Font.color (Style.textColor model.theme)
+        , Font.size 14
+        , Style.rightPanelBackground_ model.theme
+        , Style.forceColorStyle model.theme
+        , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
+        , Border.color (Element.rgb 0.5 0.5 0.5)
+        ]
+        [ -- Documents section that can grow
+          Element.column
+            Style.innerColumn
+            [ -- User name section
+              nameElement toMsg model
+            , Element.el [ Element.paddingXY 0 8, Element.width Element.fill ] (Element.text "")
+            , toggleTheme toMsg model
+            , crudButtons toMsg model
+            , exportStuff toMsg model
+            , Element.el [ Element.paddingXY 0 8, Element.width Element.fill ] (Element.text "")
+            , Element.column
+                [ spacing 4
+                , width fill
+                , height (px 300)
+                , scrollbarY
+                , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+                , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+                ]
+                (List.map (documentItem toMsg model) (List.sortBy (\d -> d.title) model.documents))
+            ]
+        ]
+
+
+crudButtons : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
+crudButtons toMsg model =
+    Element.row [ spacing 8, width fill ]
+        [ newButton toMsg model
+        , saveButton toMsg model
+        ]
+
+
+newButton : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
+newButton toMsg model =
+    Widget.sidebarButton model.theme (Just (toMsg Common.CreateNewDocument)) "New"
+
+
+saveButton : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
+saveButton toMsg model =
+    Widget.sidebarButton model.theme (Just (toMsg Common.SaveDocument)) "Save"
+
+
+exportStuff : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
+exportStuff toMsg model =
+    Element.row [ spacing 8, width fill ]
+        [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "LaTeX"
+        , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
+        ]
+
+
+documentItem : (Common.CommonMsg -> msg) -> Common.CommonModel -> Document -> Element msg
+documentItem toMsg model doc =
+    let
+        isActive =
+            case model.currentDocument of
+                Just currentDoc ->
+                    currentDoc.id == doc.id
+
+                Nothing ->
+                    False
+
+        borderAttrs =
+            if isActive then
+                [ Border.width 1
+                , Border.color
+                    (case model.theme of
+                        Theme.Light ->
+                            Element.rgb255 64 64 64
+
+                        -- Dark gray for light mode
+                        Theme.Dark ->
+                            Element.rgb255 220 220 220
+                     -- Almost white for dark mode
+                    )
+                ]
+
+            else
+                []
+    in
+    Element.row
+        ([ width fill
+         , padding 8
+         , Border.rounded 4
+         , spacing 8
+         , mouseOver [ Background.color (Element.rgba 0.5 0.5 0.5 0.2) ]
+         ]
+            ++ borderAttrs
+        )
+        [ Input.button
+            [ width fill ]
+            { onPress = Just (toMsg (Common.LoadDocument doc.id))
+            , label =
+                Element.column [ spacing 2 ]
+                    [ Element.el [ Font.size 13 ] (text doc.title)
+                    , Element.el
+                        [ Font.size 11
+                        , Font.color
+                            (case model.theme of
+                                Theme.Light ->
+                                    Element.rgb 0.4 0.4 0.4
+
+                                -- Darker gray for light mode
+                                Theme.Dark ->
+                                    Element.rgb 0.7 0.7 0.7
+                             -- Original lighter gray for dark mode
+                            )
+                        ]
+                        (text <| Style.formatRelativeTime model.currentTime doc.modifiedAt)
+                    ]
+            }
+        , Input.button
+            [ Font.color (Element.rgb 1 0.5 0.5)
+            , mouseOver [ Font.color (Element.rgb 1 0.3 0.3) ]
+            , mouseDown [ Font.color (Element.rgb 1 0.2 0.2) ]
+            ]
+            { onPress = Just (toMsg (Common.DeleteDocument doc.id))
+            , label = text "×"
+            }
+        ]
+
+
+noFocus : Element.FocusStyle
+noFocus =
+    { borderColor = Nothing
+    , backgroundColor = Nothing
+    , shadow = Nothing
+    }
+
+
+displayRenderedText : (MarkupMsg -> msg) -> Common.CommonModel -> Element msg
+displayRenderedText renderMsg model =
+    Element.el
+        [ alignTop
+        , height (px (max 100 (model.windowHeight - headerHeight - 1))) -- Match editor height
+        , width (px <| panelWidth model)
+        , Element.clipY
+        , Element.scrollbarY
+        , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+        , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+        ]
+        (column
+            [ Font.size 14
+            , padding 16
+            , spacing 24
+            , width fill
+            , Style.htmlId "rendered-text"
+            , Style.background_ model.theme
+            , alignTop
+            , centerX
+            , Font.color (Style.textColor model.theme)
+            , Style.forceColorStyle model.theme
+            ]
+            [ container model (model.compilerOutput.body |> List.map (Element.map renderMsg)) ]
+        )
+
+
+container : Common.CommonModel -> List (Element msg) -> Element msg
+container model elements_ =
+    Element.column (Style.background_ model.theme :: [ Element.centerX, spacing 24 ]) elements_
+
+
+header : Common.CommonModel -> Element msg
+header model =
+    Element.row
+        [ Element.height <| Element.px <| headerHeight
+        , Element.width <| Element.fill
+        , Element.spacing 32
+        , Element.centerX
+        , Background.color (Style.backgroundColor model.theme)
+        , paddingEach { left = 18, right = 18, top = 0, bottom = 0 }
+        , Style.forceColorStyle model.theme
+        , Border.widthEach { left = 0, right = 0, top = 0, bottom = 1 }
+        , Border.color (Style.borderColor model.theme)
+        ]
+        [ Element.el
+            [ centerX
+            , centerY
+            , Font.color (Style.debugTextColor model.theme)
+            , Font.size 18
+            , Font.semiBold
+            , Style.forceColorStyle model.theme
+            ]
+            (Element.text model.title)
+        ]
+
+
+-- STYLE
+
+
 mainColumnStyle =
     [ width fill
     , height fill
     ]
 
 
--- HEADER
+-- EDITOR
 
 
-header : Common.CommonModel -> Element Msg
-header model =
-    row
+editorView : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
+editorView toMsg model =
+    Element.Keyed.el
+        [ -- RECEIVE INFORMATION FROM CODEMIRROR
+          Element.htmlAttribute (onSelectionChange toMsg) -- receive info from codemirror
+        , Element.alignTop
+        , Element.htmlAttribute (onTextChange toMsg) -- receive info from codemirror
+        , Style.htmlId "editor-here"
+        , Element.height (Element.px <| editorHeight model)
+        , Element.width (Element.px <| panelWidth model)
+        , Background.color (Element.rgb255 0 68 85)
+        , Font.color (Element.rgb 0.85 0.85 0.85)
+        , Font.size 12
+        ]
+        ( stringOfBool False
+          -- Keep the same key always
+        , Element.html
+            (Html.node "codemirror-editor"
+                [ -- SEND INFORMATION TO CODEMIRROR
+                  if model.loadDocumentIntoEditor then
+                    Html.Attributes.attribute "load" model.sourceText
+
+                  else
+                    Html.Attributes.attribute "noOp" "true"
+                , Html.Attributes.attribute "text" model.initialText
+                , Html.Attributes.attribute "editordata" (encodeEditorData model.editorData)
+                , case model.maybeSelectionOffset of
+                    Nothing ->
+                        Html.Attributes.attribute "noOp" "true"
+
+                    Just refinedSelection ->
+                        Html.Attributes.attribute "refineselection" (encodeRefinedSelection refinedSelection model.editorData)
+                , Html.Attributes.attribute "selection" (stringOfBool model.doSync)
+                ]
+                []
+            )
+        )
+
+
+editorHeight : Common.CommonModel -> Int
+editorHeight model =
+    max 100 (model.windowHeight - headerHeight - 1)
+
+
+-- Editor event handlers
+
+
+onSelectionChange : (Common.CommonMsg -> msg) -> Html.Attribute msg
+onSelectionChange toMsg =
+    Html.Events.on "selected-text"
+        (Json.Decode.field "detail" Json.Decode.string
+            |> Json.Decode.map (toMsg << Common.SelectedText)
+        )
+
+
+onTextChange : (Common.CommonMsg -> msg) -> Html.Attribute msg
+onTextChange toMsg =
+    Html.Events.on "text-change"
+        (Json.Decode.map2
+            (\position source ->
+                toMsg (Common.InputText2 { position = position, source = source })
+            )
+            (Json.Decode.at [ "detail", "position" ] Json.Decode.int)
+            (Json.Decode.at [ "detail", "source" ] Json.Decode.string)
+        )
+
+
+-- Editor utility functions
+
+
+encodeEditorData : { begin : Int, end : Int } -> String
+encodeEditorData { begin, end } =
+    Json.Encode.object
+        [ ( "begin", Json.Encode.int begin )
+        , ( "end", Json.Encode.int end )
+        ]
+        |> Json.Encode.encode 2
+
+
+encodeRefinedSelection : { focusOffset : Int, anchorOffset : Int, text : String } -> { begin : Int, end : Int } -> String
+encodeRefinedSelection { focusOffset, anchorOffset, text } { begin, end } =
+    Json.Encode.object
+        [ ( "focusOffset", Json.Encode.int focusOffset )
+        , ( "anchorOffset", Json.Encode.int anchorOffset )
+        , ( "text", Json.Encode.string text )
+        , ( "begin", Json.Encode.int begin )
+        , ( "end", Json.Encode.int end )
+        ]
+        |> Json.Encode.encode 2
+
+
+stringOfBool : Bool -> String
+stringOfBool b =
+    if b then
+        "true"
+
+    else
+        "false"
+
+
+-- WIDGET WRAPPERS
+
+
+nameElement : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
+nameElement toMsg model =
+    case model.userName of
+        Just name ->
+            if String.trim name /= "" then
+                -- Show just the username when it's filled
+                inputTextWidget model.theme name (toMsg << Common.InputUserName)
+
+            else
+                -- Show label and input when empty
+                Element.column [ spacing 8 ]
+                    [ Element.el 
+                        [ Font.size 14
+                        , Font.color (Style.textColor model.theme)
+                        ] 
+                        (text "Your name:")
+                    , inputTextWidget model.theme "" (toMsg << Common.InputUserName)
+                    ]
+
+        Nothing ->
+            -- Show label and input when no username
+            Element.column [ spacing 8 ]
+                [ Element.el 
+                    [ Font.size 14
+                    , Font.color (Style.textColor model.theme)
+                    ] 
+                    (text "Your name:")
+                , inputTextWidget model.theme "" (toMsg << Common.InputUserName)
+                ]
+
+
+inputTextWidget : Theme.Theme -> String -> (String -> msg) -> Element msg
+inputTextWidget theme value onChange =
+    Input.text
         [ width fill
-        , height (px headerHeight)
-        , paddingXY 20 10
-        , spacing 20
-        ]
-        [ titleInput model
-        , row [ spacing 10, alignRight ]
-            [ documentActions model
-            , userNameField model
-            , themeToggleButton model
-            ]
-        ]
-
-
-titleInput : Common.CommonModel -> Element Msg
-titleInput model =
-    Input.text
-        [ width (px 300)
-        , Font.size 18
-        , Font.bold
-        , Border.width 1
-        , Border.color (Style.borderColor model.theme)
-        , padding 8
-        ]
-        { onChange = CommonMsg << Common.UpdateFileName
-        , text = model.title
-        , placeholder = Just (Input.placeholder [] (text "Document Title"))
-        , label = Input.labelHidden "Document Title"
-        }
-
-
-documentActions : Common.CommonModel -> Element Msg
-documentActions model =
-    row [ spacing 10 ]
-        [ Widget.sidebarButton model.theme (Just (CommonMsg Common.CreateNewDocument)) "New"
-        , Widget.sidebarButton model.theme (Just (CommonMsg Common.SaveDocument)) "Save"
-        , Widget.sidebarButton model.theme (Just (CommonMsg Common.ExportToLaTeX)) "Export"
-        ]
-
-
-userNameField : Common.CommonModel -> Element Msg
-userNameField model =
-    Input.text
-        [ width (px 150)
+        , height (px 30)
         , Font.size 14
         , Border.width 1
-        , Border.color (Style.borderColor model.theme)
-        , padding 8
+        , Border.color
+            (case theme of
+                Theme.Light ->
+                    Element.rgb 0.7 0.7 0.7
+
+                Theme.Dark ->
+                    Element.rgb 0.3 0.3 0.3
+            )
+        , Border.rounded 4
+        , Background.color
+            (case theme of
+                Theme.Light ->
+                    Element.rgb 1 1 1
+
+                Theme.Dark ->
+                    Element.rgb 0.1 0.1 0.1
+            )
+        , Font.color
+            (case theme of
+                Theme.Light ->
+                    Element.rgb 0 0 0
+
+                Theme.Dark ->
+                    Element.rgb 0.9 0.9 0.9
+            )
+        , padding 6
         ]
-        { onChange = CommonMsg << Common.InputUserName
-        , text = Maybe.withDefault "" model.userName
-        , placeholder = Just (Input.placeholder [] (text "Your name"))
-        , label = Input.labelHidden "User Name"
+        { onChange = onChange
+        , text = value
+        , placeholder = Nothing
+        , label = Input.labelHidden "User name"
         }
 
 
-themeToggleButton : Common.CommonModel -> Element Msg
-themeToggleButton model =
-    Widget.sidebarButton model.theme 
-        (Just (CommonMsg Common.ToggleTheme)) 
-        (if model.theme == Theme.Dark then "☀️" else "🌙")
-
-
--- SIDEBAR
-
-
-sidebar : Common.CommonModel -> Element Msg
-sidebar model =
-    if model.showDocumentList then
-        column
-            [ width (px sidebarWidth)
-            , height fill
-            , Background.color (Style.rightPanelBackgroundColor model.theme)
-            , Border.widthEach { bottom = 0, left = 0, right = 1, top = 0 }
-            , Border.color (Style.borderColor model.theme)
-            , scrollbarY
-            ]
-            [ sidebarHeader model
-            , documentList model
-            ]
-    else
-        Element.none
-
-
-sidebarHeader : Common.CommonModel -> Element Msg
-sidebarHeader model =
-    row
-        [ width fill
-        , paddingXY 15 10
-        , Border.widthEach { bottom = 1, left = 0, right = 0, top = 0 }
-        , Border.color (Style.borderColor model.theme)
+toggleTheme : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
+toggleTheme toMsg model =
+    Element.row
+        [ Border.width 1
+        , Border.color (Element.rgb 0.7 0.7 0.7)
+        , Border.rounded 4
+        , height (px 30)
         ]
-        [ el [ Font.size 16, Font.bold ] (text "Documents")
-        , Element.el [ alignRight ]
-            (Widget.sidebarButton model.theme 
-                (Just (CommonMsg Common.ToggleDocumentList)) 
-                "×")
-        ]
+        [ if model.theme == Theme.Dark then
+            sidebarButton2 model.theme Theme.Dark (Just (toMsg Common.ToggleTheme)) "Dark"
 
-
-documentList : Common.CommonModel -> Element Msg
-documentList model =
-    column
-        [ width fill
-        , height fill
-        , padding 10
-        , spacing 5
-        ]
-        (List.map (documentItem model) model.documents)
-
-
-documentItem : Common.CommonModel -> Document -> Element Msg
-documentItem model doc =
-    let
-        isSelected =
-            model.currentDocument
-                |> Maybe.map (\current -> current.id == doc.id)
-                |> Maybe.withDefault False
-    in
-    row
-        [ width fill
-        , padding 10
-        , Border.rounded 5
-        , if isSelected then
-            Background.color (Style.electricBlueColor model.theme)
           else
-            Background.color (Style.backgroundColor model.theme)
-        , mouseOver
-            [ Background.color (Style.buttonBackgroundColor model.theme)
-            ]
-        , pointer
-        , onClick (CommonMsg (Common.LoadDocument doc.id))
-        ]
-        [ column [ width fill, spacing 2 ]
-            [ el [ Font.size 14, Font.semiBold ] (text doc.title)
-            , el [ Font.size 12, Font.color (Style.textColor model.theme) ] 
-                (text (formatTime doc.modifiedAt))
-            ]
-        , Element.el [ alignRight ]
-            (Widget.sidebarButton model.theme 
-                (Just (CommonMsg (Common.DeleteDocument doc.id))) 
-                "🗑")
+            Widget.sidebarButton model.theme (Just (toMsg Common.ToggleTheme)) "Dark"
+        , if model.theme == Theme.Light then
+            sidebarButton2 model.theme Theme.Light (Just (toMsg Common.ToggleTheme)) "Light"
+
+          else
+            Widget.sidebarButton model.theme (Just (toMsg Common.ToggleTheme)) "Light"
         ]
 
 
-formatTime : Time.Posix -> String
-formatTime time =
-    -- Simple time formatting - you might want to use a proper date formatting library
-    "Modified recently"
+sidebarButton2 : Theme.Theme -> Theme.Theme -> Maybe msg -> String -> Element msg
+sidebarButton2 modelTheme buttonTheme msg label =
+    Input.button
+        [ paddingXY 12 6
+        , Background.color
+            (if modelTheme == Theme.Light then
+                Element.rgb255 255 255 255
 
+             else
+                Element.rgb255 48 54 59
+            )
+        , Font.color
+            (if modelTheme == Theme.Light then
+                Element.rgb255 50 50 50
 
--- EDITOR PANEL
+             else
+                Element.rgb255 150 150 150
+            )
+        , Element.htmlAttribute
+            (Html.Attributes.style "color"
+                (case modelTheme of
+                    Theme.Light ->
+                        "rgb(0, 40, 40)"
 
+                    Theme.Dark ->
+                        "rgb(255, 165, 0)"
+                )
+            )
+        , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 4, bottomRight = 4 }
+        , Border.width 1
+        , Border.color
+            (if modelTheme == Theme.Light then
+                Element.rgba 0.2 0.2 0.2 1.0
 
-editorPanel : Common.CommonModel -> Element Msg
-editorPanel model =
-    column
-        [ width (px (panelWidth model))
-        , height fill
-        , padding 10
+             else
+                Element.rgba 1.0 0.647 0.0 0.5
+            )
+        , Font.size 16
+        , if buttonTheme == modelTheme then
+            Font.bold
+
+          else
+            Font.extraLight
         ]
-        [ editorElement model
-        ]
-
-
-editorElement : Common.CommonModel -> Element Msg
-editorElement model =
-    Element.html <|
-        Html.node "codemirror-editor"
-            [ Html.Attributes.id "editor"
-            , Html.Attributes.attribute "content" model.sourceText
-            , Html.Events.on "content-changed" 
-                (Json.Decode.map (CommonMsg << Common.InputText) Html.Events.targetValue)
-            ]
-            []
-
-
--- OUTPUT PANEL
-
-
-outputPanel : Common.CommonModel -> Element Msg
-outputPanel model =
-    column
-        [ width (px (panelWidth model))
-        , height fill
-        , padding 20
-        , scrollbarY
-        , Border.widthEach { bottom = 0, left = 1, right = 0, top = 0 }
-        , Border.color (Style.borderColor model.theme)
-        ]
-        [ renderedContent model
-        ]
-
-
-renderedContent : Common.CommonModel -> Element Msg
-renderedContent model =
-    column
-        [ width fill
-        , spacing 10
-        ]
-        (model.compilerOutput.body |> List.map (Element.map (CommonMsg << Common.Render)))
-
-
--- HELPER FUNCTIONS
-
-
-onClick : msg -> Attribute msg
-onClick msg =
-    Element.htmlAttribute (Html.Events.onClick msg)
-
-
-pointer : Attribute msg
-pointer =
-    Element.htmlAttribute (Html.Attributes.style "cursor" "pointer")
+        { onPress = msg
+        , label = Element.text label
+        }

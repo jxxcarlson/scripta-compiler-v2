@@ -6,11 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scripta Live - LocalStorage Version</title>
     
-    <!-- KaTeX for Math Rendering -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- Load the actual KaTeX library first -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
     
-    <!-- Custom elements -->
+    <!-- Then load the custom element wrapper -->
+    <script src="katex.js"></script>
+    
+    <!-- CodeMirror editor custom element -->
     <script src="codemirror-element.js"></script>
     
     <style>
@@ -128,6 +131,40 @@
                 data: storedTheme
             });
         }
+        
+        // Initialize KaTeX
+        if (typeof initKatex === 'function') {
+            initKatex();
+            console.log('KaTeX custom elements initialized');
+        } else {
+            console.error('initKatex function not found!');
+        }
+        
+        // Check if KaTeX library is loaded
+        if (typeof katex !== 'undefined') {
+            console.log('KaTeX library is loaded');
+        } else {
+            console.log('Waiting for KaTeX library to load...');
+        }
+        
+        // Initialize CodeMirror after a delay to ensure DOM is ready
+        setTimeout(() => {
+            console.log('Initializing CodeMirror...');
+            if (typeof initCodeMirror === 'function') {
+                initCodeMirror();
+                console.log('CodeMirror initialized');
+                
+                // Verify the editor element exists
+                const editorElement = document.getElementById('editor-here');
+                if (editorElement) {
+                    console.log('Editor container found:', editorElement);
+                } else {
+                    console.error('Editor container #editor-here not found!');
+                }
+            } else {
+                console.error('initCodeMirror function not found!');
+            }
+        }, 500); // Give Elm time to render
     </script>
 </body>
 </html>
