@@ -1,48 +1,133 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Main</title>
-
-    <script src="katex.js"></script>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
-
-    <script defer src="https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.js" integrity="sha256-4O4pS1SH31ZqrSO2A/2QJTVjTPqVe+jnYgOWUVr7EEc=" crossorigin="anonymous"></script>
-
-    <!--    <script-->
-    <!--            src="https://sdk.feedback.one/v0/core.min.js"-->
-    <!--            data-project-id="01983ae0-37ff-71b3-8a9a-6e7700e2ebb2"-->
-    <!--            defer-->
-    <!--    ></script>-->
-
-    <title>M Demo</title>
-
-    <script src="main.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripta Live - LocalStorage Version</title>
+    
+    <!-- KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    
+    <!-- Custom elements -->
+    <script src="codemirror-element.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+    </style>
 </head>
-
 <body>
-
-<div id="main"></div>
-
-<script>
-
-    var root = document.getElementById('main');
-    var app = Elm.Main.init({node: root, flags: {window: {windowWidth: window.innerWidth, windowHeight: window.innerHeight }}});
-
-    // Initialize KaTeX
-    init(app);
-
-    // Force a re-render after KaTeX is loaded to ensure math elements are rendered
-    setTimeout(() => {
-        console.log('Forcing re-render after KaTeX load');
-        // Trigger a dummy resize event to force Elm to re-render
-        window.dispatchEvent(new Event('resize'));
-    }, 500);
-
-</script>
-
+    <div id="app"></div>
+    
+    <!-- Elm application -->
+    <script src="main-local.js"></script>
+    <script>
+        const app = Elm.MainLocal.init({
+            node: document.getElementById('app'),
+            flags: {
+                window: {
+                    windowWidth: window.innerWidth,
+                    windowHeight: window.innerHeight
+                },
+                currentTime: Date.now(),
+                theme: localStorage.getItem('theme')
+            }
+        });
+        
+        // Handle localStorage operations
+        app.ports.outgoing.subscribe((message) => {
+            console.log('Port message:', message);
+            
+            switch (message.tag) {
+                case 'SaveDocument':
+                    const doc = message.data;
+                    // Save to localStorage
+                    const documents = JSON.parse(localStorage.getItem('documents') || '{}');
+                    documents[doc.id] = doc;
+                    localStorage.setItem('documents', JSON.stringify(documents));
+                    
+                    // Send confirmation back
+                    app.ports.incoming.send({
+                        tag: 'DocumentsLoaded',
+                        data: Object.values(documents)
+                    });
+                    break;
+                    
+                case 'LoadDocuments':
+                    const loadedDocs = JSON.parse(localStorage.getItem('documents') || '{}');
+                    app.ports.incoming.send({
+                        tag: 'DocumentsLoaded',
+                        data: Object.values(loadedDocs)
+                    });
+                    break;
+                    
+                case 'LoadDocument':
+                    const allDocs = JSON.parse(localStorage.getItem('documents') || '{}');
+                    const loadedDoc = allDocs[message.data];
+                    if (loadedDoc) {
+                        app.ports.incoming.send({
+                            tag: 'DocumentLoaded',
+                            data: loadedDoc
+                        });
+                    }
+                    break;
+                    
+                case 'DeleteDocument':
+                    const docsToUpdate = JSON.parse(localStorage.getItem('documents') || '{}');
+                    delete docsToUpdate[message.data];
+                    localStorage.setItem('documents', JSON.stringify(docsToUpdate));
+                    
+                    // Send updated list back
+                    app.ports.incoming.send({
+                        tag: 'DocumentsLoaded',
+                        data: Object.values(docsToUpdate)
+                    });
+                    break;
+                    
+                case 'SaveTheme':
+                    localStorage.setItem('theme', message.data);
+                    break;
+                    
+                case 'LoadTheme':
+                    const theme = localStorage.getItem('theme') || 'light';
+                    app.ports.incoming.send({
+                        tag: 'ThemeLoaded',
+                        data: theme
+                    });
+                    break;
+                    
+                case 'SaveUserName':
+                    localStorage.setItem('userName', message.data);
+                    break;
+                    
+                case 'LoadUserName':
+                    const userName = localStorage.getItem('userName') || '';
+                    app.ports.incoming.send({
+                        tag: 'UserNameLoaded',
+                        data: userName
+                    });
+                    break;
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Resize is handled through Browser.Events.onResize in Elm
+        });
+        
+        // Initialize with stored theme
+        const storedTheme = localStorage.getItem('theme');
+        if (storedTheme) {
+            app.ports.incoming.send({
+                tag: 'ThemeLoaded',
+                data: storedTheme
+            });
+        }
+    </script>
 </body>
 </html>
