@@ -7,6 +7,9 @@
     "build": "elm make src/Main.elm --output=assets/main.js && tauri build",
     "dev": "elm make src/Main.elm --output=assets/main.js && tauri dev",
     "build-elm": "elm make src/Main.elm --output=assets/main.js",
+    "build-local": "elm make src/MainLocal.elm --output=assets/main-local.js",
+    "build-sqlite": "elm make src/MainSQLite.elm --output=assets/main-sqlite.js",
+    "build-all": "npm run build-elm && npm run build-local && npm run build-sqlite",
     "install-deps": "npm install && cd src-tauri && cargo build"
   },
   "devDependencies": {

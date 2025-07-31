@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scripta Live - SQLite Version</title>
     
-    <!-- KaTeX for Math Rendering -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- Load the actual KaTeX library first -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
     
-    <!-- Custom elements -->
+    <!-- Then load the custom element wrapper -->
+    <script src="katex.js"></script>
+    
+    <!-- CodeMirror editor custom element -->
     <script src="codemirror-element.js"></script>
+    
+    <!-- SQLite WASM -->
+    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.js"></script>
     
     <style>
         body {
@@ -23,59 +29,115 @@
 <body>
     <div id="app"></div>
     
-    <!-- SQLite WASM -->
-    <script>
-        // Initialize SQLite WASM
-        const initSqliteJs = async () => {
-            const sqliteWasmUrl = 'https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.45.0/sqlite-wasm/jswasm/sqlite3.mjs';
-            const { default: sqlite3InitModule } = await import(sqliteWasmUrl);
-            
-            const sqlite3 = await sqlite3InitModule({
-                print: console.log,
-                printErr: console.error,
-            });
-            
-            return sqlite3;
-        };
-        
-        // Store SQLite instance globally
-        let db = null;
-        
-        // Initialize database
-        const initDb = async () => {
-            const sqlite3 = await initSqliteJs();
-            const oo = sqlite3.oo1;
-            
-            // Create persistent database
-            db = new oo.DB('/scripta.db', 'ct');
-            
-            // Create tables
-            db.exec(`
-                CREATE TABLE IF NOT EXISTS documents (
-                    id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    description TEXT,
-                    content TEXT NOT NULL,
-                    language TEXT NOT NULL,
-                    created_at INTEGER NOT NULL,
-                    updated_at INTEGER NOT NULL
-                );
-                
-                CREATE TABLE IF NOT EXISTS settings (
-                    key TEXT PRIMARY KEY,
-                    value TEXT
-                );
-            `);
-            
-            return db;
-        };
-    </script>
-    
     <!-- Elm application -->
     <script src="main-sqlite.js"></script>
     <script>
+        // Initialize SQL.js
+        let SQL;
+        let db;
+        
+        // Helper to save database to localStorage
+        function saveDbToLocalStorage() {
+            try {
+                if (!db) return;
+                
+                // Export database as an array of bytes
+                const data = db.export();
+                // Convert to base64 for localStorage
+                const base64 = btoa(String.fromCharCode.apply(null, data));
+                localStorage.setItem('scripta-sqlite-db', base64);
+                console.log('Database saved to localStorage (' + data.length + ' bytes)');
+            } catch (error) {
+                console.error('Failed to save database:', error);
+            }
+        }
+        
+        // Helper to load database from localStorage
+        function loadDbFromLocalStorage() {
+            try {
+                const base64 = localStorage.getItem('scripta-sqlite-db');
+                if (base64) {
+                    const binary = atob(base64);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) {
+                        bytes[i] = binary.charCodeAt(i);
+                    }
+                    return bytes;
+                }
+            } catch (error) {
+                console.error('Failed to load database:', error);
+            }
+            return null;
+        }
+        
+        async function initSQLite() {
+            console.log('Initializing SQL.js...');
+            
+            try {
+                // Load SQL.js
+                const sqlPromise = initSqlJs({
+                    locateFile: file => `https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/${file}`
+                });
+                
+                SQL = await sqlPromise;
+                console.log('SQL.js initialized successfully');
+                
+                // Try to load existing database from localStorage
+                const savedDb = loadDbFromLocalStorage();
+                if (savedDb && savedDb.length > 0) {
+                    console.log('Loading database from localStorage');
+                    try {
+                        db = new SQL.Database(savedDb);
+                        console.log('Database loaded from localStorage');
+                    } catch (e) {
+                        console.warn('Failed to load saved database, creating new one:', e);
+                        db = new SQL.Database();
+                    }
+                } else {
+                    console.log('Creating new database');
+                    db = new SQL.Database();
+                }
+                
+                // Always ensure tables exist
+                db.run(`
+                    CREATE TABLE IF NOT EXISTS documents (
+                        id TEXT PRIMARY KEY,
+                        title TEXT NOT NULL,
+                        author TEXT NOT NULL,
+                        content TEXT NOT NULL,
+                        theme TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        modifiedAt INTEGER NOT NULL
+                    )
+                `);
+                
+                db.run(`
+                    CREATE TABLE IF NOT EXISTS settings (
+                        key TEXT PRIMARY KEY,
+                        value TEXT NOT NULL
+                    )
+                `);
+                
+                console.log('SQLite tables verified/created');
+                
+                // Save after creating tables
+                saveDbToLocalStorage();
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize SQL.js:', error);
+                console.error('Error details:', error.stack);
+                return false;
+            }
+        }
+        
         // Initialize SQLite before starting Elm app
-        initDb().then(() => {
+        initSQLite().then((success) => {
+            if (!success) {
+                alert('Failed to initialize SQLite. The application may not work correctly.');
+            }
+            
+            // Initialize Elm app
             const app = Elm.MainSQLite.init({
                 node: document.getElementById('app'),
                 flags: {
@@ -84,98 +146,127 @@
                         windowHeight: window.innerHeight
                     },
                     currentTime: Date.now(),
-                    theme: localStorage.getItem('theme')
+                    theme: null // Will be loaded from SQLite
                 }
             });
             
             // Handle SQLite operations
-            app.ports.sqliteExecute.subscribe(async (request) => {
+            app.ports.sqliteExecute.subscribe((command) => {
+                console.log('SQLite command:', command);
+                
+                const sendResult = (type, data) => {
+                    app.ports.sqliteResult.send({ type, ...data });
+                };
+                
                 try {
-                    const { type } = request;
-                    let result;
-                    
-                    switch (type) {
+                    switch (command.type) {
                         case 'init':
-                            result = { type: 'initialized' };
+                            sendResult('initialized', {});
                             break;
                             
                         case 'saveDocument':
-                            const doc = request.document;
-                            db.exec({
-                                sql: `INSERT OR REPLACE INTO documents 
-                                      (id, name, description, content, language, created_at, updated_at) 
-                                      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                                bind: [doc.id, doc.name, doc.description, doc.content, doc.language, 
-                                       doc.created_at, doc.updated_at]
-                            });
-                            result = { type: 'documentSaved', document: doc };
+                            const doc = command.document;
+                            db.run(
+                                `INSERT OR REPLACE INTO documents 
+                                 (id, title, author, content, theme, createdAt, modifiedAt) 
+                                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                                [doc.id, doc.title, doc.author, doc.content, doc.theme, doc.createdAt, doc.modifiedAt]
+                            );
+                            saveDbToLocalStorage();
+                            sendResult('documentSaved', { document: doc });
                             break;
                             
                         case 'loadDocument':
-                            const loadResult = db.exec({
-                                sql: 'SELECT * FROM documents WHERE id = ?',
-                                bind: [request.id],
-                                rowMode: 'object'
-                            });
-                            if (loadResult.length > 0) {
-                                result = { type: 'documentLoaded', document: loadResult[0] };
+                            const loadStmt = db.prepare('SELECT * FROM documents WHERE id = ?');
+                            loadStmt.bind([command.id]);
+                            if (loadStmt.step()) {
+                                const row = loadStmt.getAsObject();
+                                sendResult('documentLoaded', { document: row });
                             } else {
-                                result = { type: 'documentLoaded', error: 'Document not found' };
+                                sendResult('documentLoaded', { error: 'Document not found' });
                             }
+                            loadStmt.free();
                             break;
                             
                         case 'deleteDocument':
-                            db.exec({
-                                sql: 'DELETE FROM documents WHERE id = ?',
-                                bind: [request.id]
-                            });
-                            result = { type: 'documentDeleted', id: request.id };
+                            db.run('DELETE FROM documents WHERE id = ?', [command.id]);
+                            saveDbToLocalStorage();
+                            sendResult('documentDeleted', { id: command.id });
                             break;
                             
                         case 'listDocuments':
-                            const docs = db.exec({
-                                sql: 'SELECT * FROM documents ORDER BY updated_at DESC',
-                                rowMode: 'object'
-                            });
-                            result = { type: 'documentsListed', documents: docs };
-                            break;
-                            
-                        case 'loadUserName':
-                            const userNameResult = db.exec({
-                                sql: 'SELECT value FROM settings WHERE key = ?',
-                                bind: ['userName'],
-                                rowMode: 'object'
-                            });
-                            const userName = userNameResult.length > 0 ? userNameResult[0].value : null;
-                            result = { type: 'userNameLoaded', userName };
+                            const documents = [];
+                            const listStmt = db.prepare('SELECT * FROM documents ORDER BY modifiedAt DESC');
+                            while (listStmt.step()) {
+                                documents.push(listStmt.getAsObject());
+                            }
+                            listStmt.free();
+                            sendResult('documentsListed', { documents });
                             break;
                             
                         case 'saveUserName':
-                            db.exec({
-                                sql: 'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
-                                bind: ['userName', request.name]
-                            });
-                            result = { type: 'userNameSaved', name: request.name };
+                            db.run(`INSERT OR REPLACE INTO settings (key, value) VALUES ('userName', ?)`, [command.name]);
+                            saveDbToLocalStorage();
+                            sendResult('userNameSaved', { name: command.name });
                             break;
+                            
+                        case 'loadUserName':
+                            const userStmt = db.prepare(`SELECT value FROM settings WHERE key = 'userName'`);
+                            let userName = null;
+                            if (userStmt.step()) {
+                                userName = userStmt.get()[0];
+                            }
+                            userStmt.free();
+                            sendResult('userNameLoaded', { userName });
+                            break;
+                            
+                        default:
+                            console.error('Unknown SQLite command:', command.type);
                     }
-                    
-                    app.ports.sqliteResult.send(result);
                 } catch (error) {
-                    console.error('SQLite operation failed:', error);
-                    app.ports.sqliteResult.send({
-                        type: request.type + 'Error',
-                        error: error.message
-                    });
+                    console.error('SQLite error:', error);
+                    sendResult(command.type + 'Error', { error: error.message });
                 }
             });
             
             // Handle window resize
             window.addEventListener('resize', () => {
-                app.ports.windowResized?.send({
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                });
+                // Resize is handled through Browser.Events.onResize in Elm
             });
+            
+            // Initialize KaTeX
+            if (typeof initKatex === 'function') {
+                initKatex();
+                console.log('KaTeX custom elements initialized');
+            } else {
+                console.error('initKatex function not found!');
+            }
+            
+            // Check if KaTeX library is loaded
+            if (typeof katex !== 'undefined') {
+                console.log('KaTeX library is loaded');
+            } else {
+                console.log('Waiting for KaTeX library to load...');
+            }
+            
+            // Initialize CodeMirror after a delay to ensure DOM is ready
+            setTimeout(() => {
+                console.log('Initializing CodeMirror...');
+                if (typeof initCodeMirror === 'function') {
+                    initCodeMirror();
+                    console.log('CodeMirror initialized');
+                    
+                    // Verify the editor element exists
+                    const editorElement = document.getElementById('editor-here');
+                    if (editorElement) {
+                        console.log('Editor container found:', editorElement);
+                    } else {
+                        console.error('Editor container #editor-here not found!');
+                    }
+                } else {
+                    console.error('initCodeMirror function not found!');
+                }
+            }, 500); // Give Elm time to render
         });
     </script>
 </body>
