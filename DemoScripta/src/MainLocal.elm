@@ -166,8 +166,8 @@ updateCommon msg model =
 
         Common.Render markupMsg ->
             case markupMsg of
-                ScriptaV2.Msg.SendLineNumber { begin, end } ->
-                    ( { model | common = { common | selectedId = String.fromInt begin } }
+                ScriptaV2.Msg.SendLineNumber editorData ->
+                    ( { model | common = { common | editorData = editorData } }
                     , Cmd.none
                     )
 
@@ -433,7 +433,27 @@ updateCommon msg model =
             )
 
         Common.SelectedText str ->
-            ( model, Cmd.none )
+            let
+                foundIds =
+                    ScriptaV2.Helper.matchingIdsInAST str common.editRecord.tree
+                        |> List.filter (\id -> id /= "")
+                
+                firstId =
+                    List.head foundIds |> Maybe.withDefault ""
+                
+                newCommon =
+                    { common
+                        | selectedId = firstId
+                        , foundIds = foundIds
+                        , foundIdIndex = if List.isEmpty foundIds then 0 else 1
+                    }
+            in
+            ( { model | common = newCommon }
+            , if firstId /= "" then
+                jumpToId firstId
+              else
+                Cmd.none
+            )
 
         Common.LoadContentIntoEditorDelayed ->
             ( { model | common = { common | loadDocumentIntoEditor = True } }
@@ -443,6 +463,11 @@ updateCommon msg model =
 
         Common.ResetLoadFlag ->
             ( { model | common = { common | loadDocumentIntoEditor = False } }
+            , Cmd.none
+            )
+
+        Common.StartSync ->
+            ( { model | common = { common | doSync = not common.doSync } }
             , Cmd.none
             )
 
@@ -596,6 +621,16 @@ subscriptions model =
         , Time.every constants.autoSaveCheckInterval (CommonMsg << Common.Tick)
         , Ports.receive (CommonMsg << Common.PortMsgReceived)
         ]
+
+
+-- HELPERS
+
+
+jumpToId : String -> Cmd Msg
+jumpToId id =
+    Browser.Dom.getElement id
+        |> Task.andThen (\el -> Browser.Dom.setViewport 0 el.element.y)
+        |> Task.attempt (\_ -> CommonMsg Common.NoOp)
 
 
 -- ID GENERATION

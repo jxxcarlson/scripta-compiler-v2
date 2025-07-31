@@ -53779,6 +53779,54 @@ var $author$project$MainLocal$handleStorageMsg = F2(
 	function (msg, model) {
 		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
+var $author$project$Common$Model$NoOp = {$: 'NoOp'};
+var $elm$core$Task$onError = _Scheduler_onError;
+var $elm$core$Task$attempt = F2(
+	function (resultToMessage, task) {
+		return $elm$core$Task$command(
+			$elm$core$Task$Perform(
+				A2(
+					$elm$core$Task$onError,
+					A2(
+						$elm$core$Basics$composeL,
+						A2($elm$core$Basics$composeL, $elm$core$Task$succeed, resultToMessage),
+						$elm$core$Result$Err),
+					A2(
+						$elm$core$Task$andThen,
+						A2(
+							$elm$core$Basics$composeL,
+							A2($elm$core$Basics$composeL, $elm$core$Task$succeed, resultToMessage),
+							$elm$core$Result$Ok),
+						task))));
+	});
+var $elm$browser$Browser$Dom$getElement = _Browser_getElement;
+var $elm$browser$Browser$Dom$setViewport = _Browser_setViewport;
+var $author$project$MainLocal$jumpToId = function (id) {
+	return A2(
+		$elm$core$Task$attempt,
+		function (_v0) {
+			return $author$project$MainLocal$CommonMsg($author$project$Common$Model$NoOp);
+		},
+		A2(
+			$elm$core$Task$andThen,
+			function (el) {
+				return A2($elm$browser$Browser$Dom$setViewport, 0, el.element.y);
+			},
+			$elm$browser$Browser$Dom$getElement(id)));
+};
+var $author$project$Generic$ASTTools$idOfMatchingBlockContent = F2(
+	function (key, block) {
+		return A2($elm$core$String$contains, key, block.meta.sourceText) ? $elm$core$Maybe$Just(block.meta.id) : $elm$core$Maybe$Nothing;
+	});
+var $author$project$Generic$ASTTools$matchingIdsInAST = F2(
+	function (key, ast) {
+		return A2(
+			$elm$core$List$filterMap,
+			$author$project$Generic$ASTTools$idOfMatchingBlockContent(key),
+			$elm$core$List$concat(
+				A2($elm$core$List$map, $author$project$Library$Tree$flatten, ast)));
+	});
+var $author$project$ScriptaV2$Helper$matchingIdsInAST = $author$project$Generic$ASTTools$matchingIdsInAST;
 var $author$project$Document$newDocument = F6(
 	function (id, title, author, content, theme, now) {
 		return {author: author, content: content, createdAt: now, id: id, modifiedAt: now, theme: theme, title: title};
@@ -54531,17 +54579,14 @@ var $author$project$MainLocal$updateCommon = F2(
 			case 'Render':
 				var markupMsg = msg.a;
 				if (markupMsg.$ === 'SendLineNumber') {
-					var begin = markupMsg.a.begin;
-					var end = markupMsg.a.end;
+					var editorData = markupMsg.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								common: _Utils_update(
 									common,
-									{
-										selectedId: $elm$core$String$fromInt(begin)
-									})
+									{editorData: editorData})
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -54843,7 +54888,28 @@ var $author$project$MainLocal$updateCommon = F2(
 					A3($elm$file$File$Download$string, fileName, 'application/x-latex', exportText));
 			case 'SelectedText':
 				var str = msg.a;
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				var foundIds = A2(
+					$elm$core$List$filter,
+					function (id) {
+						return id !== '';
+					},
+					A2($author$project$ScriptaV2$Helper$matchingIdsInAST, str, common.editRecord.tree));
+				var firstId = A2(
+					$elm$core$Maybe$withDefault,
+					'',
+					$elm$core$List$head(foundIds));
+				var newCommon = _Utils_update(
+					common,
+					{
+						foundIdIndex: $elm$core$List$isEmpty(foundIds) ? 0 : 1,
+						foundIds: foundIds,
+						selectedId: firstId
+					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{common: newCommon}),
+					(firstId !== '') ? $author$project$MainLocal$jumpToId(firstId) : $elm$core$Platform$Cmd$none);
 			case 'LoadContentIntoEditorDelayed':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -54866,6 +54932,16 @@ var $author$project$MainLocal$updateCommon = F2(
 							common: _Utils_update(
 								common,
 								{loadDocumentIntoEditor: false})
+						}),
+					$elm$core$Platform$Cmd$none);
+			case 'StartSync':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							common: _Utils_update(
+								common,
+								{doSync: !common.doSync})
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'InitialDocumentId':
@@ -55215,7 +55291,8 @@ var $author$project$Common$View$displayRenderedText = F2(
 					$mdgriffith$elm_ui$Element$htmlAttribute(
 					A2($elm$html$Html$Attributes$style, 'overflow-y', 'auto')),
 					$mdgriffith$elm_ui$Element$htmlAttribute(
-					A2($elm$html$Html$Attributes$style, 'overflow-x', 'hidden'))
+					A2($elm$html$Html$Attributes$style, 'overflow-x', 'hidden')),
+					$author$project$Style$htmlId('rendered-text-container')
 				]),
 			A2(
 				$mdgriffith$elm_ui$Element$column,

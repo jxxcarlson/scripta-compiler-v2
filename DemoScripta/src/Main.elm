@@ -299,10 +299,6 @@ update msg model =
                         ( { model | selectId = id }, Cmd.none )
 
                 ScriptaV2.Msg.SendLineNumber editorData ->
-                    let
-                        _ =
-                            Debug.log "@@SendLineNumber, editorData" editorData
-                    in
                     case model.currentDocument of
                         Nothing ->
                             ( model, Cmd.none )
@@ -345,16 +341,10 @@ update msg model =
                                     List.head foundIds_ |> Maybe.withDefault "(nothing)"
 
                                 _ =
-                                    Debug.log "@@SendLineNumber, target" target
-
-                                _ =
-                                    Debug.log "@@SendLineNumber, foundIds" foundIds_
-
-                                _ =
-                                    Debug.log "@@SendLineNumber, sending to port with editorData" editorData
+                                    ()
                             in
                             ( { model
-                                | editorData = editorData |> Debug.log "@@SetEditorData(2)"
+                                | editorData = editorData
 
                                 -- BELOW: Disable for now so that rendered text is not highlighted
                                 --, selectedId = id_
@@ -677,8 +667,46 @@ update msg model =
             ( { model | doSync = not model.doSync }, Cmd.none )
 
         SelectedText str ->
-            --Frontend.EditorSync.firstSyncLR model str
-            ( model, Cmd.none )
+            let
+                _ = Debug.log "@@SelectedText received" str
+                
+                foundIds =
+                    ScriptaV2.Helper.matchingIdsInAST str model.editRecord.tree
+                        |> List.filter (\id -> id /= "")
+                        |> Debug.log "@@SelectedText foundIds"
+                
+                firstId =
+                    List.head foundIds |> Maybe.withDefault ""
+                    |> Debug.log "@@SelectedText firstId"
+                
+                -- Update displaySettings with new selectedId
+                oldDisplaySettings = model.displaySettings
+                newDisplaySettings = { oldDisplaySettings | selectedId = firstId }
+                
+                -- Re-render with updated settings
+                newCompilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme model.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        newDisplaySettings
+                        model.editRecord
+                
+                newModel =
+                    { model
+                        | selectId = firstId
+                        , selectedId = firstId
+                        , foundIds = foundIds
+                        , foundIdIndex = if List.isEmpty foundIds then 0 else 1
+                        , displaySettings = newDisplaySettings
+                        , compilerOutput = newCompilerOutput
+                    }
+            in
+            ( newModel
+            , if firstId /= "" then
+                jumpToId firstId
+              else
+                Cmd.none
+            )
 
         LRSync target ->
             --Frontend.EditorSync.firstSyncLR model target
@@ -941,6 +969,7 @@ displayRenderedText model =
         , Element.scrollbarY
         , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
         , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+        , Style.htmlId "rendered-text-container"
         ]
         (column
             [ Font.size 14
@@ -1043,6 +1072,40 @@ jumpToTopOf id =
     Browser.Dom.getViewportOf id
         |> Task.andThen (\info -> Browser.Dom.setViewportOf id 0 0)
         |> Task.attempt (\_ -> NoOp)
+
+
+jumpToId : String -> Cmd Msg
+jumpToId id =
+    let
+        _ = Debug.log "@@jumpToId attempting to jump to" id
+    in
+    Task.map2 Tuple.pair
+        (Browser.Dom.getElement id)
+        (Browser.Dom.getElement "rendered-text-container")
+        |> Task.andThen (\(targetEl, containerEl) ->
+            let
+                -- Calculate the target position relative to the container
+                -- targetEl.element gives position relative to document
+                -- containerEl.element gives container position relative to document
+                targetY = targetEl.element.y - containerEl.element.y
+                _ = Debug.log "@@jumpToId target.y, container.y, scrollTo" (targetEl.element.y, containerEl.element.y, targetY)
+            in
+            -- Scroll the container to show the target element at the top
+            Browser.Dom.setViewportOf "rendered-text-container" 0 targetY
+        )
+        |> Task.attempt (\result -> 
+            case result of
+                Ok _ ->
+                    let
+                        _ = Debug.log "@@jumpToId success" id
+                    in
+                    NoOp
+                Err err ->
+                    let
+                        _ = Debug.log "@@jumpToId error" err
+                    in
+                    NoOp
+        )
 
 
 

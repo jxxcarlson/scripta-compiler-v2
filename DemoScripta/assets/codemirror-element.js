@@ -30444,6 +30444,9 @@ window.initCodeMirror = function () {
            self.pendingRefinement = null;
            self.paragraphSelectionTime = 0;
            self.lastRefinementText = null;
+           
+           // Initialize sync state
+           self.cmdKeyPressed = false;
 
            return self
        }
@@ -30452,6 +30455,7 @@ window.initCodeMirror = function () {
        connectedCallback() {
 
            console.log("@@JS CM EDITOR: In connectedCallback");
+           console.log("@@JS CM EDITOR: Setting up cmd key tracking...");
 
            let editorNode = document.querySelector('#editor-here');
 
@@ -30490,6 +30494,34 @@ window.initCodeMirror = function () {
                this.editor = editor;
                this.editor.lastLineNumberFromClick = 0;
                this.editor.requestMeasure();
+               
+               // Track cmd/meta key state
+               const instance = this;
+               console.log("@@JS CM EDITOR: Adding keydown listener");
+               document.addEventListener('keydown', (e) => {
+                   if (e.metaKey || e.ctrlKey) {  // metaKey for Mac Cmd, ctrlKey as fallback
+                       instance.cmdKeyPressed = true;
+                       console.log("@@cmd key pressed");
+                   }
+               });
+               
+               document.addEventListener('keyup', (e) => {
+                   if (e.key === 'Meta' || e.key === 'Control') {
+                       // Send selection when cmd key is released
+                       const selection = editor.state.selection.main;
+                       const selectedText = editor.state.sliceDoc(selection.from, selection.to);
+                       if (selectedText.trim() !== '') {
+                           console.log("@@cmd key released - sending selection:", selectedText);
+                           sendSelectedText(editor, selectedText);
+                       } else {
+                           console.log("@@cmd key released - no selection");
+                       }
+                       instance.cmdKeyPressed = false;
+                   }
+               });
+               
+               // No longer need selection change listener - we'll send on cmd key release
+               console.log("@@JS CM EDITOR: Selection will be sent on cmd key release");
 
        } // end connectedCallback
 
@@ -30519,6 +30551,7 @@ window.initCodeMirror = function () {
                           // Clicks on rendered text cause the editor to
                           // scroll to the corresponding lines of the source text
                           // and highlight those lines
+                          console.log("@@JS EDITORDATA attribute changed:", newVal);
                           
                           // Clear any pending refinements since we're doing a new paragraph selection
                           if (self.pendingRefinement) {
@@ -30679,18 +30712,6 @@ window.initCodeMirror = function () {
                      case "text":
                            setEditorText(editor, newVal);
                            break
-
-                     case "selection":
-                          // receive info from Elm (see Main.editor_):
-                          // ask for the current selection to be sent to Elm for LR sync
-                          var selectionFrom = editor.state.selection.ranges[0].from;
-                          var selectionTo = editor.state.selection.ranges[0].to;
-                          var selectionSlice = editor.state.sliceDoc(selectionFrom,selectionTo );
-                          console.log("@@selection", selectionSlice);
-                          sendSelectedText(editor, selectionSlice);
-
-
-                         break
                 }
               } // end attributeChangedCallback_
 

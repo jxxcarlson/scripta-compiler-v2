@@ -41,7 +41,7 @@ view model =
                   else
                     Html.Attributes.attribute "noOp" "true"
                 , Html.Attributes.attribute "text" model.initialText
-                , Html.Attributes.attribute "editordata" (model.editorData |> Debug.log "@@!!@@_editordata_ENCODE" |> encodeEditorData)
+                , Html.Attributes.attribute "editordata" (encodeEditorData model.editorData)
                 , case model.maybeSelectionOffset of
                     Nothing ->
                         Html.Attributes.attribute "noOp" "true"

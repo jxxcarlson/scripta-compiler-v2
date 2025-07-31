@@ -259,6 +259,7 @@ displayRenderedText renderMsg model =
         , Element.scrollbarY
         , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
         , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+        , Style.htmlId "rendered-text-container"
         ]
         (column
             [ Font.size 14
