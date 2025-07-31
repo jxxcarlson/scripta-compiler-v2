@@ -1,0 +1,15 @@
+{
+  "name": "scripta-live-desktop",
+  "version": "0.2.0",
+  "description": "Scripta Live Desktop Application",
+  "scripts": {
+    "tauri": "tauri",
+    "build": "elm make src/Main.elm --output=assets/main.js && tauri build",
+    "dev": "elm make src/Main.elm --output=assets/main.js && tauri dev",
+    "build-elm": "elm make src/Main.elm --output=assets/main.js",
+    "install-deps": "npm install && cd src-tauri && cargo build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0-rc"
+  }
+}
