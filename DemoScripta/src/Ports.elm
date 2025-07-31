@@ -3,6 +3,10 @@ port module Ports exposing
     , IncomingMsg(..)
     , send
     , receive
+    , sendMsg
+    , ListDocuments
+    , sqliteExecute
+    , sqliteResult
     )
 
 import Json.Encode as Encode
@@ -35,11 +39,20 @@ type IncomingMsg
     | UserNameLoaded String
 
 
+-- Special export for compatibility
+ListDocuments : OutgoingMsg
+ListDocuments = LoadDocuments
+
+
 -- PORTS
 
 
 port outgoing : Encode.Value -> Cmd msg
 port incoming : (Encode.Value -> msg) -> Sub msg
+
+-- SQLite-specific ports
+port sqliteExecute : Encode.Value -> Cmd msg
+port sqliteResult : (Encode.Value -> msg) -> Sub msg
 
 
 -- PUBLIC API
@@ -48,6 +61,10 @@ port incoming : (Encode.Value -> msg) -> Sub msg
 send : OutgoingMsg -> Cmd msg
 send msg =
     outgoing (encodeOutgoing msg)
+
+
+sendMsg : OutgoingMsg -> Cmd msg
+sendMsg = send
 
 
 receive : (Result Decode.Error IncomingMsg -> msg) -> Sub msg

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Scripta Live</title>
+    <script src="main.js"></script>
+</head>
+<body>
+<div id="main"></div>
+<script>
+    try {
+        console.log('Starting Elm app initialization...');
+        var root = document.getElementById('main');
+        
+        var app = Elm.Main.init({
+            node: root, 
+            flags: {
+                window: {windowWidth: 1400, windowHeight: 900 },
+                currentTime: Date.now(),
+                theme: "dark"
+            }
+        });
+        
+        console.log('Elm app initialized successfully');
+        
+        // Minimal port handling
+        if (app.ports && app.ports.outgoing) {
+            app.ports.outgoing.subscribe((msg) => {
+                console.log('Port message:', msg.tag);
+                
+                if (msg.tag === 'LoadDocuments') {
+                    // Return empty documents for now
+                    if (app.ports.incoming) {
+                        app.ports.incoming.send({
+                            tag: 'DocumentsLoaded',
+                            data: []
+                        });
+                    }
+                }
+            });
+        }
+        
+    } catch (error) {
+        console.error('Failed to initialize:', error);
+        document.body.innerHTML = '<h1>Error: ' + error.message + '</h1>';
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Scripta Live</title>
+
+    <!-- Load the actual KaTeX library first -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
+    
+    <!-- Then load the custom element wrapper -->
+    <script src="./katex.js"></script>
+    
+    <!-- CodeMirror editor custom element -->
+    <script src="./codemirror-element.js"></script>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.js" integrity="sha256-4O4pS1SH31ZqrSO2A/2QJTVjTPqVe+jnYgOWUVr7EEc=" crossorigin="anonymous"></script>
+
+    <script src="./main.js"></script>
+
+</head>
+
+<body>
+
+<div id="main"></div>
+
+<script>
+        // Global error handler to catch crashes
+        window.addEventListener('error', function(event) {
+            console.error('JavaScript error:', event.error);
+            console.error('Stack:', event.error.stack);
+        });
+        
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Unhandled promise rejection:', event.reason);
+        });
+
+		var root = document.getElementById('main');
+		var savedTheme = localStorage.getItem('scripta-theme');
+		
+		// Ensure window dimensions are valid
+		var windowWidth = window.innerWidth || 1400;
+		var windowHeight = window.innerHeight || 900;
+		
+		var app;
+		try {
+		    app = Elm.Main.init({
+		        node: root, 
+		        flags: {
+		            window: {windowWidth: windowWidth, windowHeight: windowHeight },
+		            currentTime: Date.now(),
+		            theme: savedTheme
+		        }
+		    });
+		    console.log('Elm app initialized successfully');
+		} catch (error) {
+		    console.error('Failed to initialize Elm app:', error);
+		    throw error;
+		}
+        
+        // Initialize KaTeX
+        if (typeof initKatex === 'function') {
+            initKatex();
+            console.log('KaTeX custom elements initialized');
+        } else {
+            console.error('initKatex function not found!');
+        }
+        
+        // Check if KaTeX library is loaded
+        if (typeof katex !== 'undefined') {
+            console.log('KaTeX library is loaded');
+        } else {
+            console.error('KaTeX library not found! Math rendering will not work.');
+        }
+        
+        // Force a re-render after KaTeX is loaded to ensure math elements are rendered
+        setTimeout(() => {
+            console.log('Forcing re-render after KaTeX load');
+            // Trigger a dummy resize event to force Elm to re-render
+            window.dispatchEvent(new Event('resize'));
+        }, 500);
+        
+        // Initialize CodeMirror with error handling
+        if (typeof initCodeMirror === 'function') {
+            try {
+                initCodeMirror();
+                console.log('CodeMirror custom elements initialized');
+                
+                // Add error handling for CodeMirror events
+                document.addEventListener('text-change', function(event) {
+                    console.log('text-change event:', event.detail);
+                });
+                
+                document.addEventListener('selected-text', function(event) {
+                    console.log('selected-text event:', event.detail);
+                });
+                
+            } catch (error) {
+                console.error('Error initializing CodeMirror:', error);
+            }
+        } else {
+            console.error('initCodeMirror function not found!');
+        }
+        
+        // Local Storage Management
+        const STORAGE_KEY = 'scripta-documents';
+        const CURRENT_DOC_KEY = 'scripta-current-document';
+        const THEME_KEY = 'scripta-theme';
+        const USER_NAME_KEY = 'scripta-user-name';
+        
+        // Handle outgoing messages from Elm
+        app.ports.outgoing.subscribe((msg) => {
+            console.log('@@!!@@ Received outgoing message:', msg.tag);
+            
+            switch (msg.tag) {
+                case 'LoadDocuments':
+                    const docsJson = localStorage.getItem(STORAGE_KEY);
+                    const docs = docsJson ? JSON.parse(docsJson) : [];
+                    console.log('@@!!@@ Loading documents from localStorage:', docs);
+                    console.log('@@!!@@ Number of documents found:', docs.length);
+                    app.ports.incoming.send({
+                        tag: 'DocumentsLoaded',
+                        data: docs
+                    });
+                    
+                    // Also check for last opened document
+                    const currentDocId = localStorage.getItem(CURRENT_DOC_KEY);
+                    console.log('@@!!@@ Last opened document ID:', currentDocId);
+                    if (currentDocId && docs.length > 0) {
+                        const currentDoc = docs.find(d => d.id === currentDocId);
+                        if (currentDoc) {
+                            console.log('@@!!@@ Restoring document:', currentDoc.title);
+                            setTimeout(() => {
+                                app.ports.incoming.send({
+                                    tag: 'DocumentLoaded',
+                                    data: currentDoc
+                                });
+                            }, 100);
+                        } else {
+                            console.log('@@!!@@ Could not find document with ID:', currentDocId);
+                        }
+                    }
+                    break;
+                    
+                case 'SaveDocument':
+                    const doc = msg.data;
+                    const savedDocsJson = localStorage.getItem(STORAGE_KEY);
+                    let savedDocs = savedDocsJson ? JSON.parse(savedDocsJson) : [];
+                    
+                    // Update or add the document
+                    const existingIndex = savedDocs.findIndex(d => d.id === doc.id);
+                    if (existingIndex >= 0) {
+                        savedDocs[existingIndex] = doc;
+                    } else {
+                        savedDocs.push(doc);
+                    }
+                    
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedDocs));
+                    localStorage.setItem(CURRENT_DOC_KEY, doc.id);
+                    
+                    // Send back updated list
+                    app.ports.incoming.send({
+                        tag: 'DocumentsLoaded',
+                        data: savedDocs
+                    });
+                    break;
+                    
+                case 'LoadDocument':
+                    const loadId = msg.data;
+                    const loadDocsJson = localStorage.getItem(STORAGE_KEY);
+                    const loadDocs = loadDocsJson ? JSON.parse(loadDocsJson) : [];
+                    const loadDoc = loadDocs.find(d => d.id === loadId);
+                    
+                    if (loadDoc) {
+                        localStorage.setItem(CURRENT_DOC_KEY, loadId);
+                        app.ports.incoming.send({
+                            tag: 'DocumentLoaded',
+                            data: loadDoc
+                        });
+                    }
+                    break;
+                    
+                case 'DeleteDocument':
+                    const deleteId = msg.data;
+                    const deleteDocsJson = localStorage.getItem(STORAGE_KEY);
+                    let deleteDocs = deleteDocsJson ? JSON.parse(deleteDocsJson) : [];
+                    
+                    deleteDocs = deleteDocs.filter(d => d.id !== deleteId);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(deleteDocs));
+                    
+                    // Clear current doc if it was deleted
+                    const currentId = localStorage.getItem(CURRENT_DOC_KEY);
+                    if (currentId === deleteId) {
+                        localStorage.removeItem(CURRENT_DOC_KEY);
+                    }
+                    
+                    // Send back updated list
+                    app.ports.incoming.send({
+                        tag: 'DocumentsLoaded',
+                        data: deleteDocs
+                    });
+                    break;
+                    
+                case 'SaveTheme':
+                    const theme = msg.data;
+                    localStorage.setItem(THEME_KEY, theme);
+                    console.log('@@!!@@ Theme saved:', theme);
+                    break;
+                    
+                case 'LoadTheme':
+                    const savedTheme = localStorage.getItem(THEME_KEY);
+                    if (savedTheme) {
+                        console.log('@@!!@@ Loading saved theme:', savedTheme);
+                        setTimeout(() => {
+                            app.ports.incoming.send({
+                                tag: 'ThemeLoaded',
+                                data: savedTheme
+                            });
+                        }, 50);
+                    } else {
+                        console.log('@@!!@@ No saved theme found, using default');
+                    }
+                    break;
+                    
+                case 'SaveUserName':
+                    const userName = msg.data;
+                    localStorage.setItem(USER_NAME_KEY, userName);
+                    console.log('@@!!@@ User name saved:', userName);
+                    break;
+                    
+                case 'LoadUserName':
+                    const savedUserName = localStorage.getItem(USER_NAME_KEY);
+                    if (savedUserName) {
+                        console.log('@@!!@@ Loading saved username:', savedUserName);
+                        setTimeout(() => {
+                            app.ports.incoming.send({
+                                tag: 'UserNameLoaded',
+                                data: savedUserName
+                            });
+                        }, 50);
+                    }
+                    break;
+                    
+                default:
+                    console.error('@@!!@@ Unknown message tag:', msg.tag);
+            }
+        });
+        
+        // Remove the custom resize handler since Elm handles it with Browser.Events.onResize
+        // The Elm app already subscribes to resize events
+
+</script>
+
+</body>
+</html>

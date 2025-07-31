@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripta Live - SQLite Version</title>
+    
+    <!-- KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    
+    <!-- Custom elements -->
+    <script src="codemirror-element.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    
+    <!-- SQLite WASM -->
+    <script>
+        // Initialize SQLite WASM
+        const initSqliteJs = async () => {
+            const sqliteWasmUrl = 'https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.45.0/sqlite-wasm/jswasm/sqlite3.mjs';
+            const { default: sqlite3InitModule } = await import(sqliteWasmUrl);
+            
+            const sqlite3 = await sqlite3InitModule({
+                print: console.log,
+                printErr: console.error,
+            });
+            
+            return sqlite3;
+        };
+        
+        // Store SQLite instance globally
+        let db = null;
+        
+        // Initialize database
+        const initDb = async () => {
+            const sqlite3 = await initSqliteJs();
+            const oo = sqlite3.oo1;
+            
+            // Create persistent database
+            db = new oo.DB('/scripta.db', 'ct');
+            
+            // Create tables
+            db.exec(`
+                CREATE TABLE IF NOT EXISTS documents (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    content TEXT NOT NULL,
+                    language TEXT NOT NULL,
+                    created_at INTEGER NOT NULL,
+                    updated_at INTEGER NOT NULL
+                );
+                
+                CREATE TABLE IF NOT EXISTS settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                );
+            `);
+            
+            return db;
+        };
+    </script>
+    
+    <!-- Elm application -->
+    <script src="main-sqlite.js"></script>
+    <script>
+        // Initialize SQLite before starting Elm app
+        initDb().then(() => {
+            const app = Elm.MainSQLite.init({
+                node: document.getElementById('app'),
+                flags: {
+                    window: {
+                        windowWidth: window.innerWidth,
+                        windowHeight: window.innerHeight
+                    },
+                    currentTime: Date.now(),
+                    theme: localStorage.getItem('theme')
+                }
+            });
+            
+            // Handle SQLite operations
+            app.ports.sqliteExecute.subscribe(async (request) => {
+                try {
+                    const { type } = request;
+                    let result;
+                    
+                    switch (type) {
+                        case 'init':
+                            result = { type: 'initialized' };
+                            break;
+                            
+                        case 'saveDocument':
+                            const doc = request.document;
+                            db.exec({
+                                sql: `INSERT OR REPLACE INTO documents 
+                                      (id, name, description, content, language, created_at, updated_at) 
+                                      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                                bind: [doc.id, doc.name, doc.description, doc.content, doc.language, 
+                                       doc.created_at, doc.updated_at]
+                            });
+                            result = { type: 'documentSaved', document: doc };
+                            break;
+                            
+                        case 'loadDocument':
+                            const loadResult = db.exec({
+                                sql: 'SELECT * FROM documents WHERE id = ?',
+                                bind: [request.id],
+                                rowMode: 'object'
+                            });
+                            if (loadResult.length > 0) {
+                                result = { type: 'documentLoaded', document: loadResult[0] };
+                            } else {
+                                result = { type: 'documentLoaded', error: 'Document not found' };
+                            }
+                            break;
+                            
+                        case 'deleteDocument':
+                            db.exec({
+                                sql: 'DELETE FROM documents WHERE id = ?',
+                                bind: [request.id]
+                            });
+                            result = { type: 'documentDeleted', id: request.id };
+                            break;
+                            
+                        case 'listDocuments':
+                            const docs = db.exec({
+                                sql: 'SELECT * FROM documents ORDER BY updated_at DESC',
+                                rowMode: 'object'
+                            });
+                            result = { type: 'documentsListed', documents: docs };
+                            break;
+                            
+                        case 'loadUserName':
+                            const userNameResult = db.exec({
+                                sql: 'SELECT value FROM settings WHERE key = ?',
+                                bind: ['userName'],
+                                rowMode: 'object'
+                            });
+                            const userName = userNameResult.length > 0 ? userNameResult[0].value : null;
+                            result = { type: 'userNameLoaded', userName };
+                            break;
+                            
+                        case 'saveUserName':
+                            db.exec({
+                                sql: 'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
+                                bind: ['userName', request.name]
+                            });
+                            result = { type: 'userNameSaved', name: request.name };
+                            break;
+                    }
+                    
+                    app.ports.sqliteResult.send(result);
+                } catch (error) {
+                    console.error('SQLite operation failed:', error);
+                    app.ports.sqliteResult.send({
+                        type: request.type + 'Error',
+                        error: error.message
+                    });
+                }
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                app.ports.windowResized?.send({
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                });
+            });
+        });
+    </script>
+</body>
+</html>
