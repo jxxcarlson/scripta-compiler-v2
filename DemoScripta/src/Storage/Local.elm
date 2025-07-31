@@ -51,7 +51,7 @@ deleteDocument toMsg id =
 
 listDocuments : (StorageMsg -> msg) -> Cmd msg
 listDocuments toMsg =
-    Ports.sendMsg Ports.ListDocuments
+    Ports.sendMsg Ports.LoadDocuments
 
 
 loadUserName : (StorageMsg -> msg) -> Cmd msg

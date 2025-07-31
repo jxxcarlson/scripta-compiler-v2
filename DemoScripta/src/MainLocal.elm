@@ -5,21 +5,19 @@ import Browser
 import Browser.Dom
 import Browser.Events
 import Common.Model as Common
+import Common.View
 import Constants exposing (constants)
 import Dict
 import Document exposing (Document)
 import Editor
 import Element exposing (..)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Font as Font
-import Element.Input as Input
 import File.Download
 import Html exposing (Html)
-import Html.Attributes
+import Json.Decode as Decode
 import Keyboard
 import List.Extra
 import Ports
+import Process
 import Random
 import Render.Export.LaTeX
 import Render.Settings
@@ -31,11 +29,9 @@ import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
 import Storage.Interface as Storage
 import Storage.Local
-import Style
 import Task
 import Theme
 import Time
-import Widget
 
 
 -- MAIN
@@ -62,6 +58,7 @@ type alias Model =
 type Msg
     = CommonMsg Common.CommonMsg
     | StorageMsg Storage.StorageMsg
+    | ViewMsg Common.View.Msg
 
 
 -- INIT
@@ -75,13 +72,37 @@ init flags =
 
         storage =
             Storage.Local.storage StorageMsg
+
+        -- Initialize with sample document content
+        initialContent =
+            AppData.defaultDocumentText
+
+        editRecord =
+            ScriptaV2.DifferentialCompiler.init Dict.empty common.currentLanguage initialContent
+
+        compilerOutput =
+            ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput 
+                (Theme.mapTheme common.theme) 
+                ScriptaV2.Compiler.SuppressDocumentBlocks 
+                common.displaySettings 
+                editRecord
+
+        updatedCommon =
+            { common 
+                | sourceText = initialContent
+                , editRecord = editRecord
+                , compilerOutput = compilerOutput
+                , showDocumentList = True
+            }
     in
-    ( { common = common
+    ( { common = updatedCommon
       , storageState = Storage.Local.init
       }
     , Cmd.batch
-        [ storage.init
+        [ Ports.send Ports.LoadDocuments
         , Task.perform (CommonMsg << Common.Tick) Time.now
+        , Process.sleep 100
+            |> Task.perform (always (CommonMsg Common.LoadUserNameDelayed))
         ]
     )
 
@@ -98,216 +119,353 @@ update msg model =
         StorageMsg storageMsg ->
             handleStorageMsg storageMsg model
 
+        ViewMsg viewMsg ->
+            case viewMsg of
+                Common.View.CommonMsg commonMsg ->
+                    updateCommon commonMsg model
+
 
 updateCommon : Common.CommonMsg -> Model -> ( Model, Cmd Msg )
 updateCommon msg model =
     let
         storage =
             Storage.Local.storage StorageMsg
+
+        common =
+            model.common
     in
     case msg of
         Common.NoOp ->
             ( model, Cmd.none )
 
         Common.InputText str ->
-            updateSourceText model str
+            let
+                newEditRecord =
+                    ScriptaV2.DifferentialCompiler.update common.editRecord str
 
-        Common.InputText2 data ->
-            updateSourceText2 model data
+                newCompilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme common.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        common.displaySettings
+                        newEditRecord
+
+                newCommon =
+                    { common
+                        | sourceText = str
+                        , editRecord = newEditRecord
+                        , compilerOutput = newCompilerOutput
+                        , lastChanged = common.currentTime
+                        , count = common.count + 1
+                    }
+            in
+            ( { model | common = newCommon }, Cmd.none )
 
         Common.Render markupMsg ->
-            handleRender model markupMsg
+            case markupMsg of
+                ScriptaV2.Msg.SendLineNumber { begin, end } ->
+                    ( { model | common = { common | selectedId = String.fromInt begin } }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         Common.GotNewWindowDimensions width height ->
-            handleWindowResize model width height
+            let
+                displaySettings =
+                    common.displaySettings
+
+                newDisplaySettings =
+                    { displaySettings 
+                        | windowWidth = width
+                    }
+
+                newCommon =
+                    { common 
+                        | windowWidth = width
+                        , windowHeight = height
+                        , displaySettings = newDisplaySettings
+                    }
+            in
+            ( { model | common = newCommon }, Cmd.none )
 
         Common.KeyMsg keyMsg ->
-            handleKeyMsg model keyMsg
+            let
+                newCommon =
+                    { common | pressedKeys = Keyboard.update keyMsg common.pressedKeys }
+            in
+            ( { model | common = newCommon }, Cmd.none )
 
         Common.ToggleTheme ->
-            toggleTheme model
+            let
+                newTheme =
+                    if common.theme == Theme.Dark then
+                        Theme.Light
+                    else
+                        Theme.Dark
+
+                newEditRecord =
+                    ScriptaV2.DifferentialCompiler.update common.editRecord common.sourceText
+
+                newCompilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme newTheme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        common.displaySettings
+                        newEditRecord
+
+                newCommon =
+                    { common 
+                        | theme = newTheme
+                        , editRecord = newEditRecord
+                        , compilerOutput = newCompilerOutput
+                    }
+            in
+            ( { model | common = newCommon }
+            , Ports.send (Ports.SaveTheme 
+                (case newTheme of
+                    Theme.Light ->
+                        "light"
+                    
+                    Theme.Dark ->
+                        "dark"
+                )
+            )
+            )
 
         Common.CreateNewDocument ->
-            createNewDocument model
+            case common.currentDocument of
+                Just doc ->
+                    if common.sourceText /= doc.content then
+                        -- Save current document first
+                        let
+                            ( newModel, saveCmd ) =
+                                update (CommonMsg Common.SaveDocument) model
+                        in
+                        ( newModel
+                        , Cmd.batch
+                            [ saveCmd
+                            , Random.generate (CommonMsg << Common.GeneratedId) generateId
+                            ]
+                        )
+                    else
+                        ( model
+                        , Random.generate (CommonMsg << Common.GeneratedId) generateId
+                        )
+
+                Nothing ->
+                    ( model
+                    , Random.generate (CommonMsg << Common.GeneratedId) generateId
+                    )
+
+        Common.GeneratedId id ->
+            let
+                newDocumentContent =
+                    "| title\nNew Document\n"
+
+                newDoc =
+                    Document.newDocument id "New Document" (Maybe.withDefault "" common.userName) newDocumentContent common.theme common.currentTime
+
+                editRecord =
+                    ScriptaV2.DifferentialCompiler.init Dict.empty common.currentLanguage newDocumentContent
+
+                compilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme common.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        common.displaySettings
+                        editRecord
+
+                newCommon =
+                    { common
+                        | currentDocument = Just newDoc
+                        , sourceText = newDocumentContent
+                        , initialText = newDocumentContent
+                        , title = "New Document"
+                        , editRecord = editRecord
+                        , lastLoadedDocumentId = Just id
+                        , loadDocumentIntoEditor = True
+                        , compilerOutput = compilerOutput
+                    }
+            in
+            ( { model | common = newCommon }
+            , Ports.send (Ports.SaveDocument newDoc)
+            )
 
         Common.SaveDocument ->
-            saveDocument model storage
+            case common.currentDocument of
+                Just doc ->
+                    let
+                        updatedDoc =
+                            { doc
+                                | content = common.sourceText
+                                , title = common.title
+                                , modifiedAt = common.currentTime
+                                , theme = common.theme
+                            }
+
+                        newCommon =
+                            { common
+                                | currentDocument = Just updatedDoc
+                                , lastSaved = common.currentTime
+                            }
+                    in
+                    ( { model | common = newCommon }
+                    , Ports.send (Ports.SaveDocument updatedDoc)
+                    )
+
+                Nothing ->
+                    update (CommonMsg Common.CreateNewDocument) model
 
         Common.LoadDocument id ->
-            loadDocument model storage id
+            ( model
+            , Ports.send (Ports.LoadDocument id)
+            )
 
         Common.DeleteDocument id ->
-            deleteDocument model storage id
+            let
+                newCommon =
+                    if common.currentDocument |> Maybe.map .id |> (==) (Just id) then
+                        { common | currentDocument = Nothing, sourceText = "" }
+                    else
+                        common
+            in
+            ( { model | common = newCommon }
+            , Ports.send (Ports.DeleteDocument id)
+            )
 
         Common.ToggleDocumentList ->
-            toggleDocumentList model
-
-        Common.AutoSave time ->
-            autoSave model storage time
-
-        Common.Tick time ->
-            ( { model | common = { common = model.common | currentTime = time } model.common }
+            ( { model | common = { common | showDocumentList = not common.showDocumentList } }
             , Cmd.none
             )
 
-        Common.GeneratedId id ->
-            handleGeneratedId model id
+        Common.AutoSave time ->
+            let
+                shouldSave =
+                    Time.posixToMillis time - Time.posixToMillis common.lastSaved > 30000
+                        && common.sourceText /= ""
+                        && common.lastChanged /= common.lastSaved
+            in
+            if shouldSave then
+                update (CommonMsg Common.SaveDocument) model
+            else
+                ( model, Cmd.none )
 
-        Common.InitialDocumentId initialDocId content time theme name ->
-            handleInitialDocument model initialDocId content time theme name
-
-        Common.ExportToLaTeX ->
-            exportToLaTeX model
-
-        Common.ExportToRawLaTeX ->
-            exportToRawLaTeX model
-
-        Common.DownloadScript ->
-            downloadScript model
-
-        Common.InputUserName name ->
-            handleInputUserName model storage name
+        Common.Tick time ->
+            ( { model | common = { common | currentTime = time } }
+            , Cmd.none
+            )
 
         Common.LoadUserNameDelayed ->
-            ( model, storage.loadUserName )
+            ( model
+            , Ports.send Ports.LoadUserName
+            )
+
+        Common.InputUserName name ->
+            ( { model | common = { common | userName = Just name } }
+            , Ports.send (Ports.SaveUserName name)
+            )
 
         Common.PortMsgReceived result ->
-            handlePortMsg model result
+            case result of
+                Ok incomingMsg ->
+                    handleIncomingPortMsg incomingMsg model
 
-        -- Editor messages
-        Common.SelectedText str ->
-            handleSelectedText model str
-
-        Common.GetSelection str ->
-            handleGetSelection model str
-
-        Common.ReceiveAnchorOffset offset ->
-            handleReceiveAnchorOffset model offset
-
-        Common.RequestAnchorOffset ->
-            ( model, Editor.requestAnchorOffset )
-
-        Common.StartSync ->
-            handleStartSync model
-
-        Common.SyncContent str1 str2 ->
-            handleSyncContent model str1 str2
-
-        Common.MakeSearchForId id ->
-            handleMakeSearchForId model id
-
-        Common.MarkSelection selection ->
-            handleMarkSelection model selection
-
-        Common.SelectId id ->
-            handleSelectId model id
+                Err _ ->
+                    ( model, Cmd.none )
 
         Common.UpdateFileName name ->
-            handleUpdateFileName model name
+            ( { model | common = { common | title = name } }
+            , Cmd.none
+            )
 
-        Common.UpdateFileDescription desc ->
-            handleUpdateFileDescription model desc
+        Common.ExportToLaTeX ->
+            let
+                settings =
+                    Render.Settings.makeSettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
 
-        Common.Export format ->
-            handleExport model format
+                exportText =
+                    Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
 
-        Common.ReceiveFileContents contents ->
-            handleReceiveFileContents model contents
+                fileName =
+                    common.title ++ ".tex"
+            in
+            ( model
+            , File.Download.string fileName "application/x-latex" exportText
+            )
 
-        Common.AskForFileNameAndSave ->
-            handleAskForFileNameAndSave model
+        _ ->
+            -- Handle other messages with no-op for now
+            ( model, Cmd.none )
 
-        Common.AskForInitialFileNameAndLoad ->
-            handleAskForInitialFileNameAndLoad model
 
-        Common.ToggleEditMode ->
-            handleToggleEditMode model
+handleIncomingPortMsg : Ports.IncomingMsg -> Model -> ( Model, Cmd Msg )
+handleIncomingPortMsg msg model =
+    let
+        common =
+            model.common
+    in
+    case msg of
+        Ports.DocumentsLoaded docs ->
+            ( { model | common = { common | documents = docs } }
+            , Cmd.none
+            )
 
-        Common.MarkCurrentDocumentDirty ->
-            handleMarkCurrentDocumentDirty model
+        Ports.DocumentLoaded doc ->
+            let
+                editRecord =
+                    ScriptaV2.DifferentialCompiler.init Dict.empty common.currentLanguage doc.content
 
-        Common.SetCurrentDocument doc ->
-            handleSetCurrentDocument model doc
+                compilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme common.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        common.displaySettings
+                        editRecord
 
-        Common.ApplyEditorData data ->
-            handleApplyEditorData model data
+                newCommon =
+                    { common
+                        | currentDocument = Just doc
+                        , sourceText = doc.content
+                        , initialText = doc.content
+                        , title = doc.title
+                        , editRecord = editRecord
+                        , compilerOutput = compilerOutput
+                        , loadDocumentIntoEditor = True
+                        , lastLoadedDocumentId = Just doc.id
+                    }
+            in
+            ( { model | common = newCommon }
+            , Cmd.none  -- Editor content is loaded via loadDocumentIntoEditor flag
+            )
 
-        Common.GotViewPort result ->
-            handleGotViewPort model result
+        Ports.ThemeLoaded themeStr ->
+            let
+                theme =
+                    case themeStr of
+                        "dark" ->
+                            Theme.Dark
+                        
+                        _ ->
+                            Theme.Light
+                newCommon =
+                    { common | theme = theme }
+            in
+            ( { model | common = newCommon }
+            , Cmd.none
+            )
+
+        Ports.UserNameLoaded name ->
+            ( { model | common = { common | userName = Just name } }
+            , Cmd.none
+            )
 
 
 handleStorageMsg : Storage.StorageMsg -> Model -> ( Model, Cmd Msg )
 handleStorageMsg msg model =
-    case msg of
-        Storage.DocumentSaved result ->
-            case result of
-                Ok doc ->
-                    ( { model | common = updateDocumentInList model.common doc }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( model, Cmd.none )
-
-        Storage.DocumentLoaded result ->
-            case result of
-                Ok doc ->
-                    loadDocumentIntoModel model doc
-
-                Err error ->
-                    ( model, Cmd.none )
-
-        Storage.DocumentDeleted result ->
-            case result of
-                Ok id ->
-                    ( { model | common = removeDocumentFromList model.common id }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( model, Cmd.none )
-
-        Storage.DocumentsListed result ->
-            case result of
-                Ok docs ->
-                    ( { model | common = { common = model.common | documents = docs } model.common }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( model, Cmd.none )
-
-        Storage.UserNameLoaded result ->
-            case result of
-                Ok maybeUserName ->
-                    ( { model | common = { common = model.common | userName = maybeUserName } model.common }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( model, Cmd.none )
-
-        Storage.UserNameSaved result ->
-            ( model, Cmd.none )
-
-        Storage.StorageInitialized result ->
-            ( model, Cmd.none )
-
-
--- Helper functions (implement all the handlers referenced above)
--- These would contain the logic extracted from the original Main.elm update function
-
-updateSourceText : Model -> String -> ( Model, Cmd Msg )
-updateSourceText model str =
-    -- Implementation here
+    -- Since we're using Ports directly, we don't need to handle these
     ( model, Cmd.none )
-
-updateSourceText2 : Model -> { position : Int, source : String } -> ( Model, Cmd Msg )
-updateSourceText2 model data =
-    -- Implementation here
-    ( model, Cmd.none )
-
--- ... (implement all other helper functions)
 
 
 -- VIEW
@@ -315,8 +473,8 @@ updateSourceText2 model data =
 
 view : Model -> Html Msg
 view model =
-    -- Extract view logic from original Main.elm
-    Html.div [] [ Html.text "MainLocal View" ]
+    Common.View.view model.common
+        |> Html.map ViewMsg
 
 
 -- SUBSCRIPTIONS
@@ -327,25 +485,16 @@ subscriptions model =
     Sub.batch
         [ Browser.Events.onResize (\w h -> CommonMsg (Common.GotNewWindowDimensions w h))
         , Keyboard.subscriptions |> Sub.map (CommonMsg << Common.KeyMsg)
-        , Time.every constants.autosaveInterval (CommonMsg << Common.AutoSave)
-        , Time.every constants.tickInterval (CommonMsg << Common.Tick)
+        , Time.every (30 * 1000) (CommonMsg << Common.AutoSave)
+        , Time.every constants.autoSaveCheckInterval (CommonMsg << Common.Tick)
         , Ports.receive (CommonMsg << Common.PortMsgReceived)
         ]
 
 
--- Helper functions for model updates
-
-updateDocumentInList : Common.CommonModel -> Document -> Common.CommonModel
-updateDocumentInList common doc =
-    { common | documents = List.Extra.updateIf (\d -> d.id == doc.id) (always doc) common.documents }
+-- ID GENERATION
 
 
-removeDocumentFromList : Common.CommonModel -> String -> Common.CommonModel
-removeDocumentFromList common id =
-    { common | documents = List.filter (\d -> d.id /= id) common.documents }
-
-
-loadDocumentIntoModel : Model -> Document -> ( Model, Cmd Msg )
-loadDocumentIntoModel model doc =
-    -- Implementation to load document into editor
-    ( model, Cmd.none )
+generateId : Random.Generator String
+generateId =
+    Random.int 100000 999999
+        |> Random.map (\n -> "doc-" ++ String.fromInt n)

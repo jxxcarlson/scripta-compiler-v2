@@ -9,6 +9,7 @@ module Common.Model exposing
 import Browser.Dom
 import Dict
 import Document exposing (Document)
+import Element
 import Generic.Compiler
 import Json.Decode as Decode
 import Keyboard
@@ -127,29 +128,31 @@ initCommon flags =
     in
     { displaySettings = 
         { windowWidth = flags.window.windowWidth
-        , windowHeight = flags.window.windowHeight - 50
-        , longEquationLimit = 100
+        , longEquationLimit = 100.0
         , counter = 0
         , selectedId = "-"
         , selectedSlug = Nothing
-        , lineNumber = 0
-        , verbatimWrap = ScriptaV2.DifferentialCompiler.NoneWrap
-        , showTOC = True
-        , titleSize = 30
-        , showCitation = Dict.empty
+        , scale = 1.0
+        , data = Dict.empty
+        , idsOfOpenNodes = []
         }
     , sourceText = ""
     , count = 0
     , windowWidth = flags.window.windowWidth
     , windowHeight = flags.window.windowHeight
-    , currentLanguage = ScriptaV2.Language.SMarkdown
+    , currentLanguage = ScriptaV2.Language.SMarkdownLang
     , selectId = ""
     , title = ""
     , theme = theme
     , pressedKeys = []
     , currentTime = currentTime
-    , compilerOutput = ScriptaV2.Compiler.emptyCompilerOutput
-    , editRecord = ScriptaV2.DifferentialCompiler.init ScriptaV2.Language.SMarkdown ""
+    , compilerOutput = 
+        { body = []
+        , banner = Nothing
+        , toc = []
+        , title = Element.text ""
+        }
+    , editRecord = ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.SMarkdownLang ""
     , documents = []
     , currentDocument = Nothing
     , showDocumentList = False
@@ -179,4 +182,4 @@ getTitle model =
             "Scripta (No document)"
 
         Just doc ->
-            "Scripta: " ++ doc.name
+            "Scripta: " ++ doc.title

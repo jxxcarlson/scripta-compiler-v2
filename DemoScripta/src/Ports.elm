@@ -4,7 +4,7 @@ port module Ports exposing
     , send
     , receive
     , sendMsg
-    , ListDocuments
+    , listDocuments
     , sqliteExecute
     , sqliteResult
     )
@@ -40,8 +40,8 @@ type IncomingMsg
 
 
 -- Special export for compatibility
-ListDocuments : OutgoingMsg
-ListDocuments = LoadDocuments
+listDocuments : OutgoingMsg
+listDocuments = LoadDocuments
 
 
 -- PORTS
