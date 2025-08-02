@@ -762,7 +762,7 @@ ${indent.repeat(level)}}`;
   var WEBSOCKET_TOKEN = "e66aa913-a101-43ea-8a35-44ce2f20af1e";
   var TARGET_NAME = "Tauri";
   var INITIAL_ELM_COMPILED_TIMESTAMP = Number(
-    "1753991509288"
+    "1754108781262"
   );
   var ORIGINAL_COMPILATION_MODE = "proxy";
   var ORIGINAL_BROWSER_UI_POSITION = "BottomLeft";

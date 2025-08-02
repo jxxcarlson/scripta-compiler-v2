@@ -169,6 +169,7 @@ markupDict =
         , ( "href", \g acc s attr exprList -> href g acc s attr exprList )
         , ( "ilink", \g acc s attr exprList -> ilink g acc s attr exprList )
         , ( "ulink", \g acc s attr exprList -> ulink g acc s attr exprList )
+        , ( "getPost", \g acc s attr exprList -> newPost g acc s attr exprList )
         , ( "cslink", \g acc s attr exprList -> cslink g acc s attr exprList )
         , ( "abstract", \g acc s attr exprList -> abstract g acc s attr exprList )
         , ( "large", \g acc s attr exprList -> large g acc s attr exprList )
@@ -321,6 +322,31 @@ href _ _ _ attr exprList =
         }
 
 
+addPost _ _ settings attr exprList =
+    case List.head <| ASTTools.exprListToStringList exprList of
+        Nothing ->
+            errorText_ "Please provide label and url"
+
+        Just argString ->
+            let
+                args =
+                    String.words argString
+
+                n =
+                    List.length args
+
+                slug =
+                    List.Extra.last args |> Maybe.withDefault "((nothing))"
+
+                label =
+                    List.take (n - 1) args |> String.join " "
+            in
+            Input.button attr
+                { onPress = Just (GetDocumentWithSlug ScriptaV2.Msg.MHStandard slug)
+                , label = Element.el [ Element.centerX, Element.centerY, Font.underline, Font.size 14, Font.color settings.linkColor ] (Element.text label)
+                }
+
+
 {-|
 
     An ilink element ("internal link") links to another scripta document.
@@ -380,6 +406,22 @@ ulink _ _ settings attr exprList =
             Input.button attr
                 { onPress = Just (GetPublicDocumentFromAuthor ScriptaV2.Msg.MHStandard username fragment)
                 , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color settings.linkColor ] (Element.text label)
+                }
+
+
+newPost _ _ settings attr exprList =
+    case List.head <| ASTTools.exprListToStringList exprList of
+        Nothing ->
+            errorText_ "Please provide post title"
+
+        Just argString ->
+            let
+                args =
+                    String.words argString
+            in
+            Input.button attr
+                { onPress = Just (NewPost (String.join " " args))
+                , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color settings.linkColor ] (Element.text "title")
                 }
 
 

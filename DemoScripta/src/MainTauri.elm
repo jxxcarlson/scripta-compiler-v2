@@ -425,11 +425,25 @@ updateCommon msg model =
                 firstId =
                     List.head foundIds |> Maybe.withDefault ""
                 
+                -- Update displaySettings with new selectedId
+                oldDisplaySettings = common.displaySettings
+                newDisplaySettings = { oldDisplaySettings | selectedId = firstId }
+                
+                -- Re-render with updated settings
+                newCompilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme common.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        newDisplaySettings
+                        common.editRecord
+                
                 newCommon =
                     { common
                         | selectedId = firstId
                         , foundIds = foundIds
                         , foundIdIndex = if List.isEmpty foundIds then 0 else 1
+                        , displaySettings = newDisplaySettings
+                        , compilerOutput = newCompilerOutput
                     }
             in
             ( { model | common = newCommon }
@@ -643,8 +657,17 @@ subscriptions model =
 
 jumpToId : String -> Cmd Msg
 jumpToId id =
-    Browser.Dom.getElement id
-        |> Task.andThen (\el -> Browser.Dom.setViewport 0 el.element.y)
+    Task.map2 Tuple.pair
+        (Browser.Dom.getElement id)
+        (Browser.Dom.getElement "rendered-text-container")
+        |> Task.andThen (\(targetEl, containerEl) ->
+            let
+                -- Calculate the target position relative to the container
+                targetY = targetEl.element.y - containerEl.element.y
+            in
+            -- Scroll the container to show the target element at the top
+            Browser.Dom.setViewportOf "rendered-text-container" 0 targetY
+        )
         |> Task.attempt (\_ -> CommonMsg Common.NoOp)
 
 

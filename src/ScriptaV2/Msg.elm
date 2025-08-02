@@ -25,6 +25,7 @@ type MarkupMsg
     | RequestToggleIndexSize
     | JumpToTop
     | LoadFile String String
+    | NewPost String -- title
     | MMNoOp
 
 
