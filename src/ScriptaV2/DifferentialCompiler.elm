@@ -87,10 +87,10 @@ editRecordToCompilerOutput theme filter displaySettings editRecord =
         properties =
             Maybe.map .properties titleData |> Maybe.withDefault Dict.empty
 
-        -- DEBUGGING
+        -- TODO: this is a hack to get the title to render correctly
         title : Element MarkupMsg
         title =
-            Element.paragraph [] [ Element.text <| Generic.ASTTools.title editRecord.tree ]
+            Element.paragraph [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 36 } ] [ Element.text <| Generic.ASTTools.title editRecord.tree ]
     in
     { body =
         ScriptaV2.Compiler.renderForest theme displaySettings.counter { renderSettings | properties = properties } editRecord.accumulator (ScriptaV2.Compiler.filterForest2 editRecord.tree)
