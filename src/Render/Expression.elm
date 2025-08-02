@@ -169,7 +169,7 @@ markupDict =
         , ( "href", \g acc s attr exprList -> href g acc s attr exprList )
         , ( "ilink", \g acc s attr exprList -> ilink g acc s attr exprList )
         , ( "ulink", \g acc s attr exprList -> ulink g acc s attr exprList )
-        , ( "getPost", \g acc s attr exprList -> newPost g acc s attr exprList )
+        , ( "newPost", \g acc s attr exprList -> newPost g acc s attr exprList )
         , ( "cslink", \g acc s attr exprList -> cslink g acc s attr exprList )
         , ( "abstract", \g acc s attr exprList -> abstract g acc s attr exprList )
         , ( "large", \g acc s attr exprList -> large g acc s attr exprList )
@@ -420,7 +420,8 @@ newPost _ _ settings attr exprList =
                     String.words argString
             in
             Input.button attr
-                { onPress = Just (NewPost (String.join " " args))
+                { -- onPress = Just (NewPost (String.join " " args))
+                  onPress = Just (NewPost "Add new post")
                 , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color settings.linkColor ] (Element.text "title")
                 }
 
