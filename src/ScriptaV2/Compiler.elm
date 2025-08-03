@@ -132,17 +132,17 @@ bottomPadding k =
     Used only in View.Phone (twice)
 
 -}
-compile : Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
-compile theme params lines =
+compile : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
+compile displaySettings theme params lines =
     case params.lang of
         EnclosureLang ->
-            compileM theme params lines
+            compileM displaySettings theme params lines
 
         MicroLaTeXLang ->
-            compileL theme params lines
+            compileL displaySettings theme params lines
 
         SMarkdownLang ->
-            compileX theme params lines
+            compileX displaySettings theme params lines
 
 
 {-|
@@ -262,23 +262,23 @@ filterForest2 forest =
         |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "title")
 
 
-compileM : Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
-compileM theme params lines =
-    render theme params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
+compileM : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
+compileM displaySettings theme params lines =
+    render displaySettings theme params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
 
 
-compileX : Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
-compileX theme params lines =
-    render theme params (filterForest params.filter (parseX Config.idPrefix params.editCount lines))
+compileX : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
+compileX displaySettings theme params lines =
+    render displaySettings theme params (filterForest params.filter (parseX Config.idPrefix params.editCount lines))
 
 
 
 -- LaTeX compiler
 
 
-compileL : Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
-compileL theme params lines =
-    render theme params (filterForest params.filter (parseL Config.idPrefix params.editCount lines))
+compileL : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
+compileL displaySettings theme params lines =
+    render displaySettings theme params (filterForest params.filter (parseL Config.idPrefix params.editCount lines))
 
 
 {-|
@@ -294,11 +294,11 @@ type alias ViewParameters =
 }
 
 -}
-render : Render.Theme.Theme -> CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
-render theme params forest_ =
+render : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
+render displaySettings theme params forest_ =
     let
         renderSettings =
-            Generic.Compiler.defaultRenderSettings theme params.docWidth params.selectedId
+            Render.Settings.defaultRenderSettings displaySettings theme params.docWidth params.selectedId
 
         ( accumulator, forest ) =
             Generic.Acc.transformAccumulate Generic.Acc.initialData forest_

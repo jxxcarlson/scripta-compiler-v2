@@ -42,11 +42,11 @@ import XMarkdown.PrimitiveBlock
 
 
 {-| -}
-renderEditRecord : Render.Theme.Theme -> Generic.Compiler.DisplaySettings -> EditRecord -> List (Element MarkupMsg)
+renderEditRecord : Render.Theme.Theme -> Render.Settings.DisplaySettings -> EditRecord -> List (Element MarkupMsg)
 renderEditRecord theme displaySettings editRecord =
     let
         renderSettings =
-            ScriptaV2.Settings.renderSettingsFromDisplaySettings theme displaySettings
+            ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings theme displaySettings
 
         counter =
             displaySettings.counter
@@ -55,12 +55,12 @@ renderEditRecord theme displaySettings editRecord =
 
 
 {-| -}
-editRecordToCompilerOutput : Render.Theme.Theme -> ScriptaV2.Compiler.Filter -> Generic.Compiler.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
+editRecordToCompilerOutput : Render.Theme.Theme -> ScriptaV2.Compiler.Filter -> Render.Settings.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
 editRecordToCompilerOutput theme filter displaySettings editRecord =
     let
         renderSettings : ScriptaV2.Settings.RenderSettings
         renderSettings =
-            ScriptaV2.Settings.renderSettingsFromDisplaySettings theme displaySettings
+            ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings theme displaySettings
 
         viewParameters =
             { idsOfOpenNodes = displaySettings.idsOfOpenNodes

@@ -1,6 +1,6 @@
 module Render.Settings exposing
     ( Display(..), defaultSettings, makeSettings, RenderSettings, default
-    , ThemedStyles, darkTheme, getThemedColor, getThemedElementColor, lightTheme, toElementColor, unrollTheme
+    , DisplaySettings, RenderData, ThemedStyles, darkTheme, defaultRenderData, defaultRenderSettings, getThemedColor, getThemedElementColor, lightTheme, toElementColor, unrollTheme
     )
 
 {-| The Settings record holds information needed to render a
@@ -17,8 +17,48 @@ import Dict exposing (Dict)
 import Element
 import Element.Background as BackgroundColor
 import Element.Font as Font
+import Generic.Acc
 import Render.NewColor exposing (..)
 import Render.Theme
+
+
+type alias RenderData =
+    { count : Int
+    , idPrefix : String
+    , settings : RenderSettings
+    , initialAccumulatorData : Generic.Acc.InitialAccumulatorData
+    }
+
+
+
+-- default selectedId width
+
+
+defaultRenderData : DisplaySettings -> Render.Theme.Theme -> Int -> Int -> String -> RenderData
+defaultRenderData displaysettings theme width outerCount selectedId =
+    { count = outerCount
+    , idPrefix = "!!"
+    , settings = default displaysettings theme selectedId width
+    , initialAccumulatorData = Generic.Acc.initialData
+    }
+
+
+defaultRenderSettings : DisplaySettings -> Render.Theme.Theme -> Int -> String -> RenderSettings
+defaultRenderSettings displaysettings theme width selectedId =
+    default displaysettings theme selectedId width
+
+
+type alias DisplaySettings =
+    { windowWidth : Int
+    , longEquationLimit : Float
+    , counter : Int
+    , selectedId : String
+    , selectedSlug : Maybe String
+    , scale : Float
+    , data : Dict String String
+    , idsOfOpenNodes : List String
+    , numberToLevel : Int
+    }
 
 
 {-| A record of information needed to render a document.
@@ -146,20 +186,20 @@ type Display
 
 
 {-| -}
-defaultSettings : RenderSettings
-defaultSettings =
-    makeSettings Render.Theme.Light "" Nothing 1 600 Dict.empty
+defaultSettings : DisplaySettings -> RenderSettings
+defaultSettings displaySettings =
+    makeSettings displaySettings Render.Theme.Light "" Nothing 1 600 Dict.empty
 
 
 {-| -}
-default : Render.Theme.Theme -> String -> Int -> RenderSettings
-default theme selectedId width =
-    makeSettings theme selectedId Nothing 1 width Dict.empty
+default : DisplaySettings -> Render.Theme.Theme -> String -> Int -> RenderSettings
+default displaySettings theme selectedId width =
+    makeSettings displaySettings theme selectedId Nothing 1 width Dict.empty
 
 
 {-| -}
-makeSettings : Render.Theme.Theme -> String -> Maybe String -> Float -> Int -> Dict String String -> RenderSettings
-makeSettings theme selectedId selectedSlug scale windowWidth data =
+makeSettings : DisplaySettings -> Render.Theme.Theme -> String -> Maybe String -> Float -> Int -> Dict String String -> RenderSettings
+makeSettings displaySettings theme selectedId selectedSlug scale windowWidth data =
     let
         titleSize =
             32

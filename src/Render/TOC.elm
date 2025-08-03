@@ -14,7 +14,7 @@ import Generic.Language exposing (ExprMeta, Expression, ExpressionBlock)
 import Library.Tree
 import List.Extra
 import Render.Expression
-import Render.Settings
+import Render.Settings exposing (DisplaySettings)
 import Render.TOCTree
 import Render.Theme
 import Render.Utility
@@ -22,8 +22,8 @@ import ScriptaV2.Config as Config
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
-viewWithTitle : Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
-viewWithTitle counter acc attr ast =
+viewWithTitle : DisplaySettings -> Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
+viewWithTitle displaySettings counter acc attr ast =
     let
         maximumLevel =
             case Dict.get "contentsdepth" acc.keyValueDict of
@@ -33,7 +33,7 @@ viewWithTitle counter acc attr ast =
                 Nothing ->
                     3
     in
-    prepareTOCWithTitle maximumLevel counter acc Render.Settings.defaultSettings attr ast
+    prepareTOCWithTitle maximumLevel counter acc (Render.Settings.defaultSettings displaySettings) attr ast
 
 
 view : Render.Theme.Theme -> Render.TOCTree.ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)

@@ -43,7 +43,7 @@ import Maybe.Extra
 import Render.Block
 import Render.Export.Check
 import Render.Export.LaTeX
-import Render.Settings
+import Render.Settings exposing (DisplaySettings)
 import Render.TOC
 import RoseTree.Tree as Tree
 import ScriptaV2.Msg exposing (MarkupMsg)
@@ -82,9 +82,9 @@ title =
 
 
 {-| -}
-viewToc : Int -> Accumulator -> List (Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
-viewToc counter acc attr ast =
-    Render.TOC.viewWithTitle counter acc attr ast
+viewToc : DisplaySettings -> Int -> Accumulator -> List (Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
+viewToc displaySettings counter acc attr ast =
+    Render.TOC.viewWithTitle displaySettings counter acc attr ast
 
 
 
