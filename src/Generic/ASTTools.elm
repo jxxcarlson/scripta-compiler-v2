@@ -2,6 +2,7 @@ module Generic.ASTTools exposing
     ( banner
     , blockNameInList
     , blockNames
+    , blockProperties
     , changeName
     , existsBlockWithName
     , exprListToStringList
@@ -43,6 +44,14 @@ import Library.Tree
 import List.Extra
 import Maybe.Extra
 import RoseTree.Tree as Tree exposing (Tree)
+
+
+blockProperties : List (Tree ExpressionBlock) -> String -> Dict String String
+blockProperties forest blockName =
+    forest
+        |> getBlockByName blockName
+        |> Maybe.map .properties
+        |> Maybe.withDefault Dict.empty
 
 
 normalize : Either String (List Expression) -> Either String (List Expression)

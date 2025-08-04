@@ -145,7 +145,7 @@ section count acc settings attr block =
         maxNumberedLevel =
             Dict.get "number-to-level" settings.properties
                 |> Maybe.andThen String.toFloat
-                |> Maybe.withDefault 3
+                |> Maybe.withDefault 0
 
         headingLevel : Float
         headingLevel =

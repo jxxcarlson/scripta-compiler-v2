@@ -194,7 +194,7 @@ viewTocItem_ theme viewParameters acc hasChildren ({ args, body, properties } as
                         nosectionNumeber =
                             Element.el [ Element.paddingEach { left = 8, right = 0, top = 0, bottom = 0 } ] (Element.text "-")
                     in
-                    case Dict.get "level" properties |> Maybe.andThen String.toInt of
+                    case Dict.get "number-to-level" properties |> Maybe.andThen String.toInt of
                         Nothing ->
                             nosectionNumeber
 
