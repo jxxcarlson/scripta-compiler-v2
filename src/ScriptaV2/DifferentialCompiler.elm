@@ -1,4 +1,7 @@
-module ScriptaV2.DifferentialCompiler exposing (EditRecord, init, update, renderEditRecord, messagesFromForest, editRecordToCompilerOutput)
+module ScriptaV2.DifferentialCompiler exposing
+    ( EditRecord, init, update, renderEditRecord, messagesFromForest, editRecordToCompilerOutput
+    , pp, toExprBlock
+    )
 
 {-|
 
@@ -16,7 +19,6 @@ import Element.Font as Font
 import Generic.ASTTools
 import Generic.Acc
 import Generic.BlockUtilities
-import Generic.Compiler
 import Generic.Forest exposing (Forest)
 import Generic.ForestTransform
 import Generic.Language exposing (ExpressionBlock, PrimitiveBlock)
@@ -39,6 +41,15 @@ import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.Settings
 import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
+
+
+
+{- For testing -}
+
+
+pp : String -> List ExpressionBlock
+pp str =
+    M.PrimitiveBlock.p str |> List.map (toExprBlock ScriptaV2.Language.EnclosureLang)
 
 
 {-| -}
