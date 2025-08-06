@@ -778,10 +778,10 @@ quote g acc s attr exprList =
             { begin = 0, end = 1, index = 0, id = "qq" }
 
         leftQuote =
-            String.fromChar '“'
+            String.fromChar '"'
 
         rightQuote =
-            String.fromChar '”'
+            String.fromChar '"'
     in
     Element.paragraph [] (List.map (render g acc s attr) (Text leftQuote meta :: exprList ++ [ Text rightQuote meta ]))
 
