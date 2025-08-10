@@ -1,8 +1,6 @@
 module ETeX.Transform exposing
     ( Deco(..)
-    , MacroBody(..)
     , MathExpr(..)
-    , MathMacroDict
     , evalStr
     , isUserDefinedMacro
     , macroDefString
@@ -24,6 +22,7 @@ module ETeX.Transform exposing
 import Dict exposing (Dict)
 import ETeX.Dictionary
 import ETeX.KaTeX exposing (isKaTeX)
+import ETeX.MathMacros exposing (MacroBody(..), MathMacroDict, NewCommand(..))
 import Generic.MathMacro
 import Maybe.Extra
 import Parser.Advanced as PA
@@ -84,18 +83,6 @@ type Deco
     | DecoI Int
 
 
-type NewCommand
-    = NewCommand MathExpr Int (List MathExpr)
-
-
-type MacroBody
-    = MacroBody Int (List MathExpr)
-
-
-type alias MathMacroDict =
-    Dict String MacroBody
-
-
 
 -- OTHER --
 
@@ -141,7 +128,9 @@ isUserDefinedMacro dict name =
 transformETeX_ userdefinedMacroDict src =
     src
         |> parseMany userdefinedMacroDict
+        |> Debug.log "(1) Parsed expressions"
         |> Result.map resolveSymbolNames
+        |> Debug.log "(2) Resolved symbol names"
 
 
 resolveSymbolNames : List MathExpr -> List MathExpr
@@ -342,7 +331,7 @@ expandMacroWithDict dict expr =
                                 -- For multi-argument macros, extract PArg elements separately
                                 extractMacroArgs args
                     in
-                    Expr (expandMacro_ (List.map (expandMacroWithDict dict) macroArgs) (MacroBody arity (List.map (expandMacroWithDict dict) exprs)))
+                    Expr (expandMacro_ (List.map (expandMacroWithDict dict) macroArgs) (MacroBody arity exprs))
 
         Arg exprs ->
             Arg (List.map (expandMacroWithDict dict) exprs)
@@ -429,7 +418,12 @@ expandMacroWithDict dict expr =
 -}
 expandMacro_ : List MathExpr -> MacroBody -> List MathExpr
 expandMacro_ args (MacroBody arity macroDefBody) =
-    replaceParams args macroDefBody
+    -- Convert ETeX.MathMacros.MathExpr to local MathExpr
+    let
+        localMacroDefBody =
+            List.map convertFromETeXMathExpr macroDefBody
+    in
+    replaceParams args localMacroDefBody
 
 
 replaceParam_ : Int -> MathExpr -> MathExpr -> MathExpr
@@ -1024,7 +1018,11 @@ addSimpleMacro line dict =
 
 convertToGenericMacroBody : MacroBody -> Generic.MathMacro.MacroBody
 convertToGenericMacroBody (MacroBody arity exprs) =
-    Generic.MathMacro.MacroBody arity (List.map convertToGenericMathExpr exprs)
+    let
+        localExprs =
+            List.map convertFromETeXMathExpr exprs
+    in
+    Generic.MathMacro.MacroBody arity (List.map convertToGenericMathExpr localExprs)
 
 
 
@@ -1123,8 +1121,206 @@ convertToGenericDeco deco =
 
 
 
+-- Convert local MathExpr to ETeX.MathMacros.MathExpr
+
+
+convertToETeXMathExpr : MathExpr -> ETeX.MathMacros.MathExpr
+convertToETeXMathExpr expr =
+    case expr of
+        AlphaNum str ->
+            ETeX.MathMacros.AlphaNum str
+
+        F0 str ->
+            ETeX.MathMacros.MacroName str
+
+        Param n ->
+            ETeX.MathMacros.Param n
+
+        WS ->
+            ETeX.MathMacros.WS
+
+        MathSpace ->
+            ETeX.MathMacros.MathSpace
+
+        MathSmallSpace ->
+            ETeX.MathMacros.MathSmallSpace
+
+        MathMediumSpace ->
+            ETeX.MathMacros.MathMediumSpace
+
+        LeftMathBrace ->
+            ETeX.MathMacros.LeftMathBrace
+
+        RightMathBrace ->
+            ETeX.MathMacros.RightMathBrace
+
+        MathSymbols str ->
+            ETeX.MathMacros.MathSymbols str
+
+        Arg exprs ->
+            ETeX.MathMacros.Arg (List.map convertToETeXMathExpr exprs)
+
+        PArg exprs ->
+            -- Convert to Arg since ETeX.MathMacros doesn't have PArg
+            ETeX.MathMacros.Arg (List.map convertToETeXMathExpr exprs)
+
+        ParenthExpr exprs ->
+            -- Convert to Expr since ETeX.MathMacros doesn't have ParenthExpr
+            ETeX.MathMacros.Expr (List.map convertToETeXMathExpr exprs)
+
+        Sub decoExpr ->
+            ETeX.MathMacros.Sub (convertToETeXDeco decoExpr)
+
+        Super decoExpr ->
+            ETeX.MathMacros.Super (convertToETeXDeco decoExpr)
+
+        Macro name args ->
+            ETeX.MathMacros.Macro name (List.map convertToETeXMathExpr args)
+
+        FCall name args ->
+            ETeX.MathMacros.Macro name (List.map convertToETeXMathExpr args)
+
+        Expr exprs ->
+            ETeX.MathMacros.Expr (List.map convertToETeXMathExpr exprs)
+
+        LeftParen ->
+            ETeX.MathMacros.LeftParen
+
+        RightParen ->
+            ETeX.MathMacros.RightParen
+
+        Comma ->
+            ETeX.MathMacros.Comma
+
+        Text str ->
+            ETeX.MathMacros.MathSymbols str
+
+
+
+-- Convert local Deco to ETeX.MathMacros.Deco
+
+
+convertToETeXDeco : Deco -> ETeX.MathMacros.Deco
+convertToETeXDeco deco =
+    case deco of
+        DecoM mathExpr ->
+            ETeX.MathMacros.DecoM (convertToETeXMathExpr mathExpr)
+
+        DecoI n ->
+            ETeX.MathMacros.DecoI n
+
+
+
+-- Convert ETeX.MathMacros.MathExpr to local MathExpr
+
+
+convertFromETeXMathExpr : ETeX.MathMacros.MathExpr -> MathExpr
+convertFromETeXMathExpr expr =
+    case expr of
+        ETeX.MathMacros.AlphaNum str ->
+            AlphaNum str
+
+        ETeX.MathMacros.MacroName str ->
+            F0 str
+
+        ETeX.MathMacros.FunctionName str ->
+            F0 str
+
+        ETeX.MathMacros.Param n ->
+            Param n
+
+        ETeX.MathMacros.WS ->
+            WS
+
+        ETeX.MathMacros.MathSpace ->
+            MathSpace
+
+        ETeX.MathMacros.MathSmallSpace ->
+            MathSmallSpace
+
+        ETeX.MathMacros.MathMediumSpace ->
+            MathMediumSpace
+
+        ETeX.MathMacros.LeftMathBrace ->
+            LeftMathBrace
+
+        ETeX.MathMacros.RightMathBrace ->
+            RightMathBrace
+
+        ETeX.MathMacros.MathSymbols str ->
+            MathSymbols str
+
+        ETeX.MathMacros.Arg exprs ->
+            Arg (List.map convertFromETeXMathExpr exprs)
+
+        ETeX.MathMacros.Sub decoExpr ->
+            Sub (convertFromETeXDeco decoExpr)
+
+        ETeX.MathMacros.Super decoExpr ->
+            Super (convertFromETeXDeco decoExpr)
+
+        ETeX.MathMacros.Macro name args ->
+            Macro name (List.map convertFromETeXMathExpr args)
+
+        ETeX.MathMacros.Expr exprs ->
+            Expr (List.map convertFromETeXMathExpr exprs)
+
+        ETeX.MathMacros.LeftParen ->
+            LeftParen
+
+        ETeX.MathMacros.RightParen ->
+            RightParen
+
+        ETeX.MathMacros.Comma ->
+            Comma
+
+
+
+-- Convert ETeX.MathMacros.Deco to local Deco
+
+
+convertFromETeXDeco : ETeX.MathMacros.Deco -> Deco
+convertFromETeXDeco deco =
+    case deco of
+        ETeX.MathMacros.DecoM mathExpr ->
+            DecoM (convertFromETeXMathExpr mathExpr)
+
+        ETeX.MathMacros.DecoI n ->
+            DecoI n
+
+
+
 -- Convert a dictionary of local MacroBody to MathMacroDict
 -- Helper to find the maximum parameter number in a macro body
+-- Helper to find max param in ETeX.MathMacros.MathExpr type
+
+
+findMaxParamInMathMacros : List ETeX.MathMacros.MathExpr -> Int
+findMaxParamInMathMacros exprs =
+    case exprs of
+        [] ->
+            0
+
+        (ETeX.MathMacros.Param n) :: rest ->
+            max n (findMaxParamInMathMacros rest)
+
+        (ETeX.MathMacros.Arg innerExprs) :: rest ->
+            max (findMaxParamInMathMacros innerExprs) (findMaxParamInMathMacros rest)
+
+        (ETeX.MathMacros.Macro _ args) :: rest ->
+            max (findMaxParamInMathMacros args) (findMaxParamInMathMacros rest)
+
+        (ETeX.MathMacros.Expr innerExprs) :: rest ->
+            max (findMaxParamInMathMacros innerExprs) (findMaxParamInMathMacros rest)
+
+        (ETeX.MathMacros.Sub (ETeX.MathMacros.DecoM expr)) :: rest ->
+            max (findMaxParamInMathMacros [ expr ]) (findMaxParamInMathMacros rest)
+
+        (ETeX.MathMacros.Super (ETeX.MathMacros.DecoM expr)) :: rest ->
+            max (findMaxParamInMathMacros [ expr ]) (findMaxParamInMathMacros rest)
+
+        _ :: rest ->
+            findMaxParamInMathMacros rest
 
 
 findMaxParam : List MathExpr -> Int
@@ -1164,16 +1360,20 @@ findMaxParam exprs =
             findMaxParam rest
 
 
-makeEntry : Result error NewCommand -> Maybe ( String, MacroBody )
+makeEntry : Result error ETeX.MathMacros.NewCommand -> Maybe ( String, MacroBody )
 makeEntry newCommand_ =
     case newCommand_ of
-        Ok (NewCommand (F0 name) _ [ Arg body ]) ->
-            -- Deduce arity from the highest parameter number in the body
+        Ok (ETeX.MathMacros.NewCommand (ETeX.MathMacros.MacroName name) arity [ ETeX.MathMacros.Arg body ]) ->
+            -- Use the arity from the NewCommand or deduce from parameters
             let
                 deducedArity =
-                    findMaxParam body
+                    if arity > 0 then
+                        arity
+
+                    else
+                        findMaxParamInMathMacros body
             in
-            Just ( name, MacroBody deducedArity body )
+            Just ( name, ETeX.MathMacros.MacroBody deducedArity body )
 
         _ ->
             Nothing
@@ -1487,7 +1687,7 @@ commaParser =
 
 newCommandParser1 : MathMacroDict -> PA.Parser Context Problem NewCommand
 newCommandParser1 userMacroDict =
-    succeed (\name arity body -> NewCommand name arity body)
+    succeed (\name arity body -> NewCommand (convertToETeXMathExpr name) arity (List.map convertToETeXMathExpr body))
         |. symbol (Token "\\newcommand" ExpectingNewCommand)
         |. symbol (Token "{" ExpectingLeftBrace)
         |= f0Parser
@@ -1498,7 +1698,7 @@ newCommandParser1 userMacroDict =
 
 newCommandParser2 : MathMacroDict -> PA.Parser Context Problem NewCommand
 newCommandParser2 userMacroDict =
-    succeed (\name body -> NewCommand name 0 body)
+    succeed (\name body -> NewCommand (convertToETeXMathExpr name) 0 (List.map convertToETeXMathExpr body))
         |. symbol (Token "\\newcommand" ExpectingNewCommand)
         |. symbol (Token "{" ExpectingLeftBrace)
         |= f0Parser
@@ -1508,7 +1708,7 @@ newCommandParser2 userMacroDict =
 
 newCommandParser3 : MathMacroDict -> PA.Parser Context Problem NewCommand
 newCommandParser3 userMacroDict =
-    succeed (\name body -> NewCommand name 0 body)
+    succeed (\name body -> NewCommand (convertToETeXMathExpr name) 0 (List.map convertToETeXMathExpr body))
         |. symbol (Token "\\newcommand" ExpectingNewCommand)
         |. symbol (Token "{" ExpectingLeftBrace)
         |= f0Parser
@@ -1604,11 +1804,18 @@ numericDecoParser =
 
 
 printNewCommand (NewCommand mathExpr arity body) =
+    let
+        localMathExpr =
+            convertFromETeXMathExpr mathExpr
+
+        localBody =
+            List.map convertFromETeXMathExpr body
+    in
     if arity == 0 then
-        "\\newcommand" ++ enclose (print mathExpr) ++ printList body
+        "\\newcommand" ++ enclose (print localMathExpr) ++ printList localBody
 
     else
-        "\\newcommand" ++ enclose (print mathExpr) ++ "[" ++ String.fromInt arity ++ "]" ++ printList body
+        "\\newcommand" ++ enclose (print localMathExpr) ++ "[" ++ String.fromInt arity ++ "]" ++ printList localBody
 
 
 printList : List MathExpr -> String

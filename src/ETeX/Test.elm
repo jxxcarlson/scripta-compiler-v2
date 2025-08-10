@@ -1,7 +1,10 @@
-module ETeX.Test exposing (..)
+module ETeX.Test exposing (transform)
 
-import ETeX.Transform exposing (..)
-import Generic.MathMacro
+import ETeX.Transform exposing (makeMacroDict, transformETeX)
+
+
+transform str =
+    transformETeX (makeMacroDict data |> Debug.log "MacroDict") str
 
 
 data =
@@ -12,7 +15,3 @@ space:    reals^(#1)
 set:      \\{ #1 \\}
 sett:     \\{\\ #1 \\ | \\ #2 \\ \\}
 """
-
-
-macroDict =
-    Generic.MathMacro.makeMacroDict data

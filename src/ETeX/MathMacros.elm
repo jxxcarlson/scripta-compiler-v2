@@ -4,6 +4,7 @@ module ETeX.MathMacros exposing
     , MacroBody(..)
     , MathExpr(..)
     , MathMacroDict
+    , NewCommand(..)
     , Problem(..)
     , evalStr
     , getArgList
@@ -310,7 +311,7 @@ replaceParams replacementList target =
     List.foldl (\( k, replacement ) acc -> replaceParam (k + 1) replacement acc) target (List.indexedMap (\k item -> ( k, item )) replacementList)
 
 
-makeMacroDict : String -> Dict String MacroBody
+makeMacroDict : String -> MathMacroDict
 makeMacroDict str =
     str
         |> String.trim
@@ -320,7 +321,7 @@ makeMacroDict str =
         |> Dict.fromList
 
 
-makeMacroDictFromLines : List String -> Dict String MacroBody
+makeMacroDictFromLines : List String -> MathMacroDict
 makeMacroDictFromLines lines_ =
     lines_
         |> List.map (parseNewCommand >> makeEntry)

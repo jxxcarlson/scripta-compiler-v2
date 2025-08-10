@@ -44,6 +44,7 @@ module Generic.Acc exposing
 
 import Array exposing (Array)
 import Dict exposing (Dict)
+import ETeX.MathMacros
 import ETeX.Transform
 import Either exposing (Either(..))
 import Generic.ASTTools
@@ -85,7 +86,7 @@ type alias Accumulator =
     , terms : Dict String TermLoc
     , footnotes : Dict String TermLoc2
     , footnoteNumbers : Dict String Int
-    , mathMacroDict : ETeX.Transform.MathMacroDict
+    , mathMacroDict : ETeX.MathMacros.MathMacroDict
     , textMacroDict : Dict String Macro
     , keyValueDict : Dict String String
     , qAndAList : List ( String, String )

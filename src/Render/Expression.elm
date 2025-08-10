@@ -1,6 +1,7 @@
 module Render.Expression exposing (hd, nonstandardElements, render)
 
 import Dict exposing (Dict)
+import ETeX.MathMacros
 import ETeX.Transform
 import Element exposing (Element, column, el, newTabLink, spacing)
 import Element.Background as Background
@@ -55,7 +56,7 @@ render generation acc settings attrs expr =
                 ]
 
 
-renderVerbatim : String -> Int -> { a | mathMacroDict : ETeX.Transform.MathMacroDict } -> RenderSettings -> { b | id : String } -> String -> Element msg
+renderVerbatim : String -> Int -> { a | mathMacroDict : ETeX.MathMacros.MathMacroDict } -> RenderSettings -> { b | id : String } -> String -> Element msg
 renderVerbatim name generation acc settings meta str =
     case Dict.get name verbatimDict of
         Nothing ->
@@ -486,14 +487,14 @@ code g a s m str =
     verbatimElement s (codeStyle s) m str
 
 
-math : Int -> { a | mathMacroDict : ETeX.Transform.MathMacroDict } -> Render.Settings.RenderSettings -> { b | id : String } -> String -> Element msg
+math : Int -> { a | mathMacroDict : ETeX.MathMacros.MathMacroDict } -> Render.Settings.RenderSettings -> { b | id : String } -> String -> Element msg
 math g a s m str =
     Element.el
         (Render.Sync.highlightIfIdSelected m.id s [])
         (mathElement g a s m str)
 
 
-chem : Int -> { a | mathMacroDict : ETeX.Transform.MathMacroDict } -> Render.Settings.RenderSettings -> { b | id : String } -> String -> Element msg
+chem : Int -> { a | mathMacroDict : ETeX.MathMacros.MathMacroDict } -> Render.Settings.RenderSettings -> { b | id : String } -> String -> Element msg
 chem g a s m str =
     Element.el
         (Render.Sync.highlightIfIdSelected m.id s [])

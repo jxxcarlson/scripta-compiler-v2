@@ -7,6 +7,7 @@ module Render.Export.LaTeX exposing (export, exportExpr, rawExport)
 -}
 
 import Dict exposing (Dict)
+import ETeX.MathMacros
 import ETeX.Transform
 import Either exposing (Either(..))
 import Generic.ASTTools as ASTTools
@@ -204,7 +205,7 @@ shiftSection delta block =
         block
 
 
-exportTree : ETeX.Transform.MathMacroDict -> RenderSettings -> Tree ExpressionBlock -> String
+exportTree : ETeX.MathMacros.MathMacroDict -> RenderSettings -> Tree ExpressionBlock -> String
 exportTree mathMacroDict settings tree =
     case Tree.children tree of
         [] ->
@@ -445,7 +446,7 @@ nextState tree state =
             { state | output = tree :: state.output, input = List.drop 1 state.input }
 
 
-exportBlock : ETeX.Transform.MathMacroDict -> RenderSettings -> ExpressionBlock -> String
+exportBlock : ETeX.MathMacros.MathMacroDict -> RenderSettings -> ExpressionBlock -> String
 exportBlock mathMacroDict settings block =
     case block.heading of
         Paragraph ->
@@ -708,7 +709,7 @@ fixChars str =
     str |> String.replace "{" "\\{" |> String.replace "}" "\\}"
 
 
-renderDefs : ETeX.Transform.MathMacroDict -> RenderSettings -> List Expression -> String
+renderDefs : ETeX.MathMacros.MathMacroDict -> RenderSettings -> List Expression -> String
 renderDefs mathMacroDict settings exprs =
     "%% Macro definitions from Markup text:\n"
         ++ exportExprList mathMacroDict settings exprs
@@ -1077,13 +1078,13 @@ macro1 name arg =
                 "\\" ++ fName ++ "{" ++ mapChars2 (String.trimLeft arg) ++ "}"
 
 
-exportExprList : ETeX.Transform.MathMacroDict -> RenderSettings -> List Expression -> String
+exportExprList : ETeX.MathMacros.MathMacroDict -> RenderSettings -> List Expression -> String
 exportExprList mathMacroDict settings exprs =
     List.map (exportExpr mathMacroDict settings) exprs |> String.join "" |> mapChars1
 
 
 {-| -}
-exportExpr : ETeX.Transform.MathMacroDict -> RenderSettings -> Expression -> String
+exportExpr : ETeX.MathMacros.MathMacroDict -> RenderSettings -> Expression -> String
 exportExpr mathMacroDict settings expr =
     case expr of
         Fun name exps_ _ ->
@@ -1139,7 +1140,7 @@ encloseWithBraces str_ =
     "{" ++ String.trim str_ ++ "}"
 
 
-renderVerbatim : ETeX.Transform.MathMacroDict -> String -> String -> String
+renderVerbatim : ETeX.MathMacros.MathMacroDict -> String -> String -> String
 renderVerbatim mathMacroDict name body =
     case Dict.get name verbatimExprDict of
         Nothing ->
