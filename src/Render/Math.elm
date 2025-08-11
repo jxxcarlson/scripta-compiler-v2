@@ -117,10 +117,9 @@ equation count acc settings attrs block =
                 |> List.map String.trimRight
                 |> List.filter (\line -> not (String.left 2 line == "$$") && not (String.left 6 line == "[label") && not (line == "end"))
                 |> List.map (ETeX.Transform.evalStr acc.mathMacroDict)
-                |> List.map evalMacro
 
         content =
-            String.join "\n" filteredLines |> ETeX.Transform.transformETeX acc.mathMacroDict
+            String.join "\n" filteredLines
 
         label : Element msg
         label =
