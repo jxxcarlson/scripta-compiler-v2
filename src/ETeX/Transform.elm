@@ -1812,10 +1812,10 @@ printNewCommand (NewCommand mathExpr arity body) =
             List.map convertFromETeXMathExpr body
     in
     if arity == 0 then
-        "\\newcommand" ++ enclose (print localMathExpr) ++ printList localBody
+        "\\newcommand" ++ encloseB (print localMathExpr) ++ printList localBody
 
     else
-        "\\newcommand" ++ enclose (print localMathExpr) ++ "[" ++ String.fromInt arity ++ "]" ++ printList localBody
+        "\\newcommand" ++ encloseB (print localMathExpr) ++ "[" ++ String.fromInt arity ++ "]" ++ printList localBody
 
 
 printList : List MathExpr -> String
@@ -1867,7 +1867,7 @@ print expr =
             "#" ++ String.fromInt k
 
         Arg exprs ->
-            enclose (printList exprs)
+            encloseB (printList exprs)
 
         PArg exprs ->
             encloseP (printList exprs)
@@ -1890,11 +1890,11 @@ print expr =
             case body of
                 [ PArg exprs ] ->
                     -- Single argument in parentheses: convert to braces
-                    "\\" ++ name ++ enclose (printList exprs)
+                    "\\" ++ name ++ encloseB (printList exprs)
 
                 [ ParenthExpr exprs ] ->
                     -- Convert parentheses to braces for macro
-                    "\\" ++ name ++ enclose (printList exprs)
+                    "\\" ++ name ++ encloseB (printList exprs)
 
                 _ ->
                     -- Multiple arguments or complex case
@@ -1961,8 +1961,8 @@ manyHelp p vs =
         ]
 
 
-enclose : String -> String
-enclose str =
+encloseB : String -> String
+encloseB str =
     "{" ++ str ++ "}"
 
 
@@ -2005,13 +2005,13 @@ printMacroArgs exprs =
             ""
 
         [ PArg contents ] ->
-            enclose (printList contents)
+            encloseB (printList contents)
 
         (PArg contents) :: Comma :: rest ->
-            enclose (printList contents) ++ printMacroArgs rest
+            encloseB (printList contents) ++ printMacroArgs rest
 
         (PArg contents) :: rest ->
-            enclose (printList contents) ++ printMacroArgs rest
+            encloseB (printList contents) ++ printMacroArgs rest
 
         other :: rest ->
             print other ++ printMacroArgs rest
