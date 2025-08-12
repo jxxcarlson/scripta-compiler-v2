@@ -9,3 +9,7 @@ syncHighlightColor =
 
 defaultIndentWidth =
     12
+
+
+titleFontSize =
+    32
