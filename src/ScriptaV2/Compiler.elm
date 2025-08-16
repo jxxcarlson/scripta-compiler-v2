@@ -121,7 +121,8 @@ header compiled =
 {-| -}
 body : CompilerOutput -> Element MarkupMsg
 body compiled =
-    Element.column [ Element.spacing 18, Element.moveUp 76 ] compiled.body
+    -- Element.column [ Element.spacing 18, Element.moveUp 156 ] compiled.body
+    Element.column [ Element.spacing 18, Element.alignTop ] compiled.body
 
 
 {-| -}
