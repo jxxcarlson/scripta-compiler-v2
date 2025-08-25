@@ -38,14 +38,15 @@ render generation acc settings attrs expr =
     in
     case expr of
         Text string meta ->
-            Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ] ++ attrs) (Element.text string)
+            Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ] ++ attrs) (Element.text (string ++ " "))
 
         Fun name exprList meta ->
             if List.member name [ "chem", "math", "code" ] then
                 renderVerbatim name generation acc settings meta (ASTTools.exprListToStringList exprList |> String.join " ")
 
             else
-                Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ]) (renderMarked name generation acc settings attrs exprList)
+                Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ])
+                    (renderMarked name generation acc settings attrs exprList)
 
         VFun name str meta ->
             -- TODO: Events.onClick (SendMeta meta)?
