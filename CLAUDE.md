@@ -89,3 +89,4 @@ cloc --by-file --exclude-dir=Evergreen src/ compiler/
 - The compiler supports differential compilation for efficient live editing
 - Interactive blocks include charts (terezka/elm-charts), tables, and iframes
 - Theme support allows customizing the rendered output appearance
+- When I say "show me the code", display a snippet of the code and its module name and line numbers

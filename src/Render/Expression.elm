@@ -477,6 +477,7 @@ cite acc attr str =
          -- , Events.onClick (SendLineNumber _)
          , Events.onClick (SelectId id)
          , Font.color (Element.rgb 0.2 0.2 1.0)
+         , Font.bold
          ]
             ++ attr
         )
