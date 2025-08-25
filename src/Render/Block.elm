@@ -65,7 +65,11 @@ renderParagraphBody : Int -> Accumulator -> RenderSettings -> List (Element.Attr
 renderParagraphBody count acc settings attrs block =
     case block.body of
         Right exprs ->
-            Element.paragraph (Render.Helper.htmlId block.meta.id :: Element.width (Element.px settings.width) :: attrs)
+            Element.paragraph
+                (Render.Helper.htmlId block.meta.id
+                    :: Element.width (Element.px settings.width)
+                    :: attrs
+                )
                 (List.map (Render.Expression.render count acc settings attrs) exprs)
 
         Left _ ->
