@@ -125,8 +125,8 @@ markupDict =
         , ( "boldItalic", \g acc s attr exprList -> boldItalic g acc s attr exprList )
         , ( "strike", \g acc s attr exprList -> strike g acc s attr exprList )
         , ( "underscore", \g acc s attr exprList -> underscore g acc s attr exprList )
-        , ( "ref", \_ acc _ attr exprList -> ref acc exprList )
-        , ( "reflink", \_ acc _ attr exprList -> reflink acc exprList )
+        , ( "ref", \_ acc settings attr exprList -> ref acc settings exprList )
+        , ( "reflink", \_ acc s attr exprList -> reflink s acc exprList )
         , ( "eqref", \_ acc s attr exprList -> eqref acc s exprList )
         , ( "underline", \g acc s attr exprList -> underline g acc s attr exprList )
         , ( "u", \g acc s attr exprList -> underline g acc s attr exprList )
@@ -894,8 +894,7 @@ colorDict =
         ]
 
 
-ref : Accumulator -> List Expression -> Element MarkupMsg
-ref acc exprList =
+ref acc settings exprList =
     let
         key =
             -- TODO: review the change below. Is it really OK to not squeeze the hyphens?
@@ -912,8 +911,8 @@ ref acc exprList =
             ref_ |> Maybe.map .id |> Maybe.withDefault "no-id"
     in
     Element.link
-        [ Font.color (Element.rgb 0 0 0.7)
-        , Font.bold
+        [ Font.color settings.linkColor
+        , Font.semiBold
         , Events.onClick (SelectId id)
         ]
         { url = Utility.internalLink id
@@ -926,8 +925,8 @@ ref acc exprList =
     \reflink{LINK_TEXT LABEL}
 
 -}
-reflink : Accumulator -> List Expression -> Element MarkupMsg
-reflink acc exprList =
+reflink : RenderSettings -> Accumulator -> List Expression -> Element MarkupMsg
+reflink settings acc exprList =
     let
         argString =
             List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join " "
@@ -951,7 +950,8 @@ reflink acc exprList =
             ref_ |> Maybe.map .id |> Maybe.withDefault ""
     in
     Element.link
-        [ Font.color (Element.rgb 0 0 0.7)
+        [ Font.color settings.linkColor
+        , Font.semiBold
         , Events.onClick (SelectId id)
         ]
         { url = Utility.internalLink id
