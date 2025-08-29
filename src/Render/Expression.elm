@@ -12,7 +12,6 @@ import Element.Input as Input
 import Generic.ASTTools as ASTTools
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expr(..), Expression)
-import Generic.MathMacro
 import Html
 import Html.Attributes
 import List.Extra
@@ -191,6 +190,7 @@ markupDict =
         , ( "inlineimage", \_ _ s attr exprList -> Render.Graphics.inlineimage s attr exprList )
         , ( "tags", \_ _ _ _ _ -> Element.none )
         , ( "quote", quote )
+        , ( "anchor", anchor )
         , ( "vspace", vspace )
         , ( "break", vspace )
         , ( "//", par )
@@ -788,6 +788,35 @@ quote g acc s attr exprList =
             String.fromChar '"'
     in
     Element.paragraph [] (List.map (render g acc s attr) (Text leftQuote meta :: exprList ++ [ Text rightQuote meta ]))
+
+
+anchor : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
+anchor g acc s attr exprList =
+    let
+        foo : Maybe Generic.Language.ExprMeta
+        foo =
+            Maybe.map Generic.Language.getMeta (List.head exprList)
+
+        bar : Maybe String
+        bar =
+            Maybe.map .id foo
+
+        _ =
+            Debug.log "@@byIdentifierCmdWithFragment(8,anchor)" ( s.selectedId, bar, foo )
+
+        bgColor =
+            case List.head exprList of
+                Nothing ->
+                    Element.rgb 1 0 0
+
+                Just expr ->
+                    if s.selectedId == (Generic.Language.getMeta expr).id then
+                        Element.rgb 1 0.5 0.5
+
+                    else
+                        Element.rgb 0.8 0.8 0.8
+    in
+    Element.paragraph [ Font.underline, Background.color bgColor ] (List.map (render g acc s attr) exprList)
 
 
 qed _ _ _ _ _ =
