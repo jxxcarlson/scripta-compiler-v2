@@ -41,7 +41,7 @@ toExpressionBlock_ parse block =
 
                     content_ : List (List Expression)
                     content_ =
-                        List.map (M.Expression.parse 0) items
+                        List.map parse items
                 in
                 Right (List.map (\list -> ExprList list Generic.Language.emptyExprMeta) content_)
 

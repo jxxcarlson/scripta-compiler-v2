@@ -23,6 +23,7 @@ import Render.Html.Math
 import Render.Math
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
+import Render.Theme
 import Render.ThemeHelpers
 import Render.Utility as Utility
 import ScriptaV2.Msg exposing (MarkupMsg(..))
@@ -804,19 +805,31 @@ anchor g acc s attr exprList =
         _ =
             Debug.log "@@byIdentifierCmdWithFragment(8,anchor)" ( s.selectedId, bar, foo )
 
-        bgColor =
+        bg =
             case List.head exprList of
                 Nothing ->
-                    Element.rgb 1 0 0
+                    Background.color (Element.rgba 0 0 1 0.5)
 
                 Just expr ->
                     if s.selectedId == (Generic.Language.getMeta expr).id then
-                        Element.rgb 1 0.5 0.5
+                        case s.theme of
+                            Render.Theme.Dark ->
+                                Background.color (Element.rgba 0 1 1 0.2)
+
+                            Render.Theme.Light ->
+                                Background.color (Element.rgba 0 1 1 0.1)
 
                     else
-                        Element.rgb 0.8 0.8 0.8
+                        Background.color
+                            (case s.theme of
+                                Render.Theme.Dark ->
+                                    Element.rgba 0.4 0.4 0.4 0.5
+
+                                Render.Theme.Light ->
+                                    Element.rgba 0.92 0.95 0.95 0.5
+                            )
     in
-    Element.paragraph [ Font.underline, Background.color bgColor ] (List.map (render g acc s attr) exprList)
+    Element.paragraph [ Font.underline ] (List.map (render g acc s (attr ++ [ bg ])) exprList)
 
 
 qed _ _ _ _ _ =
