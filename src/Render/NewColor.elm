@@ -11,7 +11,7 @@ module Render.NewColor exposing
     , whiteAlpha100, whiteAlpha200, whiteAlpha300, whiteAlpha400, whiteAlpha500, whiteAlpha600, whiteAlpha700, whiteAlpha800, whiteAlpha900
     , blackAlpha100, blackAlpha200, blackAlpha300, blackAlpha400, blackAlpha500, blackAlpha600, blackAlpha700, blackAlpha800, blackAlpha900
     , setOpacity, toCssColor
-    , indigo150, transparentIndigo500
+    , indigo150, indigo175, transparentIndigo500
     )
 
 {-| A native macOS-inspired color system with professional, subtle tones.
@@ -505,6 +505,11 @@ indigo100 =
 indigo150 : Color
 indigo150 =
     rgba 0.93 0.94 0.98 1
+
+
+indigo175 : Color
+indigo175 =
+    rgba 0.88 0.89 0.95 0.5
 
 
 indigo200 : Color

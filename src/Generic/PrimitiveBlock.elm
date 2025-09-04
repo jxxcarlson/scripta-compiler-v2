@@ -69,8 +69,27 @@ type alias State =
 finalize : PrimitiveBlock -> PrimitiveBlock
 finalize block =
     let
-        content =
+        content_ =
             List.reverse block.body
+
+        content =
+            case block.heading of
+                Verbatim "equation" ->
+                    addLabel content_
+
+                Verbatim "aligned" ->
+                    addLabel content_
+
+                _ ->
+                    content_
+
+        addLabel content__ =
+            case Dict.get "label" block.properties of
+                Just lbl ->
+                    ("\\label{" ++ lbl ++ "}") :: content__
+
+                Nothing ->
+                    content__
 
         sourceText =
             if block.heading /= Paragraph then
@@ -100,8 +119,20 @@ finalize block =
 
                 _ ->
                     block.properties
+
+        args =
+            case Dict.get "label" properties of
+                Just _ ->
+                    if List.member "numbered" block.args then
+                        block.args
+
+                    else
+                        "numbered" :: block.args
+
+                Nothing ->
+                    block.args
     in
-    { block | properties = properties, body = content, meta = newMeta }
+    { block | args = args, properties = properties, body = content, meta = newMeta }
 
 
 {-|

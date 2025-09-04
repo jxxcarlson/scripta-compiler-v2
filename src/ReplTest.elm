@@ -147,6 +147,10 @@ equal to the angle $beta$ of the reflected ray $PB$.
 """
 
 
+t7 =
+    "| equation numbered label:foo-bar\nx^ = y^2 + z^2\n"
+
+
 
 -- http://localhost:8007/g/jxxcarlson:remarks-on-optics-test#highlight=e-9.0
 -- http://localhost:8007/g/jxxcarlson:remarks-on-optics-test
