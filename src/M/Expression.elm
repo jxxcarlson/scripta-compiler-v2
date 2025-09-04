@@ -7,6 +7,7 @@ module M.Expression exposing
     , parseToState
     , parseWithMessages
     , reduceTokens
+    , t1
     )
 
 import Generic.Language exposing (Expr(..), ExprMeta, Expression)
@@ -17,6 +18,20 @@ import M.Tokenizer as Token exposing (Token, TokenType(..), Token_(..))
 import ScriptaV2.Config as Config
 import Tools.Loop exposing (Step(..), loop)
 import Tools.ParserHelpers as Helpers
+
+
+t1 =
+    """
+ The notion of entropy stems from the observation that
+ early steam engines were grossly inefficient: a large
+ input of heat energy resulted in a small output of
+ mechanical energy. The efficiency of the Newcomen engine,
+ discussed in section [ref heat-engines] below was estimated
+ to be only $0.02\\%$! [anchor The first
+ forward step in understanding
+ the cause] of this poor result came from Sadi Carnot
+ in 1824.  He defined efficiency of a heat engine as
+ """
 
 
 

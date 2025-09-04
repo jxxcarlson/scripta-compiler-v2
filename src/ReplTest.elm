@@ -25,6 +25,17 @@ t =
     "abc\ndef\n\nXYZ"
 
 
+t1 =
+    """
+ONE
+
+TWO
+
+[anchor one two three]
+YADA YADA YADA
+"""
+
+
 t2 =
     """
 The notion of entropy stems from the observation that
@@ -48,6 +59,12 @@ t3 =
     """
 | title
 Remarks on Optics (Test)
+
+aaa
+
+bbb
+
+ccc
 
 [tags jxxcarlson:remarks-on-optics-test]
 
@@ -116,6 +133,17 @@ beginning with Roman Aliexandria in the period 10 to 200 CE.
   
 Egypt came under Roman rule after the defeat of Cleopatra
 by Marc Antony in the battle of Actium in 30 BCE.
+"""
+
+
+t6 =
+    """
+Ho ho ho! [anchor Our first real phyiscal theory goes back to Hero of 
+Alexandria (10-70 CE)], A mathematican and engineer who 
+explained in precise terms the law that governs 
+reflection in a mirror: as in Figure 1 below,
+the angle of incidence $alpha$ of a light ray $AP$ is 
+equal to the angle $beta$ of the reflected ray $PB$.
 """
 
 

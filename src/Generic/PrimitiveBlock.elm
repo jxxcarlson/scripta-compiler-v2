@@ -344,9 +344,14 @@ commitBlock state currentLine =
         Just block__ ->
             let
                 block_ =
+                    let
+                        id =
+                            (state.lineNumber |> String.fromInt) ++ "-" ++ String.fromInt state.blocksCommitted
+                    in
                     block__
-                        |> Generic.BlockUtilities.updateMeta (\m -> { m | id = state.idPrefix ++ "-" ++ String.fromInt state.blocksCommitted })
+                        |> Generic.BlockUtilities.updateMeta (\m -> { m | id = id })
                         |> Generic.BlockUtilities.updateMeta (\m -> { m | numberOfLines = List.length block__.body })
+                        |> (\b -> { b | properties = Dict.insert "outerId" id b.properties })
 
                 block =
                     case block_.heading of

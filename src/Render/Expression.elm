@@ -44,6 +44,49 @@ render generation acc settings attrs expr =
             if List.member name [ "chem", "math", "code" ] then
                 renderVerbatim name generation acc settings meta (ASTTools.exprListToStringList exprList |> String.join " ")
 
+            else if name == "anchor" then
+                let
+                    _ =
+                        Debug.log "@@ANCHOR-Fun-meta" ( name, meta )
+                    
+                    -- Check if the anchor's own ID matches selectedId
+                    anchorIdMatches =
+                        settings.selectedId == meta.id
+                    
+                    -- Get all IDs from the content
+                    contentIds =
+                        List.map (Generic.Language.getMeta >> .id) exprList
+                    
+                    -- Check if any content ID matches selectedId
+                    contentIdMatches =
+                        List.member settings.selectedId contentIds
+                    
+                    -- Highlight if either the anchor ID or any content ID matches
+                    shouldHighlight =
+                        anchorIdMatches || contentIdMatches
+                    
+                    _ =
+                        Debug.log "@@ANCHOR-highlight-check" 
+                            { selectedId = settings.selectedId
+                            , anchorId = meta.id
+                            , contentIds = contentIds
+                            , shouldHighlight = shouldHighlight
+                            }
+                    
+                    highlightAttr =
+                        if shouldHighlight then
+                            case settings.theme of
+                                Render.Theme.Dark ->
+                                    Background.color (Element.rgba 0 1 1 0.2)
+                                
+                                Render.Theme.Light ->
+                                    Background.color (Element.rgba 0 1 1 0.1)
+                        else
+                            background
+                in
+                Element.el (highlightAttr :: [ Events.onClick (SendMeta meta), htmlId meta.id ])
+                    (renderMarked name generation acc settings attrs exprList)
+
             else
                 Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ])
                     (renderMarked name generation acc settings attrs exprList)
@@ -68,6 +111,7 @@ renderVerbatim name generation acc settings meta str =
             f generation acc settings meta str
 
 
+renderMarked : String -> Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
 renderMarked name generation acc settings attrs exprList =
     case Dict.get name markupDict of
         Nothing ->
@@ -793,43 +837,9 @@ quote g acc s attr exprList =
 
 anchor : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
 anchor g acc s attr exprList =
-    let
-        foo : Maybe Generic.Language.ExprMeta
-        foo =
-            Maybe.map Generic.Language.getMeta (List.head exprList)
-
-        bar : Maybe String
-        bar =
-            Maybe.map .id foo
-
-        _ =
-            Debug.log "@@byIdentifierCmdWithFragment(8,anchor)" ( s.selectedId, bar, foo )
-
-        bg =
-            case List.head exprList of
-                Nothing ->
-                    Background.color (Element.rgba 0 0 1 0.5)
-
-                Just expr ->
-                    if s.selectedId == (Generic.Language.getMeta expr).id then
-                        case s.theme of
-                            Render.Theme.Dark ->
-                                Background.color (Element.rgba 0 1 1 0.2)
-
-                            Render.Theme.Light ->
-                                Background.color (Element.rgba 0 1 1 0.1)
-
-                    else
-                        Background.color
-                            (case s.theme of
-                                Render.Theme.Dark ->
-                                    Element.rgba 0.4 0.4 0.4 0.5
-
-                                Render.Theme.Light ->
-                                    Element.rgba 0.92 0.95 0.95 0.5
-                            )
-    in
-    Element.paragraph [ Font.underline ] (List.map (render g acc s (attr ++ [ bg ])) exprList)
+    -- The highlighting is now handled at the Fun level in the render function
+    -- This function just renders the anchor content with underline
+    Element.paragraph [ Font.underline ] (List.map (render g acc s attr) exprList)
 
 
 qed _ _ _ _ _ =

@@ -11,7 +11,7 @@ import Tools.Utility
 
 toExpressionBlock : (Int -> String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
 toExpressionBlock parser block =
-    toExpressionBlock_ (parser block.meta.lineNumber) block
+    toExpressionBlock_ (parser (block.meta.lineNumber |> Debug.log "@@LINE")) block
         |> Generic.Language.boostBlock
 
 
@@ -20,23 +20,23 @@ toExpressionBlock parser block =
 
 
 toExpressionBlock_ : (String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
-toExpressionBlock_ parse block =
-    { heading = block.heading
-    , indent = block.indent
-    , args = block.args
+toExpressionBlock_ parse primitiveBlock =
+    { heading = primitiveBlock.heading
+    , indent = primitiveBlock.indent
+    , args = primitiveBlock.args
     , properties =
-        block.properties |> Dict.insert "id" block.meta.id
-    , firstLine = block.firstLine
+        primitiveBlock.properties |> Dict.insert "id" primitiveBlock.meta.id
+    , firstLine = primitiveBlock.firstLine
     , body =
-        case block.heading of
+        case primitiveBlock.heading of
             Paragraph ->
-                Right (String.join "\n" block.body |> parse)
+                Right (String.join "\n" primitiveBlock.body |> parse)
 
             Ordinary "itemList" ->
                 let
                     items : List String
                     items =
-                        (block.firstLine :: block.body)
+                        (primitiveBlock.firstLine :: primitiveBlock.body)
                             |> fixItems
 
                     content_ : List (List Expression)
@@ -49,9 +49,10 @@ toExpressionBlock_ parse block =
                 let
                     items : List String
                     items =
-                        (block.firstLine :: block.body)
+                        (primitiveBlock.firstLine :: primitiveBlock.body)
                             |> fixNumberedItems
 
+                    -- Generic.Language.getMeta block)
                     content_ : List (List Expression)
                     content_ =
                         List.map (M.Expression.parse 0) items
@@ -59,12 +60,12 @@ toExpressionBlock_ parse block =
                 Right (List.map (\list -> ExprList list Generic.Language.emptyExprMeta) content_)
 
             Ordinary _ ->
-                Right (String.join "\n" block.body |> parse)
+                Right (String.join "\n" primitiveBlock.body |> parse)
 
             Verbatim _ ->
-                Left <| String.join "\n" block.body
-    , meta = block.meta
-    , style = block.style
+                Left <| String.join "\n" primitiveBlock.body
+    , meta = primitiveBlock.meta
+    , style = primitiveBlock.style
     }
 
 
