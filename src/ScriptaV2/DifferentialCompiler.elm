@@ -13,7 +13,7 @@ import Dict exposing (Dict)
 import Differential.AbstractDifferentialParser
 import Differential.Differ
 import Differential.Utility
-import Either exposing (Either)
+import Either exposing (Either(..))
 import Element exposing (Element)
 import Element.Font as Font
 import Generic.ASTTools
@@ -310,6 +310,10 @@ chunker lang str =
         SMarkdownLang ->
             XMarkdown.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
 
+        MarkdownLang ->
+            -- Standard Markdown doesn't use primitive blocks
+            []
+
 
 toExprBlock : Language -> PrimitiveBlock -> ExpressionBlock
 toExprBlock lang =
@@ -322,3 +326,16 @@ toExprBlock lang =
 
         SMarkdownLang ->
             Generic.Pipeline.toExpressionBlock XMarkdown.Expression.parse
+
+        MarkdownLang ->
+            -- Standard Markdown doesn't use expression blocks, return a minimal block
+            \primitiveBlock ->
+                { heading = Generic.Language.Paragraph
+                , indent = 0
+                , args = []
+                , properties = Dict.empty
+                , firstLine = ""
+                , body = Right []
+                , meta = Generic.Language.emptyBlockMeta
+                , style = Nothing
+                }

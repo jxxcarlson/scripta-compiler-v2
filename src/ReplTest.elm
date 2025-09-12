@@ -27,12 +27,8 @@ t =
 
 t1 =
     """
-ONE
-
-TWO
-
-[anchor one two three]
-YADA YADA YADA
+Hello there [anchor one [i two] three]
+YADA [b YADA] YADA
 """
 
 

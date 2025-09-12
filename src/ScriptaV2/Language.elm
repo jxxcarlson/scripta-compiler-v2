@@ -15,6 +15,7 @@ type Language
     = MicroLaTeXLang
     | EnclosureLang
     | SMarkdownLang
+    | MarkdownLang
 
 
 {-| -}
@@ -34,3 +35,6 @@ toString lang =
 
         SMarkdownLang ->
             "SMarkdown"
+
+        MarkdownLang ->
+            "Markdown"

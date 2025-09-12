@@ -46,45 +46,54 @@ render generation acc settings attrs expr =
 
             else if name == "anchor" then
                 let
-                    _ =
-                        Debug.log "@@ANCHOR-Fun-meta" ( name, meta )
-                    
                     -- Check if the anchor's own ID matches selectedId
                     anchorIdMatches =
                         settings.selectedId == meta.id
-                    
+
                     -- Get all IDs from the content
                     contentIds =
                         List.map (Generic.Language.getMeta >> .id) exprList
-                    
+
                     -- Check if any content ID matches selectedId
                     contentIdMatches =
                         List.member settings.selectedId contentIds
-                    
+
                     -- Highlight if either the anchor ID or any content ID matches
                     shouldHighlight =
                         anchorIdMatches || contentIdMatches
-                    
-                    _ =
-                        Debug.log "@@ANCHOR-highlight-check" 
-                            { selectedId = settings.selectedId
-                            , anchorId = meta.id
-                            , contentIds = contentIds
-                            , shouldHighlight = shouldHighlight
-                            }
-                    
-                    highlightAttr =
+
+                    highlightAttrs =
                         if shouldHighlight then
-                            case settings.theme of
-                                Render.Theme.Dark ->
-                                    Background.color (Element.rgba 0 1 1 0.2)
-                                
-                                Render.Theme.Light ->
-                                    Background.color (Element.rgba 0 1 1 0.1)
+                            -- Use inline style for highlighting with a light blue color
+                            [ Element.htmlAttribute (Html.Attributes.style "background-color" "#ADD8E6") -- Light blue
+                            , Element.htmlAttribute (Html.Attributes.style "padding" "4px")
+                            , Element.htmlAttribute (Html.Attributes.class "anchor-highlight")
+                            ]
+
                         else
-                            background
+                            []
                 in
-                Element.el (highlightAttr :: [ Events.onClick (SendMeta meta), htmlId meta.id ])
+                Element.el ([ Events.onClick (SendMeta meta), htmlId meta.id ] ++ highlightAttrs)
+                    (renderMarked name generation acc settings attrs exprList)
+
+            else if name == "mark" then
+                let
+                    -- Check if the anchor's own ID matches selectedId
+                    anchorIdMatches =
+                        settings.selectedId == meta.id
+
+                    highlightAttrs =
+                        if anchorIdMatches then
+                            -- Use inline style for highlighting with a light blue color
+                            [ Element.htmlAttribute (Html.Attributes.style "background-color" "#ADD8E6") -- Light blue
+                            , Element.htmlAttribute (Html.Attributes.style "padding" "4px")
+                            , Element.htmlAttribute (Html.Attributes.class "anchor-highlight")
+                            ]
+
+                        else
+                            []
+                in
+                Element.el ([ Events.onClick (SendMeta meta), htmlId meta.id ] ++ highlightAttrs)
                     (renderMarked name generation acc settings attrs exprList)
 
             else
@@ -161,6 +170,7 @@ markupDict =
         , ( "smallsubheading", \g acc s attr exprList -> smallsubheading g acc s attr exprList )
         , ( "ssh", \g acc s attr exprList -> smallsubheading g acc s attr exprList )
         , ( "var", \g acc s attr exprList -> var g acc s attr exprList )
+        , ( "marked", \g acc s attr exprList -> marked g acc s attr exprList )
         , ( "italic", \g acc s attr exprList -> italic g acc s attr exprList )
         , ( "qed", \g acc s attr exprList -> qed g acc s attr exprList )
         , ( "textit", \g acc s attr exprList -> italic g acc s attr exprList )
@@ -236,6 +246,7 @@ markupDict =
         , ( "tags", \_ _ _ _ _ -> Element.none )
         , ( "quote", quote )
         , ( "anchor", anchor )
+        , ( "mark", mark1 )
         , ( "vspace", vspace )
         , ( "break", vspace )
         , ( "//", par )
@@ -417,14 +428,45 @@ ilink _ _ settings attr exprList =
                 n =
                     List.length args
 
-                slug =
+                fullSlug =
                     List.Extra.last args |> Maybe.withDefault "((nothing))"
+
+                -- Parse the slug and fragment (e.g., "jxxcarlson:test-anchor#888111")
+                ( slug, maybeFragment ) =
+                    case String.split "#" fullSlug of
+                        [ s, f ] ->
+                            ( s, Just f )
+
+                        [ s ] ->
+                            ( s, Nothing )
+
+                        _ ->
+                            ( fullSlug, Nothing )
 
                 label =
                     List.take (n - 1) args |> String.join " "
+
+                -- Choose the appropriate message based on whether we have a fragment
+                message =
+                    case maybeFragment of
+                        Just fragmentId ->
+                            -- For now, if there's a fragment, we'll try to select/highlight it
+                            -- This works for internal links within the same document
+                            -- For cross-document links, send the full slug with fragment
+                            if String.isEmpty slug || slug == "current" then
+                                -- Internal link within the same document - use SelectId to highlight and scroll
+                                SelectId fragmentId
+
+                            else
+                                -- Cross-document link - send full slug including fragment
+                                -- The Frontend will parse and handle the fragment after loading
+                                GetDocumentWithSlug ScriptaV2.Msg.MHStandard fullSlug
+
+                        Nothing ->
+                            GetDocumentWithSlug ScriptaV2.Msg.MHStandard slug
             in
             Input.button attr
-                { onPress = Just (GetDocumentWithSlug ScriptaV2.Msg.MHStandard slug)
+                { onPress = Just message
                 , label = Element.el [ Element.centerX, Element.centerY, Font.underline, Font.size 14, Font.color settings.linkColor ] (Element.text label)
                 }
 
@@ -820,6 +862,21 @@ italic g acc s attr exprList =
     simpleElement [ Font.italic, Element.paddingEach { left = 0, right = 2, top = 0, bottom = 0 } ] g acc s attr exprList
 
 
+marked : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
+marked g acc s attr exprList =
+    case exprList of
+        --[] ->
+        --    Element.none
+        first :: [] ->
+            simpleElement [] g acc s attr [ first ]
+
+        (Text str _) :: rest ->
+            simpleElement [ htmlId str ] g acc s attr rest
+
+        _ ->
+            Element.none
+
+
 quote : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
 quote g acc s attr exprList =
     let
@@ -837,9 +894,36 @@ quote g acc s attr exprList =
 
 anchor : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
 anchor g acc s attr exprList =
-    -- The highlighting is now handled at the Fun level in the render function
-    -- This function just renders the anchor content with underline
-    Element.paragraph [ Font.underline ] (List.map (render g acc s attr) exprList)
+    -- The CSS class (if any) is passed through the attr parameter
+    -- We combine it with the underline style for anchors
+    Element.paragraph (Font.underline :: attr) (List.map (render g acc s []) exprList)
+
+
+mark1 : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
+mark1 g acc s attr exprList =
+    case exprList of
+        [ Text str _, Fun "anchor" list _ ] ->
+            Element.paragraph
+                [ htmlId (String.trim str), Font.underline ]
+                (List.map (render g acc s attr) list)
+
+        _ ->
+            Element.text "Parse error in element mark?"
+
+
+mark2 : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
+mark2 g acc s attr exprList =
+    case exprList of
+        [ Text str _, Fun "anchor" list _ ] ->
+            Element.paragraph
+                (Render.Sync.highlightIfIdSelected (String.trim str)
+                    s
+                    [ htmlId (String.trim str), Font.underline ]
+                )
+                (List.map (render g acc s attr) list)
+
+        _ ->
+            Element.text "Parse error in element mark?"
 
 
 qed _ _ _ _ _ =

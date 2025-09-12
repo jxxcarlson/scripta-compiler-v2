@@ -18,6 +18,7 @@ import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExpressionBlock)
 import M.Expression
 import M.PrimitiveBlock
+import Markdown.Compiler
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
@@ -153,6 +154,10 @@ compile displaySettings theme params lines =
         SMarkdownLang ->
             compileX displaySettings theme params lines
 
+        MarkdownLang ->
+            -- Use the Markdown compiler
+            Markdown.Compiler.compileForScripta displaySettings theme (String.join "\n" lines)
+
 
 {-|
 
@@ -198,6 +203,11 @@ parse lang idPrefix outerCount lines =
 
         SMarkdownLang ->
             parseX idPrefix outerCount lines
+
+        MarkdownLang ->
+            -- Markdown doesn't use the same tree-based parsing structure
+            -- For now, return an empty list since Markdown is handled differently
+            []
 
 
 parseM : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)

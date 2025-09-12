@@ -156,6 +156,10 @@ fixTable block lang parse =
 
                 SMarkdownLang ->
                     prepareTableL0 (M.Expression.parse 0) (String.join "\n" block.body)
+
+                MarkdownLang ->
+                    -- Standard Markdown doesn't use the same table structure
+                    []
     in
     Right t1
 
