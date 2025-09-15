@@ -256,7 +256,7 @@ markupDict =
         -- MiniLaTeX stuff
         , ( "term", \g acc s attr exprList -> term g acc s attr exprList )
         , ( "term_", \_ _ _ _ _ -> Element.none )
-        , ( "footnote", \_ acc _ attr exprList -> footnote acc exprList )
+        , ( "footnote", \_ acc s attr exprList -> footnote acc s exprList )
         , ( "emph", \g acc s attr exprList -> emph g acc s attr exprList )
 
         -- , ( "group", \g acc s attr  exprList -> identityFunction g acc s attr exprList )
@@ -942,13 +942,16 @@ term g acc s attr exprList =
     simpleElement [ Font.italic, Element.paddingEach { left = 0, right = 2, top = 0, bottom = 0 } ] g acc s attr exprList
 
 
-footnote acc exprList =
+footnote : Accumulator -> RenderSettings -> List Expression -> Element MarkupMsg
+footnote acc settings exprList =
     case exprList of
         (Text _ meta) :: [] ->
             case Dict.get meta.id acc.footnoteNumbers of
                 Just k ->
                     Element.link
-                        [ Font.color (Element.rgb 0 0 0.7)
+                        [ Font.color (Render.Theme.getElementColor settings.theme .footnote)
+
+                        -- Font.color (Element.rgb 0 0 0.7)
                         , Font.bold
                         , Events.onClick (SelectId (meta.id ++ "_"))
                         ]

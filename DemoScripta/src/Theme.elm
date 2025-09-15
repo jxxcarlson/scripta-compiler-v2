@@ -21,6 +21,38 @@ mapTheme theme =
             Render.Theme.Dark
 
 
+
+-- getColor : Theme -> (ActualTheme -> Color) -> Element.Color
+
+
+getColor : Theme -> (ActualTheme -> Color) -> Color
+getColor theme colorSelector =
+    let
+        actualTheme =
+            case theme of
+                Light ->
+                    lightTheme
+
+                Dark ->
+                    darkTheme
+    in
+    colorSelector actualTheme
+
+
+getElementColor : Theme -> (ActualTheme -> Color) -> Element.Color
+getElementColor theme colorSelector =
+    let
+        actualTheme =
+            case theme of
+                Light ->
+                    lightTheme
+
+                Dark ->
+                    darkTheme
+    in
+    colorSelector actualTheme |> elementColorFromColor
+
+
 elementColorFromColor : Color -> Element.Color
 elementColorFromColor color =
     let
@@ -38,6 +70,7 @@ type alias ActualTheme =
     , offsetBackground : Color
     , offsetText : Color
     , link : Color
+    , footnote : Color
     , highlight : Color
     }
 
@@ -50,7 +83,8 @@ lightTheme =
     , codeText = gray900
     , offsetBackground = whiteAlpha100
     , offsetText = gray800
-    , link = indigo600
+    , link = blue700
+    , footnote = gray600
     , highlight = transparentIndigo500
     }
 
@@ -63,6 +97,7 @@ darkTheme =
     , codeText = gray100
     , offsetBackground = gray700
     , offsetText = gray200
-    , link = indigo600
+    , link = blue100
+    , footnote = gray400
     , highlight = transparentIndigo500
     }
