@@ -128,15 +128,13 @@ frontMatter currentTime ast =
         date =
             Dict.get "date" dict |> Maybe.map (\date_ -> "\\date{" ++ date_ ++ "}") |> Maybe.withDefault ""
     in
-    ("\\begin{document}"
+    "\\begin{document}"
         :: title
         :: date
         :: authors
-        :: "\\maketitle\n\n"
+        :: "\\maketitle"
         :: []
         |> String.join "\n\n"
-    )
-        ++ "\\maketitle\n\n"
 
 
 today : Time.Posix -> String
