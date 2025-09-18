@@ -156,6 +156,7 @@ documentBody currentTime settings acc ast =
         date =
             Dict.get "date" dict |> Maybe.map (\date_ -> "\\date{" ++ date_ ++ "}") |> Maybe.withDefault ""
     in
+    List.map (exportTree settings acc) ast |> String.join "\n\n" |> Debug.log "@@:documentBody"
 
 
 exportTree : RenderSettings -> Generic.Acc.Accumulator -> Tree ExpressionBlock -> String
