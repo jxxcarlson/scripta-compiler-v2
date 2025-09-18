@@ -82,7 +82,7 @@ export currentTime settings_ ast =
         expressionNames
         ++ frontMatter currentTime ast
         ++ setTheFirstSection
-        ++ tableofcontents rawBlockNames
+        ++ tableofcontents properties rawBlockNames
         ++ "\n\n"
         ++ rawExport settings ast
         ++ "\n\n\\end{document}\n"
@@ -144,8 +144,22 @@ today currenTime =
     "currentTime: not implemented"
 
 
-tableofcontents rawBlockNames_ =
-    if List.length (List.filter (\name -> name == "section") rawBlockNames_) > 1 then
+tableofcontents : Dict String String -> List String -> String
+tableofcontents properties rawBlockNames_ =
+    let
+        sectionCount =
+            List.length (List.filter (\name -> name == "section" || name == "section*") rawBlockNames_)
+
+        numberToLevel =
+            Dict.get "number-to-level" properties
+                |> Maybe.andThen String.toFloat
+                |> Maybe.withDefault 3
+
+        -- Don't show TOC if numbering is completely disabled (number-to-level:0)
+        shouldShowTOC =
+            sectionCount > 1 && numberToLevel > 0
+    in
+    if shouldShowTOC then
         "\n\n\\tableofcontents"
 
     else
@@ -992,27 +1006,31 @@ section settings args body =
 
                 Nothing ->
                     0
+
+        -- Depth is level minus 1 (since level 1 is title, level 2 is depth 1, etc.)
+        depthForNumbering =
+            levelAsFloat - 1
     in
     case levelAsString of
         "1" ->
             macro1 ("title" ++ suffix) body ++ label
 
         "2" ->
-            if levelAsFloat <= maxNumberedLevel then
+            if depthForNumbering <= maxNumberedLevel then
                 macro1 ("section" ++ suffix) body ++ label
 
             else
                 macro1 ("section*" ++ suffix) body ++ label
 
         "3" ->
-            if levelAsFloat <= maxNumberedLevel then
+            if depthForNumbering <= maxNumberedLevel then
                 macro1 ("subsection" ++ suffix) body ++ label
 
             else
                 macro1 ("subsection*" ++ suffix) body ++ label
 
         "4" ->
-            if levelAsFloat <= maxNumberedLevel then
+            if depthForNumbering <= maxNumberedLevel then
                 macro1 ("subsubsection" ++ suffix) body ++ label
 
             else
