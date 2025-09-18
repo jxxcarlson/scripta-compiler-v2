@@ -58,13 +58,9 @@ import Result.Extra
 parse2 str =
     str
         |> parse
-        |> Debug.log "(1.   PARSE)"
         |> Result.map resolveMacroDefinitions
-        |> Debug.log "(2.  MACROS)"
         |> Result.map makeFunctionNames
-        |> Debug.log "(3.FUNCTION)"
         |> Result.map resolveSymbolNames
-        |> Debug.log "(4. SYMBOLS)"
         |> Result.map printList
 
 
@@ -124,9 +120,7 @@ parseA : String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
 parseA str =
     str
         |> parse
-        |> Debug.log "(1.   PARSE)"
         |> Result.map resolveMacroDefinitions
-        |> Debug.log "(2.  MACROS)"
 
 
 

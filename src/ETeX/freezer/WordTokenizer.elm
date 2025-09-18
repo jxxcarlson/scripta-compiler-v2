@@ -95,20 +95,15 @@ parse2 str =
     let
         result_ =
             str
-                |> Debug.log "(1)"
                 |> PA.run (many wordParser)
-                |> Debug.log "(2)"
                 --|> List.map (Generic.MathMacro.evalStr ETeX.Dictionary.macroDict)
                 |> Result.map (List.filter (\w -> w /= WS))
                 |> Result.map makeFunctionNames
-                |> Debug.log "(3)"
                 |> Result.map printList
-                |> Debug.log "(4)"
     in
     case result_ of
         Ok result ->
             P.parse result
-                --|> Debug.log "(3)"
                 |> Result.map P.printList
 
         Err _ ->

@@ -128,9 +128,7 @@ isUserDefinedMacro dict name =
 transformETeX_ userdefinedMacroDict src =
     src
         |> parseMany userdefinedMacroDict
-        |> Debug.log "(1) Parsed expressions"
         |> Result.map resolveSymbolNames
-        |> Debug.log "(2) Resolved symbol names"
 
 
 resolveSymbolNames : List MathExpr -> List MathExpr

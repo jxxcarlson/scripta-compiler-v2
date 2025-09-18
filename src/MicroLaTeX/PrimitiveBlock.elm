@@ -215,7 +215,6 @@ nextStep state_ =
             let
                 currentLine =
                     Line.classify (getPosition rawLine state) state.lineNumber rawLine
-                        |> Debug.log "CLASSIFY"
             in
             if state.inVerbatimBlock then
                 case ClassifyBlock.classify (currentLine.content ++ "\n") of
@@ -243,7 +242,7 @@ nexStepAux currentLine mTopLabel state =
         CBeginBlock label ->
             let
                 _ =
-                    Debug.log "1." ( label, currentLine.lineNumber )
+                    ( label, currentLine.lineNumber )
             in
             if List.member label verbatimBlocks then
                 Loop ({ state | inVerbatimBlock = True, label = "CBeginBlock 3" } |> dispatchBeginBlock state.idPrefix state.outerCount (CBeginBlock label) currentLine)
@@ -254,7 +253,7 @@ nexStepAux currentLine mTopLabel state =
         CEndBlock label ->
             let
                 _ =
-                    Debug.log "2." ( label, currentLine.lineNumber )
+                    ( label, currentLine.lineNumber )
             in
             -- TODO: changed, review
             if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "code" ] then
@@ -281,7 +280,7 @@ nexStepAux currentLine mTopLabel state =
         CSpecialBlock label ->
             let
                 _ =
-                    Debug.log "3." ( label, currentLine.lineNumber )
+                    ( label, currentLine.lineNumber )
             in
             -- TODO: review all the List.member clauses
             if List.member (List.head state.labelStack |> Maybe.map .classification) [ Just <| CBeginBlock "code", Just CMathBlockDelim ] then
@@ -293,7 +292,7 @@ nexStepAux currentLine mTopLabel state =
         CMathBlockDelim ->
             let
                 _ =
-                    Debug.log "4." currentLine.lineNumber
+                    currentLine.lineNumber
             in
             -- TODO: changed, review
             case List.head state.labelStack of
@@ -315,14 +314,14 @@ nexStepAux currentLine mTopLabel state =
         CMathBlockBegin ->
             let
                 _ =
-                    Debug.log "9." currentLine.lineNumber
+                    currentLine.lineNumber
             in
             Loop ({ state | inVerbatimBlock = True } |> dispatchBeginBlock state.idPrefix state.outerCount CMathBlockBegin currentLine)
 
         CMathBlockEnd ->
             let
                 _ =
-                    Debug.log "10." currentLine.lineNumber
+                    currentLine.lineNumber
             in
             case List.head state.labelStack of
                 Just label ->
@@ -338,14 +337,14 @@ nexStepAux currentLine mTopLabel state =
         CVerbatimBlockDelim ->
             let
                 _ =
-                    Debug.log "11." currentLine.lineNumber
+                    currentLine.lineNumber
             in
             Loop (state |> handleVerbatimBlock currentLine)
 
         CPlainText ->
             let
                 _ =
-                    Debug.log "12." ( currentLine.lineNumber, state.labelStack )
+                    ( currentLine.lineNumber, state.labelStack )
             in
             case List.head state.labelStack of
                 Just label ->
@@ -362,7 +361,7 @@ nexStepAux currentLine mTopLabel state =
         CEmpty ->
             let
                 _ =
-                    Debug.log "13." currentLine.lineNumber
+                    currentLine.lineNumber
             in
             emptyLine currentLine state
 

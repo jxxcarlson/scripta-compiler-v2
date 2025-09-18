@@ -156,7 +156,6 @@ documentBody currentTime settings acc ast =
         date =
             Dict.get "date" dict |> Maybe.map (\date_ -> "\\date{" ++ date_ ++ "}") |> Maybe.withDefault ""
     in
-    List.map (exportTree settings acc) ast |> String.join "\n\n" |> Debug.log "@@:documentBody"
 
 
 exportTree : RenderSettings -> Generic.Acc.Accumulator -> Tree ExpressionBlock -> String
@@ -213,7 +212,7 @@ exportBlock settings acc block =
                 Right exprs_ ->
                     let
                         _ =
-                            Debug.log "@@:ORDINARY" name
+                            name
                     in
                     case Dict.get name blockDict of
                         Just f ->
@@ -785,7 +784,6 @@ section settings args body =
             body
                 |> String.words
                 |> MicroLaTeX.Util.normalizedWord
-                |> Debug.log "@@:SECTION 1"
 
         label =
             " \\label{" ++ tag ++ "}"

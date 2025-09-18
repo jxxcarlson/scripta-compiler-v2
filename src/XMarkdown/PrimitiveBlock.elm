@@ -69,7 +69,6 @@ getHeadingData line_ =
                                     let
                                         reducedLine =
                                             -- String.replace ". " "" line
-                                            line |> String.trim |> Tools.Utility.replaceLeadingGreaterThanSign |> Debug.log "REDUCED LINE"
                                     in
                                     if String.isEmpty reducedLine then
                                         Err HENoContent
@@ -135,7 +134,6 @@ getHeadingData line_ =
                                     let
                                         reducedLine =
                                             -- String.replace ". " "" line
-                                            line |> String.trim |> Tools.Utility.replaceLeadingDotSpace |> Debug.log "REDUCED LINE"
                                     in
                                     if String.isEmpty reducedLine then
                                         Err HENoContent

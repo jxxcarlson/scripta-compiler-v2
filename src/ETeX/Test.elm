@@ -4,11 +4,9 @@ import ETeX.Transform exposing (makeMacroDict)
 
 
 transform str =
-    ETeX.Transform.transformETeX (makeMacroDict data |> Debug.log "MacroDict") str
 
 
 evalStr str =
-    ETeX.Transform.evalStr (makeMacroDict data |> Debug.log "MacroDict") str
 
 
 data =

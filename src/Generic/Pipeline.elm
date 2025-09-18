@@ -11,7 +11,7 @@ import Tools.Utility
 
 toExpressionBlock : (Int -> String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
 toExpressionBlock parser block =
-    toExpressionBlock_ (parser (block.meta.lineNumber |> Debug.log "@@LINE")) block
+    toExpressionBlock_ (parser block.meta.lineNumber) block
         |> Generic.Language.boostBlock
 
 

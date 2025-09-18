@@ -208,7 +208,7 @@ aligned count acc settings attrs block =
             -- delete trailing slashes before evaluating macros
             List.map (deleteTrailingSlashes >> ETeX.Transform.evalStr acc.mathMacroDict) filteredLines
                 -- remove bank lines
-                |> List.filter (\line -> line /= "")
+                |> List.filter (\line -> String.trim line /= "")
 
         innerContent =
             -- restore trailing slashes

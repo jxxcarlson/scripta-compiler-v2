@@ -53,7 +53,7 @@ Repos:
 2.  Debug.log output from Scripta running locally
     It does not matter what doc you are looking at.
 
-    Debug.log "@@::SANITYCHECK" =>
+    =>
     { compareDepths = { computed = [1,1,1,1], goal = [1,1,2,1], static = [1,1,2,1] } }
     WTF ?!?! ===========^^^^^^^^^^^^^^^^^^^^=========== WTF ?!?!
 

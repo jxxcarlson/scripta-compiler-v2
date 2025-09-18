@@ -11,7 +11,6 @@ import RoseTree.Tree exposing (Tree(..))
 
 
 
---|> Debug.log "@@::DONE"
 -- TESTS
 
 
