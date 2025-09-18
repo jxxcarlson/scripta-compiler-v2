@@ -296,7 +296,7 @@ displayRenderedText renderMsg model =
         , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
         , Style.htmlId "rendered-text-container"
         ]
-        (column
+        (Element.Keyed.column
             [ Font.size 14
             , padding 16
             , spacing 24
@@ -308,7 +308,10 @@ displayRenderedText renderMsg model =
             , Font.color (Style.textColor model.theme)
             , Style.forceColorStyle model.theme
             ]
-            [ container model (model.compilerOutput.body |> List.map (Element.map renderMsg)) ]
+            [ ( String.fromInt model.count
+              , container model (model.compilerOutput.body |> List.map (Element.map renderMsg))
+              )
+            ]
         )
 
 

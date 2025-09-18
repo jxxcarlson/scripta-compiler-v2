@@ -55126,17 +55126,25 @@ var $author$project$MainSQLite$updateCommon = F2(
 			case 1:
 				var str = msg.a;
 				var newEditRecord = A2($author$project$ScriptaV2$DifferentialCompiler$update, common.ml, str);
+				var newCount = common.l$ + 1;
+				var updatedDisplaySettings = function () {
+					var oldSettings = common.me;
+					return _Utils_update(
+						oldSettings,
+						{qM: newCount});
+				}();
 				var newCompilerOutput = A4(
 					$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
 					$author$project$Theme$mapTheme(common.h7),
 					1,
-					common.me,
+					updatedDisplaySettings,
 					newEditRecord);
 				var newCommon = _Utils_update(
 					common,
 					{
 						lZ: newCompilerOutput,
-						l$: common.l$ + 1,
+						l$: newCount,
+						me: updatedDisplaySettings,
 						ml: newEditRecord,
 						ni: common.gT,
 						oR: str,
@@ -55151,17 +55159,25 @@ var $author$project$MainSQLite$updateCommon = F2(
 				var position = msg.a.sO;
 				var source = msg.a.tt;
 				var newEditRecord = A2($author$project$ScriptaV2$DifferentialCompiler$update, common.ml, source);
+				var newCount = common.l$ + 1;
+				var updatedDisplaySettings = function () {
+					var oldSettings = common.me;
+					return _Utils_update(
+						oldSettings,
+						{qM: newCount});
+				}();
 				var newCompilerOutput = A4(
 					$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
 					$author$project$Theme$mapTheme(common.h7),
 					1,
-					common.me,
+					updatedDisplaySettings,
 					newEditRecord);
 				var newCommon = _Utils_update(
 					common,
 					{
 						lZ: newCompilerOutput,
-						l$: common.l$ + 1,
+						l$: newCount,
+						me: updatedDisplaySettings,
 						ml: newEditRecord,
 						ni: common.gT,
 						nz: false,
@@ -55846,6 +55862,24 @@ var $author$project$Style$borderColor = function (theme) {
 	}
 };
 var $mdgriffith$elm_ui$Element$clipY = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.qA);
+var $mdgriffith$elm_ui$Element$Keyed$column = F2(
+	function (attrs, children) {
+		return A4(
+			$mdgriffith$elm_ui$Internal$Model$element,
+			$mdgriffith$elm_ui$Internal$Model$asColumn,
+			$mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				$elm$core$List$cons,
+				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.qK + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fd)),
+				A2(
+					$elm$core$List$cons,
+					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
+					A2(
+						$elm$core$List$cons,
+						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
+						attrs))),
+			$mdgriffith$elm_ui$Internal$Model$Keyed(children));
+	});
 var $author$project$Common$View$container = F2(
 	function (model, elements_) {
 		return A2(
@@ -55915,7 +55949,7 @@ var $author$project$Common$View$displayRenderedText = F2(
 					$author$project$Style$htmlId('rendered-text-container')
 				]),
 			A2(
-				$mdgriffith$elm_ui$Element$column,
+				$mdgriffith$elm_ui$Element$Keyed$column,
 				_List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$Font$size(14),
@@ -55932,13 +55966,15 @@ var $author$project$Common$View$displayRenderedText = F2(
 					]),
 				_List_fromArray(
 					[
+						_Utils_Tuple2(
+						$elm$core$String$fromInt(model.l$),
 						A2(
-						$author$project$Common$View$container,
-						model,
-						A2(
-							$elm$core$List$map,
-							$mdgriffith$elm_ui$Element$map(renderMsg),
-							model.lZ.qh))
+							$author$project$Common$View$container,
+							model,
+							A2(
+								$elm$core$List$map,
+								$mdgriffith$elm_ui$Element$map(renderMsg),
+								model.lZ.qh)))
 					])));
 	});
 var $author$project$Common$View$editorHeight = function (model) {

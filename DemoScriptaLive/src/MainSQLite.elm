@@ -121,11 +121,20 @@ updateCommon msg model =
                 newEditRecord =
                     ScriptaV2.DifferentialCompiler.update common.editRecord str
 
+                newCount =
+                    common.count + 1
+
+                updatedDisplaySettings =
+                    let
+                        oldSettings = common.displaySettings
+                    in
+                    { oldSettings | counter = newCount }
+
                 newCompilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
                         (Theme.mapTheme common.theme)
                         ScriptaV2.Compiler.SuppressDocumentBlocks
-                        common.displaySettings
+                        updatedDisplaySettings
                         newEditRecord
 
                 newCommon =
@@ -135,7 +144,8 @@ updateCommon msg model =
                         , editRecord = newEditRecord
                         , compilerOutput = newCompilerOutput
                         , lastChanged = common.currentTime
-                        , count = common.count + 1
+                        , count = newCount
+                        , displaySettings = updatedDisplaySettings
                     }
             in
             ( { model | common = newCommon }, Cmd.none )
@@ -145,11 +155,20 @@ updateCommon msg model =
                 newEditRecord =
                     ScriptaV2.DifferentialCompiler.update common.editRecord source
 
+                newCount =
+                    common.count + 1
+
+                updatedDisplaySettings =
+                    let
+                        oldSettings = common.displaySettings
+                    in
+                    { oldSettings | counter = newCount }
+
                 newCompilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
                         (Theme.mapTheme common.theme)
                         ScriptaV2.Compiler.SuppressDocumentBlocks
-                        common.displaySettings
+                        updatedDisplaySettings
                         newEditRecord
 
                 newCommon =
@@ -159,7 +178,8 @@ updateCommon msg model =
                         , editRecord = newEditRecord
                         , compilerOutput = newCompilerOutput
                         , lastChanged = common.currentTime
-                        , count = common.count + 1
+                        , count = newCount
+                        , displaySettings = updatedDisplaySettings
                         , loadDocumentIntoEditor = False  -- Turn off loading after edit
                     }
             in
