@@ -30,8 +30,8 @@ view model =
         , Font.color (Element.rgb 0.85 0.85 0.85)
         , Font.size 12
         ]
-        ( stringOfBool False
-          -- Keep the same key always
+        ( "codemirror-editor-instance"
+          -- Keep the same key always to prevent DOM recreation
         , Element.html
             (Html.node "codemirror-editor"
                 [ -- SEND INFORMATION TO CODEMIRROR
