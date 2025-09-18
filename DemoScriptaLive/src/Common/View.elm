@@ -2,6 +2,7 @@ module Common.View exposing (view)
 
 import Browser.Dom
 import Common.Model as Common
+import Config
 import Constants exposing (constants)
 import Document exposing (Document)
 import Editor
@@ -164,10 +165,44 @@ saveButton toMsg model =
 
 exportStuff : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
 exportStuff toMsg model =
-    Element.row [ spacing 8, width fill ]
-        [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "LaTeX"
-        , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
+    Element.column [ spacing 4, width fill ]
+        [ Element.el [ Font.bold ] (Element.text "Export")
+        , case model.printingState of
+            Common.PrintWaiting ->
+                Element.row [ spacing 4, width fill ]
+                    [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "PDF"
+                    , Widget.sidebarButton model.theme (Just (toMsg Common.PrintToPDF)) "LaTeX"
+                    , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
+                    ]
+
+            Common.PrintProcessing ->
+                Element.el [ Font.size 14, padding 8 ] (Element.text "Processing...")
+
+            Common.PrintReady ->
+                Element.column [ spacing 4, width fill ]
+                    [ Element.newTabLink
+                        [ Font.size 14
+                        , Font.color (Element.rgb 0 0 0.8)
+                        ]
+                        { url = Config.pdfServUrl ++ extractFileName model.pdfLink
+                        , label = Element.text "Click for PDF"
+                        }
+                    , Element.row [ spacing 4, width fill ]
+                        [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "PDF"
+                        , Widget.sidebarButton model.theme (Just (toMsg Common.PrintToPDF)) "LaTeX"
+                        , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
+                        ]
+                    ]
         ]
+
+
+extractFileName : String -> String
+extractFileName pdfLink =
+    pdfLink
+        |> String.split "/"
+        |> List.reverse
+        |> List.head
+        |> Maybe.withDefault ""
 
 
 documentItem : (Common.CommonMsg -> msg) -> Common.CommonModel -> Document -> Element msg

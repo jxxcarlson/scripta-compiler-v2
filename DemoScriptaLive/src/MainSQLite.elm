@@ -12,6 +12,7 @@ import Document exposing (Document)
 import Editor
 import Element exposing (..)
 import File.Download
+import Frontend.PDF
 import Html exposing (Html)
 import Json.Decode as Decode
 import Keyboard
@@ -389,7 +390,41 @@ updateCommon msg model =
         Common.ExportToLaTeX ->
             let
                 settings =
-                    Render.Settings.makeSettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
+                    Render.Settings.makeSettings common.displaySettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
+
+                exportText =
+                    Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
+
+                exportData =
+                    { title = common.title
+                    , content = exportText
+                    , sourceText = common.sourceText
+                    , language = common.currentLanguage
+                    }
+            in
+            ( { model | common = { common | printingState = Common.PrintProcessing } }
+            , Cmd.map CommonMsg (Frontend.PDF.requestPDF exportData)
+            )
+
+        Common.ExportToRawLaTeX ->
+            let
+                settings =
+                    Render.Settings.makeSettings common.displaySettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
+
+                exportText =
+                    Render.Export.LaTeX.rawExport settings common.editRecord.tree
+
+                fileName =
+                    common.title ++ ".tex"
+            in
+            ( model
+            , File.Download.string fileName "application/x-latex" exportText
+            )
+
+        Common.PrintToPDF ->
+            let
+                settings =
+                    Render.Settings.makeSettings common.displaySettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
 
                 exportText =
                     Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
@@ -401,20 +436,17 @@ updateCommon msg model =
             , File.Download.string fileName "application/x-latex" exportText
             )
 
-        Common.ExportToRawLaTeX ->
-            let
-                settings =
-                    Render.Settings.makeSettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
+        Common.GotPdfLink result ->
+            case result of
+                Ok pdfLink ->
+                    ( { model | common = { common | printingState = Common.PrintReady, pdfLink = pdfLink } }
+                    , Cmd.none
+                    )
 
-                exportText =
-                    Render.Export.LaTeX.rawExport settings common.editRecord.tree
-
-                fileName =
-                    common.title ++ ".tex"
-            in
-            ( model
-            , File.Download.string fileName "application/x-latex" exportText
-            )
+                Err _ ->
+                    ( { model | common = { common | printingState = Common.PrintWaiting } }
+                    , Cmd.none
+                    )
 
         Common.SelectedText str ->
             let

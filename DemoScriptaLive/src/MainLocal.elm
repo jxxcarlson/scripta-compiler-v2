@@ -1,4 +1,4 @@
-module MainTauri exposing (main)
+module MainLocal exposing (main)
 
 import AppData
 import Browser
@@ -12,6 +12,7 @@ import Document exposing (Document)
 import Editor
 import Element exposing (..)
 import File.Download
+import Frontend.PDF
 import Html exposing (Html)
 import Json.Decode as Decode
 import Keyboard
@@ -28,7 +29,7 @@ import ScriptaV2.Helper
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
 import Storage.Interface as Storage
-import Storage.Tauri
+import Storage.Local
 import Task
 import Theme
 import Time
@@ -51,6 +52,7 @@ main =
 
 type alias Model =
     { common : Common.CommonModel
+    , storageState : Storage.Local.State
     }
 
 
@@ -69,7 +71,7 @@ init flags =
             Common.initCommon flags
 
         storage =
-            Storage.Tauri.storage StorageMsg
+            Storage.Local.storage StorageMsg
 
         updatedCommon =
             { common 
@@ -77,14 +79,13 @@ init flags =
             }
     in
     ( { common = updatedCommon
+      , storageState = Storage.Local.init
       }
     , Cmd.batch
         [ storage.init
         , Task.perform (CommonMsg << Common.Tick) Time.now
         , Process.sleep 100
             |> Task.perform (always (CommonMsg Common.LoadUserNameDelayed))
-        , Process.sleep 200
-            |> Task.perform (always (StorageMsg (Storage.StorageInitialized (Ok ()))))
         ]
     )
 
@@ -106,7 +107,7 @@ updateCommon : Common.CommonMsg -> Model -> ( Model, Cmd Msg )
 updateCommon msg model =
     let
         storage =
-            Storage.Tauri.storage StorageMsg
+            Storage.Local.storage StorageMsg
 
         common =
             model.common
@@ -238,7 +239,15 @@ updateCommon msg model =
                     }
             in
             ( { model | common = newCommon }
-            , Cmd.none  -- Theme is saved with each document
+            , Ports.send (Ports.SaveTheme 
+                (case newTheme of
+                    Theme.Light ->
+                        "light"
+                    
+                    Theme.Dark ->
+                        "dark"
+                )
+            )
             )
 
         Common.CreateNewDocument ->
@@ -298,8 +307,8 @@ updateCommon msg model =
             in
             ( { model | common = { newCommon | lastSavedDocumentId = Just newDoc.id } }
             , Cmd.batch
-                [ storage.saveDocument newDoc
-                , storage.saveLastDocumentId newDoc.id
+                [ Ports.send (Ports.SaveDocument newDoc)
+                , Ports.send (Ports.SaveLastDocumentId newDoc.id)
                 ]
             )
 
@@ -324,8 +333,8 @@ updateCommon msg model =
                     in
                     ( { model | common = newCommon }
                     , Cmd.batch
-                        [ storage.saveDocument updatedDoc
-                        , storage.saveLastDocumentId doc.id
+                        [ Ports.send (Ports.SaveDocument updatedDoc)
+                        , Ports.send (Ports.SaveLastDocumentId doc.id)
                         ]
                     )
 
@@ -334,7 +343,7 @@ updateCommon msg model =
 
         Common.LoadDocument id ->
             ( model
-            , storage.loadDocument id
+            , Ports.send (Ports.LoadDocument id)
             )
 
         Common.DeleteDocument id ->
@@ -346,7 +355,7 @@ updateCommon msg model =
                         common
             in
             ( { model | common = newCommon }
-            , storage.deleteDocument id
+            , Ports.send (Ports.DeleteDocument id)
             )
 
         Common.ToggleDocumentList ->
@@ -373,13 +382,21 @@ updateCommon msg model =
 
         Common.LoadUserNameDelayed ->
             ( model
-            , storage.loadUserName
+            , Ports.send Ports.LoadUserName
             )
 
         Common.InputUserName name ->
             ( { model | common = { common | userName = Just name } }
-            , storage.saveUserName name
+            , Ports.send (Ports.SaveUserName name)
             )
+
+        Common.PortMsgReceived result ->
+            case result of
+                Ok incomingMsg ->
+                    handleIncomingPortMsg incomingMsg model
+
+                Err _ ->
+                    ( model, Cmd.none )
 
         Common.UpdateFileName name ->
             ( { model | common = { common | title = name } }
@@ -389,22 +406,26 @@ updateCommon msg model =
         Common.ExportToLaTeX ->
             let
                 settings =
-                    Render.Settings.makeSettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
+                    Render.Settings.makeSettings common.displaySettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
 
                 exportText =
                     Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
 
-                fileName =
-                    common.title ++ ".tex"
+                exportData =
+                    { title = common.title
+                    , content = exportText
+                    , sourceText = common.sourceText
+                    , language = common.currentLanguage
+                    }
             in
-            ( model
-            , File.Download.string fileName "application/x-latex" exportText
+            ( { model | common = { common | printingState = Common.PrintProcessing } }
+            , Cmd.map CommonMsg (Frontend.PDF.requestPDF exportData)
             )
 
         Common.ExportToRawLaTeX ->
             let
                 settings =
-                    Render.Settings.makeSettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
+                    Render.Settings.makeSettings common.displaySettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
 
                 exportText =
                     Render.Export.LaTeX.rawExport settings common.editRecord.tree
@@ -416,6 +437,33 @@ updateCommon msg model =
             , File.Download.string fileName "application/x-latex" exportText
             )
 
+        Common.PrintToPDF ->
+            let
+                settings =
+                    Render.Settings.makeSettings common.displaySettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
+
+                exportText =
+                    Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
+
+                fileName =
+                    common.title ++ ".tex"
+            in
+            ( model
+            , File.Download.string fileName "application/x-latex" exportText
+            )
+
+        Common.GotPdfLink result ->
+            case result of
+                Ok pdfLink ->
+                    ( { model | common = { common | printingState = Common.PrintReady, pdfLink = pdfLink } }
+                    , Cmd.none
+                    )
+
+                Err _ ->
+                    ( { model | common = { common | printingState = Common.PrintWaiting } }
+                    , Cmd.none
+                    )
+
         Common.SelectedText str ->
             let
                 foundIds =
@@ -425,25 +473,11 @@ updateCommon msg model =
                 firstId =
                     List.head foundIds |> Maybe.withDefault ""
                 
-                -- Update displaySettings with new selectedId
-                oldDisplaySettings = common.displaySettings
-                newDisplaySettings = { oldDisplaySettings | selectedId = firstId }
-                
-                -- Re-render with updated settings
-                newCompilerOutput =
-                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
-                        (Theme.mapTheme common.theme)
-                        ScriptaV2.Compiler.SuppressDocumentBlocks
-                        newDisplaySettings
-                        common.editRecord
-                
                 newCommon =
                     { common
                         | selectedId = firstId
                         , foundIds = foundIds
                         , foundIdIndex = if List.isEmpty foundIds then 0 else 1
-                        , displaySettings = newDisplaySettings
-                        , compilerOutput = newCompilerOutput
                     }
             in
             ( { model | common = newCommon }
@@ -497,8 +531,8 @@ updateCommon msg model =
             in
             ( { model | common = { newCommon | lastSavedDocumentId = Just initialDoc.id } }
             , Cmd.batch
-                [ storage.saveDocument initialDoc
-                , storage.saveLastDocumentId initialDoc.id
+                [ Ports.send (Ports.SaveDocument initialDoc)
+                , Ports.send (Ports.SaveLastDocumentId initialDoc.id)
                 ]
             )
 
@@ -507,14 +541,14 @@ updateCommon msg model =
             ( model, Cmd.none )
 
 
-handleStorageMsg : Storage.StorageMsg -> Model -> ( Model, Cmd Msg )
-handleStorageMsg msg model =
+handleIncomingPortMsg : Ports.IncomingMsg -> Model -> ( Model, Cmd Msg )
+handleIncomingPortMsg msg model =
     let
         common =
             model.common
     in
     case msg of
-        Storage.DocumentsListed (Ok docs) ->
+        Ports.DocumentsLoaded docs ->
             if List.isEmpty docs then
                 -- No documents in storage, create default document
                 ( { model | common = { common | documents = docs } }
@@ -527,17 +561,14 @@ handleStorageMsg msg model =
                 , Cmd.none
                 )
 
-        Storage.DocumentsListed (Err error) ->
-            ( model, Cmd.none )
-
-        Storage.DocumentLoaded (Ok doc) ->
+        Ports.DocumentLoaded doc ->
             let
                 editRecord =
                     ScriptaV2.DifferentialCompiler.init Dict.empty common.currentLanguage doc.content
 
                 compilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
-                        (Theme.mapTheme doc.theme)
+                        (Theme.mapTheme common.theme)
                         ScriptaV2.Compiler.SuppressDocumentBlocks
                         common.displaySettings
                         editRecord
@@ -548,86 +579,58 @@ handleStorageMsg msg model =
                         , sourceText = doc.content
                         , initialText = doc.content
                         , title = doc.title
-                        , theme = doc.theme
                         , editRecord = editRecord
                         , compilerOutput = compilerOutput
-                        , loadDocumentIntoEditor = True
+                        , loadDocumentIntoEditor = False  -- Will be set to True by LoadContentIntoEditorDelayed
                         , lastLoadedDocumentId = Just doc.id
                     }
+            in
+            ( { model | common = newCommon }
+            , Process.sleep 200
+                |> Task.perform (always (CommonMsg Common.LoadContentIntoEditorDelayed))
+            )
+
+        Ports.ThemeLoaded themeStr ->
+            let
+                theme =
+                    case themeStr of
+                        "dark" ->
+                            Theme.Dark
+                        
+                        _ ->
+                            Theme.Light
+                newCommon =
+                    { common | theme = theme }
             in
             ( { model | common = newCommon }
             , Cmd.none
             )
 
-        Storage.DocumentLoaded (Err error) ->
-            ( model, Cmd.none )
-
-        Storage.DocumentSaved (Ok doc) ->
-            let
-                updatedDocs =
-                    doc :: List.filter (\d -> d.id /= doc.id) common.documents
-            in
-            ( { model | common = { common | documents = updatedDocs } }
+        Ports.UserNameLoaded name ->
+            ( { model | common = { common | userName = Just name } }
             , Cmd.none
             )
-
-        Storage.DocumentSaved (Err error) ->
-            ( model, Cmd.none )
-
-        Storage.DocumentDeleted (Ok id) ->
+        
+        Ports.LastDocumentIdLoaded id ->
             let
-                updatedDocs =
-                    List.filter (\d -> d.id /= id) common.documents
+                newCommon = { common | lastSavedDocumentId = Just id }
             in
-            ( { model | common = { common | documents = updatedDocs } }
-            , Cmd.none
-            )
+            if id /= "" then
+                ( { model | common = newCommon }
+                -- Delay loading the document to ensure editor is ready
+                , Process.sleep 1000
+                    |> Task.perform (always (CommonMsg (Common.LoadDocument id)))
+                )
+            else
+                ( { model | common = newCommon }
+                , Cmd.none
+                )
 
-        Storage.DocumentDeleted (Err error) ->
-            ( model, Cmd.none )
 
-        Storage.UserNameLoaded (Ok maybeName) ->
-            ( { model | common = { common | userName = maybeName } }
-            , Cmd.none
-            )
-
-        Storage.UserNameLoaded (Err error) ->
-            ( model, Cmd.none )
-
-        Storage.UserNameSaved _ ->
-            ( model, Cmd.none )
-            
-        Storage.LastDocumentIdLoaded (Ok maybeId) ->
-            let
-                newCommon = { common | lastSavedDocumentId = maybeId }
-            in
-            case maybeId of
-                Just id ->
-                    ( { model | common = newCommon }
-                    , Process.sleep 1000
-                        |> Task.perform (always (CommonMsg (Common.LoadDocument id)))
-                    )
-                Nothing ->
-                    ( { model | common = newCommon }
-                    , Cmd.none
-                    )
-                    
-        Storage.LastDocumentIdLoaded (Err _) ->
-            ( model, Cmd.none )
-            
-        Storage.LastDocumentIdSaved _ ->
-            ( model, Cmd.none )
-
-        Storage.StorageInitialized (Ok _) ->
-            ( model
-            , Cmd.batch
-                [ Storage.Tauri.storage StorageMsg |> .listDocuments
-                , Storage.Tauri.storage StorageMsg |> .loadLastDocumentId
-                ]
-            )
-
-        Storage.StorageInitialized (Err error) ->
-            ( model, Cmd.none )
+handleStorageMsg : Storage.StorageMsg -> Model -> ( Model, Cmd Msg )
+handleStorageMsg msg model =
+    -- Since we're using Ports directly, we don't need to handle these
+    ( model, Cmd.none )
 
 
 -- VIEW
@@ -648,7 +651,7 @@ subscriptions model =
         , Keyboard.subscriptions |> Sub.map (CommonMsg << Common.KeyMsg)
         , Time.every (30 * 1000) (CommonMsg << Common.AutoSave)
         , Time.every constants.autoSaveCheckInterval (CommonMsg << Common.Tick)
-        , Storage.Tauri.subscriptions StorageMsg
+        , Ports.receive (CommonMsg << Common.PortMsgReceived)
         ]
 
 
@@ -657,17 +660,8 @@ subscriptions model =
 
 jumpToId : String -> Cmd Msg
 jumpToId id =
-    Task.map2 Tuple.pair
-        (Browser.Dom.getElement id)
-        (Browser.Dom.getElement "rendered-text-container")
-        |> Task.andThen (\(targetEl, containerEl) ->
-            let
-                -- Calculate the target position relative to the container
-                targetY = targetEl.element.y - containerEl.element.y
-            in
-            -- Scroll the container to show the target element at the top
-            Browser.Dom.setViewportOf "rendered-text-container" 0 targetY
-        )
+    Browser.Dom.getElement id
+        |> Task.andThen (\el -> Browser.Dom.setViewport 0 el.element.y)
         |> Task.attempt (\_ -> CommonMsg Common.NoOp)
 
 

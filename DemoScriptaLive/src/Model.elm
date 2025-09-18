@@ -8,7 +8,6 @@ module Model exposing
 import AppData
 import Dict
 import Document exposing (Document)
-import Generic.Compiler
 import Json.Decode as Decode
 import Keyboard
 import List.Extra
@@ -18,6 +17,7 @@ import ScriptaV2.Compiler
 import ScriptaV2.DifferentialCompiler
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg(..))
+import ScriptaV2.Settings
 import Sync
 import Task
 import Theme
@@ -25,7 +25,7 @@ import Time
 
 
 type alias Model =
-    { displaySettings : Generic.Compiler.DisplaySettings
+    { displaySettings : ScriptaV2.Settings.DisplaySettings
     , sourceText : String
     , count : Int
     , windowWidth : Int
@@ -112,6 +112,7 @@ initialDisplaySettings flags =
     , longEquationLimit = flags.window.windowWidth |> toFloat
     , data = Dict.empty
     , idsOfOpenNodes = []
+    , numberToLevel = 0
     }
 
 

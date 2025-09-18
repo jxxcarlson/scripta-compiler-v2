@@ -2,6 +2,7 @@ module Common.Model exposing
     ( CommonModel
     , CommonMsg(..)
     , Flags
+    , PrintingState(..)
     , getTitle
     , getTitleFromContent
     , initCommon
@@ -11,7 +12,7 @@ import Browser.Dom
 import Dict
 import Document exposing (Document)
 import Element
-import Generic.Compiler
+import Http
 import Json.Decode as Decode
 import Keyboard
 import List.Extra
@@ -20,13 +21,20 @@ import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.Compiler
 import ScriptaV2.DifferentialCompiler
 import ScriptaV2.Language
+import ScriptaV2.Settings
 import Sync
 import Theme
 import Time
 
 
+type PrintingState
+    = PrintWaiting
+    | PrintProcessing
+    | PrintReady
+
+
 type alias CommonModel =
-    { displaySettings : Generic.Compiler.DisplaySettings
+    { displaySettings : ScriptaV2.Settings.DisplaySettings
     , sourceText : String
     , count : Int
     , windowWidth : Int
@@ -45,6 +53,8 @@ type alias CommonModel =
     , lastSaved : Time.Posix
     , lastChanged : Time.Posix
     , userName : Maybe String
+    , printingState : PrintingState
+    , pdfLink : String
 
     -- EDITOR
     , editorData : { begin : Int, end : Int }
@@ -81,6 +91,8 @@ type CommonMsg
     | InitialDocumentId String String Time.Posix Theme.Theme String
     | ExportToLaTeX
     | ExportToRawLaTeX
+    | PrintToPDF
+    | GotPdfLink (Result Http.Error String)
     | DownloadScript
     | InputUserName String
     | LoadUserNameDelayed
@@ -132,7 +144,7 @@ initCommon flags =
         currentTime =
             Time.millisToPosix flags.currentTime
     in
-    { displaySettings = 
+    { displaySettings =
         { windowWidth = flags.window.windowWidth // 3
         , longEquationLimit = 100.0
         , counter = 0
@@ -141,6 +153,7 @@ initCommon flags =
         , scale = 1.0
         , data = Dict.empty
         , idsOfOpenNodes = []
+        , numberToLevel = 0
         }
     , sourceText = ""
     , count = 0
@@ -165,6 +178,8 @@ initCommon flags =
     , lastSaved = currentTime
     , lastChanged = currentTime
     , userName = Nothing
+    , printingState = PrintWaiting
+    , pdfLink = ""
 
     -- EDITOR
     , editorData = { begin = 0, end = 0 }
