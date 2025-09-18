@@ -68,7 +68,7 @@ getHeadingData line_ =
                                     --Ok <| { heading = Ordinary "quote", args = args, properties = properties }
                                     let
                                         reducedLine =
-                                            -- String.replace ". " "" line
+                                            line |> String.trim |> Tools.Utility.replaceLeadingGreaterThanSign
                                     in
                                     if String.isEmpty reducedLine then
                                         Err HENoContent
@@ -133,7 +133,7 @@ getHeadingData line_ =
                                 "." ->
                                     let
                                         reducedLine =
-                                            -- String.replace ". " "" line
+                                            String.replace ". " "" line
                                     in
                                     if String.isEmpty reducedLine then
                                         Err HENoContent

@@ -47,7 +47,7 @@ view model =
                         Html.Attributes.attribute "noOp" "true"
 
                     Just refinedSelection ->
-                        Html.Attributes.attribute "refineselection" (encodeRefinedSelection (refinedSelection |> Debug.log "@@!!@@_refinedSelection_ENCODE") model.editorData)
+                        Html.Attributes.attribute "refineselection" (encodeRefinedSelection refinedSelection model.editorData)
 
                 -- TODO: remove this hardcoded value
                 , Html.Attributes.attribute "selection" (stringOfBool model.doSync)
@@ -122,13 +122,6 @@ onTextChange =
 
 encodeRefinedSelection : { focusOffset : Int, anchorOffset : Int, text : String } -> { begin : Int, end : Int } -> String
 encodeRefinedSelection { focusOffset, anchorOffset, text } { begin, end } =
-    let
-        _ =
-            Debug.log "@@encodeRefinedSelection.elm(1)" ( focusOffset, anchorOffset )
-
-        _ =
-            Debug.log "@@encodeRefinedSelection.elm(2)" ( text, begin, end )
-    in
     Json.Encode.object
         [ ( "focusOffset", Json.Encode.int focusOffset )
         , ( "anchorOffset", Json.Encode.int anchorOffset )

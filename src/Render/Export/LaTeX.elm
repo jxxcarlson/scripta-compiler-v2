@@ -145,6 +145,10 @@ today currenTime =
 tableofcontents : Dict String String -> List String -> String
 tableofcontents properties rawBlockNames_ =
     let
+        -- Count actual section blocks (not title blocks)
+        -- Note: In LaTeX export, level 1 sections become \title,
+        -- level 2+ become \section, \subsection, etc.
+        -- The TOC only includes \section and below, not \title
         sectionCount =
             List.length (List.filter (\name -> name == "section" || name == "section*") rawBlockNames_)
 
@@ -153,7 +157,10 @@ tableofcontents properties rawBlockNames_ =
                 |> Maybe.andThen String.toFloat
                 |> Maybe.withDefault 3
 
-        -- Don't show TOC if numbering is completely disabled (number-to-level:0)
+        -- Don't show TOC if:
+        -- 1. There's only one or zero sections
+        -- 2. Numbering is completely disabled (number-to-level:0)
+        -- Note: if all sections are level 1 (rendered as \title), TOC will be empty
         shouldShowTOC =
             sectionCount > 1 && numberToLevel > 0
     in
@@ -266,7 +273,7 @@ rawExport settings ast =
         |> ASTTools.filterForestOnLabelNames (\name -> not (name == Just "runninghead"))
         |> Generic.Forest.map Generic.BlockUtilities.condenseUrls
         |> encloseLists
-        |> Generic.Forest.map (counterValue ast |> oneOrTwo |> shiftSection)
+        -- Don't shift sections anymore since level 1 is now \section, not \title
         |> List.map (exportTree mathMacroDict settings)
         |> String.join "\n\n"
 
@@ -1011,28 +1018,34 @@ section settings args body =
     in
     case levelAsString of
         "1" ->
-            macro1 ("title" ++ suffix) body ++ label
-
-        "2" ->
-            if depthForNumbering <= maxNumberedLevel then
+            -- For documents with multiple sections, treat level 1 as section, not title
+            -- This ensures they appear in the table of contents
+            if depthForNumbering < maxNumberedLevel then
                 macro1 ("section" ++ suffix) body ++ label
 
             else
                 macro1 ("section*" ++ suffix) body ++ label
 
-        "3" ->
-            if depthForNumbering <= maxNumberedLevel then
+        "2" ->
+            if depthForNumbering < maxNumberedLevel then
                 macro1 ("subsection" ++ suffix) body ++ label
 
             else
                 macro1 ("subsection*" ++ suffix) body ++ label
 
-        "4" ->
-            if depthForNumbering <= maxNumberedLevel then
+        "3" ->
+            if depthForNumbering < maxNumberedLevel then
                 macro1 ("subsubsection" ++ suffix) body ++ label
 
             else
                 macro1 ("subsubsection*" ++ suffix) body ++ label
+
+        "4" ->
+            if depthForNumbering < maxNumberedLevel then
+                macro1 ("paragraph" ++ suffix) body ++ label
+
+            else
+                macro1 ("paragraph*" ++ suffix) body ++ label
 
         _ ->
             macro1 ("subheading" ++ suffix) body ++ label
