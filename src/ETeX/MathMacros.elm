@@ -6,8 +6,10 @@ module ETeX.MathMacros exposing
     , MathMacroDict
     , NewCommand(..)
     , Problem(..)
+    , defs
     , evalStr
     , getArgList
+    , lines
     , makeFunctionNames
     , makeMacroDict
     , parse
@@ -174,6 +176,18 @@ lines =
 macroDict : MathMacroDict
 macroDict =
     makeMacroDictFromLines lines
+
+
+defs =
+    """
+| mathmacros
+pdd:    frac(partial^2 #1, partial #2^2)
+nat:    mathbb N
+reals:  mathbb R
+pd:     frac(partial #1, partial #2)
+set:    \\{ #1 \\}
+sett:   \\{ #1 \\ | \\ #2 \\}
+"""
 
 
 evalStr : MathMacroDict -> String -> String

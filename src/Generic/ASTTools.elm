@@ -136,6 +136,11 @@ filterNotBlocksOnName name blocks =
     List.filter (matchBlockName name >> not) blocks
 
 
+treeFilterOnBlockNames : String -> Tree ExpressionBlock -> Tree ExpressionBlock
+treeFilterOnBlockNames name tree =
+    tree
+
+
 
 --filterForestOnBlockNames : String -> Forest ExpressionBlock -> Forest ExpressionBlock
 --filterForestOnBlockNames name forest =

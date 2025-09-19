@@ -24,7 +24,7 @@ import Render.Export.Preamble
 import Render.Export.Util
 import Render.Settings exposing (RenderSettings)
 import Render.Utility as Utility
-import RoseTree.Tree as Tree exposing (Tree)
+import RoseTree.Tree as Tree exposing (Tree(..))
 import Time
 import Tools.Loop exposing (Step(..), loop)
 
@@ -261,13 +261,45 @@ exportTree mathMacroDict settings tree =
 
 {-| -}
 rawExport : RenderSettings -> List (Tree ExpressionBlock) -> String
-rawExport settings ast =
+rawExport settings ast_ =
     let
         -- mathMacroDict : Dict String ETeX.Transform.MacroBody
         mathMacroDict =
-            ast
+            ast_
                 |> ASTTools.getVerbatimBlockValue "mathmacros"
                 |> ETeX.Transform.makeMacroDict
+                |> Debug.log "@@X.mathMacroDict"
+
+        mathMacroBlock_ : Maybe ExpressionBlock
+        mathMacroBlock_ =
+            ASTTools.getBlockByName "mathmacros" ast_
+
+        hideMathMacros : Tree ExpressionBlock -> Tree ExpressionBlock
+        hideMathMacros (Tree val children) =
+            let
+                outputTree =
+                    case val.heading of
+                        Paragraph ->
+                            Tree val children
+
+                        Ordinary _ ->
+                            Tree val children
+
+                        Verbatim "mathmacros" ->
+                            Tree { val | heading = Verbatim "hide" } children
+
+                        Verbatim _ ->
+                            Tree val children
+            in
+            outputTree |> Debug.log "@@X.hideMathMacros"
+
+        ast =
+            case mathMacroBlock_ of
+                Nothing ->
+                    ast_
+
+                Just mathMacroBlock ->
+                    Tree.leaf mathMacroBlock :: List.map (Tree.map hideMathMacros) ast_
     in
     ast
         |> ASTTools.filterForestOnLabelNames (\name -> not (name == Just "runninghead"))
@@ -689,6 +721,9 @@ exportBlock mathMacroDict settings block =
                                 |> String.join ""
 
                         "docinfo" ->
+                            ""
+
+                        "hide" ->
                             ""
 
                         _ ->
