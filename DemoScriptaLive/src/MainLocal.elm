@@ -603,13 +603,13 @@ handleIncomingPortMsg msg model =
                         , title = doc.title
                         , editRecord = editRecord
                         , compilerOutput = compilerOutput
-                        , loadDocumentIntoEditor = False  -- Will be set to True by LoadContentIntoEditorDelayed
+                        , loadDocumentIntoEditor = True  -- Set to True immediately for initial load
                         , lastLoadedDocumentId = Just doc.id
                     }
             in
             ( { model | common = newCommon }
-            , Process.sleep 200
-                |> Task.perform (always (CommonMsg Common.LoadContentIntoEditorDelayed))
+            , Process.sleep 500
+                |> Task.perform (always (CommonMsg Common.ResetLoadFlag))
             )
 
         Ports.ThemeLoaded themeStr ->
