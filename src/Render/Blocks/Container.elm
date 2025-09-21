@@ -61,8 +61,9 @@ itemList count acc settings attr block =
 
         renderItem : RenderSettings -> Generic.Language.Expression -> Element MarkupMsg
         renderItem settings_ expr =
-            Element.row [ Element.width (Element.px (settings.width - Render.Constants.defaultIndentWidth)) ]
-                [ renderLabel settings
+            Element.row [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 4 }, Element.width (Element.px (settings.width - Render.Constants.defaultIndentWidth)) ]
+                [ --renderLabel settings
+                  Element.el [ Element.alignTop, Element.paddingEach { left = 8, right = 12, top = 0, bottom = 0 } ] (Element.text "•")
                 , Element.paragraph (Render.Sync.attributes settings_ block)
                     (Render.Expression.render count acc settings [] expr :: [])
                 ]

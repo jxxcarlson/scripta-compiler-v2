@@ -10,6 +10,7 @@ import Dict exposing (Dict)
 import ETeX.MathMacros
 import ETeX.Transform
 import Either exposing (Either(..))
+import Element
 import Generic.ASTTools as ASTTools
 import Generic.BlockUtilities
 import Generic.Forest exposing (Forest)
@@ -226,37 +227,66 @@ shiftSection delta block =
 
 exportTree : ETeX.MathMacros.MathMacroDict -> RenderSettings -> Tree ExpressionBlock -> String
 exportTree mathMacroDict settings tree =
-    case Tree.children tree of
-        [] ->
-            exportBlock mathMacroDict settings (Tree.value tree)
-
-        children ->
+    case Tree.value tree |> Generic.Language.getHeadingFromBlock of
+        Ordinary "itemList" ->
             let
-                renderedChildren : List String
-                renderedChildren =
-                    List.map (exportTree mathMacroDict settings) children
-                        |> List.map String.lines
-                        |> List.concat
+                label : Expr { begin : number, end : number, index : number, id : String }
+                label =
+                    Text "•" { begin = 0, end = 1, index = 0, id = "" }
 
-                root =
-                    exportBlock mathMacroDict settings (Tree.value tree) |> String.lines
+                hang str =
+                    "\\hangindent=1em\n\\hangafter=1\n" ++ str
+
+                exprList : List Expression
+                exprList =
+                    case Tree.value tree |> .body of
+                        Left _ ->
+                            [] |> Debug.log "@@T.exportTree exprList"
+
+                        Right exprs ->
+                            exprs
+                                --|> List.map (\item -> label :: item)
+                                |> Debug.log "@@T.exportTree exprList"
+
+                renderExprList : List Expression -> String
+                renderExprList exprs =
+                    List.map (exportExpr mathMacroDict settings >> (\x -> " •  " ++ hang x)) exprs |> String.join "\n\n"
             in
-            case List.Extra.unconsLast root of
-                Nothing ->
-                    ""
+            renderExprList exprList
 
-                Just ( lastLine, firstLines ) ->
+        _ ->
+            case Tree.children tree of
+                [] ->
+                    exportBlock mathMacroDict settings (Tree.value tree)
+
+                children ->
                     let
-                        _ =
-                            firstLines
+                        renderedChildren : List String
+                        renderedChildren =
+                            List.map (exportTree mathMacroDict settings) children
+                                |> List.map String.lines
+                                |> List.concat
 
-                        _ =
-                            renderedChildren
-
-                        _ =
-                            lastLine
+                        root : List String
+                        root =
+                            exportBlock mathMacroDict settings (Tree.value tree) |> String.lines
                     in
-                    firstLines ++ renderedChildren ++ [ lastLine ] |> String.join "\n"
+                    case List.Extra.unconsLast root of
+                        Nothing ->
+                            ""
+
+                        Just ( lastLine, firstLines ) ->
+                            let
+                                _ =
+                                    firstLines
+
+                                _ =
+                                    renderedChildren
+
+                                _ =
+                                    lastLine
+                            in
+                            firstLines ++ renderedChildren ++ [ lastLine ] |> String.join "\n"
 
 
 {-| -}
@@ -385,25 +415,6 @@ beginNumberedBlock =
                     , numberOfLines = 2
                 }
             )
-
-
-
---
---ExpressionBlock
---    { args = []
---    , properties = Dict.empty
---    , blockType = OrdinaryBlock [ "beginNumberedBlock" ]
---    , content = Right [ Text "enumerate" { begin = 0, end = 7, index = 0, id = "begin" } ]
---    , messages = []
---    , id = "0"
---    , tag = ""
---    , indent = 1
---    , lineNumber = 0
---    , name = Just "beginNumberedBlock"
---    , numberOfLines = 2
---    , sourceText = "| beginBlock\nitemize"
---    , error = Nothing
---    }
 
 
 endNumberedBlock : ExpressionBlock
@@ -571,7 +582,7 @@ exportBlock mathMacroDict settings block =
                     ""
 
                 Right exprs_ ->
-                    case Dict.get name blockDict of
+                    case Dict.get name (blockDict mathMacroDict) of
                         Just f ->
                             f settings block.args (exportExprList mathMacroDict settings exprs_)
 
@@ -828,8 +839,8 @@ dontRender _ _ =
 -- BLOCKDICT
 
 
-blockDict : Dict String (RenderSettings -> List String -> String -> String)
-blockDict =
+blockDict : ETeX.MathMacros.MathMacroDict -> Dict String (RenderSettings -> List String -> String -> String)
+blockDict mathMacroDict =
     Dict.fromList
         [ ( "title", \_ _ _ -> "" )
         , ( "subtitle", \_ _ _ -> "" )
@@ -850,6 +861,7 @@ blockDict =
         , ( "subheading", \settings_ args body -> subheading settings_ args body )
         , ( "smallsubheading", \settings_ args body -> smallsubheading settings_ args body )
         , ( "item", \_ _ body -> macro1 "item" body )
+        , ( "itemList", \_ _ body -> body )
         , ( "descriptionItem", \_ args body -> descriptionItem args body )
         , ( "numbered", \_ _ body -> macro1 "item" body )
         , ( "desc", \_ args body -> descriptionItem args body )
@@ -1173,8 +1185,9 @@ exportExpr mathMacroDict settings expr =
         VFun name body _ ->
             renderVerbatim mathMacroDict name body
 
-        ExprList exprList _ ->
-            "[ExprList]"
+        ExprList itemExprs _ ->
+            -- Export the list of expressions
+            exportExprList mathMacroDict settings itemExprs
 
 
 {-| Use this to unalias names

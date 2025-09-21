@@ -1,9 +1,14 @@
 module ReplTest exposing (..)
 
+import Generic.Forest
 import Generic.Language
 import Generic.Pipeline
 import M.Expression
 import M.PrimitiveBlock
+import Render.Export.LaTeX
+import Render.Settings
+import RoseTree.Tree
+import ScriptaV2.Compiler
 
 
 p : String -> List Generic.Language.PrimitiveBlock
@@ -16,19 +21,26 @@ q =
     p >> List.map expressionBlockFromPrimitiveBlock
 
 
+t : String -> Generic.Forest.Forest Generic.Language.ExpressionBlock
+t str =
+    ScriptaV2.Compiler.ps str
+
+
+dfrs : Render.Settings.RenderSettings
+dfrs =
+    Render.Settings.defaultSettings Render.Settings.defaultDisplaySettings
+
+
 expressionBlockFromPrimitiveBlock : Generic.Language.PrimitiveBlock -> Generic.Language.ExpressionBlock
 expressionBlockFromPrimitiveBlock =
     Generic.Pipeline.toExpressionBlock M.Expression.parse
 
 
-t =
-    "abc\ndef\n\nXYZ"
-
-
 t1 =
     """
-Hello there [anchor one [i two] three]
-YADA [b YADA] YADA
+- [b Bread] $x^2$ abc def efg hij klm nop qrs tuv wxy z bc def efg hij [b KLM.]
+- Cheese
+- Wine
 """
 
 

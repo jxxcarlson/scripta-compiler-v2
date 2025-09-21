@@ -1,6 +1,6 @@
 module Render.Settings exposing
     ( Display(..), defaultSettings, makeSettings, RenderSettings, default
-    , DisplaySettings, RenderData, ThemedStyles, darkTheme, defaultRenderData, defaultRenderSettings, getThemedColor, getThemedElementColor, lightTheme, toElementColor, unrollTheme
+    , DisplaySettings, RenderData, ThemedStyles, darkTheme, defaultDisplaySettings, defaultRenderData, defaultRenderSettings, getThemedColor, getThemedElementColor, lightTheme, toElementColor, unrollTheme
     )
 
 {-| The Settings record holds information needed to render a
@@ -46,6 +46,20 @@ defaultRenderData displaysettings theme width outerCount selectedId =
 defaultRenderSettings : DisplaySettings -> Render.Theme.Theme -> Int -> String -> RenderSettings
 defaultRenderSettings displaysettings theme width selectedId =
     default displaysettings theme selectedId width
+
+
+defaultDisplaySettings : DisplaySettings
+defaultDisplaySettings =
+    { windowWidth = 800
+    , longEquationLimit = 800
+    , counter = 0
+    , selectedId = ""
+    , selectedSlug = Nothing
+    , scale = 1
+    , data = Dict.empty
+    , idsOfOpenNodes = []
+    , numberToLevel = 1
+    }
 
 
 type alias DisplaySettings =

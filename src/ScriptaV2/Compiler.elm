@@ -9,6 +9,8 @@ module ScriptaV2.Compiler exposing
 
 -}
 
+-- import Markdown.Compiler
+
 import Element exposing (Element)
 import Element.Font as Font
 import Generic.ASTTools
@@ -18,7 +20,6 @@ import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExpressionBlock)
 import M.Expression
 import M.PrimitiveBlock
-import Markdown.Compiler
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
@@ -156,7 +157,8 @@ compile displaySettings theme params lines =
 
         MarkdownLang ->
             -- Use the Markdown compiler
-            Markdown.Compiler.compileForScripta displaySettings theme (String.join "\n" lines)
+            -- Markdown.Compiler.compileForScripta displaySettings theme (String.join "\n" lines)
+            compileX displaySettings theme params lines
 
 
 {-|

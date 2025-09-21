@@ -20,6 +20,7 @@ module Generic.Language exposing
     , extractText
     , getExpressionContent
     , getFunctionName
+    , getHeadingFromBlock
     , getIdFromBlock
     , getMeta
     , getMetaFromBlock
@@ -259,6 +260,11 @@ type alias PrimitiveBlock =
 -}
 type alias ExpressionBlock =
     Block (Either String (List Expression)) BlockMeta
+
+
+getHeadingFromBlock : ExpressionBlock -> Heading
+getHeadingFromBlock block =
+    block.heading
 
 
 getMetaFromBlock : ExpressionBlock -> Maybe ExprMeta
