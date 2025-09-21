@@ -17,7 +17,7 @@
       "icons/icon.ico"
     ]
   },
-  "productName": "Scripta Desktop v0.2.b",
+  "productName": "Scripta Desktop v0.3a",
   "version": "0.2.0",
   "app": {
     "security": {
@@ -27,7 +27,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Scripta Desktop v0.2.b",
+        "title": "Scripta Desktop v0.3a",
         "label": "main",
         "width": 1400,
         "height": 900,

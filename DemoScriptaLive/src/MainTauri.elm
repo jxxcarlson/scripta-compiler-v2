@@ -317,6 +317,8 @@ updateCommon msg model =
                         , lastLoadedDocumentId = Just id
                         , loadDocumentIntoEditor = True
                         , compilerOutput = compilerOutput
+                        , printingState = Common.PrintWaiting
+                        , pdfLink = ""
                     }
             in
             ( { model | common = { newCommon | lastSavedDocumentId = Just newDoc.id } }
@@ -356,7 +358,7 @@ updateCommon msg model =
                     update (CommonMsg Common.CreateNewDocument) model
 
         Common.LoadDocument id ->
-            ( model
+            ( { model | common = { common | printingState = Common.PrintWaiting, pdfLink = "" } }
             , storage.loadDocument id
             )
 
@@ -613,6 +615,8 @@ handleStorageMsg msg model =
                         , compilerOutput = compilerOutput
                         , loadDocumentIntoEditor = True
                         , lastLoadedDocumentId = Just doc.id
+                        , printingState = Common.PrintWaiting
+                        , pdfLink = ""
                     }
             in
             ( { model | common = newCommon }

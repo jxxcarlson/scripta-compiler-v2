@@ -1,1 +1,1 @@
- python3 -m http.server 8012
+python -m http.server 8012

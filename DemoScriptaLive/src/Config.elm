@@ -3,12 +3,19 @@ module Config exposing (pdfServer, pdfServUrl)
 {-| Configuration for PDF server endpoints
 -}
 
+import Env
+
 
 pdfServer : String
 pdfServer =
-    "https://pdfserv.app"
+    case Env.mode of
+        Env.Production ->
+            "https://pdfserv.app"
+
+        Env.Development ->
+            "http://localhost:3000"
 
 
 pdfServUrl : String
 pdfServUrl =
-    "https://pdfserv.app/pdf/"
+    pdfServer ++ "/pdf/"
