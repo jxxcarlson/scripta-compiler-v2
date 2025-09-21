@@ -5,6 +5,8 @@ use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::{Manager, State};
+use std::fs;
+use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Document {
@@ -28,6 +30,12 @@ struct CommandPayload {
     document: Option<Document>,
     #[serde(default)]
     name: Option<String>,
+    #[serde(default)]
+    file_name: Option<String>,
+    #[serde(default)]
+    content: Option<String>,
+    #[serde(default)]
+    mime_type: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -75,6 +83,7 @@ fn handle_tauri_command(
         "loadUserName" => load_user_name(&db),
         "saveLastDocumentId" => save_last_document_id(&db, payload.id),
         "loadLastDocumentId" => load_last_document_id(&db),
+        "saveFile" => save_file(payload.file_name, payload.content),
         _ => Err(format!("Unknown command: {}", payload.cmd)),
     }
 }
@@ -308,7 +317,7 @@ fn load_last_document_id(conn: &Connection) -> Result<CommandResponse, String> {
             |row| row.get::<_, String>(0),
         )
         .ok();
-    
+
     Ok(CommandResponse {
         response_type: "lastDocumentIdLoaded".to_string(),
         document: None,
@@ -319,6 +328,33 @@ fn load_last_document_id(conn: &Connection) -> Result<CommandResponse, String> {
         last_document_id: Some(last_doc_id),
         error: None,
     })
+}
+
+fn save_file(file_name: Option<String>, content: Option<String>) -> Result<CommandResponse, String> {
+    let file_name = file_name.ok_or("File name is required")?;
+    let content = content.ok_or("Content is required")?;
+
+    // Use native file dialog to let user choose save location
+    let file_dialog = rfd::FileDialog::new()
+        .set_file_name(&file_name);
+
+    if let Some(path) = file_dialog.save_file() {
+        fs::write(&path, content.as_bytes())
+            .map_err(|e| format!("Failed to write file: {}", e))?;
+
+        Ok(CommandResponse {
+            response_type: "fileSaved".to_string(),
+            document: None,
+            documents: None,
+            id: None,
+            user_name: None,
+            name: Some(path.to_string_lossy().to_string()),
+            last_document_id: None,
+            error: None,
+        })
+    } else {
+        Err("File save cancelled".to_string())
+    }
 }
 
 fn main() {

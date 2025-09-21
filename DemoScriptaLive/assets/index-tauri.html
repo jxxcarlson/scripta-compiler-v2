@@ -137,7 +137,7 @@
         if (app.ports.tauriCommand) {
             app.ports.tauriCommand.subscribe(async (command) => {
                 console.log('Tauri command:', command);
-            
+
             try {
                 const result = await invoke('handle_tauri_command', { payload: command });
                 console.log('Tauri result:', result);

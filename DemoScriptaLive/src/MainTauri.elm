@@ -16,6 +16,7 @@ import File.Download
 import Frontend.PDF
 import Html exposing (Html)
 import Json.Decode as Decode
+import Json.Encode
 import Keyboard
 import List.Extra
 import Ports
@@ -415,12 +416,15 @@ updateCommon msg model =
 
                 exportText =
                     Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
-
-                fileName =
-                    common.title ++ ".tex"
             in
             ( model
-            , File.Download.string fileName "application/x-latex" exportText
+            , Ports.tauriCommand <|
+                Json.Encode.object
+                    [ ( "cmd", Json.Encode.string "saveFile" )
+                    , ( "file_name", Json.Encode.string (common.title ++ ".tex") )
+                    , ( "content", Json.Encode.string exportText )
+                    , ( "mime_type", Json.Encode.string "application/x-latex" )
+                    ]
             )
 
         Common.ExportToRawLaTeX ->
@@ -430,12 +434,15 @@ updateCommon msg model =
 
                 exportText =
                     Render.Export.LaTeX.rawExport settings common.editRecord.tree
-
-                fileName =
-                    common.title ++ ".tex"
             in
             ( model
-            , File.Download.string fileName "application/x-latex" exportText
+            , Ports.tauriCommand <|
+                Json.Encode.object
+                    [ ( "cmd", Json.Encode.string "saveFile" )
+                    , ( "file_name", Json.Encode.string (common.title ++ ".tex") )
+                    , ( "content", Json.Encode.string exportText )
+                    , ( "mime_type", Json.Encode.string "application/x-latex" )
+                    ]
             )
 
         Common.PrintToPDF ->

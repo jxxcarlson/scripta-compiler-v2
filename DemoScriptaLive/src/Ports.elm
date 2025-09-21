@@ -31,6 +31,7 @@ type OutgoingMsg
     | LoadUserName
     | SaveLastDocumentId String
     | LoadLastDocumentId
+    | SaveFile { fileName : String, content : String, mimeType : String }
 
 
 -- INCOMING MESSAGES (JS -> Elm)
@@ -141,6 +142,14 @@ encodeOutgoing msg =
         LoadLastDocumentId ->
             Encode.object
                 [ ( "tag", Encode.string "LoadLastDocumentId" )
+                ]
+
+        SaveFile data ->
+            Encode.object
+                [ ( "tag", Encode.string "SaveFile" )
+                , ( "fileName", Encode.string data.fileName )
+                , ( "content", Encode.string data.content )
+                , ( "mimeType", Encode.string data.mimeType )
                 ]
 
 
