@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scripta Desktop</title>
 
-    <!-- Feedback.one widget -->
+    <!-- Feedback.one widget (commented out - not compatible with desktop webview) -->
+    <!--
     <script
         src="https://sdk.feedback.one/v0/core.min.js"
         data-project-id="01995ed7-6ce2-73e1-afba-661ca193a2c4"
         defer
     ></script>
+    -->
 
     <!-- Load the actual KaTeX library first -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
@@ -45,6 +47,13 @@
         window.addEventListener('unhandledrejection', function(event) {
             console.error('Unhandled promise rejection:', event.reason);
         });
+
+        // Check if feedback.one loaded (it won't in desktop)
+        setTimeout(() => {
+            if (typeof window.feedback === 'undefined') {
+                console.log('Feedback.one widget not available in desktop environment');
+            }
+        }, 2000);
 
         // Wrap everything in an IIFE to allow early returns
         (function() {
@@ -136,7 +145,16 @@
         // Handle Tauri commands from Elm
         if (app.ports.tauriCommand) {
             app.ports.tauriCommand.subscribe(async (command) => {
-                console.log('Tauri command:', command);
+                console.log('Tauri command received:', command);
+
+                // Special logging for saveFile commands
+                if (command.cmd === 'saveFile') {
+                    console.log('SaveFile command detected!', {
+                        fileName: command.file_name,
+                        contentLength: command.content ? command.content.length : 0,
+                        mimeType: command.mime_type
+                    });
+                }
 
             try {
                 const result = await invoke('handle_tauri_command', { payload: command });
