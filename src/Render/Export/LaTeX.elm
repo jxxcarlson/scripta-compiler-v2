@@ -268,7 +268,6 @@ rawExport settings ast_ =
             ast_
                 |> ASTTools.getVerbatimBlockValue "mathmacros"
                 |> ETeX.Transform.makeMacroDict
-                |> Debug.log "@@X.mathMacroDict"
 
         mathMacroBlock_ : Maybe ExpressionBlock
         mathMacroBlock_ =
@@ -291,7 +290,7 @@ rawExport settings ast_ =
                         Verbatim _ ->
                             Tree val children
             in
-            outputTree |> Debug.log "@@X.hideMathMacros"
+            outputTree
 
         ast =
             case mathMacroBlock_ of

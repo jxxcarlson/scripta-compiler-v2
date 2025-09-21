@@ -415,15 +415,11 @@ updateCommon msg model =
                 exportText =
                     Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
 
-                exportData =
-                    { title = common.title
-                    , content = exportText
-                    , sourceText = common.sourceText
-                    , language = common.currentLanguage
-                    }
+                fileName =
+                    common.title ++ ".tex"
             in
-            ( { model | common = { common | printingState = Common.PrintProcessing } }
-            , Cmd.map CommonMsg (Frontend.PDF.requestPDF exportData)
+            ( model
+            , File.Download.string fileName "application/x-latex" exportText
             )
 
         Common.ExportToRawLaTeX ->
@@ -449,11 +445,15 @@ updateCommon msg model =
                 exportText =
                     Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
 
-                fileName =
-                    common.title ++ ".tex"
+                exportData =
+                    { title = common.title
+                    , content = exportText
+                    , sourceText = common.sourceText
+                    , language = common.currentLanguage
+                    }
             in
-            ( model
-            , File.Download.string fileName "application/x-latex" exportText
+            ( { model | common = { common | printingState = Common.PrintProcessing } }
+            , Cmd.map CommonMsg (Frontend.PDF.requestPDF exportData)
             )
 
         Common.GotPdfLink result ->

@@ -51278,7 +51278,7 @@ var $author$project$Render$Export$Preamble$packagesNeeded = function (names) {
 		$elm_community$list_extra$List$Extra$unique(
 			$author$project$Render$Export$Preamble$newPackageList(names)));
 };
-var $author$project$Render$Export$Preamble$standardPackages = '\n%% Packages\n\n%% Standard packages\n\\usepackage{geometry}\n\\geometry{letterpaper}\n\\usepackage{changepage}   % for the adjustwidth environment\n\n%% AMS\n\\usepackage{amssymb}\n\\usepackage{amsmath}\n\n\\usepackage{amscd}\n\n\\usepackage{fancyvrb} %% for inline verbatim\n';
+var $author$project$Render$Export$Preamble$standardPackages = '\n%% Packages\n\n%% Standard packages\n\\usepackage{geometry}\n\\geometry{letterpaper}\n\\usepackage{changepage}   % for the adjustwidth environment\n\\usepackage{tocbibind}    % put unnumbered sections in toc\n\n%% AMS\n\\usepackage{amssymb}\n\\usepackage{amsmath}\n\n\\usepackage{amscd}\n\n\\usepackage{fancyvrb} %% for inline verbatim\n';
 var $author$project$Render$Export$Preamble$addCode = F4(
 	function (packagesInDocument, _package, codeText, accumulatedCodeText) {
 		return A2($elm$core$List$member, _package, packagesInDocument) ? (codeText + ('\n\n' + accumulatedCodeText)) : accumulatedCodeText;
@@ -53317,6 +53317,8 @@ var $author$project$Render$Export$LaTeX$exportBlock = F3(
 									['\\[\n', data, '\n\\]']));
 						case 'docinfo':
 							return '';
+						case 'hide':
+							return '';
 						default:
 							return ': export of this block is unimplemented';
 					}
@@ -53416,10 +53418,65 @@ var $author$project$Generic$Forest$map = F2(
 			$maca$elm_rose_tree$RoseTree$Tree$mapValues(f),
 			forest);
 	});
+var $maca$elm_rose_tree$RoseTree$Tree$map = F2(
+	function (f, _v0) {
+		var a = _v0.a;
+		var ns = _v0.b;
+		return f(
+			A2(
+				$maca$elm_rose_tree$RoseTree$Tree$Tree,
+				a,
+				A2(
+					$elm$core$Array$map,
+					$maca$elm_rose_tree$RoseTree$Tree$map(f),
+					ns)));
+	});
 var $author$project$Render$Export$LaTeX$rawExport = F2(
-	function (settings, ast) {
+	function (settings, ast_) {
 		var mathMacroDict = $author$project$ETeX$Transform$makeMacroDict(
-			A2($author$project$Generic$ASTTools$getVerbatimBlockValue, 'mathmacros', ast));
+			A2($author$project$Generic$ASTTools$getVerbatimBlockValue, 'mathmacros', ast_));
+		var mathMacroBlock_ = A2($author$project$Generic$ASTTools$getBlockByName, 'mathmacros', ast_);
+		var hideMathMacros = function (_v2) {
+			var val = _v2.a;
+			var children = _v2.b;
+			var outputTree = function () {
+				var _v1 = val.fC;
+				switch (_v1.$) {
+					case 0:
+						return A2($maca$elm_rose_tree$RoseTree$Tree$Tree, val, children);
+					case 1:
+						return A2($maca$elm_rose_tree$RoseTree$Tree$Tree, val, children);
+					default:
+						if (_v1.a === 'mathmacros') {
+							return A2(
+								$maca$elm_rose_tree$RoseTree$Tree$Tree,
+								_Utils_update(
+									val,
+									{
+										fC: $author$project$Generic$Language$Verbatim('hide')
+									}),
+								children);
+						} else {
+							return A2($maca$elm_rose_tree$RoseTree$Tree$Tree, val, children);
+						}
+				}
+			}();
+			return outputTree;
+		};
+		var ast = function () {
+			if (mathMacroBlock_.$ === 1) {
+				return ast_;
+			} else {
+				var mathMacroBlock = mathMacroBlock_.a;
+				return A2(
+					$elm$core$List$cons,
+					$maca$elm_rose_tree$RoseTree$Tree$leaf(mathMacroBlock),
+					A2(
+						$elm$core$List$map,
+						$maca$elm_rose_tree$RoseTree$Tree$map(hideMathMacros),
+						ast_));
+			}
+		}();
 		return A2(
 			$elm$core$String$join,
 			'\n\n',
@@ -55340,20 +55397,11 @@ var $author$project$MainLocal$updateCommon = F2(
 					1.0,
 					common.gt,
 					$elm$core$Dict$empty);
+				var fileName = common.ic + '.tex';
 				var exportText = A3($author$project$Render$Export$LaTeX$export, common.gT, settings, common.mi.k4);
-				var exportData = {iV: exportText, nf: common.lZ, oP: common.oP, ic: common.ic};
 				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							i: _Utils_update(
-								common,
-								{og: 1})
-						}),
-					A2(
-						$elm$core$Platform$Cmd$map,
-						$author$project$MainLocal$CommonMsg,
-						$author$project$Frontend$PDF$requestPDF(exportData)));
+					model,
+					A3($elm$file$File$Download$string, fileName, 'application/x-latex', exportText));
 			case 17:
 				var settings = A7(
 					$author$project$Render$Settings$makeSettings,
@@ -55379,11 +55427,20 @@ var $author$project$MainLocal$updateCommon = F2(
 					1.0,
 					common.gt,
 					$elm$core$Dict$empty);
-				var fileName = common.ic + '.tex';
 				var exportText = A3($author$project$Render$Export$LaTeX$export, common.gT, settings, common.mi.k4);
+				var exportData = {iV: exportText, nf: common.lZ, oP: common.oP, ic: common.ic};
 				return _Utils_Tuple2(
-					model,
-					A3($elm$file$File$Download$string, fileName, 'application/x-latex', exportText));
+					_Utils_update(
+						model,
+						{
+							i: _Utils_update(
+								common,
+								{og: 1})
+						}),
+					A2(
+						$elm$core$Platform$Cmd$map,
+						$author$project$MainLocal$CommonMsg,
+						$author$project$Frontend$PDF$requestPDF(exportData)));
 			case 19:
 				var result = msg.a;
 				if (!result.$) {
@@ -56375,13 +56432,13 @@ var $author$project$Common$View$exportStuff = F2(
 										$author$project$Widget$sidebarButton,
 										model.h7,
 										$elm$core$Maybe$Just(
-											toMsg($author$project$Common$Model$ExportToLaTeX)),
+											toMsg($author$project$Common$Model$PrintToPDF)),
 										'PDF'),
 										A3(
 										$author$project$Widget$sidebarButton,
 										model.h7,
 										$elm$core$Maybe$Just(
-											toMsg($author$project$Common$Model$PrintToPDF)),
+											toMsg($author$project$Common$Model$ExportToLaTeX)),
 										'LaTeX'),
 										A3(
 										$author$project$Widget$sidebarButton,
@@ -56436,13 +56493,13 @@ var $author$project$Common$View$exportStuff = F2(
 												$author$project$Widget$sidebarButton,
 												model.h7,
 												$elm$core$Maybe$Just(
-													toMsg($author$project$Common$Model$ExportToLaTeX)),
+													toMsg($author$project$Common$Model$PrintToPDF)),
 												'PDF'),
 												A3(
 												$author$project$Widget$sidebarButton,
 												model.h7,
 												$elm$core$Maybe$Just(
-													toMsg($author$project$Common$Model$PrintToPDF)),
+													toMsg($author$project$Common$Model$ExportToLaTeX)),
 												'LaTeX'),
 												A3(
 												$author$project$Widget$sidebarButton,

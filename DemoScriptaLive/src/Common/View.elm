@@ -170,8 +170,8 @@ exportStuff toMsg model =
         , case model.printingState of
             Common.PrintWaiting ->
                 Element.row [ spacing 4, width fill ]
-                    [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "PDF"
-                    , Widget.sidebarButton model.theme (Just (toMsg Common.PrintToPDF)) "LaTeX"
+                    [ Widget.sidebarButton model.theme (Just (toMsg Common.PrintToPDF)) "PDF"
+                    , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "LaTeX"
                     , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
                     ]
 
@@ -188,8 +188,8 @@ exportStuff toMsg model =
                         , label = Element.text "Click for PDF"
                         }
                     , Element.row [ spacing 4, width fill ]
-                        [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "PDF"
-                        , Widget.sidebarButton model.theme (Just (toMsg Common.PrintToPDF)) "LaTeX"
+                        [ Widget.sidebarButton model.theme (Just (toMsg Common.PrintToPDF)) "PDF"
+                        , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "LaTeX"
                         , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
                         ]
                     ]
