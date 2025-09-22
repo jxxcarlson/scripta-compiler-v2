@@ -1,4 +1,4 @@
-module Config exposing (pdfServer, pdfServUrl)
+module Config exposing (pdfServUrl, pdfServer)
 
 {-| Configuration for PDF server endpoints
 -}

@@ -467,9 +467,22 @@ updateCommon msg model =
             )
 
         Common.GotPdfLink result ->
+            -- This is kept for backwards compatibility but should not be used
             case result of
                 Ok pdfLink ->
                     ( { model | common = { common | printingState = Common.PrintReady, pdfLink = pdfLink } }
+                    , Cmd.none
+                    )
+
+                Err _ ->
+                    ( { model | common = { common | printingState = Common.PrintWaiting } }
+                    , Cmd.none
+                    )
+
+        Common.GotPdfResponse result ->
+            case result of
+                Ok pdfResponse ->
+                    ( { model | common = { common | printingState = Common.PrintReady, pdfResponse = Just pdfResponse } }
                     , Cmd.none
                     )
 

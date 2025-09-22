@@ -1,8 +1,9 @@
-module Frontend.PDF exposing (requestPDF)
+module Frontend.PDF exposing (pdfResponseDecoder, requestPDF)
 
-import Common.Model exposing (CommonMsg(..))
+import Common.Model exposing (CommonMsg(..), PdfResponse)
 import Config
 import Http
+import Json.Decode as D
 import Json.Encode as E
 import Render.Export.LaTeX
 import Render.Settings
@@ -26,6 +27,15 @@ type alias ImageRecord =
     }
 
 
+pdfResponseDecoder : D.Decoder PdfResponse
+pdfResponseDecoder =
+    D.map4 PdfResponse
+        (D.maybe (D.field "pdf" D.string))
+        (D.maybe (D.field "errorReport" D.string))
+        (D.field "hasErrors" D.bool)
+        (D.oneOf [ D.field "pdfFailed" D.bool, D.succeed False ])
+
+
 requestPDF : ExportData -> Cmd CommonMsg
 requestPDF exportData =
     let
@@ -44,7 +54,7 @@ requestPDF exportData =
     Http.post
         { url = Config.pdfServer ++ "/pdf"
         , body = Http.jsonBody (encodeForPDF exportData.title processedContent imageRecords)
-        , expect = Http.expectString GotPdfLink
+        , expect = Http.expectJson GotPdfResponse pdfResponseDecoder
         }
 
 

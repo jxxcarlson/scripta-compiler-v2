@@ -180,13 +180,58 @@ exportStuff toMsg model =
 
             Common.PrintReady ->
                 Element.column [ spacing 4, width fill ]
-                    [ Element.newTabLink
-                        [ Font.size 14
-                        , Font.color (Element.rgb 0 0 0.8)
-                        ]
-                        { url = Config.pdfServUrl ++ extractFileName model.pdfLink
-                        , label = Element.text "Click for PDF"
-                        }
+                    [ -- Display links based on PDF response
+                      case model.pdfResponse of
+                        Nothing ->
+                            -- Fallback to old behavior if no response
+                            Element.newTabLink
+                                [ Font.size 14
+                                , Font.color (Element.rgb 0 0 0.8)
+                                ]
+                                { url = Config.pdfServUrl ++ extractFileName model.pdfLink
+                                , label = Element.text "Click for PDF"
+                                }
+
+                        Just response ->
+                            Element.column [ spacing 4, width fill ]
+                                [ -- Show PDF link if available
+                                  case response.pdf of
+                                    Just pdfFile ->
+                                        Element.newTabLink
+                                            [ Font.size 14
+                                            , Font.color (Element.rgb 0 0 0.8)
+                                            ]
+                                            { url = Config.pdfServUrl ++ pdfFile
+                                            , label =
+                                                if response.hasErrors then
+                                                    Element.text "PDF (with errors)"
+
+                                                else
+                                                    Element.text "Click for PDF"
+                                            }
+
+                                    Nothing ->
+                                        Element.none
+
+                                , -- Show error report link if available
+                                  case response.errorReport of
+                                    Just errorFile ->
+                                        Element.newTabLink
+                                            [ Font.size 14
+                                            , Font.color (Element.rgb 0.8 0 0)
+                                            ]
+                                            { url = Config.pdfServUrl ++ errorFile
+                                            , label =
+                                                if response.pdfFailed then
+                                                    Element.text "Error Report (PDF generation failed)"
+
+                                                else
+                                                    Element.text "Error Report"
+                                            }
+
+                                    Nothing ->
+                                        Element.none
+                                ]
                     , Element.row [ spacing 4, width fill ]
                         [ Widget.sidebarButton model.theme (Just (toMsg Common.PrintToPDF)) "PDF"
                         , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "LaTeX"

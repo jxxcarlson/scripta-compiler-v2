@@ -2,6 +2,7 @@ module Common.Model exposing
     ( CommonModel
     , CommonMsg(..)
     , Flags
+    , PdfResponse
     , PrintingState(..)
     , getTitle
     , getTitleFromContent
@@ -33,6 +34,14 @@ type PrintingState
     | PrintReady
 
 
+type alias PdfResponse =
+    { pdf : Maybe String
+    , errorReport : Maybe String
+    , hasErrors : Bool
+    , pdfFailed : Bool
+    }
+
+
 type alias CommonModel =
     { displaySettings : ScriptaV2.Settings.DisplaySettings
     , sourceText : String
@@ -55,6 +64,7 @@ type alias CommonModel =
     , userName : Maybe String
     , printingState : PrintingState
     , pdfLink : String
+    , pdfResponse : Maybe PdfResponse
 
     -- EDITOR
     , editorData : { begin : Int, end : Int }
@@ -93,6 +103,7 @@ type CommonMsg
     | ExportToRawLaTeX
     | PrintToPDF
     | GotPdfLink (Result Http.Error String)
+    | GotPdfResponse (Result Http.Error PdfResponse)
     | DownloadScript
     | InputUserName String
     | LoadUserNameDelayed
@@ -180,6 +191,7 @@ initCommon flags =
     , userName = Nothing
     , printingState = PrintWaiting
     , pdfLink = ""
+    , pdfResponse = Nothing
 
     -- EDITOR
     , editorData = { begin = 0, end = 0 }

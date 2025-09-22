@@ -14,6 +14,7 @@ import Element exposing (..)
 import File.Download
 import Frontend.PDF
 import Html exposing (Html)
+import Http
 import Json.Decode as Decode
 import Keyboard
 import List.Extra
@@ -35,6 +36,7 @@ import Theme
 import Time
 
 
+
 -- MAIN
 
 
@@ -45,6 +47,7 @@ main =
         , update = update
         , subscriptions = subscriptions
         }
+
 
 
 -- MODEL
@@ -61,6 +64,7 @@ type Msg
     | StorageMsg Storage.StorageMsg
 
 
+
 -- INIT
 
 
@@ -74,7 +78,7 @@ init flags =
             Storage.SQLite.storage StorageMsg
 
         updatedCommon =
-            { common 
+            { common
                 | showDocumentList = True
             }
     in
@@ -88,6 +92,7 @@ init flags =
             |> Task.perform (always (CommonMsg Common.LoadUserNameDelayed))
         ]
     )
+
 
 
 -- UPDATE
@@ -126,7 +131,8 @@ updateCommon msg model =
 
                 updatedDisplaySettings =
                     let
-                        oldSettings = common.displaySettings
+                        oldSettings =
+                            common.displaySettings
                     in
                     { oldSettings | counter = newCount }
 
@@ -160,7 +166,8 @@ updateCommon msg model =
 
                 updatedDisplaySettings =
                     let
-                        oldSettings = common.displaySettings
+                        oldSettings =
+                            common.displaySettings
                     in
                     { oldSettings | counter = newCount }
 
@@ -180,7 +187,7 @@ updateCommon msg model =
                         , lastChanged = common.currentTime
                         , count = newCount
                         , displaySettings = updatedDisplaySettings
-                        , loadDocumentIntoEditor = False  -- Turn off loading after edit
+                        , loadDocumentIntoEditor = False -- Turn off loading after edit
                     }
             in
             ( { model | common = newCommon }, Cmd.none )
@@ -201,7 +208,7 @@ updateCommon msg model =
                     common.displaySettings
 
                 newDisplaySettings =
-                    { displaySettings 
+                    { displaySettings
                         | windowWidth = width // 3
                     }
 
@@ -216,7 +223,7 @@ updateCommon msg model =
                         newEditRecord
 
                 newCommon =
-                    { common 
+                    { common
                         | windowWidth = width
                         , windowHeight = height
                         , displaySettings = newDisplaySettings
@@ -238,6 +245,7 @@ updateCommon msg model =
                 newTheme =
                     if common.theme == Theme.Dark then
                         Theme.Light
+
                     else
                         Theme.Dark
 
@@ -252,14 +260,15 @@ updateCommon msg model =
                         newEditRecord
 
                 newCommon =
-                    { common 
+                    { common
                         | theme = newTheme
                         , editRecord = newEditRecord
                         , compilerOutput = newCompilerOutput
                     }
             in
             ( { model | common = newCommon }
-            , Cmd.none  -- Theme is saved with each document
+            , Cmd.none
+              -- Theme is saved with each document
             )
 
         Common.CreateNewDocument ->
@@ -277,6 +286,7 @@ updateCommon msg model =
                             , Random.generate (CommonMsg << Common.GeneratedId) generateId
                             ]
                         )
+
                     else
                         ( model
                         , Random.generate (CommonMsg << Common.GeneratedId) generateId
@@ -365,6 +375,7 @@ updateCommon msg model =
                 newCommon =
                     if common.currentDocument |> Maybe.map .id |> (==) (Just id) then
                         { common | currentDocument = Nothing, sourceText = "" }
+
                     else
                         common
             in
@@ -380,12 +391,17 @@ updateCommon msg model =
         Common.AutoSave time ->
             let
                 shouldSave =
-                    Time.posixToMillis time - Time.posixToMillis common.lastSaved > 30000
-                        && common.sourceText /= ""
-                        && common.lastChanged /= common.lastSaved
+                    Time.posixToMillis time
+                        - Time.posixToMillis common.lastSaved
+                        > 30000
+                        && common.sourceText
+                        /= ""
+                        && common.lastChanged
+                        /= common.lastSaved
             in
             if shouldSave then
                 update (CommonMsg Common.SaveDocument) model
+
             else
                 ( model, Cmd.none )
 
@@ -459,13 +475,39 @@ updateCommon msg model =
             )
 
         Common.GotPdfLink result ->
+            -- This is kept for backwards compatibility but should not be used
             case result of
                 Ok pdfLink ->
                     ( { model | common = { common | printingState = Common.PrintReady, pdfLink = pdfLink } }
                     , Cmd.none
                     )
 
-                Err _ ->
+                Err httpError ->
+                    ( { model | common = { common | printingState = Common.PrintWaiting } }
+                    , Cmd.none
+                    )
+
+        Common.GotPdfResponse result ->
+            case result of
+                Ok pdfResponse ->
+                    ( { model | common = { common | printingState = Common.PrintReady, pdfResponse = Just pdfResponse } }
+                    , Cmd.none
+                    )
+
+                Err httpError ->
+                    let
+                        -- Extract error message and filter out geometry warnings if it's a BadBody error
+                        errorMsg =
+                            case httpError of
+                                Http.BadBody body ->
+                                    body
+                                        |> String.lines
+                                        |> List.filter (\line -> not (String.contains "*geometry* driver" line))
+                                        |> String.join "\n"
+
+                                _ ->
+                                    "HTTP Error"
+                    in
                     ( { model | common = { common | printingState = Common.PrintWaiting } }
                     , Cmd.none
                     )
@@ -480,8 +522,11 @@ updateCommon msg model =
                     List.head foundIds |> Maybe.withDefault ""
 
                 -- Update displaySettings with new selectedId
-                oldDisplaySettings = common.displaySettings
-                newDisplaySettings = { oldDisplaySettings | selectedId = firstId }
+                oldDisplaySettings =
+                    common.displaySettings
+
+                newDisplaySettings =
+                    { oldDisplaySettings | selectedId = firstId }
 
                 -- Re-render with updated settings
                 newCompilerOutput =
@@ -495,7 +540,12 @@ updateCommon msg model =
                     { common
                         | selectedId = firstId
                         , foundIds = foundIds
-                        , foundIdIndex = if List.isEmpty foundIds then 0 else 1
+                        , foundIdIndex =
+                            if List.isEmpty foundIds then
+                                0
+
+                            else
+                                1
                         , displaySettings = newDisplaySettings
                         , compilerOutput = newCompilerOutput
                     }
@@ -506,6 +556,7 @@ updateCommon msg model =
                 -- Using 100ms to give more time for rendering to complete
                 Process.sleep 100
                     |> Task.perform (\_ -> CommonMsg (Common.SelectId firstId))
+
               else
                 Cmd.none
             )
@@ -583,6 +634,7 @@ handleStorageMsg msg model =
                     (CommonMsg << Common.InitialDocumentId AppData.defaultDocumentText "Announcement" common.currentTime common.theme)
                     generateId
                 )
+
             else
                 ( { model | common = { common | documents = docs } }
                 , Cmd.none
@@ -658,10 +710,11 @@ handleStorageMsg msg model =
 
         Storage.UserNameSaved _ ->
             ( model, Cmd.none )
-            
+
         Storage.LastDocumentIdLoaded (Ok maybeId) ->
             let
-                newCommon = { common | lastSavedDocumentId = maybeId }
+                newCommon =
+                    { common | lastSavedDocumentId = maybeId }
             in
             case maybeId of
                 Just id ->
@@ -669,14 +722,15 @@ handleStorageMsg msg model =
                     , Process.sleep 1000
                         |> Task.perform (always (CommonMsg (Common.LoadDocument id)))
                     )
+
                 Nothing ->
                     ( { model | common = newCommon }
                     , Cmd.none
                     )
-                    
+
         Storage.LastDocumentIdLoaded (Err _) ->
             ( model, Cmd.none )
-            
+
         Storage.LastDocumentIdSaved _ ->
             ( model, Cmd.none )
 
@@ -692,12 +746,14 @@ handleStorageMsg msg model =
             ( model, Cmd.none )
 
 
+
 -- VIEW
 
 
 view : Model -> Html Msg
 view model =
     Common.View.view CommonMsg (CommonMsg << Common.Render) model.common
+
 
 
 -- SUBSCRIPTIONS
@@ -714,6 +770,7 @@ subscriptions model =
         ]
 
 
+
 -- HELPERS
 
 
@@ -721,36 +778,50 @@ jumpToId : String -> Cmd Msg
 jumpToId id =
     if String.isEmpty id then
         Cmd.none
+
     else
         -- Get both the target element and container element
-        Task.map3 (\a b c -> (a, b, c))
+        Task.map3 (\a b c -> ( a, b, c ))
             (Browser.Dom.getElement id)
             (Browser.Dom.getElement "rendered-text-container")
             (Browser.Dom.getViewportOf "rendered-text-container")
-            |> Task.andThen (\(targetEl, containerEl, viewport) ->
-                let
-                    -- Calculate the position of the target relative to the page
-                    targetPageY = targetEl.element.y
-                    containerPageY = containerEl.element.y
+            |> Task.andThen
+                (\( targetEl, containerEl, viewport ) ->
+                    let
+                        -- Calculate the position of the target relative to the page
+                        targetPageY =
+                            targetEl.element.y
 
-                    -- The target's position relative to the container's top
-                    relativeY = targetPageY - containerPageY
+                        containerPageY =
+                            containerEl.element.y
 
-                    -- Add current scroll to get absolute position in scrollable content
-                    absoluteY = relativeY + viewport.viewport.y
+                        -- The target's position relative to the container's top
+                        relativeY =
+                            targetPageY - containerPageY
 
-                    -- Calculate where to scroll to center the element
-                    elementHeight = targetEl.element.height
-                    viewportHeight = viewport.viewport.height
-                    scrollY = absoluteY - (viewportHeight / 2) + (elementHeight / 2)
+                        -- Add current scroll to get absolute position in scrollable content
+                        absoluteY =
+                            relativeY + viewport.viewport.y
 
-                    -- Clamp to valid range
-                    finalScrollY = max 0 scrollY
-                in
-                -- Scroll the container
-                Browser.Dom.setViewportOf "rendered-text-container" 0 finalScrollY
-            )
+                        -- Calculate where to scroll to center the element
+                        elementHeight =
+                            targetEl.element.height
+
+                        viewportHeight =
+                            viewport.viewport.height
+
+                        scrollY =
+                            absoluteY - (viewportHeight / 2) + (elementHeight / 2)
+
+                        -- Clamp to valid range
+                        finalScrollY =
+                            max 0 scrollY
+                    in
+                    -- Scroll the container
+                    Browser.Dom.setViewportOf "rendered-text-container" 0 finalScrollY
+                )
             |> Task.attempt (\_ -> CommonMsg Common.NoOp)
+
 
 
 -- ID GENERATION
