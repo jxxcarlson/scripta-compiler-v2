@@ -958,6 +958,7 @@ par _ =
 ilink : List Expression -> String
 ilink exprs =
     let
+        args : { first : String, second : String }
         args =
             Render.Export.Util.getTwoArgs exprs
     in

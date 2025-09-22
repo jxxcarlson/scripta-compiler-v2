@@ -208,6 +208,8 @@ commands =
 
 % Scripta
 \\newcommand{\\ilink}[2]{\\href{{https://scripta.io/s/#1}}{#2}}
+\\newcommand{\\mark}[1]{}
+\\newcommand{\\anchor}[1]{#1}
 
 % Color
 \\newcommand{\\red}[1]{\\textcolor{red}{#1}}
