@@ -54415,8 +54415,8 @@ var $author$project$ScriptaV2$Compiler$parseFromString = F2(
 			0,
 			$elm$core$String$lines(str));
 	});
-var $author$project$Env$Development = 0;
-var $author$project$Env$mode = 0;
+var $author$project$Env$Production = 1;
+var $author$project$Env$mode = 1;
 var $author$project$Config$pdfServer = function () {
 	var _v0 = $author$project$Env$mode;
 	if (_v0 === 1) {

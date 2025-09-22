@@ -9,4 +9,4 @@ type Mode
 mode : Mode
 mode =
     -- Change this to Development when working locally
-    Development
+    Production
