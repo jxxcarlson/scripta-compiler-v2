@@ -20,6 +20,7 @@ import Keyboard
 import List.Extra
 import Model exposing (Model, Msg(..))
 import Ports
+import Process
 import Random
 import Render.Export.LaTeX
 import Render.Settings
@@ -75,7 +76,7 @@ handleIncomingPortMsg msg model =
         Ports.DocumentsLoaded docs ->
             let
                 _ =
-                    Debug.log "@@!!@@ Documents loaded from localStorage" (List.length docs)
+                    List.length docs
             in
             if List.isEmpty docs then
                 -- No documents in storage, create default document
@@ -91,7 +92,7 @@ handleIncomingPortMsg msg model =
         Ports.DocumentLoaded doc ->
             let
                 _ =
-                    Debug.log "@@!!@@ Loaded document" doc.title
+                    doc.title
 
                 editRecord =
                     ScriptaV2.DifferentialCompiler.init Dict.empty model.currentLanguage doc.content
@@ -142,7 +143,7 @@ handleIncomingPortMsg msg model =
         Ports.UserNameLoaded name ->
             let
                 _ =
-                    Debug.log "@@!!@@ UserNameLoaded received" name
+                    name
             in
             ( { model | userName = Just name }
             , Cmd.none
@@ -258,7 +259,7 @@ update msg model =
                     else if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "E") pressedKeys then
                         let
                             settings =
-                                Render.Settings.makeSettings (Theme.mapTheme model.theme) "-" Nothing 1.0 model.windowWidth Dict.empty
+                                Render.Settings.makeSettings model.displaySettings (Theme.mapTheme model.theme) model.selectId Nothing 1.0 model.windowWidth Dict.empty
 
                             exportText =
                                 Render.Export.LaTeX.export model.currentTime settings model.editRecord.tree
@@ -268,7 +269,7 @@ update msg model =
                     else if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "R") pressedKeys then
                         let
                             settings =
-                                Render.Settings.makeSettings (Theme.mapTheme model.theme) "-" Nothing 1.0 model.windowWidth Dict.empty
+                                Render.Settings.makeSettings model.displaySettings (Theme.mapTheme model.theme) model.selectId Nothing 1.0 model.windowWidth Dict.empty
 
                             exportText =
                                 Render.Export.LaTeX.rawExport settings model.editRecord.tree
@@ -357,7 +358,7 @@ update msg model =
                 _ ->
                     let
                         _ =
-                            Debug.log "@@!!@@ Render message received" msg_
+                            msg_
                     in
                     ( model, Cmd.none )
 
@@ -583,7 +584,7 @@ update msg model =
         ExportToLaTeX ->
             let
                 settings =
-                    Render.Settings.makeSettings (Theme.mapTheme model.theme) "-" Nothing 1.0 model.windowWidth Dict.empty
+                    Render.Settings.makeSettings model.displaySettings (Theme.mapTheme model.theme) model.selectId Nothing 1.0 model.windowWidth Dict.empty
 
                 exportText =
                     Render.Export.LaTeX.export model.currentTime settings model.editRecord.tree
@@ -593,7 +594,7 @@ update msg model =
         ExportToRawLaTeX ->
             let
                 settings =
-                    Render.Settings.makeSettings (Theme.mapTheme model.theme) "-" Nothing 1.0 model.windowWidth Dict.empty
+                    Render.Settings.makeSettings model.displaySettings (Theme.mapTheme model.theme) model.selectId Nothing 1.0 model.windowWidth Dict.empty
 
                 exportText =
                     Render.Export.LaTeX.rawExport settings model.editRecord.tree
@@ -636,7 +637,6 @@ update msg model =
         LoadUserNameDelayed ->
             ( model
             , Ports.send Ports.LoadUserName
-                |> Debug.log "@@!!@@ Loading username after delay"
             )
 
         PortMsgReceived result ->
@@ -647,7 +647,7 @@ update msg model =
                 Err error ->
                     let
                         _ =
-                            Debug.log "@@!!@@ Port decoding error" error
+                            error
                     in
                     ( model, Cmd.none )
 
@@ -668,21 +668,19 @@ update msg model =
 
         SelectedText str ->
             let
-                _ = Debug.log "@@SelectedText received" str
-                
+                _ = str
+
                 foundIds =
                     ScriptaV2.Helper.matchingIdsInAST str model.editRecord.tree
                         |> List.filter (\id -> id /= "")
-                        |> Debug.log "@@SelectedText foundIds"
-                
+
                 firstId =
                     List.head foundIds |> Maybe.withDefault ""
-                    |> Debug.log "@@SelectedText firstId"
-                
+
                 -- Update displaySettings with new selectedId
                 oldDisplaySettings = model.displaySettings
                 newDisplaySettings = { oldDisplaySettings | selectedId = firstId }
-                
+
                 -- Re-render with updated settings
                 newCompilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
@@ -690,7 +688,7 @@ update msg model =
                         ScriptaV2.Compiler.SuppressDocumentBlocks
                         newDisplaySettings
                         model.editRecord
-                
+
                 newModel =
                     { model
                         | selectId = firstId
@@ -703,14 +701,16 @@ update msg model =
             in
             ( newModel
             , if firstId /= "" then
-                jumpToId firstId
+                -- Add a delay to ensure DOM is updated with new elements
+                Process.sleep 100
+                    |> Task.perform (\_ -> LRSync firstId)
               else
                 Cmd.none
             )
 
         LRSync target ->
-            --Frontend.EditorSync.firstSyncLR model target
-            ( model, Cmd.none )
+            -- This is called after a delay to ensure DOM has updated
+            ( model, jumpToId target )
 
         NextSync ->
             --Frontend.EditorSync.nextSyncLR model
@@ -861,6 +861,7 @@ listButton model =
 compile : Model -> List (Element MarkupMsg)
 compile model =
     ScriptaV2.API.compileStringWithTitle
+        model.displaySettings
         (Theme.mapTheme model.theme)
         ""
         { filter = ScriptaV2.Compiler.SuppressDocumentBlocks
@@ -1076,36 +1077,38 @@ jumpToTopOf id =
 
 jumpToId : String -> Cmd Msg
 jumpToId id =
-    let
-        _ = Debug.log "@@jumpToId attempting to jump to" id
-    in
-    Task.map2 Tuple.pair
-        (Browser.Dom.getElement id)
-        (Browser.Dom.getElement "rendered-text-container")
-        |> Task.andThen (\(targetEl, containerEl) ->
-            let
-                -- Calculate the target position relative to the container
-                -- targetEl.element gives position relative to document
-                -- containerEl.element gives container position relative to document
-                targetY = targetEl.element.y - containerEl.element.y
-                _ = Debug.log "@@jumpToId target.y, container.y, scrollTo" (targetEl.element.y, containerEl.element.y, targetY)
-            in
-            -- Scroll the container to show the target element at the top
-            Browser.Dom.setViewportOf "rendered-text-container" 0 targetY
-        )
-        |> Task.attempt (\result -> 
-            case result of
-                Ok _ ->
-                    let
-                        _ = Debug.log "@@jumpToId success" id
-                    in
-                    NoOp
-                Err err ->
-                    let
-                        _ = Debug.log "@@jumpToId error" err
-                    in
-                    NoOp
-        )
+    if String.isEmpty id then
+        Cmd.none
+    else
+        -- Get both the target element and container element
+        Task.map3 (\a b c -> (a, b, c))
+            (Browser.Dom.getElement id)
+            (Browser.Dom.getElement "rendered-text-container")
+            (Browser.Dom.getViewportOf "rendered-text-container")
+            |> Task.andThen (\(targetEl, containerEl, viewport) ->
+                let
+                    -- Calculate the position of the target relative to the page
+                    targetPageY = targetEl.element.y
+                    containerPageY = containerEl.element.y
+
+                    -- The target's position relative to the container's top
+                    relativeY = targetPageY - containerPageY
+
+                    -- Add current scroll to get absolute position in scrollable content
+                    absoluteY = relativeY + viewport.viewport.y
+
+                    -- Calculate where to scroll to center the element
+                    elementHeight = targetEl.element.height
+                    viewportHeight = viewport.viewport.height
+                    scrollY = absoluteY - (viewportHeight / 2) + (elementHeight / 2)
+
+                    -- Clamp to valid range
+                    finalScrollY = max 0 scrollY
+                in
+                -- Scroll the container
+                Browser.Dom.setViewportOf "rendered-text-container" 0 finalScrollY
+            )
+            |> Task.attempt (\_ -> NoOp)
 
 
 

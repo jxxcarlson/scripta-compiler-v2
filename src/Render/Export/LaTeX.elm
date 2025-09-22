@@ -230,27 +230,45 @@ exportTree mathMacroDict settings tree =
     case Tree.value tree |> Generic.Language.getHeadingFromBlock of
         Ordinary "itemList" ->
             let
-                label : Expr { begin : number, end : number, index : number, id : String }
-                label =
-                    Text "•" { begin = 0, end = 1, index = 0, id = "" }
-
                 hang str =
-                    "\\hangindent=1em\n\\hangafter=1\n" ++ str
+                    "\\leftskip=1em\\hangindent=1em\n\\hangafter=1\n" ++ str
 
                 exprList : List Expression
                 exprList =
                     case Tree.value tree |> .body of
                         Left _ ->
-                            [] |> Debug.log "@@T.exportTree exprList"
+                            []
 
                         Right exprs ->
                             exprs
-                                --|> List.map (\item -> label :: item)
-                                |> Debug.log "@@T.exportTree exprList"
 
                 renderExprList : List Expression -> String
                 renderExprList exprs =
                     List.map (exportExpr mathMacroDict settings >> (\x -> " •  " ++ hang x)) exprs |> String.join "\n\n"
+            in
+            renderExprList exprList
+
+        Ordinary "numberedList" ->
+            let
+                label : Int -> String
+                label n =
+                    String.fromInt (n + 1) ++ ". "
+
+                hang str =
+                    "\\leftskip=1em\\hangindent=1em\n\\hangafter=1\n" ++ str
+
+                exprList : List Expression
+                exprList =
+                    case Tree.value tree |> .body of
+                        Left _ ->
+                            []
+
+                        Right exprs ->
+                            exprs
+
+                renderExprList : List Expression -> String
+                renderExprList exprs =
+                    List.indexedMap (\k -> exportExpr mathMacroDict settings >> (\x -> label k ++ hang x)) exprs |> String.join "\n\n"
             in
             renderExprList exprList
 

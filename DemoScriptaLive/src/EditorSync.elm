@@ -43,15 +43,14 @@ firstSyncLR model sourceText =
                             -- selected source text.  Do this by searching the syntax tree
                             foundIds_ =
                                 ScriptaV2.Helper.matchingIdsInAST sourceText model.editRecord.tree
-                                    |> Debug.log "@@firstSyncLR foundIds_ (1)"
 
                             id_ =
-                                List.head foundIds_ |> Maybe.withDefault "(nothing)" |> Debug.log "@@firstSyncLR foundIds_ (2)"
+                                List.head foundIds_ |> Maybe.withDefault "(nothing)"
                         in
                         { foundIds = foundIds_
                         , foundIdIndex = 1
                         , cmd = View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id_
-                        , selectedId = id_ |> Debug.log "@@firstSyncLR, selectedId (3)"
+                        , selectedId = id_
                         , searchCount = 0
                         }
                 in

@@ -218,7 +218,14 @@
                     console.error('@@!!@@ Unknown message tag:', msg.tag);
             }
         });
-        
+
+        // Listen for selected-text events from CodeMirror
+        document.addEventListener('selected-text', function(event) {
+            console.log('@@!!@@ selected-text event received:', event.detail);
+            // The Elm app handles this through the onSelectionChange handler
+            // which is already set up in Common/View.elm
+        });
+
         // Debug helper functions - you can run these in the browser console
         window.debugScripta = {
             // Check what's in localStorage

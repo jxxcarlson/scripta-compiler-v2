@@ -510,7 +510,10 @@ updateCommon msg model =
             in
             ( { model | common = newCommon }
             , if firstId /= "" then
-                jumpToId firstId
+                -- Add a delay to ensure DOM is updated with new elements
+                -- Using 100ms to give more time for rendering to complete
+                Process.sleep 100
+                    |> Task.perform (\_ -> CommonMsg (Common.SelectId firstId))
               else
                 Cmd.none
             )
@@ -530,6 +533,10 @@ updateCommon msg model =
             ( { model | common = { common | doSync = not common.doSync } }
             , Cmd.none
             )
+
+        Common.SelectId id ->
+            -- Jump to the id after DOM has had time to update
+            ( model, jumpToId id )
 
         Common.InitialDocumentId content title currentTime theme id ->
             let
@@ -721,18 +728,38 @@ subscriptions model =
 
 jumpToId : String -> Cmd Msg
 jumpToId id =
-    Task.map2 Tuple.pair
-        (Browser.Dom.getElement id)
-        (Browser.Dom.getElement "rendered-text-container")
-        |> Task.andThen (\(targetEl, containerEl) ->
-            let
-                -- Calculate the target position relative to the container
-                targetY = targetEl.element.y - containerEl.element.y
-            in
-            -- Scroll the container to show the target element at the top
-            Browser.Dom.setViewportOf "rendered-text-container" 0 targetY
-        )
-        |> Task.attempt (\_ -> CommonMsg Common.NoOp)
+    if String.isEmpty id then
+        Cmd.none
+    else
+        -- Get both the target element and container element
+        Task.map3 (\a b c -> (a, b, c))
+            (Browser.Dom.getElement id)
+            (Browser.Dom.getElement "rendered-text-container")
+            (Browser.Dom.getViewportOf "rendered-text-container")
+            |> Task.andThen (\(targetEl, containerEl, viewport) ->
+                let
+                    -- Calculate the position of the target relative to the page
+                    targetPageY = targetEl.element.y
+                    containerPageY = containerEl.element.y
+
+                    -- The target's position relative to the container's top
+                    relativeY = targetPageY - containerPageY
+
+                    -- Add current scroll to get absolute position in scrollable content
+                    absoluteY = relativeY + viewport.viewport.y
+
+                    -- Calculate where to scroll to center the element
+                    elementHeight = targetEl.element.height
+                    viewportHeight = viewport.viewport.height
+                    scrollY = absoluteY - (viewportHeight / 2) + (elementHeight / 2)
+
+                    -- Clamp to valid range
+                    finalScrollY = max 0 scrollY
+                in
+                -- Scroll the container
+                Browser.Dom.setViewportOf "rendered-text-container" 0 finalScrollY
+            )
+            |> Task.attempt (\_ -> CommonMsg Common.NoOp)
 
 
 -- ID GENERATION

@@ -23668,6 +23668,9 @@ var $author$project$Common$Model$PrintProcessing = {$: 'PrintProcessing'};
 var $author$project$Common$Model$PrintReady = {$: 'PrintReady'};
 var $author$project$Common$Model$ResetLoadFlag = {$: 'ResetLoadFlag'};
 var $author$project$Common$Model$SaveDocument = {$: 'SaveDocument'};
+var $author$project$Common$Model$SelectId = function (a) {
+	return {$: 'SelectId', a: a};
+};
 var $author$project$ScriptaV2$Compiler$SuppressDocumentBlocks = {$: 'SuppressDocumentBlocks'};
 var $author$project$Generic$ASTTools$changeName = F3(
 	function (oldName, newName, block) {
@@ -34347,7 +34350,7 @@ var $author$project$Render$Expression$render = F5(
 								_List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$paddingEach(
-										{bottom: 0, left: 24, right: 0, top: 0})
+										{bottom: 0, left: 0, right: 0, top: 0})
 									])),
 							A2(
 								$elm$core$List$map,
@@ -35927,28 +35930,6 @@ var $author$project$Render$Blocks$Container$env_ = F5(
 			return A5($author$project$Render$Blocks$Container$env, count, acc, settings, attr, block);
 		}
 	});
-var $author$project$Render$Blocks$Container$renderLabel = function (settings) {
-	return A2(
-		$mdgriffith$elm_ui$Element$el,
-		_List_fromArray(
-			[
-				$mdgriffith$elm_ui$Element$Font$size(14),
-				$mdgriffith$elm_ui$Element$alignTop,
-				$mdgriffith$elm_ui$Element$width(
-				$mdgriffith$elm_ui$Element$px($author$project$Render$Constants$defaultIndentWidth)),
-				$author$project$Render$Utility$leftPadding(settings.leftIndentation + 12),
-				$mdgriffith$elm_ui$Element$Font$color(
-				A2(
-					$author$project$Render$Settings$getThemedElementColor,
-					function ($) {
-						return $.text;
-					},
-					settings.theme))
-			]),
-		$mdgriffith$elm_ui$Element$text(
-			$elm$core$String$fromChar(
-				_Utils_chr('•'))));
-};
 var $author$project$Render$Blocks$Container$itemList = F5(
 	function (count, acc, settings, attr, block) {
 		var renderItem = F2(
@@ -35957,12 +35938,22 @@ var $author$project$Render$Blocks$Container$itemList = F5(
 					$mdgriffith$elm_ui$Element$row,
 					_List_fromArray(
 						[
+							$mdgriffith$elm_ui$Element$paddingEach(
+							{bottom: 4, left: 0, right: 0, top: 0}),
 							$mdgriffith$elm_ui$Element$width(
 							$mdgriffith$elm_ui$Element$px(settings.width - $author$project$Render$Constants$defaultIndentWidth))
 						]),
 					_List_fromArray(
 						[
-							$author$project$Render$Blocks$Container$renderLabel(settings),
+							A2(
+							$mdgriffith$elm_ui$Element$el,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_ui$Element$alignTop,
+									$mdgriffith$elm_ui$Element$paddingEach(
+									{bottom: 0, left: 8, right: 12, top: 0})
+								]),
+							$mdgriffith$elm_ui$Element$text('•')),
 							A2(
 							$mdgriffith$elm_ui$Element$paragraph,
 							A2($author$project$Render$Sync$attributes, settings_, block),
@@ -52345,178 +52336,186 @@ var $author$project$Render$Export$LaTeX$texComment = function (lines) {
 		'\n',
 		A2($elm$core$List$map, $author$project$Render$Export$LaTeX$putPercent, lines));
 };
-var $author$project$Render$Export$LaTeX$blockDict = $elm$core$Dict$fromList(
-	_List_fromArray(
-		[
-			_Utils_Tuple2(
-			'title',
-			F3(
-				function (_v0, _v1, _v2) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'subtitle',
-			F3(
-				function (_v3, _v4, _v5) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'author',
-			F3(
-				function (_v6, _v7, _v8) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'date',
-			F3(
-				function (_v9, _v10, _v11) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'contents',
-			F3(
-				function (_v12, _v13, _v14) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'hide',
-			F3(
-				function (_v15, _v16, _v17) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'texComment',
-			F3(
-				function (_v18, lines, _v19) {
-					return $author$project$Render$Export$LaTeX$texComment(lines);
-				})),
-			_Utils_Tuple2(
-			'tags',
-			F3(
-				function (_v20, _v21, _v22) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'docinfo',
-			F3(
-				function (_v23, _v24, _v25) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'banner',
-			F3(
-				function (_v26, _v27, _v28) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'set-key',
-			F3(
-				function (_v29, _v30, _v31) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'endnotes',
-			F3(
-				function (_v32, _v33, _v34) {
-					return '';
-				})),
-			_Utils_Tuple2(
-			'index',
-			F3(
-				function (_v35, _v36, _v37) {
-					return 'Index: not implemented';
-				})),
-			_Utils_Tuple2(
-			'section',
-			F3(
-				function (settings_, args, body) {
-					return A3($author$project$Render$Export$LaTeX$section, settings_, args, body);
-				})),
-			_Utils_Tuple2(
-			'subheading',
-			F3(
-				function (settings_, args, body) {
-					return A3($author$project$Render$Export$LaTeX$subheading, settings_, args, body);
-				})),
-			_Utils_Tuple2(
-			'smallsubheading',
-			F3(
-				function (settings_, args, body) {
-					return A3($author$project$Render$Export$LaTeX$smallsubheading, settings_, args, body);
-				})),
-			_Utils_Tuple2(
-			'item',
-			F3(
-				function (_v38, _v39, body) {
-					return A2($author$project$Render$Export$LaTeX$macro1, 'item', body);
-				})),
-			_Utils_Tuple2(
-			'descriptionItem',
-			F3(
-				function (_v40, args, body) {
-					return A2($author$project$Render$Export$LaTeX$descriptionItem, args, body);
-				})),
-			_Utils_Tuple2(
-			'numbered',
-			F3(
-				function (_v41, _v42, body) {
-					return A2($author$project$Render$Export$LaTeX$macro1, 'item', body);
-				})),
-			_Utils_Tuple2(
-			'desc',
-			F3(
-				function (_v43, args, body) {
-					return A2($author$project$Render$Export$LaTeX$descriptionItem, args, body);
-				})),
-			_Utils_Tuple2(
-			'beginBlock',
-			F3(
-				function (_v44, _v45, _v46) {
-					return '\\begin{itemize}';
-				})),
-			_Utils_Tuple2(
-			'endBlock',
-			F3(
-				function (_v47, _v48, _v49) {
-					return '\\end{itemize}';
-				})),
-			_Utils_Tuple2(
-			'beginNumberedBlock',
-			F3(
-				function (_v50, _v51, _v52) {
-					return '\\begin{enumerate}';
-				})),
-			_Utils_Tuple2(
-			'endNumberedBlock',
-			F3(
-				function (_v53, _v54, _v55) {
-					return '\\end{enumerate}';
-				})),
-			_Utils_Tuple2(
-			'beginDescriptionBlock',
-			F3(
-				function (_v56, _v57, _v58) {
-					return '\\begin{description}';
-				})),
-			_Utils_Tuple2(
-			'endDescriptionBlock',
-			F3(
-				function (_v59, _v60, _v61) {
-					return '\\end{description}';
-				})),
-			_Utils_Tuple2(
-			'mathmacros',
-			F3(
-				function (_v62, _v63, body) {
-					return body + '\nHa ha ha!';
-				})),
-			_Utils_Tuple2(
-			'setcounter',
-			F3(
-				function (_v64, _v65, _v66) {
-					return '';
-				}))
-		]));
+var $author$project$Render$Export$LaTeX$blockDict = function (mathMacroDict) {
+	return $elm$core$Dict$fromList(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'title',
+				F3(
+					function (_v0, _v1, _v2) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'subtitle',
+				F3(
+					function (_v3, _v4, _v5) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'author',
+				F3(
+					function (_v6, _v7, _v8) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'date',
+				F3(
+					function (_v9, _v10, _v11) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'contents',
+				F3(
+					function (_v12, _v13, _v14) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'hide',
+				F3(
+					function (_v15, _v16, _v17) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'texComment',
+				F3(
+					function (_v18, lines, _v19) {
+						return $author$project$Render$Export$LaTeX$texComment(lines);
+					})),
+				_Utils_Tuple2(
+				'tags',
+				F3(
+					function (_v20, _v21, _v22) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'docinfo',
+				F3(
+					function (_v23, _v24, _v25) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'banner',
+				F3(
+					function (_v26, _v27, _v28) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'set-key',
+				F3(
+					function (_v29, _v30, _v31) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'endnotes',
+				F3(
+					function (_v32, _v33, _v34) {
+						return '';
+					})),
+				_Utils_Tuple2(
+				'index',
+				F3(
+					function (_v35, _v36, _v37) {
+						return 'Index: not implemented';
+					})),
+				_Utils_Tuple2(
+				'section',
+				F3(
+					function (settings_, args, body) {
+						return A3($author$project$Render$Export$LaTeX$section, settings_, args, body);
+					})),
+				_Utils_Tuple2(
+				'subheading',
+				F3(
+					function (settings_, args, body) {
+						return A3($author$project$Render$Export$LaTeX$subheading, settings_, args, body);
+					})),
+				_Utils_Tuple2(
+				'smallsubheading',
+				F3(
+					function (settings_, args, body) {
+						return A3($author$project$Render$Export$LaTeX$smallsubheading, settings_, args, body);
+					})),
+				_Utils_Tuple2(
+				'item',
+				F3(
+					function (_v38, _v39, body) {
+						return A2($author$project$Render$Export$LaTeX$macro1, 'item', body);
+					})),
+				_Utils_Tuple2(
+				'itemList',
+				F3(
+					function (_v40, _v41, body) {
+						return body;
+					})),
+				_Utils_Tuple2(
+				'descriptionItem',
+				F3(
+					function (_v42, args, body) {
+						return A2($author$project$Render$Export$LaTeX$descriptionItem, args, body);
+					})),
+				_Utils_Tuple2(
+				'numbered',
+				F3(
+					function (_v43, _v44, body) {
+						return A2($author$project$Render$Export$LaTeX$macro1, 'item', body);
+					})),
+				_Utils_Tuple2(
+				'desc',
+				F3(
+					function (_v45, args, body) {
+						return A2($author$project$Render$Export$LaTeX$descriptionItem, args, body);
+					})),
+				_Utils_Tuple2(
+				'beginBlock',
+				F3(
+					function (_v46, _v47, _v48) {
+						return '\\begin{itemize}';
+					})),
+				_Utils_Tuple2(
+				'endBlock',
+				F3(
+					function (_v49, _v50, _v51) {
+						return '\\end{itemize}';
+					})),
+				_Utils_Tuple2(
+				'beginNumberedBlock',
+				F3(
+					function (_v52, _v53, _v54) {
+						return '\\begin{enumerate}';
+					})),
+				_Utils_Tuple2(
+				'endNumberedBlock',
+				F3(
+					function (_v55, _v56, _v57) {
+						return '\\end{enumerate}';
+					})),
+				_Utils_Tuple2(
+				'beginDescriptionBlock',
+				F3(
+					function (_v58, _v59, _v60) {
+						return '\\begin{description}';
+					})),
+				_Utils_Tuple2(
+				'endDescriptionBlock',
+				F3(
+					function (_v61, _v62, _v63) {
+						return '\\end{description}';
+					})),
+				_Utils_Tuple2(
+				'mathmacros',
+				F3(
+					function (_v64, _v65, body) {
+						return body + '\nHa ha ha!';
+					})),
+				_Utils_Tuple2(
+				'setcounter',
+				F3(
+					function (_v66, _v67, _v68) {
+						return '';
+					}))
+			]));
+};
 var $author$project$Render$Export$LaTeX$commentBlankLine = function (line) {
 	return (line === '') ? '%' : line;
 };
@@ -52964,6 +52963,9 @@ var $author$project$Render$Export$LaTeX$macroDict = $elm$core$Dict$fromList(
 			}),
 			_Utils_Tuple2('tags', $author$project$Render$Export$LaTeX$dontRender)
 		]));
+var $author$project$Render$Export$LaTeX$mapChars1 = function (str) {
+	return A3($elm$core$String$replace, '\\term_', '\\termx', str);
+};
 var $author$project$Render$Export$LaTeX$fixChars = function (str) {
 	return A3(
 		$elm$core$String$replace,
@@ -53261,13 +53263,10 @@ var $author$project$Render$Export$LaTeX$exportExpr = F3(
 				var body = expr.b;
 				return A3($author$project$Render$Export$LaTeX$renderVerbatim, mathMacroDict, name, body);
 			default:
-				var exprList = expr.a;
-				return '[ExprList]';
+				var itemExprs = expr.a;
+				return A3($author$project$Render$Export$LaTeX$exportExprList, mathMacroDict, settings, itemExprs);
 		}
 	});
-var $author$project$Render$Export$LaTeX$mapChars1 = function (str) {
-	return A3($elm$core$String$replace, '\\term_', '\\termx', str);
-};
 var $author$project$Render$Export$LaTeX$exportExprList = F3(
 	function (mathMacroDict, settings, exprs) {
 		return $author$project$Render$Export$LaTeX$mapChars1(
@@ -53549,7 +53548,10 @@ var $author$project$Render$Export$LaTeX$exportBlock = F3(
 						return '';
 					} else {
 						var exprs_ = _v7.a;
-						var _v8 = A2($elm$core$Dict$get, name, $author$project$Render$Export$LaTeX$blockDict);
+						var _v8 = A2(
+							$elm$core$Dict$get,
+							name,
+							$author$project$Render$Export$LaTeX$blockDict(mathMacroDict));
 						if (_v8.$ === 'Just') {
 							var f = _v8.a;
 							return A3(
@@ -53809,17 +53811,96 @@ var $author$project$Render$Export$LaTeX$exportBlock = F3(
 				}
 		}
 	});
+var $author$project$Generic$Language$getHeadingFromBlock = function (block) {
+	return block.heading;
+};
 var $author$project$Render$Export$LaTeX$exportTree = F3(
 	function (mathMacroDict, settings, tree) {
-		var _v0 = $maca$elm_rose_tree$RoseTree$Tree$children(tree);
-		if (!_v0.b) {
+		var _v0 = $author$project$Generic$Language$getHeadingFromBlock(
+			$maca$elm_rose_tree$RoseTree$Tree$value(tree));
+		_v0$2:
+		while (true) {
+			if (_v0.$ === 'Ordinary') {
+				switch (_v0.a) {
+					case 'itemList':
+						var hang = function (str) {
+							return '\\leftskip=1em\\hangindent=1em\n\\hangafter=1\n' + str;
+						};
+						var renderExprList = function (exprs) {
+							return A2(
+								$elm$core$String$join,
+								'\n\n',
+								A2(
+									$elm$core$List$map,
+									A2(
+										$elm$core$Basics$composeR,
+										A2($author$project$Render$Export$LaTeX$exportExpr, mathMacroDict, settings),
+										function (x) {
+											return ' •  ' + hang(x);
+										}),
+									exprs));
+						};
+						var exprList = function () {
+							var _v1 = $maca$elm_rose_tree$RoseTree$Tree$value(tree).body;
+							if (_v1.$ === 'Left') {
+								return _List_Nil;
+							} else {
+								var exprs = _v1.a;
+								return exprs;
+							}
+						}();
+						return renderExprList(exprList);
+					case 'numberedList':
+						var label = function (n) {
+							return $elm$core$String$fromInt(n + 1) + '. ';
+						};
+						var hang = function (str) {
+							return '\\leftskip=1em\\hangindent=1em\n\\hangafter=1\n' + str;
+						};
+						var renderExprList = function (exprs) {
+							return A2(
+								$elm$core$String$join,
+								'\n\n',
+								A2(
+									$elm$core$List$indexedMap,
+									function (k) {
+										return A2(
+											$elm$core$Basics$composeR,
+											A2($author$project$Render$Export$LaTeX$exportExpr, mathMacroDict, settings),
+											function (x) {
+												return _Utils_ap(
+													label(k),
+													hang(x));
+											});
+									},
+									exprs));
+						};
+						var exprList = function () {
+							var _v2 = $maca$elm_rose_tree$RoseTree$Tree$value(tree).body;
+							if (_v2.$ === 'Left') {
+								return _List_Nil;
+							} else {
+								var exprs = _v2.a;
+								return exprs;
+							}
+						}();
+						return renderExprList(exprList);
+					default:
+						break _v0$2;
+				}
+			} else {
+				break _v0$2;
+			}
+		}
+		var _v3 = $maca$elm_rose_tree$RoseTree$Tree$children(tree);
+		if (!_v3.b) {
 			return A3(
 				$author$project$Render$Export$LaTeX$exportBlock,
 				mathMacroDict,
 				settings,
 				$maca$elm_rose_tree$RoseTree$Tree$value(tree));
 		} else {
-			var children = _v0;
+			var children = _v3;
 			var root = $elm$core$String$lines(
 				A3(
 					$author$project$Render$Export$LaTeX$exportBlock,
@@ -53834,16 +53915,16 @@ var $author$project$Render$Export$LaTeX$exportTree = F3(
 						$elm$core$List$map,
 						A2($author$project$Render$Export$LaTeX$exportTree, mathMacroDict, settings),
 						children)));
-			var _v1 = $elm_community$list_extra$List$Extra$unconsLast(root);
-			if (_v1.$ === 'Nothing') {
+			var _v4 = $elm_community$list_extra$List$Extra$unconsLast(root);
+			if (_v4.$ === 'Nothing') {
 				return '';
 			} else {
-				var _v2 = _v1.a;
-				var lastLine = _v2.a;
-				var firstLines = _v2.b;
-				var _v3 = firstLines;
-				var _v4 = renderedChildren;
-				var _v5 = lastLine;
+				var _v5 = _v4.a;
+				var lastLine = _v5.a;
+				var firstLines = _v5.b;
+				var _v6 = firstLines;
+				var _v7 = renderedChildren;
+				var _v8 = lastLine;
 				return A2(
 					$elm$core$String$join,
 					'\n',
@@ -54421,9 +54502,30 @@ var $elm$core$Task$attempt = F2(
 						task))));
 	});
 var $elm$browser$Browser$Dom$getElement = _Browser_getElement;
+var $elm$browser$Browser$Dom$getViewportOf = _Browser_getViewportOf;
+var $elm$core$Task$map3 = F4(
+	function (func, taskA, taskB, taskC) {
+		return A2(
+			$elm$core$Task$andThen,
+			function (a) {
+				return A2(
+					$elm$core$Task$andThen,
+					function (b) {
+						return A2(
+							$elm$core$Task$andThen,
+							function (c) {
+								return $elm$core$Task$succeed(
+									A3(func, a, b, c));
+							},
+							taskC);
+					},
+					taskB);
+			},
+			taskA);
+	});
 var $elm$browser$Browser$Dom$setViewportOf = _Browser_setViewportOf;
 var $author$project$MainTauri$jumpToId = function (id) {
-	return A2(
+	return $elm$core$String$isEmpty(id) ? $elm$core$Platform$Cmd$none : A2(
 		$elm$core$Task$attempt,
 		function (_v1) {
 			return $author$project$MainTauri$CommonMsg($author$project$Common$Model$NoOp);
@@ -54433,14 +54535,26 @@ var $author$project$MainTauri$jumpToId = function (id) {
 			function (_v0) {
 				var targetEl = _v0.a;
 				var containerEl = _v0.b;
-				var targetY = targetEl.element.y - containerEl.element.y;
-				return A3($elm$browser$Browser$Dom$setViewportOf, 'rendered-text-container', 0, targetY);
+				var viewport = _v0.c;
+				var viewportHeight = viewport.viewport.height;
+				var targetPageY = targetEl.element.y;
+				var elementHeight = targetEl.element.height;
+				var containerPageY = containerEl.element.y;
+				var relativeY = targetPageY - containerPageY;
+				var absoluteY = relativeY + viewport.viewport.y;
+				var scrollY = (absoluteY - (viewportHeight / 2)) + (elementHeight / 2);
+				var finalScrollY = A2($elm$core$Basics$max, 0, scrollY);
+				return A3($elm$browser$Browser$Dom$setViewportOf, 'rendered-text-container', 0, finalScrollY);
 			},
-			A3(
-				$elm$core$Task$map2,
-				$elm$core$Tuple$pair,
+			A4(
+				$elm$core$Task$map3,
+				F3(
+					function (a, b, c) {
+						return _Utils_Tuple3(a, b, c);
+					}),
 				$elm$browser$Browser$Dom$getElement(id),
-				$elm$browser$Browser$Dom$getElement('rendered-text-container'))));
+				$elm$browser$Browser$Dom$getElement('rendered-text-container'),
+				$elm$browser$Browser$Dom$getViewportOf('rendered-text-container'))));
 };
 var $elm$core$Platform$Cmd$map = _Platform_map;
 var $author$project$Generic$ASTTools$idOfMatchingBlockContent = F2(
@@ -55800,6 +55914,8 @@ var $author$project$MainTauri$updateCommon = F2(
 						initialText: newDocumentContent,
 						lastLoadedDocumentId: $elm$core$Maybe$Just(id),
 						loadDocumentIntoEditor: true,
+						pdfLink: '',
+						printingState: $author$project$Common$Model$PrintWaiting,
 						sourceText: newDocumentContent,
 						title: 'New Document'
 					});
@@ -56074,7 +56190,13 @@ var $author$project$MainTauri$updateCommon = F2(
 					_Utils_update(
 						model,
 						{common: newCommon}),
-					(firstId !== '') ? $author$project$MainTauri$jumpToId(firstId) : $elm$core$Platform$Cmd$none);
+					(firstId !== '') ? A2(
+						$elm$core$Task$perform,
+						function (_v6) {
+							return $author$project$MainTauri$CommonMsg(
+								$author$project$Common$Model$SelectId(firstId));
+						},
+						$elm$core$Process$sleep(100)) : $elm$core$Platform$Cmd$none);
 			case 'LoadContentIntoEditorDelayed':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -56109,6 +56231,11 @@ var $author$project$MainTauri$updateCommon = F2(
 								{doSync: !common.doSync})
 						}),
 					$elm$core$Platform$Cmd$none);
+			case 'SelectId':
+				var id = msg.a;
+				return _Utils_Tuple2(
+					model,
+					$author$project$MainTauri$jumpToId(id));
 			case 'InitialDocumentId':
 				var content = msg.a;
 				var title = msg.b;

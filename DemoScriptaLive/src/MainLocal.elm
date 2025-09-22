@@ -686,8 +686,27 @@ subscriptions model =
 
 jumpToId : String -> Cmd Msg
 jumpToId id =
-    Browser.Dom.getElement id
-        |> Task.andThen (\el -> Browser.Dom.setViewport 0 el.element.y)
+    Task.map3 (\a b c -> (a, b, c))
+        (Browser.Dom.getElement id)
+        (Browser.Dom.getElement "rendered-text-container")
+        (Browser.Dom.getViewportOf "rendered-text-container")
+        |> Task.andThen (\(targetEl, containerEl, viewport) ->
+            let
+                -- Calculate the target position relative to the container
+                targetRelativeY = targetEl.element.y - containerEl.element.y
+
+                -- Calculate position to center the element in viewport
+                -- We want the element to appear in the middle of the visible area
+                targetHeight = targetEl.element.height
+                viewportHeight = viewport.viewport.height
+                centeredY = targetRelativeY - (viewportHeight / 2) + (targetHeight / 2)
+
+                -- Ensure we don't scroll past the top
+                scrollY = max 0 centeredY
+            in
+            -- Scroll the container to center the target element
+            Browser.Dom.setViewportOf "rendered-text-container" 0 scrollY
+        )
         |> Task.attempt (\_ -> CommonMsg Common.NoOp)
 
 
