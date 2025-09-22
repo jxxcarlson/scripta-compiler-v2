@@ -834,6 +834,7 @@ macroDict =
     Dict.fromList
         [ ( "link", \_ -> link )
         , ( "ilink", \_ -> ilink )
+        , ( "mark", \_ -> markwith )
         , ( "par", \_ -> par )
         , ( "index_", \_ _ -> blindIndex )
         , ( "image", Render.Export.Image.export )
@@ -953,6 +954,15 @@ vspace exprs =
 par : List Expression -> String
 par _ =
     [ "\\par\\par" ] |> String.join ""
+
+
+markwith : List Expression -> String
+markwith exprs =
+    let
+        arg =
+            Render.Export.Util.getOneArg exprs
+    in
+    [ "\\markwith{", arg, "}" ] |> String.join ""
 
 
 ilink : List Expression -> String

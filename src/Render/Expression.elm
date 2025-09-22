@@ -911,21 +911,6 @@ mark1 g acc s attr exprList =
             Element.text "Parse error in element mark?"
 
 
-mark2 : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> List Expression -> Element MarkupMsg
-mark2 g acc s attr exprList =
-    case exprList of
-        [ Text str _, Fun "anchor" list _ ] ->
-            Element.paragraph
-                (Render.Sync.highlightIfIdSelected (String.trim str)
-                    s
-                    [ htmlId (String.trim str), Font.underline ]
-                )
-                (List.map (render g acc s attr) list)
-
-        _ ->
-            Element.text "Parse error in element mark?"
-
-
 qed _ _ _ _ _ =
     Element.el [ Font.bold, Element.paddingEach { left = 0, right = 2, top = 0, bottom = 0 } ] (Element.text "Q.E.D.")
 
