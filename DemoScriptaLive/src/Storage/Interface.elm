@@ -32,6 +32,8 @@ type StorageMsg
     | LastDocumentIdSaved (Result String String)
     | StorageInitialized (Result String ())
     | FileOpened String
+    | PdfGenerated (Result String String)
+    | FileSaved (Result String String)
 
 
 type StorageResult

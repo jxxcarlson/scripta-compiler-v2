@@ -185,18 +185,26 @@ tauriResultDecoder =
                                 , Decode.succeed (Ok ())
                                 ]
 
-                    -- Handle file operation responses (ignore them for now)
+                    -- Handle file operation responses
                     "fileSaved" ->
-                        Decode.succeed (StorageInitialized (Ok ()))
+                        Decode.map FileSaved <|
+                            Decode.oneOf
+                                [ Decode.field "error" Decode.string |> Decode.map Err
+                                , Decode.field "name" Decode.string |> Decode.map Ok
+                                ]
 
                     "fileCancelled" ->
-                        Decode.succeed (StorageInitialized (Ok ()))
+                        Decode.succeed (FileSaved (Ok ""))
 
                     "pdfGenerated" ->
-                        Decode.succeed (StorageInitialized (Ok ()))
+                        Decode.map PdfGenerated <|
+                            Decode.oneOf
+                                [ Decode.field "error" Decode.string |> Decode.map Err
+                                , Decode.field "name" Decode.string |> Decode.map Ok
+                                ]
 
                     "pdfCancelled" ->
-                        Decode.succeed (StorageInitialized (Ok ()))
+                        Decode.succeed (PdfGenerated (Ok ""))
 
                     "fileOpened" ->
                         Decode.map

@@ -495,6 +495,7 @@ updateCommon msg model =
                         "document.pdf"
                     else
                         common.title ++ ".pdf"
+
             in
             ( model
             , Ports.tauriCommand <|
@@ -740,6 +741,22 @@ handleStorageMsg msg model =
             
         Storage.LastDocumentIdSaved _ ->
             ( model, Cmd.none )
+
+        Storage.PdfGenerated result ->
+            -- PDF generation completed (either success or cancelled)
+            case result of
+                Ok path ->
+                    ( model, Cmd.none )
+                Err error ->
+                    ( model, Cmd.none )
+
+        Storage.FileSaved result ->
+            -- File save completed
+            case result of
+                Ok path ->
+                    ( model, Cmd.none )
+                Err error ->
+                    ( model, Cmd.none )
 
         Storage.FileOpened content ->
             let
