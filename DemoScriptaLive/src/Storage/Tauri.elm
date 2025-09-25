@@ -185,6 +185,19 @@ tauriResultDecoder =
                                 , Decode.succeed (Ok ())
                                 ]
 
+                    -- Handle file operation responses (ignore them for now)
+                    "fileSaved" ->
+                        Decode.succeed (StorageInitialized (Ok ()))
+
+                    "fileCancelled" ->
+                        Decode.succeed (StorageInitialized (Ok ()))
+
+                    "pdfGenerated" ->
+                        Decode.succeed (StorageInitialized (Ok ()))
+
+                    "pdfCancelled" ->
+                        Decode.succeed (StorageInitialized (Ok ()))
+
                     _ ->
                         Decode.fail ("Unknown message type: " ++ msgType)
             )

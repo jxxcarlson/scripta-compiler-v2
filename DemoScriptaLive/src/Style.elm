@@ -8,6 +8,7 @@ module Style exposing
     , displayColumn
     , electricBlueColor
     , forceColorStyle
+    , mutedTextColor
     , formatRelativeTime
     , htmlId
     , innerColumn
@@ -67,6 +68,16 @@ borderColor theme =
     case theme of
         Theme.Light ->
             Element.rgb 0.5 0.5 0.5
+
+        Theme.Dark ->
+            Element.rgb 0.5 0.5 0.5
+
+
+mutedTextColor : Theme.Theme -> Element.Color
+mutedTextColor theme =
+    case theme of
+        Theme.Light ->
+            Element.rgb 0.6 0.6 0.6
 
         Theme.Dark ->
             Element.rgb 0.5 0.5 0.5

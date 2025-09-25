@@ -133,8 +133,30 @@ updateCommon msg model =
                     let
                         oldSettings =
                             common.displaySettings
+
+                        -- Calculate the actual panel width first
+                        panelWidth =
+                            max 350
+                                ((common.windowWidth
+                                    - 230  -- sidebar
+                                    - (if common.windowWidth >= 1000 then
+                                        221  -- TOC + border
+                                       else
+                                        0
+                                      )
+                                    - 3  -- borders
+                                 )
+                                    // 2
+                                )
+
+                        -- Subtract padding and extra margin for actual content width
+                        -- We need more buffer: 20px padding each side + extra margin
+                        contentWidth = panelWidth - 40  -- Reduced padding experiment
                     in
-                    { oldSettings | counter = newCount }
+                    { oldSettings
+                        | counter = newCount
+                        , windowWidth = max 310 contentWidth  -- Minimum 310px for content
+                    }
 
                 newCompilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
@@ -168,8 +190,30 @@ updateCommon msg model =
                     let
                         oldSettings =
                             common.displaySettings
+
+                        -- Calculate the actual panel width first
+                        panelWidth =
+                            max 350
+                                ((common.windowWidth
+                                    - 230  -- sidebar
+                                    - (if common.windowWidth >= 1000 then
+                                        221  -- TOC + border
+                                       else
+                                        0
+                                      )
+                                    - 3  -- borders
+                                 )
+                                    // 2
+                                )
+
+                        -- Subtract padding and extra margin for actual content width
+                        -- We need more buffer: 20px padding each side + extra margin
+                        contentWidth = panelWidth - 40  -- Reduced padding experiment
                     in
-                    { oldSettings | counter = newCount }
+                    { oldSettings
+                        | counter = newCount
+                        , windowWidth = max 310 contentWidth  -- Minimum 310px for content
+                    }
 
                 newCompilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
@@ -207,9 +251,13 @@ updateCommon msg model =
                 displaySettings =
                     common.displaySettings
 
+                panelWidth = max 350 ((width - 230 - (if width >= 1000 then 221 else 0) - 3) // 2)
+
+                contentWidth = panelWidth - 40  -- Reduced padding experiment
+
                 newDisplaySettings =
                     { displaySettings
-                        | windowWidth = width // 3
+                        | windowWidth = max 310 contentWidth
                     }
 
                 newEditRecord =
@@ -453,6 +501,19 @@ updateCommon msg model =
             in
             ( model
             , File.Download.string fileName "application/x-latex" exportText
+            )
+
+        Common.ExportScriptaFile ->
+            let
+                fileName =
+                    if String.trim common.title == "" then
+                        "document.txt"
+
+                    else
+                        common.title ++ ".txt"
+            in
+            ( model
+            , File.Download.string fileName "text/plain" common.sourceText
             )
 
         Common.PrintToPDF ->

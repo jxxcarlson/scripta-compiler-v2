@@ -84,6 +84,7 @@ fn handle_tauri_command(
         "saveLastDocumentId" => save_last_document_id(&db, payload.id),
         "loadLastDocumentId" => load_last_document_id(&db),
         "saveFile" => save_file(payload.file_name, payload.content),
+        "generatePdf" => generate_pdf(payload.file_name, payload.content),
         _ => Err(format!("Unknown command: {}", payload.cmd)),
     }
 }
@@ -353,7 +354,105 @@ fn save_file(file_name: Option<String>, content: Option<String>) -> Result<Comma
             error: None,
         })
     } else {
-        Err("File save cancelled".to_string())
+        // Return success even when cancelled to prevent frontend freeze
+        Ok(CommandResponse {
+            response_type: "fileCancelled".to_string(),
+            document: None,
+            documents: None,
+            id: None,
+            user_name: None,
+            name: None,
+            last_document_id: None,
+            error: None,
+        })
+    }
+}
+
+fn generate_pdf(file_name: Option<String>, content: Option<String>) -> Result<CommandResponse, String> {
+    use std::process::Command;
+    use std::io::Write;
+
+    println!("PDF generation requested for file: {:?}", file_name);
+
+    let file_name = file_name.ok_or("File name is required")?;
+    let latex_content = content.ok_or("Content is required")?;
+
+    println!("LaTeX content length: {} bytes", latex_content.len());
+
+    // Create temp directory for LaTeX compilation
+    let temp_dir = std::env::temp_dir().join("scripta-pdf");
+    fs::create_dir_all(&temp_dir)
+        .map_err(|e| format!("Failed to create temp directory: {}", e))?;
+
+    // Write LaTeX content to temp file
+    let tex_path = temp_dir.join("document.tex");
+    fs::write(&tex_path, latex_content.as_bytes())
+        .map_err(|e| format!("Failed to write LaTeX file: {}", e))?;
+
+    // Check if pdflatex or xelatex is available
+    let latex_cmd = if Command::new("xelatex").arg("--version").output().is_ok() {
+        "xelatex"
+    } else if Command::new("pdflatex").arg("--version").output().is_ok() {
+        "pdflatex"
+    } else {
+        return Err("LaTeX is not installed. Please install TeX Live or MiKTeX to generate PDFs.".to_string());
+    };
+
+    // Run LaTeX compiler
+    let output = Command::new(latex_cmd)
+        .arg("-interaction=nonstopmode")
+        .arg("-output-directory")
+        .arg(&temp_dir)
+        .arg(&tex_path)
+        .output()
+        .map_err(|e| format!("Failed to run LaTeX: {}", e))?;
+
+    // Check if PDF was generated
+    let pdf_path = temp_dir.join("document.pdf");
+    if pdf_path.exists() {
+        // Use file dialog to let user save the PDF
+        let pdf_name = file_name.replace(".tex", ".pdf");
+        let file_dialog = rfd::FileDialog::new()
+            .set_file_name(&pdf_name)
+            .add_filter("PDF files", &["pdf"]);
+
+        if let Some(save_path) = file_dialog.save_file() {
+            fs::copy(&pdf_path, &save_path)
+                .map_err(|e| format!("Failed to save PDF: {}", e))?;
+
+            Ok(CommandResponse {
+                response_type: "pdfGenerated".to_string(),
+                document: None,
+                documents: None,
+                id: None,
+                user_name: None,
+                name: Some(save_path.to_string_lossy().to_string()),
+                last_document_id: None,
+                error: None,
+            })
+        } else {
+            // Return success even when cancelled to prevent frontend freeze
+            Ok(CommandResponse {
+                response_type: "pdfCancelled".to_string(),
+                document: None,
+                documents: None,
+                id: None,
+                user_name: None,
+                name: None,
+                last_document_id: None,
+                error: None,
+            })
+        }
+    } else {
+        // LaTeX compilation failed, return error with log
+        let log_path = temp_dir.join("document.log");
+        let error_msg = if log_path.exists() {
+            fs::read_to_string(&log_path).unwrap_or_else(|_| "Failed to read log file".to_string())
+        } else {
+            String::from_utf8_lossy(&output.stderr).to_string()
+        };
+
+        Err(format!("PDF generation failed: {}", error_msg))
     }
 }
 
@@ -419,10 +518,8 @@ fn main() {
                         ));
                     }
                 }
-                tauri::WindowEvent::CloseRequested { api, .. } => {
+                tauri::WindowEvent::CloseRequested { .. } => {
                     println!("Window close requested");
-                    // Prevent close for debugging
-                    api.prevent_close();
                 }
                 tauri::WindowEvent::Destroyed => {
                     println!("Window destroyed");

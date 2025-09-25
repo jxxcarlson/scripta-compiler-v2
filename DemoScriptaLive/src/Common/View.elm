@@ -55,12 +55,21 @@ appWidth model =
 
 
 sidebarWidth =
-    260
+    230  -- Adjusted for better button layout
+
+
+tocWidth =
+    220  -- Increased from 180
 
 
 panelWidth : Common.CommonModel -> Int
 panelWidth model =
-    max 200 ((appWidth model - sidebarWidth - 16 - 4 - 16) // 2)
+    -- Calculate width for editor and rendered text panels
+    -- When TOC is hidden (window < 1000px), don't subtract its width
+    let
+        tocSpace = if model.windowWidth >= 1000 then tocWidth + 1 else 0  -- +1 for border
+    in
+    max 350 ((appWidth model - sidebarWidth - tocSpace - 3) // 2)
 
 
 headerHeight =
@@ -90,7 +99,7 @@ mainColumn toMsg renderMsg model =
                 , Element.htmlAttribute (Html.Attributes.style "flex" "1")
                 , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
                 ]
-                [ editorView toMsg model
+                ([ editorView toMsg model
                 , Element.el
                     [ width (px 1)
                     , height fill
@@ -98,14 +107,29 @@ mainColumn toMsg renderMsg model =
                     ]
                     Element.none
                 , displayRenderedText renderMsg model
-                , Element.el
-                    [ width (px 1)
-                    , height fill
-                    , Background.color (Style.borderColor model.theme)
-                    ]
-                    Element.none
-                , sidebar toMsg model
                 ]
+                -- Only show TOC and its border when window is wide enough
+                ++ (if model.windowWidth >= 1000 then
+                        [ Element.el
+                            [ width (px 1)
+                            , height fill
+                            , Background.color (Style.borderColor model.theme)
+                            ]
+                            Element.none
+                        , tocPanel renderMsg model
+                        ]
+                    else
+                        []
+                   )
+                ++ [ Element.el
+                        [ width (px 1)
+                        , height fill
+                        , Background.color (Style.borderColor model.theme)
+                        ]
+                        Element.none
+                    , sidebar toMsg model
+                    ]
+                )
             ]
         ]
 
@@ -145,6 +169,49 @@ sidebar toMsg model =
         ]
 
 
+tocPanel : (MarkupMsg -> msg) -> Common.CommonModel -> Element msg
+tocPanel renderMsg model =
+    -- Hide TOC when window width is below 1000px to give more space to content
+    if model.windowWidth < 1000 then
+        Element.none
+    else
+        let
+            tocItems =
+                model.compilerOutput
+                    |> ScriptaV2.Compiler.viewTOC
+                    |> List.map (Element.map renderMsg)
+        in
+        Element.column
+        [ Element.width (px tocWidth)
+        , height fill
+        , Font.color (Style.textColor model.theme)
+        , Font.size 12
+        , Background.color (Style.backgroundColor model.theme)
+        , Element.scrollbarY
+        , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+        , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+        , Element.htmlAttribute (Html.Attributes.id "toc-panel")
+        , padding 12
+        , spacing 6
+        ]
+        (if List.isEmpty tocItems then
+            [ Element.el
+                [ Font.color (Style.mutedTextColor model.theme)
+                , Font.italic
+                ]
+                (Element.text "No headings")
+            ]
+         else
+            Element.el
+                [ Font.bold
+                , Font.size 14
+                , Element.paddingEach { top = 0, bottom = 8, left = 0, right = 0 }
+                ]
+                (Element.text "Contents")
+            :: tocItems
+        )
+
+
 crudButtons : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
 crudButtons toMsg model =
     Element.row [ spacing 8, width fill ]
@@ -169,10 +236,13 @@ exportStuff toMsg model =
         [ Element.el [ Font.bold ] (Element.text "Export")
         , case model.printingState of
             Common.PrintWaiting ->
-                Element.row [ spacing 4, width fill ]
-                    [ Widget.sidebarButton model.theme (Just (toMsg Common.PrintToPDF)) "PDF"
-                    , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "LaTeX"
-                    , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
+                Element.column [ spacing 4, width fill ]
+                    [ Element.row [ spacing 4, width fill ]
+                        [ Widget.sidebarButton model.theme (Just (toMsg Common.PrintToPDF)) "PDF"
+                        , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "LaTeX"
+                        , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
+                        ]
+                    , Widget.sidebarButton model.theme (Just (toMsg Common.ExportScriptaFile)) "Save to Disk"
                     ]
 
             Common.PrintProcessing ->
@@ -335,21 +405,20 @@ displayRenderedText renderMsg model =
         [ alignTop
         , height (px (max 100 (model.windowHeight - headerHeight - 1))) -- Match editor height
         , width (px <| panelWidth model)
-        , Element.clipY
         , Element.scrollbarY
         , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
-        , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+        , Element.htmlAttribute (Html.Attributes.style "overflow-x" "auto") -- Allow horizontal scroll if needed
         , Style.htmlId "rendered-text-container"
         ]
         (Element.Keyed.column
             [ Font.size 14
-            , padding 16
+            , Element.paddingEach { top = 16, bottom = 16, left = 20, right = 20 } -- Ensure consistent padding
             , spacing 24
             , width fill
             , Style.htmlId "rendered-text"
             , Style.background_ model.theme
             , alignTop
-            , centerX
+            , alignLeft -- Align left instead of center to prevent cutoff
             , Font.color (Style.textColor model.theme)
             , Style.forceColorStyle model.theme
             ]
@@ -362,7 +431,7 @@ displayRenderedText renderMsg model =
 
 container : Common.CommonModel -> List (Element msg) -> Element msg
 container model elements_ =
-    Element.column (Style.background_ model.theme :: [ Element.centerX, spacing 24 ]) elements_
+    Element.column (Style.background_ model.theme :: [ spacing 24, width fill ]) elements_
 
 
 header : Common.CommonModel -> Element msg
@@ -387,6 +456,14 @@ header model =
             , Style.forceColorStyle model.theme
             ]
             (Element.text model.title)
+        , Element.el
+            [ alignRight
+            , centerY
+            , Font.color (Style.mutedTextColor model.theme)
+            , Font.size 14
+            , Style.forceColorStyle model.theme
+            ]
+            (Element.text <| "Window: " ++ String.fromInt model.windowWidth ++ "px | Panel: " ++ String.fromInt (panelWidth model) ++ "px | Compiler: " ++ String.fromInt model.displaySettings.windowWidth ++ "px")
         ]
 
 

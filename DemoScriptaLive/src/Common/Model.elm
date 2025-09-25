@@ -101,6 +101,7 @@ type CommonMsg
     | InitialDocumentId String String Time.Posix Theme.Theme String
     | ExportToLaTeX
     | ExportToRawLaTeX
+    | ExportScriptaFile
     | PrintToPDF
     | GotPdfLink (Result Http.Error String)
     | GotPdfResponse (Result Http.Error PdfResponse)
@@ -156,7 +157,7 @@ initCommon flags =
             Time.millisToPosix flags.currentTime
     in
     { displaySettings =
-        { windowWidth = flags.window.windowWidth // 3
+        { windowWidth = max 310 ((max 350 ((flags.window.windowWidth - 230 - (if flags.window.windowWidth >= 1000 then 221 else 0) - 3) // 2)) - 40) -- Reduced padding experiment
         , longEquationLimit = 100.0
         , counter = 0
         , selectedId = "-"

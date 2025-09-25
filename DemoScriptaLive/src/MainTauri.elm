@@ -129,8 +129,10 @@ updateCommon msg model =
                 updatedDisplaySettings =
                     let
                         oldSettings = common.displaySettings
+                        panelWidth = max 350 ((common.windowWidth - 230 - (if common.windowWidth >= 1000 then 221 else 0) - 3) // 2)
+                        contentWidth = panelWidth - 40  -- Reduced padding experiment
                     in
-                    { oldSettings | counter = newCount }
+                    { oldSettings | counter = newCount, windowWidth = max 310 contentWidth }
 
                 newCompilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
@@ -163,8 +165,10 @@ updateCommon msg model =
                 updatedDisplaySettings =
                     let
                         oldSettings = common.displaySettings
+                        panelWidth = max 350 ((common.windowWidth - 230 - (if common.windowWidth >= 1000 then 221 else 0) - 3) // 2)
+                        contentWidth = panelWidth - 40  -- Reduced padding experiment
                     in
-                    { oldSettings | counter = newCount }
+                    { oldSettings | counter = newCount, windowWidth = max 310 contentWidth }
 
                 newCompilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
@@ -202,9 +206,13 @@ updateCommon msg model =
                 displaySettings =
                     common.displaySettings
 
+                panelWidth = max 350 ((width - 230 - (if width >= 1000 then 221 else 0) - 3) // 2)
+
+                contentWidth = panelWidth - 40  -- Reduced padding experiment
+
                 newDisplaySettings =
-                    { displaySettings 
-                        | windowWidth = width // 3
+                    { displaySettings
+                        | windowWidth = max 310 contentWidth
                     }
 
                 newEditRecord =
@@ -447,6 +455,24 @@ updateCommon msg model =
                     ]
             )
 
+        Common.ExportScriptaFile ->
+            let
+                fileName =
+                    if String.trim common.title == "" then
+                        "document.txt"
+                    else
+                        common.title ++ ".txt"
+            in
+            ( model
+            , Ports.tauriCommand <|
+                Json.Encode.object
+                    [ ( "cmd", Json.Encode.string "saveFile" )
+                    , ( "file_name", Json.Encode.string fileName )
+                    , ( "content", Json.Encode.string common.sourceText )
+                    , ( "mime_type", Json.Encode.string "text/plain" )
+                    ]
+            )
+
         Common.PrintToPDF ->
             let
                 settings =
@@ -455,15 +481,19 @@ updateCommon msg model =
                 exportText =
                     Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
 
-                exportData =
-                    { title = common.title
-                    , content = exportText
-                    , sourceText = common.sourceText
-                    , language = common.currentLanguage
-                    }
+                fileName =
+                    if String.trim common.title == "" then
+                        "document.pdf"
+                    else
+                        common.title ++ ".pdf"
             in
-            ( { model | common = { common | printingState = Common.PrintProcessing } }
-            , Cmd.map CommonMsg (Frontend.PDF.requestPDF exportData)
+            ( model
+            , Ports.tauriCommand <|
+                Json.Encode.object
+                    [ ( "cmd", Json.Encode.string "generatePdf" )
+                    , ( "file_name", Json.Encode.string fileName )
+                    , ( "content", Json.Encode.string exportText )
+                    ]
             )
 
         Common.GotPdfLink result ->

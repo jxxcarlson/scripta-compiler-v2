@@ -127,8 +127,12 @@ updateCommon msg model =
                 updatedDisplaySettings =
                     let
                         oldSettings = common.displaySettings
+                        -- Calculate actual panel width for rendered text
+                        -- When TOC is hidden (window < 1000px), don't subtract its width
+                        tocSpace = if common.windowWidth >= 1000 then 220 + 1 else 0
+                        actualPanelWidth = max 350 ((common.windowWidth - 230 - tocSpace - 3) // 2)
                     in
-                    { oldSettings | counter = newCount }
+                    { oldSettings | counter = newCount, windowWidth = actualPanelWidth }
 
                 -- IMPORTANT: Must use updated display settings with new counter for keyed rendering
                 newCompilerOutput =
@@ -162,8 +166,12 @@ updateCommon msg model =
                 updatedDisplaySettings =
                     let
                         oldSettings = common.displaySettings
+                        -- Calculate actual panel width for rendered text
+                        -- When TOC is hidden (window < 1000px), don't subtract its width
+                        tocSpace = if common.windowWidth >= 1000 then 220 + 1 else 0
+                        actualPanelWidth = max 350 ((common.windowWidth - 230 - tocSpace - 3) // 2)
                     in
-                    { oldSettings | counter = newCount }
+                    { oldSettings | counter = newCount, windowWidth = actualPanelWidth }
 
                 -- IMPORTANT: Must use updated display settings with new counter for keyed rendering
                 newCompilerOutput =
@@ -455,6 +463,18 @@ updateCommon msg model =
             in
             ( model
             , File.Download.string fileName "application/x-latex" exportText
+            )
+
+        Common.ExportScriptaFile ->
+            let
+                fileName =
+                    if String.trim common.title == "" then
+                        "document.txt"
+                    else
+                        common.title ++ ".txt"
+            in
+            ( model
+            , File.Download.string fileName "text/plain" common.sourceText
             )
 
         Common.PrintToPDF ->
