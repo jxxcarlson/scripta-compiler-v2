@@ -31,6 +31,7 @@ type StorageMsg
     | LastDocumentIdLoaded (Result String (Maybe String))
     | LastDocumentIdSaved (Result String String)
     | StorageInitialized (Result String ())
+    | FileOpened String
 
 
 type StorageResult

@@ -473,6 +473,15 @@ updateCommon msg model =
                     ]
             )
 
+        Common.ImportScriptaFile ->
+            ( model
+            , Ports.tauriCommand <|
+                Json.Encode.object
+                    [ ( "cmd", Json.Encode.string "openFile" )
+                    , ( "extensions", Json.Encode.list Json.Encode.string [ "scripta", "txt" ] )
+                    ]
+            )
+
         Common.PrintToPDF ->
             let
                 settings =
@@ -731,6 +740,61 @@ handleStorageMsg msg model =
             
         Storage.LastDocumentIdSaved _ ->
             ( model, Cmd.none )
+
+        Storage.FileOpened content ->
+            let
+                -- Extract the title from the content
+                title = Common.getTitleFromContent content
+
+                -- Generate a new document ID
+                newId = "imported-" ++ String.fromInt (Time.posixToMillis model.common.currentTime // 1)
+
+                -- Create a new document
+                newDoc = Document.newDocument
+                    newId
+                    title
+                    (Maybe.withDefault "" model.common.userName)
+                    content
+                    model.common.theme
+                    model.common.currentTime
+
+                -- Update the model with the new document
+                editRecord =
+                    ScriptaV2.DifferentialCompiler.init Dict.empty model.common.currentLanguage content
+
+                compilerOutput =
+                    ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                        (Theme.mapTheme model.common.theme)
+                        ScriptaV2.Compiler.SuppressDocumentBlocks
+                        model.common.displaySettings
+                        editRecord
+
+                updatedCommon =
+                    let
+                        oldCommon = model.common
+                    in
+                    { oldCommon
+                        | currentDocument = Just newDoc
+                        , documents = newDoc :: model.common.documents
+                        , lastLoadedDocumentId = Just newId
+                        , sourceText = content
+                        , initialText = content
+                        , title = title
+                        , editRecord = editRecord
+                        , compilerOutput = compilerOutput
+                        , loadDocumentIntoEditor = True
+                    }
+
+                -- Get the storage command to save the document
+                storage = Storage.Tauri.storage StorageMsg
+            in
+            ( { model | common = updatedCommon }
+            , Cmd.batch
+                [ storage.saveDocument newDoc
+                , Process.sleep 100
+                    |> Task.perform (always (CommonMsg Common.ResetLoadFlag))
+                ]
+            )
 
         Storage.StorageInitialized (Ok _) ->
             ( model

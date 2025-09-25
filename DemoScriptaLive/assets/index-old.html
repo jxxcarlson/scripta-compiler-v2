@@ -1,0 +1,459 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Scripta Live</title>
+
+    <!-- Load the actual KaTeX library first -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
+    
+    <!-- Then load the custom element wrapper -->
+    <script src="katex.js"></script>
+    
+    <!-- CodeMirror editor custom element -->
+    <script src="codemirror-element.js"></script>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.js" integrity="sha256-4O4pS1SH31ZqrSO2A/2QJTVjTPqVe+jnYgOWUVr7EEc=" crossorigin="anonymous"></script>
+
+    <script
+            src="https://sdk.feedback.one/v0/core.min.js"
+            data-project-id="01995ed7-6ce2-73e1-afba-661ca193a2c4"
+            defer
+    ></script>
+
+
+    <script src="main.js?v=1753748880"></script>
+
+</head>
+
+<body>
+
+<div id="main"></div>
+
+<script>
+
+		var root = document.getElementById('main');
+		var savedTheme = localStorage.getItem('scripta-theme');
+		var app = Elm.Main.init({
+		    node: root, 
+		    flags: {
+		        window: {windowWidth: window.innerWidth, windowHeight: window.innerHeight },
+		        currentTime: Date.now(),
+		        theme: savedTheme
+		    }
+		});
+        
+        // Initialize KaTeX
+        if (typeof initKatex === 'function') {
+            initKatex();
+            console.log('KaTeX custom elements initialized');
+        } else {
+            console.error('initKatex function not found!');
+        }
+        
+        // Check if KaTeX library is loaded
+        if (typeof katex !== 'undefined') {
+            console.log('KaTeX library is loaded');
+        } else {
+            console.error('KaTeX library not found! Math rendering will not work.');
+        }
+        
+        // Force a re-render after KaTeX is loaded to ensure math elements are rendered
+        setTimeout(() => {
+            console.log('Forcing re-render after KaTeX load');
+            // Trigger a dummy resize event to force Elm to re-render
+            window.dispatchEvent(new Event('resize'));
+        }, 500);
+        
+        // Initialize CodeMirror
+        if (typeof initCodeMirror === 'function') {
+            initCodeMirror();
+            console.log('CodeMirror custom elements initialized');
+        } else {
+            console.error('initCodeMirror function not found!');
+        }
+        
+        // Local Storage Management
+        const STORAGE_KEY = 'scripta-documents';
+        const CURRENT_DOC_KEY = 'scripta-current-document';
+        const THEME_KEY = 'scripta-theme';
+        const USER_NAME_KEY = 'scripta-user-name';
+        
+        // Handle outgoing messages from Elm
+        app.ports.outgoing.subscribe((msg) => {
+            console.log('@@!!@@ Received outgoing message:', msg.tag);
+            
+            switch (msg.tag) {
+                case 'LoadDocuments':
+                    const docsJson = localStorage.getItem(STORAGE_KEY);
+                    const docs = docsJson ? JSON.parse(docsJson) : [];
+                    console.log('@@!!@@ Loading documents from localStorage:', docs);
+                    console.log('@@!!@@ Number of documents found:', docs.length);
+                    app.ports.incoming.send({
+                        tag: 'DocumentsLoaded',
+                        data: docs
+                    });
+                    
+                    // Also check for last opened document
+                    const currentDocId = localStorage.getItem(CURRENT_DOC_KEY);
+                    console.log('@@!!@@ Last opened document ID:', currentDocId);
+                    if (currentDocId && docs.length > 0) {
+                        const currentDoc = docs.find(d => d.id === currentDocId);
+                        if (currentDoc) {
+                            console.log('@@!!@@ Restoring document:', currentDoc.title);
+                            setTimeout(() => {
+                                app.ports.incoming.send({
+                                    tag: 'DocumentLoaded',
+                                    data: currentDoc
+                                });
+                            }, 100);
+                        } else {
+                            console.log('@@!!@@ Could not find document with ID:', currentDocId);
+                        }
+                    }
+                    break;
+                    
+                case 'SaveDocument':
+                    const doc = msg.data;
+                    const savedDocsJson = localStorage.getItem(STORAGE_KEY);
+                    let savedDocs = savedDocsJson ? JSON.parse(savedDocsJson) : [];
+                    
+                    // Update or add the document
+                    const existingIndex = savedDocs.findIndex(d => d.id === doc.id);
+                    if (existingIndex >= 0) {
+                        savedDocs[existingIndex] = doc;
+                    } else {
+                        savedDocs.push(doc);
+                    }
+                    
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedDocs));
+                    localStorage.setItem(CURRENT_DOC_KEY, doc.id);
+                    
+                    // Send back updated list
+                    app.ports.incoming.send({
+                        tag: 'DocumentsLoaded',
+                        data: savedDocs
+                    });
+                    break;
+                    
+                case 'LoadDocument':
+                    const loadId = msg.data;
+                    const loadDocsJson = localStorage.getItem(STORAGE_KEY);
+                    const loadDocs = loadDocsJson ? JSON.parse(loadDocsJson) : [];
+                    const loadDoc = loadDocs.find(d => d.id === loadId);
+                    
+                    if (loadDoc) {
+                        localStorage.setItem(CURRENT_DOC_KEY, loadId);
+                        app.ports.incoming.send({
+                            tag: 'DocumentLoaded',
+                            data: loadDoc
+                        });
+                    }
+                    break;
+                    
+                case 'DeleteDocument':
+                    const deleteId = msg.data;
+                    const deleteDocsJson = localStorage.getItem(STORAGE_KEY);
+                    let deleteDocs = deleteDocsJson ? JSON.parse(deleteDocsJson) : [];
+                    
+                    deleteDocs = deleteDocs.filter(d => d.id !== deleteId);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(deleteDocs));
+                    
+                    // Clear current doc if it was deleted
+                    const currentId = localStorage.getItem(CURRENT_DOC_KEY);
+                    if (currentId === deleteId) {
+                        localStorage.removeItem(CURRENT_DOC_KEY);
+                    }
+                    
+                    // Send back updated list
+                    app.ports.incoming.send({
+                        tag: 'DocumentsLoaded',
+                        data: deleteDocs
+                    });
+                    break;
+                    
+                case 'SaveTheme':
+                    const theme = msg.data;
+                    localStorage.setItem(THEME_KEY, theme);
+                    console.log('@@!!@@ Theme saved:', theme);
+                    break;
+                    
+                case 'LoadTheme':
+                    const savedTheme = localStorage.getItem(THEME_KEY);
+                    if (savedTheme) {
+                        console.log('@@!!@@ Loading saved theme:', savedTheme);
+                        setTimeout(() => {
+                            app.ports.incoming.send({
+                                tag: 'ThemeLoaded',
+                                data: savedTheme
+                            });
+                        }, 50);
+                    } else {
+                        console.log('@@!!@@ No saved theme found, using default');
+                    }
+                    break;
+                    
+                case 'SaveUserName':
+                    const userName = msg.data;
+                    localStorage.setItem(USER_NAME_KEY, userName);
+                    console.log('@@!!@@ User name saved:', userName);
+                    break;
+                    
+                case 'LoadUserName':
+                    const savedUserName = localStorage.getItem(USER_NAME_KEY);
+                    if (savedUserName) {
+                        console.log('@@!!@@ Loading saved username:', savedUserName);
+                        setTimeout(() => {
+                            app.ports.incoming.send({
+                                tag: 'UserNameLoaded',
+                                data: savedUserName
+                            });
+                        }, 50);
+                    }
+                    break;
+                    
+                default:
+                    console.error('@@!!@@ Unknown message tag:', msg.tag);
+            }
+        });
+
+        // Listen for selected-text events from CodeMirror
+        document.addEventListener('selected-text', function(event) {
+            console.log('@@!!@@ selected-text event received:', event.detail);
+            // The Elm app handles this through the onSelectionChange handler
+            // which is already set up in Common/View.elm
+        });
+
+        // Debug helper functions - you can run these in the browser console
+        window.debugScripta = {
+            // Check what's in localStorage
+            checkStorage: function() {
+                const docs = localStorage.getItem('scripta-documents');
+                const currentId = localStorage.getItem('scripta-current-document');
+                const theme = localStorage.getItem('scripta-theme');
+                const userName = localStorage.getItem('scripta-user-name');
+                console.log('=== Scripta Storage Debug ===');
+                console.log('Documents in storage:', docs ? JSON.parse(docs) : 'No documents found');
+                console.log('Current document ID:', currentId || 'None');
+                console.log('Current theme:', theme || 'None');
+                console.log('Saved user name:', userName || 'None');
+                console.log('===========================');
+                return docs ? JSON.parse(docs) : null;
+            },
+            
+            // List all localStorage keys
+            listAllKeys: function() {
+                console.log('=== All localStorage keys ===');
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    console.log(key, ':', localStorage.getItem(key).substring(0, 100) + '...');
+                }
+                console.log('===========================');
+            },
+            
+            // Manually restore a document by ID
+            restoreDocument: function(docId) {
+                const docs = localStorage.getItem('scripta-documents');
+                if (docs) {
+                    const parsed = JSON.parse(docs);
+                    const doc = parsed.find(d => d.id === docId);
+                    if (doc) {
+                        app.ports.incoming.send({
+                            tag: 'DocumentLoaded',
+                            data: doc
+                        });
+                        console.log('Document restored:', doc.title);
+                    } else {
+                        console.log('Document not found with ID:', docId);
+                    }
+                } else {
+                    console.log('No documents in storage');
+                }
+            },
+            
+            // Remove a document by title
+            removeDocumentByTitle: function(title) {
+                const docsJson = localStorage.getItem('scripta-documents');
+                if (!docsJson) {
+                    console.log('No documents in storage');
+                    return;
+                }
+                
+                const docs = JSON.parse(docsJson);
+                const filteredDocs = docs.filter(doc => doc.title !== title);
+                
+                if (docs.length === filteredDocs.length) {
+                    console.log('No document found with title:', title);
+                    return;
+                }
+                
+                // Save filtered documents back to localStorage
+                localStorage.setItem('scripta-documents', JSON.stringify(filteredDocs));
+                
+                // If the current document was the one removed, clear it
+                const currentDocId = localStorage.getItem('scripta-current-document');
+                const removedDoc = docs.find(doc => doc.title === title);
+                if (removedDoc && removedDoc.id === currentDocId) {
+                    localStorage.removeItem('scripta-current-document');
+                    console.log('Also cleared current document reference');
+                }
+                
+                console.log('Successfully removed document:', title);
+                console.log('Remaining documents:', filteredDocs.length);
+            },
+            
+            // Shortcut to remove Announcement document
+            removeAnnouncement: function() {
+                this.removeDocumentByTitle('Announcement');
+            },
+            
+            // Find all documents containing a string in their title
+            findDocumentsByTitleSubstring: function(substring) {
+                const docsJson = localStorage.getItem('scripta-documents');
+                if (!docsJson) {
+                    console.log('No documents in storage');
+                    return [];
+                }
+                
+                const docs = JSON.parse(docsJson);
+                const matchingDocs = docs.filter(doc => 
+                    doc.title && doc.title.toLowerCase().includes(substring.toLowerCase())
+                );
+                
+                console.log(`Found ${matchingDocs.length} documents containing "${substring}":`);
+                matchingDocs.forEach(doc => {
+                    console.log(`- Title: "${doc.title}", ID: ${doc.id}, Created: ${new Date(doc.created).toLocaleString()}`);
+                });
+                
+                return matchingDocs;
+            },
+            
+            // Remove all documents containing a string in their title
+            removeAllAnnouncementDocs: function() {
+                const docsJson = localStorage.getItem('scripta-documents');
+                if (!docsJson) {
+                    console.log('No documents in storage');
+                    return;
+                }
+                
+                const docs = JSON.parse(docsJson);
+                const filteredDocs = docs.filter(doc => 
+                    !doc.title || !doc.title.toLowerCase().includes('announcement')
+                );
+                
+                const removedCount = docs.length - filteredDocs.length;
+                console.log(`Removing ${removedCount} documents containing "announcement"`);
+                
+                localStorage.setItem('scripta-documents', JSON.stringify(filteredDocs));
+                
+                // Also clear current document if it was an announcement
+                const currentDocId = localStorage.getItem('scripta-current-document');
+                const currentDoc = docs.find(d => d.id === currentDocId);
+                if (currentDoc && currentDoc.title && currentDoc.title.toLowerCase().includes('announcement')) {
+                    localStorage.removeItem('scripta-current-document');
+                    console.log('Also cleared current document reference');
+                }
+                
+                console.log(`Successfully removed ${removedCount} announcement documents`);
+            },
+            
+            // Clear all Scripta data from localStorage
+            clearAllScriptaData: function() {
+                const keysToRemove = [
+                    'scripta-documents',
+                    'scripta-current-document',
+                    'scripta-theme',
+                    'scripta-user-name'
+                ];
+                
+                keysToRemove.forEach(key => {
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key);
+                        console.log(`Removed: ${key}`);
+                    }
+                });
+                
+                console.log('All Scripta data has been cleared from localStorage');
+                console.log('Reload the page to start fresh with the new default document');
+            },
+            
+            // Safe removal of Announcement document - creates a dummy doc to prevent recreation
+            safeRemoveAnnouncement: function() {
+                const docsJson = localStorage.getItem('scripta-documents');
+                if (!docsJson) {
+                    console.log('No documents in storage');
+                    return;
+                }
+                
+                const docs = JSON.parse(docsJson);
+                // Remove all announcement documents
+                const filteredDocs = docs.filter(doc => 
+                    !doc.title || !doc.title.toLowerCase().includes('announcement')
+                );
+                
+                // If we have other documents, just remove announcements
+                if (filteredDocs.length > 0) {
+                    localStorage.setItem('scripta-documents', JSON.stringify(filteredDocs));
+                    
+                    // Set the first remaining document as current to prevent default text loading
+                    const firstDoc = filteredDocs[0];
+                    localStorage.setItem('scripta-current-document', firstDoc.id);
+                    
+                    console.log('Removed Announcement document(s).');
+                    console.log(`Set "${firstDoc.title}" as current document.`);
+                    console.log('Please reload the page.');
+                } else {
+                    console.log('WARNING: Announcement is your only document.');
+                    console.log('If you remove it, the app will recreate it from default text.');
+                    console.log('Create a new document first, then remove Announcement.');
+                }
+            },
+            
+            // Force update the Announcement document with current default text
+            forceUpdateAnnouncement: function() {
+                // First remove all existing announcements
+                this.removeAllAnnouncementDocs();
+                
+                // Clear the current document reference
+                localStorage.removeItem('scripta-current-document');
+                
+                console.log('Removed old Announcement document(s).');
+                console.log('Reload the page to see the new Announcement from AppData.defaultDocumentText');
+            },
+            
+            // Show content of Announcement document if it exists
+            showAnnouncementContent: function() {
+                const docsJson = localStorage.getItem('scripta-documents');
+                if (!docsJson) {
+                    console.log('No documents in storage');
+                    return;
+                }
+                
+                const docs = JSON.parse(docsJson);
+                const announcementDocs = docs.filter(doc => 
+                    doc.title && doc.title.toLowerCase().includes('announcement')
+                );
+                
+                if (announcementDocs.length === 0) {
+                    console.log('No Announcement documents found');
+                    return;
+                }
+                
+                announcementDocs.forEach(doc => {
+                    console.log('=== Announcement Document ===');
+                    console.log('Title:', doc.title);
+                    console.log('ID:', doc.id);
+                    console.log('Created:', new Date(doc.created));
+                    console.log('Content preview (first 200 chars):');
+                    console.log(doc.content.substring(0, 200) + '...');
+                    console.log('===========================');
+                });
+            }
+        };
+
+</script>
+
+</body>
+</html>

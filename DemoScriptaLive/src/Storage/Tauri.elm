@@ -198,6 +198,16 @@ tauriResultDecoder =
                     "pdfCancelled" ->
                         Decode.succeed (StorageInitialized (Ok ()))
 
+                    "fileOpened" ->
+                        Decode.map
+                            (\content ->
+                                FileOpened content
+                            )
+                            (Decode.field "content" Decode.string)
+
+                    "fileOpenCancelled" ->
+                        Decode.succeed (StorageInitialized (Ok ()))
+
                     _ ->
                         Decode.fail ("Unknown message type: " ++ msgType)
             )

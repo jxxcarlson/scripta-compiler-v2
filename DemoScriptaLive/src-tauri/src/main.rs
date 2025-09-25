@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::{Manager, State};
 use std::fs;
-use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Document {
@@ -36,6 +35,8 @@ struct CommandPayload {
     content: Option<String>,
     #[serde(default)]
     mime_type: Option<String>,
+    #[serde(default)]
+    extensions: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -58,6 +59,8 @@ struct CommandResponse {
     last_document_id: Option<Option<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     error: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    content: Option<String>,
 }
 
 struct AppState {
@@ -69,7 +72,6 @@ fn handle_tauri_command(
     state: State<'_, AppState>,
     payload: CommandPayload,
 ) -> Result<CommandResponse, String> {
-    println!("Received command: {:?}", payload.cmd);
     
     let db = state.db.lock().map_err(|e| e.to_string())?;
     
@@ -84,13 +86,13 @@ fn handle_tauri_command(
         "saveLastDocumentId" => save_last_document_id(&db, payload.id),
         "loadLastDocumentId" => load_last_document_id(&db),
         "saveFile" => save_file(payload.file_name, payload.content),
+        "openFile" => open_file(payload.extensions),
         "generatePdf" => generate_pdf(payload.file_name, payload.content),
         _ => Err(format!("Unknown command: {}", payload.cmd)),
     }
 }
 
 fn init_database(conn: &Connection) -> Result<CommandResponse, String> {
-    println!("Initializing database tables...");
     conn.execute(
         "CREATE TABLE IF NOT EXISTS documents (
             id TEXT PRIMARY KEY,
@@ -123,6 +125,7 @@ fn init_database(conn: &Connection) -> Result<CommandResponse, String> {
         name: None,
         last_document_id: None,
         error: None,
+        content: None,
     })
 }
 
@@ -154,6 +157,7 @@ fn save_document(conn: &Connection, document: Option<Document>) -> Result<Comman
         name: None,
         last_document_id: None,
         error: None,
+        content: None,
     })
 }
 
@@ -187,6 +191,7 @@ fn load_document(conn: &Connection, id: Option<String>) -> Result<CommandRespons
         name: None,
         last_document_id: None,
         error: None,
+        content: None,
     })
 }
 
@@ -205,11 +210,11 @@ fn delete_document(conn: &Connection, id: Option<String>) -> Result<CommandRespo
         name: None,
         last_document_id: None,
         error: None,
+        content: None,
     })
 }
 
 fn list_documents(conn: &Connection) -> Result<CommandResponse, String> {
-    println!("Listing documents...");
     let mut stmt = conn
         .prepare(
             "SELECT id, title, author, content, theme, created_at, modified_at 
@@ -233,7 +238,6 @@ fn list_documents(conn: &Connection) -> Result<CommandResponse, String> {
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| e.to_string())?;
     
-    println!("Found {} documents", documents.len());
     
     Ok(CommandResponse {
         response_type: "documentsListed".to_string(),
@@ -244,6 +248,7 @@ fn list_documents(conn: &Connection) -> Result<CommandResponse, String> {
         name: None,
         last_document_id: None,
         error: None,
+        content: None,
     })
 }
 
@@ -265,6 +270,7 @@ fn save_user_name(conn: &Connection, name: Option<String>) -> Result<CommandResp
         last_document_id: None,
         name: Some(user_name),
         error: None,
+        content: None,
     })
 }
 
@@ -286,6 +292,7 @@ fn load_user_name(conn: &Connection) -> Result<CommandResponse, String> {
         name: None,
         last_document_id: None,
         error: None,
+        content: None,
     })
 }
 
@@ -307,6 +314,7 @@ fn save_last_document_id(conn: &Connection, id: Option<String>) -> Result<Comman
         name: None,
         last_document_id: None,
         error: None,
+        content: None,
     })
 }
 
@@ -328,6 +336,7 @@ fn load_last_document_id(conn: &Connection) -> Result<CommandResponse, String> {
         name: None,
         last_document_id: Some(last_doc_id),
         error: None,
+        content: None,
     })
 }
 
@@ -352,6 +361,7 @@ fn save_file(file_name: Option<String>, content: Option<String>) -> Result<Comma
             name: Some(path.to_string_lossy().to_string()),
             last_document_id: None,
             error: None,
+            content: None,
         })
     } else {
         // Return success even when cancelled to prevent frontend freeze
@@ -364,20 +374,58 @@ fn save_file(file_name: Option<String>, content: Option<String>) -> Result<Comma
             name: None,
             last_document_id: None,
             error: None,
+            content: None,
+        })
+    }
+}
+
+fn open_file(extensions: Option<Vec<String>>) -> Result<CommandResponse, String> {
+    // Use native file dialog to let user choose file to open
+    let mut file_dialog = rfd::FileDialog::new();
+
+    // Add file extensions if provided
+    if let Some(exts) = extensions {
+        // Create a single filter for all text files
+        let ext_refs: Vec<&str> = exts.iter().map(|s| s.as_str()).collect();
+        file_dialog = file_dialog.add_filter("Text files", &ext_refs);
+    }
+
+    if let Some(path) = file_dialog.pick_file() {
+        let content = fs::read_to_string(&path)
+            .map_err(|e| format!("Failed to read file: {}", e))?;
+
+        Ok(CommandResponse {
+            response_type: "fileOpened".to_string(),
+            document: None,
+            documents: None,
+            id: None,
+            user_name: None,
+            name: Some(path.to_string_lossy().to_string()),
+            content: Some(content),
+            last_document_id: None,
+            error: None,
+        })
+    } else {
+        // Return success even when cancelled to prevent frontend freeze
+        Ok(CommandResponse {
+            response_type: "fileOpenCancelled".to_string(),
+            document: None,
+            documents: None,
+            id: None,
+            user_name: None,
+            name: None,
+            content: None,
+            last_document_id: None,
+            error: None,
         })
     }
 }
 
 fn generate_pdf(file_name: Option<String>, content: Option<String>) -> Result<CommandResponse, String> {
     use std::process::Command;
-    use std::io::Write;
-
-    println!("PDF generation requested for file: {:?}", file_name);
 
     let file_name = file_name.ok_or("File name is required")?;
     let latex_content = content.ok_or("Content is required")?;
-
-    println!("LaTeX content length: {} bytes", latex_content.len());
 
     // Create temp directory for LaTeX compilation
     let temp_dir = std::env::temp_dir().join("scripta-pdf");
@@ -429,6 +477,7 @@ fn generate_pdf(file_name: Option<String>, content: Option<String>) -> Result<Co
                 name: Some(save_path.to_string_lossy().to_string()),
                 last_document_id: None,
                 error: None,
+                content: None,
             })
         } else {
             // Return success even when cancelled to prevent frontend freeze
@@ -441,6 +490,7 @@ fn generate_pdf(file_name: Option<String>, content: Option<String>) -> Result<Co
                 name: None,
                 last_document_id: None,
                 error: None,
+                content: None,
             })
         }
     } else {
