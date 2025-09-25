@@ -459,9 +459,9 @@ updateCommon msg model =
             let
                 fileName =
                     if String.trim common.title == "" then
-                        "document.txt"
+                        "document.scripta"
                     else
-                        common.title ++ ".txt"
+                        common.title ++ ".scripta"
             in
             ( model
             , Ports.tauriCommand <|

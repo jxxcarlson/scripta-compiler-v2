@@ -242,7 +242,10 @@ exportStuff toMsg model =
                         , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "LaTeX"
                         , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
                         ]
-                    , Widget.sidebarButton model.theme (Just (toMsg Common.ExportScriptaFile)) "Save to Disk"
+                    , Element.row [ spacing 4, width fill ]
+                        [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportScriptaFile)) "Save Scripta"
+                        , Widget.sidebarButton model.theme (Just (toMsg Common.ImportScriptaFile)) "Import Scripta"
+                        ]
                     ]
 
             Common.PrintProcessing ->
@@ -256,7 +259,12 @@ exportStuff toMsg model =
                             -- Fallback to old behavior if no response
                             Element.newTabLink
                                 [ Font.size 14
-                                , Font.color (Element.rgb 0 0 0.8)
+                                , Font.color
+                                    (if model.theme == Theme.Light then
+                                        Element.rgb 0 0 0.8
+                                     else
+                                        Element.rgb 0.4 0.6 1.0  -- Light blue for dark mode
+                                    )
                                 ]
                                 { url = Config.pdfServUrl ++ extractFileName model.pdfLink
                                 , label = Element.text "Click for PDF"
@@ -269,7 +277,12 @@ exportStuff toMsg model =
                                     Just pdfFile ->
                                         Element.newTabLink
                                             [ Font.size 14
-                                            , Font.color (Element.rgb 0 0 0.8)
+                                            , Font.color
+                                                (if model.theme == Theme.Light then
+                                                    Element.rgb 0 0 0.8
+                                                 else
+                                                    Element.rgb 0.4 0.6 1.0  -- Light blue for dark mode
+                                                )
                                             ]
                                             { url = Config.pdfServUrl ++ pdfFile
                                             , label =
@@ -657,10 +670,7 @@ inputTextWidget theme value onChange =
 toggleTheme : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
 toggleTheme toMsg model =
     Element.row
-        [ Border.width 1
-        , Border.color (Element.rgb 0.7 0.7 0.7)
-        , Border.rounded 4
-        , height (px 30)
+        [ height (px 30)
         ]
         [ if model.theme == Theme.Dark then
             sidebarButton2 model.theme Theme.Dark (Just (toMsg Common.ToggleTheme)) "Dark"
@@ -678,7 +688,7 @@ toggleTheme toMsg model =
 sidebarButton2 : Theme.Theme -> Theme.Theme -> Maybe msg -> String -> Element msg
 sidebarButton2 modelTheme buttonTheme msg label =
     Input.button
-        [ paddingXY 12 6
+        [ paddingXY 8 4
         , Background.color
             (if modelTheme == Theme.Light then
                 Element.rgb255 255 255 255
@@ -700,7 +710,7 @@ sidebarButton2 modelTheme buttonTheme msg label =
                         "rgb(0, 40, 40)"
 
                     Theme.Dark ->
-                        "rgb(255, 165, 0)"
+                        "rgb(100, 150, 255)"  -- Light blue instead of orange
                 )
             )
         , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 4, bottomRight = 4 }
@@ -710,9 +720,9 @@ sidebarButton2 modelTheme buttonTheme msg label =
                 Element.rgba 0.2 0.2 0.2 1.0
 
              else
-                Element.rgba 1.0 0.647 0.0 0.5
+                Element.rgba 0.39 0.59 1.0 0.5  -- Light blue border
             )
-        , Font.size 16
+        , Font.size 12
         , if buttonTheme == modelTheme then
             Font.bold
 

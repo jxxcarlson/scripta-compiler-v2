@@ -11,7 +11,9 @@ import Dict
 import Document exposing (Document)
 import Editor
 import Element exposing (..)
+import File
 import File.Download
+import File.Select
 import Frontend.PDF
 import Html exposing (Html)
 import Http
@@ -62,6 +64,8 @@ type alias Model =
 type Msg
     = CommonMsg Common.CommonMsg
     | StorageMsg Storage.StorageMsg
+    | FileSelected File.File
+    | FileLoaded String
 
 
 
@@ -106,6 +110,59 @@ update msg model =
 
         StorageMsg storageMsg ->
             handleStorageMsg storageMsg model
+
+        FileSelected file ->
+            ( model
+            , Task.perform FileLoaded (File.toString file)
+            )
+
+        FileLoaded content ->
+            let
+                -- First update the content in the editor
+                ( modelWithContent, cmdFromUpdate ) = updateCommon (Common.InputText content) model
+
+                -- Extract the title from the content
+                title = Common.getTitleFromContent content
+
+                -- Generate a new document ID
+                newId = "imported-" ++ String.fromInt (Time.posixToMillis modelWithContent.common.currentTime // 1)
+
+                -- Create a new document
+                newDoc = Document.newDocument
+                    newId
+                    title
+                    (Maybe.withDefault "" modelWithContent.common.userName)
+                    content
+                    modelWithContent.common.theme
+                    modelWithContent.common.currentTime
+
+                -- Update the model with the new document
+                updatedCommon =
+                    let
+                        oldCommon = modelWithContent.common
+                    in
+                    { oldCommon
+                        | currentDocument = Just newDoc
+                        , documents = newDoc :: modelWithContent.common.documents
+                        , lastLoadedDocumentId = Just newId
+                        , sourceText = content
+                        , initialText = content
+                        , loadDocumentIntoEditor = True
+                    }
+
+                updatedModel = { modelWithContent | common = updatedCommon }
+
+                -- Get the storage command to save the document
+                storage = Storage.SQLite.storage StorageMsg
+            in
+            ( updatedModel
+            , Cmd.batch
+                [ cmdFromUpdate
+                , storage.saveDocument newDoc
+                , Process.sleep 100
+                    |> Task.perform (always (CommonMsg Common.ResetLoadFlag))
+                ]
+            )
 
 
 updateCommon : Common.CommonMsg -> Model -> ( Model, Cmd Msg )
@@ -507,13 +564,18 @@ updateCommon msg model =
             let
                 fileName =
                     if String.trim common.title == "" then
-                        "document.txt"
+                        "document.scripta"
 
                     else
-                        common.title ++ ".txt"
+                        common.title ++ ".scripta"
             in
             ( model
             , File.Download.string fileName "text/plain" common.sourceText
+            )
+
+        Common.ImportScriptaFile ->
+            ( model
+            , File.Select.file ["text/plain", ".scripta", ".txt"] FileSelected
             )
 
         Common.PrintToPDF ->

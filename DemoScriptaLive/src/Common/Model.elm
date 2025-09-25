@@ -102,6 +102,7 @@ type CommonMsg
     | ExportToLaTeX
     | ExportToRawLaTeX
     | ExportScriptaFile
+    | ImportScriptaFile
     | PrintToPDF
     | GotPdfLink (Result Http.Error String)
     | GotPdfResponse (Result Http.Error PdfResponse)

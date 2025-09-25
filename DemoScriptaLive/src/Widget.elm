@@ -117,7 +117,7 @@ foo model =
 
 sidebarButton2 buttonTheme modelTheme msg label =
     Input.button
-        [ paddingXY 12 6
+        [ paddingXY 8 4
         , Background.color
             (if modelTheme == Theme.Light then
                 Element.rgb255 255 255 255
@@ -139,7 +139,7 @@ sidebarButton2 buttonTheme modelTheme msg label =
                         "rgb(0, 40, 40)"
 
                     Theme.Dark ->
-                        "rgb(255, 165, 0)"
+                        "rgb(100, 150, 255)"  -- Light blue instead of orange
                 )
             )
         , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 4, bottomRight = 4 }
@@ -155,14 +155,42 @@ sidebarButton2 buttonTheme modelTheme msg label =
                 Element.rgba 0.2 0.2 0.2 1.0
 
              else
-                Element.rgba 1.0 0.647 0.0 0.5
+                Element.rgba 0.39 0.59 1.0 0.5  -- Light blue border
             )
-        , Font.size 16
+        , Font.size 12
         , if buttonTheme == modelTheme then
             Font.bold
 
           else
             Font.extraLight
+        , mouseOver
+            [ Background.color
+                (if modelTheme == Theme.Light then
+                    Element.rgb255 240 240 240
+                 else
+                    Element.rgb255 65 72 78
+                )
+            , Border.color
+                (if modelTheme == Theme.Light then
+                    Element.rgba 0.3 0.3 0.3 1.0
+                 else
+                    Element.rgba 0.39 0.59 1.0 0.7  -- Light blue border on hover
+                )
+            ]
+        , mouseDown
+            [ Background.color
+                (if modelTheme == Theme.Light then
+                    Element.rgb255 220 220 220
+                 else
+                    Element.rgb255 75 82 88
+                )
+            , Border.color
+                (if modelTheme == Theme.Light then
+                    Element.rgba 0.4 0.4 0.4 1.0
+                 else
+                    Element.rgba 0.39 0.59 1.0 0.9  -- Light blue border on click
+                )
+            ]
         ]
         { onPress = msg
         , label = Element.text label
@@ -171,7 +199,7 @@ sidebarButton2 buttonTheme modelTheme msg label =
 
 sidebarButton theme msg label =
     Input.button
-        [ paddingXY 12 6
+        [ paddingXY 8 4
         , Background.color
             (if theme == Theme.Light then
                 Element.rgb255 255 255 255
@@ -193,7 +221,7 @@ sidebarButton theme msg label =
                         "rgb(0, 40, 40)"
 
                     Theme.Dark ->
-                        "rgb(255, 165, 0)"
+                        "rgb(100, 150, 255)"  -- Light blue instead of orange
                 )
             )
         , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 4, bottomRight = 4 }
@@ -209,11 +237,37 @@ sidebarButton theme msg label =
                 Element.rgba 0.2 0.2 0.2 1.0
 
              else
-                Element.rgba 1.0 0.647 0.0 0.5
+                Element.rgba 0.39 0.59 1.0 0.5  -- Light blue border
             )
-        , Font.size 14
-
-        --, Font.bold
+        , Font.size 12
+        , mouseOver
+            [ Background.color
+                (if theme == Theme.Light then
+                    Element.rgb255 240 240 240
+                 else
+                    Element.rgb255 65 72 78
+                )
+            , Border.color
+                (if theme == Theme.Light then
+                    Element.rgba 0.3 0.3 0.3 1.0
+                 else
+                    Element.rgba 0.39 0.59 1.0 0.7  -- Light blue border on hover
+                )
+            ]
+        , mouseDown
+            [ Background.color
+                (if theme == Theme.Light then
+                    Element.rgb255 220 220 220
+                 else
+                    Element.rgb255 75 82 88
+                )
+            , Border.color
+                (if theme == Theme.Light then
+                    Element.rgba 0.4 0.4 0.4 1.0
+                 else
+                    Element.rgba 0.39 0.59 1.0 0.9  -- Light blue border on click
+                )
+            ]
         ]
         { onPress = msg
         , label = Element.text label
