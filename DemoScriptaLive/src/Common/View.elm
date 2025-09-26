@@ -253,7 +253,12 @@ exportStuff toMsg model =
 
             Common.PrintReady ->
                 Element.column [ spacing 4, width fill ]
-                    [ -- Display links based on PDF response
+                    [ -- Always show the Save/Import buttons
+                      Element.row [ spacing 4, width fill ]
+                        [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportScriptaFile)) "Save Scripta"
+                        , Widget.sidebarButton model.theme (Just (toMsg Common.ImportScriptaFile)) "Import Scripta"
+                        ]
+                    , -- Display links based on PDF response
                       case model.pdfResponse of
                         Nothing ->
                             -- Fallback to old behavior if no response

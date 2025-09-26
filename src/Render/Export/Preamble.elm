@@ -133,7 +133,6 @@ standardPackages =
 \\usepackage{geometry}
 \\geometry{letterpaper}
 \\usepackage{changepage}   % for the adjustwidth environment
-\\usepackage{tocbibind}    % put unnumbered sections in toc
 
 %% AMS
 \\usepackage{amssymb}
