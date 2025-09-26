@@ -242,9 +242,12 @@ exportStuff toMsg model =
                         , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "LaTeX"
                         , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
                         ]
-                    , Element.row [ spacing 4, width fill ]
-                        [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportScriptaFile)) "Save Scripta"
-                        , Widget.sidebarButton model.theme (Just (toMsg Common.ImportScriptaFile)) "Import Scripta"
+                    , Element.column [ spacing 4, width fill ]
+                        [ Element.row [ spacing 4, width fill ]
+                            [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportScriptaFile)) "Save Scripta"
+                            , Widget.sidebarButton model.theme (Just (toMsg Common.ImportScriptaFile)) "Import Scripta"
+                            ]
+                        , Widget.sidebarButton model.theme (Just (toMsg Common.ImportLaTeXFile)) "Import LaTeX"
                         ]
                     ]
 
@@ -254,9 +257,12 @@ exportStuff toMsg model =
             Common.PrintReady ->
                 Element.column [ spacing 4, width fill ]
                     [ -- Always show the Save/Import buttons
-                      Element.row [ spacing 4, width fill ]
-                        [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportScriptaFile)) "Save Scripta"
-                        , Widget.sidebarButton model.theme (Just (toMsg Common.ImportScriptaFile)) "Import Scripta"
+                      Element.column [ spacing 4, width fill ]
+                        [ Element.row [ spacing 4, width fill ]
+                            [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportScriptaFile)) "Save Scripta"
+                            , Widget.sidebarButton model.theme (Just (toMsg Common.ImportScriptaFile)) "Import Scripta"
+                            ]
+                        , Widget.sidebarButton model.theme (Just (toMsg Common.ImportLaTeXFile)) "Import LaTeX"
                         ]
                     , -- Display links based on PDF response
                       case model.pdfResponse of

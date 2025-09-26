@@ -23862,6 +23862,12 @@ var $author$project$Common$Model$GeneratedId = function (a) {
 var $author$project$Common$Model$InputText = function (a) {
 	return {$: 'InputText', a: a};
 };
+var $author$project$MainSQLite$LaTeXFileLoaded = function (a) {
+	return {$: 'LaTeXFileLoaded', a: a};
+};
+var $author$project$MainSQLite$LaTeXFileSelected = function (a) {
+	return {$: 'LaTeXFileSelected', a: a};
+};
 var $author$project$Common$Model$LoadContentIntoEditorDelayed = {$: 'LoadContentIntoEditorDelayed'};
 var $author$project$Common$Model$PrintProcessing = {$: 'PrintProcessing'};
 var $author$project$Common$Model$PrintReady = {$: 'PrintReady'};
@@ -51605,6 +51611,7 @@ var $author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput = 
 			toc: toc
 		};
 	});
+var $elm$core$String$endsWith = _String_endsWith;
 var $author$project$Generic$ASTTools$expressionNames = function (forest) {
 	return $elm$core$List$sort(
 		$elm_community$list_extra$List$Extra$unique(
@@ -54811,6 +54818,7 @@ var $author$project$Generic$ASTTools$matchingIdsInAST = F2(
 				A2($elm$core$List$map, $author$project$Library$Tree$flatten, ast)));
 	});
 var $author$project$ScriptaV2$Helper$matchingIdsInAST = $author$project$Generic$ASTTools$matchingIdsInAST;
+var $elm$file$File$name = _File_name;
 var $author$project$Document$newDocument = F6(
 	function (id, title, author, content, theme, now) {
 		return {author: author, content: content, createdAt: now, id: id, modifiedAt: now, theme: theme, title: title};
@@ -55312,6 +55320,280 @@ var $elm$file$File$Download$string = F3(
 			A3(_File_download, name, mime, content));
 	});
 var $elm$file$File$toString = _File_toString;
+var $author$project$Render$Export$LaTeXToScripta$cleanupBackslashes = function (input) {
+	var textCommands = _List_fromArray(
+		['ell', 'ldots', 'dots', 'quad', 'qquad', 'text', 'mathrm']);
+	var removeTextBackslash = F2(
+		function (cmd, text) {
+			return A3($elm$core$String$replace, '\\' + cmd, cmd, text);
+		});
+	return A3($elm$core$List$foldl, removeTextBackslash, input, textCommands);
+};
+var $author$project$Render$Export$LaTeXToScripta$convertBibItems = function (input) {
+	return A3(
+		$elm$regex$Regex$replace,
+		A2(
+			$elm$core$Maybe$withDefault,
+			$elm$regex$Regex$never,
+			$elm$regex$Regex$fromString('\\\\href\\{([^}]*)\\}\\{([^}]*)\\}')),
+		function (match) {
+			var _v1 = match.submatches;
+			if ((((_v1.b && (_v1.a.$ === 'Just')) && _v1.b.b) && (_v1.b.a.$ === 'Just')) && (!_v1.b.b.b)) {
+				var url = _v1.a.a;
+				var _v2 = _v1.b;
+				var text = _v2.a.a;
+				return '[link \"' + (text + ('\" ' + (url + ']')));
+			} else {
+				return match.match;
+			}
+		},
+		A3(
+			$elm$regex$Regex$replace,
+			A2(
+				$elm$core$Maybe$withDefault,
+				$elm$regex$Regex$never,
+				$elm$regex$Regex$fromString('\\\\bibitem\\{([^}]*)\\}')),
+			function (match) {
+				var _v0 = match.submatches;
+				if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
+					var label = _v0.a.a;
+					return '| bibitem ' + label;
+				} else {
+					return match.match;
+				}
+			},
+			input));
+};
+var $author$project$Render$Export$LaTeXToScripta$convertEnvironments = function (input) {
+	var convertRemark = function (text) {
+		return A3(
+			$elm$regex$Regex$replace,
+			A2(
+				$elm$core$Maybe$withDefault,
+				$elm$regex$Regex$never,
+				A2(
+					$elm$regex$Regex$fromStringWith,
+					{caseInsensitive: false, multiline: true},
+					'\\\\begin\\{remark\\}([\\s\\S]*?)\\\\end\\{remark\\}')),
+			function (match) {
+				var _v2 = match.submatches;
+				if ((_v2.b && (_v2.a.$ === 'Just')) && (!_v2.b.b)) {
+					var content = _v2.a.a;
+					return '| remark' + content;
+				} else {
+					return match.match;
+				}
+			},
+			text);
+	};
+	var convertEquation = function (text) {
+		return A3(
+			$elm$regex$Regex$replace,
+			A2(
+				$elm$core$Maybe$withDefault,
+				$elm$regex$Regex$never,
+				A2(
+					$elm$regex$Regex$fromStringWith,
+					{caseInsensitive: false, multiline: true},
+					'\\\\begin\\{equation\\}([\\s\\S]*?)\\\\end\\{equation\\}')),
+			function (match) {
+				var _v1 = match.submatches;
+				if ((_v1.b && (_v1.a.$ === 'Just')) && (!_v1.b.b)) {
+					var content = _v1.a.a;
+					return '| equation' + content;
+				} else {
+					return match.match;
+				}
+			},
+			text);
+	};
+	var convertAligned = function (text) {
+		return A3(
+			$elm$regex$Regex$replace,
+			A2(
+				$elm$core$Maybe$withDefault,
+				$elm$regex$Regex$never,
+				A2(
+					$elm$regex$Regex$fromStringWith,
+					{caseInsensitive: false, multiline: true},
+					'\\\\begin\\{align\\}([\\s\\S]*?)\\\\end\\{align\\}')),
+			function (match) {
+				var _v0 = match.submatches;
+				if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
+					var content = _v0.a.a;
+					return '| aligned' + content;
+				} else {
+					return match.match;
+				}
+			},
+			text);
+	};
+	return convertAligned(
+		convertRemark(
+			convertEquation(input)));
+};
+var $author$project$Render$Export$LaTeXToScripta$convertFractions = function (input) {
+	var restoreDelimiters = function (text) {
+		return A3(
+			$elm$core$String$replace,
+			'<<<RIGHTBRACE>>>',
+			'\\right\\}',
+			A3(
+				$elm$core$String$replace,
+				'<<<LEFTBRACE>>>',
+				'\\left\\{',
+				A3(
+					$elm$core$String$replace,
+					'<<<RIGHTBRACKET>>>',
+					'\\right]',
+					A3(
+						$elm$core$String$replace,
+						'<<<LEFTBRACKET>>>',
+						'\\left[',
+						A3(
+							$elm$core$String$replace,
+							'<<<RIGHTPAREN>>>',
+							'\\right)',
+							A3($elm$core$String$replace, '<<<LEFTPAREN>>>', '\\left(', text))))));
+	};
+	var protectDelimiters = function (text) {
+		return A3(
+			$elm$core$String$replace,
+			'\\right\\}',
+			'<<<RIGHTBRACE>>>',
+			A3(
+				$elm$core$String$replace,
+				'\\left\\{',
+				'<<<LEFTBRACE>>>',
+				A3(
+					$elm$core$String$replace,
+					'\\right]',
+					'<<<RIGHTBRACKET>>>',
+					A3(
+						$elm$core$String$replace,
+						'\\left[',
+						'<<<LEFTBRACKET>>>',
+						A3(
+							$elm$core$String$replace,
+							'\\right)',
+							'<<<RIGHTPAREN>>>',
+							A3($elm$core$String$replace, '\\left(', '<<<LEFTPAREN>>>', text))))));
+	};
+	var convertFrac = function (text) {
+		return A3(
+			$elm$regex$Regex$replace,
+			A2(
+				$elm$core$Maybe$withDefault,
+				$elm$regex$Regex$never,
+				$elm$regex$Regex$fromString('\\\\frac\\{([^{}]*)\\}\\{([^{}]*)\\}')),
+			function (match) {
+				var _v0 = match.submatches;
+				if ((((_v0.b && (_v0.a.$ === 'Just')) && _v0.b.b) && (_v0.b.a.$ === 'Just')) && (!_v0.b.b.b)) {
+					var num = _v0.a.a;
+					var _v1 = _v0.b;
+					var denom = _v1.a.a;
+					return 'frac(' + (num + (', ' + (denom + ')')));
+				} else {
+					return match.match;
+				}
+			},
+			text);
+	};
+	return restoreDelimiters(
+		convertFrac(
+			protectDelimiters(input)));
+};
+var $author$project$Render$Export$LaTeXToScripta$convertMathSymbols = function (input) {
+	var removeMathBackslash = F2(
+		function (cmd, text) {
+			return A3($elm$core$String$replace, '\\' + cmd, cmd, text);
+		});
+	var mathCommands = _List_fromArray(
+		['psi', 'epsilon', 'omega', 'lambda', 'alpha', 'beta', 'gamma', 'delta', 'theta', 'phi', 'sigma', 'tau', 'rho', 'mu', 'nu', 'xi', 'pi', 'Delta', 'Gamma', 'Lambda', 'Omega', 'Sigma', 'Pi', 'infty', 'cdot', 'cdots', 'sum', 'int', 'hat', 'langle', 'rangle', 'ne', 'le', 'ge', 'equiv', 'approx', 'times', 'div']);
+	var processAllCommands = function (text) {
+		return A3($elm$core$List$foldl, removeMathBackslash, text, mathCommands);
+	};
+	return processAllCommands(input);
+};
+var $author$project$Render$Export$LaTeXToScripta$convertReferences = function (input) {
+	return A3(
+		$elm$regex$Regex$replace,
+		A2(
+			$elm$core$Maybe$withDefault,
+			$elm$regex$Regex$never,
+			$elm$regex$Regex$fromString('\\\\ref\\{([^}]*)\\}')),
+		function (match) {
+			var _v1 = match.submatches;
+			if ((_v1.b && (_v1.a.$ === 'Just')) && (!_v1.b.b)) {
+				var ref = _v1.a.a;
+				return '[ref ' + (ref + ']');
+			} else {
+				return match.match;
+			}
+		},
+		A3(
+			$elm$regex$Regex$replace,
+			A2(
+				$elm$core$Maybe$withDefault,
+				$elm$regex$Regex$never,
+				$elm$regex$Regex$fromString('\\\\eqref\\{([^}]*)\\}')),
+			function (match) {
+				var _v0 = match.submatches;
+				if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
+					var ref = _v0.a.a;
+					return '[ref ' + (ref + ']');
+				} else {
+					return match.match;
+				}
+			},
+			input));
+};
+var $author$project$Render$Export$LaTeXToScripta$convertSections = function (input) {
+	return A3(
+		$elm$regex$Regex$replace,
+		A2(
+			$elm$core$Maybe$withDefault,
+			$elm$regex$Regex$never,
+			$elm$regex$Regex$fromString('\\\\section\\{([^}]*)\\}')),
+		function (match) {
+			var _v0 = match.submatches;
+			if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
+				var title = _v0.a.a;
+				return '## ' + title;
+			} else {
+				return match.match;
+			}
+		},
+		input);
+};
+var $author$project$Render$Export$LaTeXToScripta$convertTerms = function (input) {
+	return A3(
+		$elm$regex$Regex$replace,
+		A2(
+			$elm$core$Maybe$withDefault,
+			$elm$regex$Regex$never,
+			$elm$regex$Regex$fromString('\\\\term\\{([^}]*)\\}')),
+		function (match) {
+			var _v0 = match.submatches;
+			if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
+				var term = _v0.a.a;
+				return '[term ' + (term + ']');
+			} else {
+				return match.match;
+			}
+		},
+		input);
+};
+var $author$project$Render$Export$LaTeXToScripta$translate = function (input) {
+	return $author$project$Render$Export$LaTeXToScripta$cleanupBackslashes(
+		$author$project$Render$Export$LaTeXToScripta$convertTerms(
+			$author$project$Render$Export$LaTeXToScripta$convertBibItems(
+				$author$project$Render$Export$LaTeXToScripta$convertReferences(
+					$author$project$Render$Export$LaTeXToScripta$convertMathSymbols(
+						$author$project$Render$Export$LaTeXToScripta$convertFractions(
+							$author$project$Render$Export$LaTeXToScripta$convertSections(
+								$author$project$Render$Export$LaTeXToScripta$convertEnvironments(input))))))));
+};
 var $ohanhi$keyboard$Keyboard$Backspace = {$: 'Backspace'};
 var $ohanhi$keyboard$Keyboard$Clear = {$: 'Clear'};
 var $ohanhi$keyboard$Keyboard$Copy = {$: 'Copy'};
@@ -56000,7 +56282,7 @@ var $author$project$MainSQLite$update = F2(
 						$elm$core$Task$perform,
 						$author$project$MainSQLite$FileLoaded,
 						$elm$file$File$toString(file)));
-			default:
+			case 'FileLoaded':
 				var content = msg.a;
 				var title = $author$project$Common$Model$getTitleFromContent(content);
 				var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
@@ -56031,6 +56313,72 @@ var $author$project$MainSQLite$update = F2(
 							lastLoadedDocumentId: $elm$core$Maybe$Just(newId),
 							loadDocumentIntoEditor: true,
 							sourceText: content
+						});
+				}();
+				var updatedModel = _Utils_update(
+					modelWithContent,
+					{common: updatedCommon});
+				return _Utils_Tuple2(
+					updatedModel,
+					$elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[
+								cmdFromUpdate,
+								storage.saveDocument(newDoc),
+								A2(
+								$elm$core$Task$perform,
+								$elm$core$Basics$always(
+									$author$project$MainSQLite$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
+								$elm$core$Process$sleep(100))
+							])));
+			case 'LaTeXFileSelected':
+				var file = msg.a;
+				return _Utils_Tuple2(
+					model,
+					A2(
+						$elm$core$Task$perform,
+						function (content) {
+							return $author$project$MainSQLite$LaTeXFileLoaded(
+								{
+									content: content,
+									filename: $elm$file$File$name(file)
+								});
+						},
+						$elm$file$File$toString(file)));
+			default:
+				var filename = msg.a.filename;
+				var content = msg.a.content;
+				var translatedContent = $author$project$Render$Export$LaTeXToScripta$translate(content);
+				var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
+				var basename = A2($elm$core$String$endsWith, '.tex', filename) ? A2($elm$core$String$dropRight, 4, filename) : filename;
+				var scriptaContent = '| title\n' + (basename + ('\n\n' + translatedContent));
+				var _v11 = A2(
+					$author$project$MainSQLite$updateCommon,
+					$author$project$Common$Model$InputText(scriptaContent),
+					model);
+				var modelWithContent = _v11.a;
+				var cmdFromUpdate = _v11.b;
+				var newId = 'latex-import-' + $elm$core$String$fromInt(
+					($elm$time$Time$posixToMillis(modelWithContent.common.currentTime) / 1000) | 0);
+				var newDoc = A6(
+					$author$project$Document$newDocument,
+					newId,
+					basename,
+					A2($elm$core$Maybe$withDefault, '', modelWithContent.common.userName),
+					scriptaContent,
+					modelWithContent.common.theme,
+					modelWithContent.common.currentTime);
+				var updatedCommon = function () {
+					var oldCommon = modelWithContent.common;
+					return _Utils_update(
+						oldCommon,
+						{
+							currentDocument: $elm$core$Maybe$Just(newDoc),
+							documents: A2($elm$core$List$cons, newDoc, modelWithContent.common.documents),
+							initialText: scriptaContent,
+							lastLoadedDocumentId: $elm$core$Maybe$Just(newId),
+							loadDocumentIntoEditor: true,
+							sourceText: scriptaContent
 						});
 				}();
 				var updatedModel = _Utils_update(
@@ -56455,6 +56803,14 @@ var $author$project$MainSQLite$updateCommon = F2(
 						_List_fromArray(
 							['text/plain', '.scripta', '.txt']),
 						$author$project$MainSQLite$FileSelected));
+			case 'ImportLaTeXFile':
+				return _Utils_Tuple2(
+					model,
+					A2(
+						$elm$file$File$Select$file,
+						_List_fromArray(
+							['text/x-tex', 'text/x-latex', '.tex', 'application/x-tex']),
+						$author$project$MainSQLite$LaTeXFileSelected));
 			case 'PrintToPDF':
 				var settings = A7(
 					$author$project$Render$Settings$makeSettings,
@@ -57517,6 +57873,7 @@ var $author$project$Common$View$documentItem = F3(
 var $author$project$Common$Model$ExportScriptaFile = {$: 'ExportScriptaFile'};
 var $author$project$Common$Model$ExportToLaTeX = {$: 'ExportToLaTeX'};
 var $author$project$Common$Model$ExportToRawLaTeX = {$: 'ExportToRawLaTeX'};
+var $author$project$Common$Model$ImportLaTeXFile = {$: 'ImportLaTeXFile'};
 var $author$project$Common$Model$ImportScriptaFile = {$: 'ImportScriptaFile'};
 var $author$project$Common$Model$PrintToPDF = {$: 'PrintToPDF'};
 var $author$project$Common$View$extractFileName = function (pdfLink) {
@@ -57586,7 +57943,7 @@ var $author$project$Common$View$exportStuff = F2(
 												'Raw LaTeX')
 											])),
 										A2(
-										$mdgriffith$elm_ui$Element$row,
+										$mdgriffith$elm_ui$Element$column,
 										_List_fromArray(
 											[
 												$mdgriffith$elm_ui$Element$spacing(4),
@@ -57594,18 +57951,34 @@ var $author$project$Common$View$exportStuff = F2(
 											]),
 										_List_fromArray(
 											[
+												A2(
+												$mdgriffith$elm_ui$Element$row,
+												_List_fromArray(
+													[
+														$mdgriffith$elm_ui$Element$spacing(4),
+														$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+													]),
+												_List_fromArray(
+													[
+														A3(
+														$author$project$Widget$sidebarButton,
+														model.theme,
+														$elm$core$Maybe$Just(
+															toMsg($author$project$Common$Model$ExportScriptaFile)),
+														'Save Scripta'),
+														A3(
+														$author$project$Widget$sidebarButton,
+														model.theme,
+														$elm$core$Maybe$Just(
+															toMsg($author$project$Common$Model$ImportScriptaFile)),
+														'Import Scripta')
+													])),
 												A3(
 												$author$project$Widget$sidebarButton,
 												model.theme,
 												$elm$core$Maybe$Just(
-													toMsg($author$project$Common$Model$ExportScriptaFile)),
-												'Save Scripta'),
-												A3(
-												$author$project$Widget$sidebarButton,
-												model.theme,
-												$elm$core$Maybe$Just(
-													toMsg($author$project$Common$Model$ImportScriptaFile)),
-												'Import Scripta')
+													toMsg($author$project$Common$Model$ImportLaTeXFile)),
+												'Import LaTeX')
 											]))
 									]));
 						case 'PrintProcessing':
@@ -57628,7 +58001,7 @@ var $author$project$Common$View$exportStuff = F2(
 								_List_fromArray(
 									[
 										A2(
-										$mdgriffith$elm_ui$Element$row,
+										$mdgriffith$elm_ui$Element$column,
 										_List_fromArray(
 											[
 												$mdgriffith$elm_ui$Element$spacing(4),
@@ -57636,18 +58009,34 @@ var $author$project$Common$View$exportStuff = F2(
 											]),
 										_List_fromArray(
 											[
+												A2(
+												$mdgriffith$elm_ui$Element$row,
+												_List_fromArray(
+													[
+														$mdgriffith$elm_ui$Element$spacing(4),
+														$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+													]),
+												_List_fromArray(
+													[
+														A3(
+														$author$project$Widget$sidebarButton,
+														model.theme,
+														$elm$core$Maybe$Just(
+															toMsg($author$project$Common$Model$ExportScriptaFile)),
+														'Save Scripta'),
+														A3(
+														$author$project$Widget$sidebarButton,
+														model.theme,
+														$elm$core$Maybe$Just(
+															toMsg($author$project$Common$Model$ImportScriptaFile)),
+														'Import Scripta')
+													])),
 												A3(
 												$author$project$Widget$sidebarButton,
 												model.theme,
 												$elm$core$Maybe$Just(
-													toMsg($author$project$Common$Model$ExportScriptaFile)),
-												'Save Scripta'),
-												A3(
-												$author$project$Widget$sidebarButton,
-												model.theme,
-												$elm$core$Maybe$Just(
-													toMsg($author$project$Common$Model$ImportScriptaFile)),
-												'Import Scripta')
+													toMsg($author$project$Common$Model$ImportLaTeXFile)),
+												'Import LaTeX')
 											])),
 										function () {
 										var _v1 = model.pdfResponse;

@@ -34,43 +34,49 @@ convertEnvironments input =
         convertEquation text =
             text
                 |> Regex.replace
-                    (Regex.fromStringWith { multiline = True, caseInsensitive = False } 
+                    (Regex.fromStringWith { multiline = True, caseInsensitive = False }
                         "\\\\begin\\{equation\\}([\\s\\S]*?)\\\\end\\{equation\\}"
-                        |> Maybe.withDefault Regex.never)
+                        |> Maybe.withDefault Regex.never
+                    )
                     (\match ->
                         case match.submatches of
                             [ Just content ] ->
                                 "| equation" ++ content
+
                             _ ->
                                 match.match
                     )
-        
+
         -- Convert \begin{remark}...\end{remark} to |remark
         convertRemark text =
             text
                 |> Regex.replace
                     (Regex.fromStringWith { multiline = True, caseInsensitive = False }
                         "\\\\begin\\{remark\\}([\\s\\S]*?)\\\\end\\{remark\\}"
-                        |> Maybe.withDefault Regex.never)
+                        |> Maybe.withDefault Regex.never
+                    )
                     (\match ->
                         case match.submatches of
                             [ Just content ] ->
                                 "| remark" ++ content
+
                             _ ->
                                 match.match
                     )
-        
+
         -- Convert \begin{aligned}...\end{aligned} to |aligned
         convertAligned text =
             text
                 |> Regex.replace
                     (Regex.fromStringWith { multiline = True, caseInsensitive = False }
-                        "\\\\begin\\{aligned\\}([\\s\\S]*?)\\\\end\\{aligned\\}"
-                        |> Maybe.withDefault Regex.never)
+                        "\\\\begin\\{align\\}([\\s\\S]*?)\\\\end\\{align\\}"
+                        |> Maybe.withDefault Regex.never
+                    )
                     (\match ->
                         case match.submatches of
                             [ Just content ] ->
                                 "| aligned" ++ content
+
                             _ ->
                                 match.match
                     )
@@ -88,18 +94,20 @@ convertSections input =
     input
         |> Regex.replace
             (Regex.fromString "\\\\section\\{([^}]*)\\}"
-                |> Maybe.withDefault Regex.never)
+                |> Maybe.withDefault Regex.never
+            )
             (\match ->
                 case match.submatches of
                     [ Just title ] ->
                         "## " ++ title
+
                     _ ->
                         match.match
             )
 
 
-{-| Convert LaTeX fractions from \frac{a}{b} to frac(a, b).
-Preserves \left( and \right) and similar delimiters.
+{-| Convert LaTeX fractions from \\frac{a}{b} to frac(a, b).
+Preserves \\left( and \\right) and similar delimiters.
 -}
 convertFractions : String -> String
 convertFractions input =
@@ -113,7 +121,7 @@ convertFractions input =
                 |> String.replace "\\right]" "<<<RIGHTBRACKET>>>"
                 |> String.replace "\\left\\{" "<<<LEFTBRACE>>>"
                 |> String.replace "\\right\\}" "<<<RIGHTBRACE>>>"
-        
+
         -- Restore protected delimiters
         restoreDelimiters text =
             text
@@ -123,17 +131,19 @@ convertFractions input =
                 |> String.replace "<<<RIGHTBRACKET>>>" "\\right]"
                 |> String.replace "<<<LEFTBRACE>>>" "\\left\\{"
                 |> String.replace "<<<RIGHTBRACE>>>" "\\right\\}"
-        
+
         -- Convert \frac{a}{b} to frac(a, b)
         convertFrac text =
             text
                 |> Regex.replace
                     (Regex.fromString "\\\\frac\\{([^{}]*)\\}\\{([^{}]*)\\}"
-                        |> Maybe.withDefault Regex.never)
+                        |> Maybe.withDefault Regex.never
+                    )
                     (\match ->
                         case match.submatches of
                             [ Just num, Just denom ] ->
                                 "frac(" ++ num ++ ", " ++ denom ++ ")"
+
                             _ ->
                                 match.match
                     )
@@ -145,24 +155,57 @@ convertFractions input =
 
 
 {-| Convert LaTeX math symbols to Scripta format.
-Removes backslashes from common math commands while preserving \label{...}.
+Removes backslashes from common math commands while preserving \\label{...}.
 -}
 convertMathSymbols : String -> String
 convertMathSymbols input =
     let
         -- List of math commands to strip backslashes from
         mathCommands =
-            [ "psi", "epsilon", "omega", "lambda", "alpha", "beta", "gamma", "delta"
-            , "theta", "phi", "sigma", "tau", "rho", "mu", "nu", "xi", "pi"
-            , "Delta", "Gamma", "Lambda", "Omega", "Sigma", "Pi"
-            , "infty", "cdot", "cdots", "sum", "int", "hat", "langle", "rangle"
-            , "ne", "le", "ge", "equiv", "approx", "times", "div"
+            [ "psi"
+            , "epsilon"
+            , "omega"
+            , "lambda"
+            , "alpha"
+            , "beta"
+            , "gamma"
+            , "delta"
+            , "theta"
+            , "phi"
+            , "sigma"
+            , "tau"
+            , "rho"
+            , "mu"
+            , "nu"
+            , "xi"
+            , "pi"
+            , "Delta"
+            , "Gamma"
+            , "Lambda"
+            , "Omega"
+            , "Sigma"
+            , "Pi"
+            , "infty"
+            , "cdot"
+            , "cdots"
+            , "sum"
+            , "int"
+            , "hat"
+            , "langle"
+            , "rangle"
+            , "ne"
+            , "le"
+            , "ge"
+            , "equiv"
+            , "approx"
+            , "times"
+            , "div"
             ]
-        
+
         -- Remove backslash from each math command
         removeMathBackslash cmd text =
             String.replace ("\\" ++ cmd) cmd text
-        
+
         -- Apply all replacements
         processAllCommands text =
             List.foldl removeMathBackslash text mathCommands
@@ -171,91 +214,107 @@ convertMathSymbols input =
 
 
 {-| Convert LaTeX references.
-\eqref{...} becomes [ref ...]
-\ref{...} becomes [ref ...]
+\\eqref{...} becomes [ref ...]
+\\ref{...} becomes [ref ...]
 -}
 convertReferences : String -> String
 convertReferences input =
     input
         |> Regex.replace
             (Regex.fromString "\\\\eqref\\{([^}]*)\\}"
-                |> Maybe.withDefault Regex.never)
+                |> Maybe.withDefault Regex.never
+            )
             (\match ->
                 case match.submatches of
                     [ Just ref ] ->
                         "[ref " ++ ref ++ "]"
+
                     _ ->
                         match.match
             )
         |> Regex.replace
             (Regex.fromString "\\\\ref\\{([^}]*)\\}"
-                |> Maybe.withDefault Regex.never)
+                |> Maybe.withDefault Regex.never
+            )
             (\match ->
                 case match.submatches of
                     [ Just ref ] ->
                         "[ref " ++ ref ++ "]"
+
                     _ ->
                         match.match
             )
 
 
 {-| Convert bibliography items and links.
-\bibitem{...} becomes | bibitem ...
-\href{url}{text} becomes [link "text" url]
+\\bibitem{...} becomes | bibitem ...
+\\href{url}{text} becomes [link "text" url]
 -}
 convertBibItems : String -> String
 convertBibItems input =
     input
         |> Regex.replace
             (Regex.fromString "\\\\bibitem\\{([^}]*)\\}"
-                |> Maybe.withDefault Regex.never)
+                |> Maybe.withDefault Regex.never
+            )
             (\match ->
                 case match.submatches of
                     [ Just label ] ->
                         "| bibitem " ++ label
+
                     _ ->
                         match.match
             )
         |> Regex.replace
             (Regex.fromString "\\\\href\\{([^}]*)\\}\\{([^}]*)\\}"
-                |> Maybe.withDefault Regex.never)
+                |> Maybe.withDefault Regex.never
+            )
             (\match ->
                 case match.submatches of
                     [ Just url, Just text ] ->
                         "[link \"" ++ text ++ "\" " ++ url ++ "]"
+
                     _ ->
                         match.match
             )
 
 
-{-| Convert \term{...} to [term ...].
+{-| Convert \\term{...} to [term ...].
 -}
 convertTerms : String -> String
 convertTerms input =
     input
         |> Regex.replace
             (Regex.fromString "\\\\term\\{([^}]*)\\}"
-                |> Maybe.withDefault Regex.never)
+                |> Maybe.withDefault Regex.never
+            )
             (\match ->
                 case match.submatches of
                     [ Just term ] ->
                         "[term " ++ term ++ "]"
+
                     _ ->
                         match.match
             )
 
 
 {-| Clean up remaining backslashes that should be removed.
-Preserves \label{...}, \left/\right delimiters.
+Preserves \\label{...}, \\left/\\right delimiters.
 -}
 cleanupBackslashes : String -> String
 cleanupBackslashes input =
     let
         -- Remove backslashes from common text commands
         textCommands =
-            [ "ell", "ldots", "dots", "quad", "qquad", "text", "mathrm"
+            [ "ell"
+            , "ldots"
+            , "dots"
+            , "quad"
+            , "qquad"
+            , "text"
+            , "mathrm"
             ]
-        
+
         removeTextBackslash cmd text =
             String.replace ("\\" ++ cmd) cmd text
     in

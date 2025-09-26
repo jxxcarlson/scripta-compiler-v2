@@ -24,6 +24,7 @@ import Ports
 import Process
 import Random
 import Render.Export.LaTeX
+import Render.Export.LaTeXToScripta
 import Render.Settings
 import ScriptaV2.API
 import ScriptaV2.Compiler
@@ -66,6 +67,8 @@ type Msg
     | StorageMsg Storage.StorageMsg
     | FileSelected File.File
     | FileLoaded String
+    | LaTeXFileSelected File.File
+    | LaTeXFileLoaded { filename : String, content : String }
 
 
 
@@ -147,6 +150,70 @@ update msg model =
                         , lastLoadedDocumentId = Just newId
                         , sourceText = content
                         , initialText = content
+                        , loadDocumentIntoEditor = True
+                    }
+
+                updatedModel = { modelWithContent | common = updatedCommon }
+
+                -- Get the storage command to save the document
+                storage = Storage.SQLite.storage StorageMsg
+            in
+            ( updatedModel
+            , Cmd.batch
+                [ cmdFromUpdate
+                , storage.saveDocument newDoc
+                , Process.sleep 100
+                    |> Task.perform (always (CommonMsg Common.ResetLoadFlag))
+                ]
+            )
+
+        LaTeXFileSelected file ->
+            ( model
+            , Task.perform (\content -> LaTeXFileLoaded { filename = File.name file, content = content }) (File.toString file)
+            )
+
+        LaTeXFileLoaded { filename, content } ->
+            let
+                -- Extract basename from filename (remove .tex extension if present)
+                basename =
+                    if String.endsWith ".tex" filename then
+                        String.dropRight 4 filename
+                    else
+                        filename
+
+                -- Translate LaTeX to Scripta
+                translatedContent = Render.Export.LaTeXToScripta.translate content
+
+                -- Add title block at the top
+                scriptaContent =
+                    "| title\n" ++ basename ++ "\n\n" ++ translatedContent
+
+                -- First update the content in the editor
+                ( modelWithContent, cmdFromUpdate ) = updateCommon (Common.InputText scriptaContent) model
+
+                -- Generate a new document ID with .scripta extension indication
+                newId = "latex-import-" ++ String.fromInt (Time.posixToMillis modelWithContent.common.currentTime // 1000)
+
+                -- Create a new document
+                newDoc = Document.newDocument
+                    newId
+                    basename
+                    (Maybe.withDefault "" modelWithContent.common.userName)
+                    scriptaContent
+                    modelWithContent.common.theme
+                    modelWithContent.common.currentTime
+
+                -- Update the model with the new document
+                updatedCommon =
+                    let
+                        oldCommon = modelWithContent.common
+                    in
+                    { oldCommon
+                        | currentDocument = Just newDoc
+                        , documents = newDoc :: modelWithContent.common.documents
+                        , lastLoadedDocumentId = Just newId
+                        , sourceText = scriptaContent
+                        , initialText = scriptaContent
                         , loadDocumentIntoEditor = True
                     }
 
@@ -576,6 +643,11 @@ updateCommon msg model =
         Common.ImportScriptaFile ->
             ( model
             , File.Select.file ["text/plain", ".scripta", ".txt"] FileSelected
+            )
+
+        Common.ImportLaTeXFile ->
+            ( model
+            , File.Select.file ["text/x-tex", "text/x-latex", ".tex", "application/x-tex"] LaTeXFileSelected
             )
 
         Common.PrintToPDF ->
