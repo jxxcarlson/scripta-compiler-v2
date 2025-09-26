@@ -615,7 +615,7 @@ nameElement toMsg model =
                         [ Font.size 14
                         , Font.color (Style.textColor model.theme)
                         ] 
-                        (text "Your name:")
+                        (text "Name your app:")
                     , inputTextWidget model.theme "" (toMsg << Common.InputUserName)
                     ]
 
@@ -626,7 +626,7 @@ nameElement toMsg model =
                     [ Font.size 14
                     , Font.color (Style.textColor model.theme)
                     ] 
-                    (text "Your name:")
+                    (text "Name your app:")
                 , inputTextWidget model.theme "" (toMsg << Common.InputUserName)
                 ]
 
