@@ -4687,181 +4687,6 @@ function _Time_getZoneName()
 
 
 
-// SEND REQUEST
-
-var _Http_toTask = F3(function(router, toTask, request)
-{
-	return _Scheduler_binding(function(callback)
-	{
-		function done(response) {
-			callback(toTask(request.expect.a(response)));
-		}
-
-		var xhr = new XMLHttpRequest();
-		xhr.addEventListener('error', function() { done($elm$http$Http$NetworkError_); });
-		xhr.addEventListener('timeout', function() { done($elm$http$Http$Timeout_); });
-		xhr.addEventListener('load', function() { done(_Http_toResponse(request.expect.b, xhr)); });
-		$elm$core$Maybe$isJust(request.tracker) && _Http_track(router, xhr, request.tracker.a);
-
-		try {
-			xhr.open(request.method, request.url, true);
-		} catch (e) {
-			return done($elm$http$Http$BadUrl_(request.url));
-		}
-
-		_Http_configureRequest(xhr, request);
-
-		request.body.a && xhr.setRequestHeader('Content-Type', request.body.a);
-		xhr.send(request.body.b);
-
-		return function() { xhr.c = true; xhr.abort(); };
-	});
-});
-
-
-// CONFIGURE
-
-function _Http_configureRequest(xhr, request)
-{
-	for (var headers = request.headers; headers.b; headers = headers.b) // WHILE_CONS
-	{
-		xhr.setRequestHeader(headers.a.a, headers.a.b);
-	}
-	xhr.timeout = request.timeout.a || 0;
-	xhr.responseType = request.expect.d;
-	xhr.withCredentials = request.allowCookiesFromOtherDomains;
-}
-
-
-// RESPONSES
-
-function _Http_toResponse(toBody, xhr)
-{
-	return A2(
-		200 <= xhr.status && xhr.status < 300 ? $elm$http$Http$GoodStatus_ : $elm$http$Http$BadStatus_,
-		_Http_toMetadata(xhr),
-		toBody(xhr.response)
-	);
-}
-
-
-// METADATA
-
-function _Http_toMetadata(xhr)
-{
-	return {
-		url: xhr.responseURL,
-		statusCode: xhr.status,
-		statusText: xhr.statusText,
-		headers: _Http_parseHeaders(xhr.getAllResponseHeaders())
-	};
-}
-
-
-// HEADERS
-
-function _Http_parseHeaders(rawHeaders)
-{
-	if (!rawHeaders)
-	{
-		return $elm$core$Dict$empty;
-	}
-
-	var headers = $elm$core$Dict$empty;
-	var headerPairs = rawHeaders.split('\r\n');
-	for (var i = headerPairs.length; i--; )
-	{
-		var headerPair = headerPairs[i];
-		var index = headerPair.indexOf(': ');
-		if (index > 0)
-		{
-			var key = headerPair.substring(0, index);
-			var value = headerPair.substring(index + 2);
-
-			headers = A3($elm$core$Dict$update, key, function(oldValue) {
-				return $elm$core$Maybe$Just($elm$core$Maybe$isJust(oldValue)
-					? value + ', ' + oldValue.a
-					: value
-				);
-			}, headers);
-		}
-	}
-	return headers;
-}
-
-
-// EXPECT
-
-var _Http_expect = F3(function(type, toBody, toValue)
-{
-	return {
-		$: 0,
-		d: type,
-		b: toBody,
-		a: toValue
-	};
-});
-
-var _Http_mapExpect = F2(function(func, expect)
-{
-	return {
-		$: 0,
-		d: expect.d,
-		b: expect.b,
-		a: function(x) { return func(expect.a(x)); }
-	};
-});
-
-function _Http_toDataView(arrayBuffer)
-{
-	return new DataView(arrayBuffer);
-}
-
-
-// BODY and PARTS
-
-var _Http_emptyBody = { $: 0 };
-var _Http_pair = F2(function(a, b) { return { $: 0, a: a, b: b }; });
-
-function _Http_toFormData(parts)
-{
-	for (var formData = new FormData(); parts.b; parts = parts.b) // WHILE_CONS
-	{
-		var part = parts.a;
-		formData.append(part.a, part.b);
-	}
-	return formData;
-}
-
-var _Http_bytesToBlob = F2(function(mime, bytes)
-{
-	return new Blob([bytes], { type: mime });
-});
-
-
-// PROGRESS
-
-function _Http_track(router, xhr, tracker)
-{
-	// TODO check out lengthComputable on loadstart event
-
-	xhr.upload.addEventListener('progress', function(event) {
-		if (xhr.c) { return; }
-		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Sending({
-			sent: event.loaded,
-			size: event.total
-		}))));
-	});
-	xhr.addEventListener('progress', function(event) {
-		if (xhr.c) { return; }
-		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Receiving({
-			received: event.loaded,
-			size: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
-		}))));
-	});
-}
-
-
 // DECODER
 
 var _File_decoder = _Json_decodePrim(function(value) {
@@ -5037,7 +4862,182 @@ function _File_toUrl(blob)
 	});
 }
 
-var $elm$core$Maybe$Just = function (a) {
+
+
+
+// SEND REQUEST
+
+var _Http_toTask = F3(function(router, toTask, request)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		function done(response) {
+			callback(toTask(request.expect.a(response)));
+		}
+
+		var xhr = new XMLHttpRequest();
+		xhr.addEventListener('error', function() { done($elm$http$Http$NetworkError_); });
+		xhr.addEventListener('timeout', function() { done($elm$http$Http$Timeout_); });
+		xhr.addEventListener('load', function() { done(_Http_toResponse(request.expect.b, xhr)); });
+		$elm$core$Maybe$isJust(request.tracker) && _Http_track(router, xhr, request.tracker.a);
+
+		try {
+			xhr.open(request.method, request.url, true);
+		} catch (e) {
+			return done($elm$http$Http$BadUrl_(request.url));
+		}
+
+		_Http_configureRequest(xhr, request);
+
+		request.body.a && xhr.setRequestHeader('Content-Type', request.body.a);
+		xhr.send(request.body.b);
+
+		return function() { xhr.c = true; xhr.abort(); };
+	});
+});
+
+
+// CONFIGURE
+
+function _Http_configureRequest(xhr, request)
+{
+	for (var headers = request.headers; headers.b; headers = headers.b) // WHILE_CONS
+	{
+		xhr.setRequestHeader(headers.a.a, headers.a.b);
+	}
+	xhr.timeout = request.timeout.a || 0;
+	xhr.responseType = request.expect.d;
+	xhr.withCredentials = request.allowCookiesFromOtherDomains;
+}
+
+
+// RESPONSES
+
+function _Http_toResponse(toBody, xhr)
+{
+	return A2(
+		200 <= xhr.status && xhr.status < 300 ? $elm$http$Http$GoodStatus_ : $elm$http$Http$BadStatus_,
+		_Http_toMetadata(xhr),
+		toBody(xhr.response)
+	);
+}
+
+
+// METADATA
+
+function _Http_toMetadata(xhr)
+{
+	return {
+		url: xhr.responseURL,
+		statusCode: xhr.status,
+		statusText: xhr.statusText,
+		headers: _Http_parseHeaders(xhr.getAllResponseHeaders())
+	};
+}
+
+
+// HEADERS
+
+function _Http_parseHeaders(rawHeaders)
+{
+	if (!rawHeaders)
+	{
+		return $elm$core$Dict$empty;
+	}
+
+	var headers = $elm$core$Dict$empty;
+	var headerPairs = rawHeaders.split('\r\n');
+	for (var i = headerPairs.length; i--; )
+	{
+		var headerPair = headerPairs[i];
+		var index = headerPair.indexOf(': ');
+		if (index > 0)
+		{
+			var key = headerPair.substring(0, index);
+			var value = headerPair.substring(index + 2);
+
+			headers = A3($elm$core$Dict$update, key, function(oldValue) {
+				return $elm$core$Maybe$Just($elm$core$Maybe$isJust(oldValue)
+					? value + ', ' + oldValue.a
+					: value
+				);
+			}, headers);
+		}
+	}
+	return headers;
+}
+
+
+// EXPECT
+
+var _Http_expect = F3(function(type, toBody, toValue)
+{
+	return {
+		$: 0,
+		d: type,
+		b: toBody,
+		a: toValue
+	};
+});
+
+var _Http_mapExpect = F2(function(func, expect)
+{
+	return {
+		$: 0,
+		d: expect.d,
+		b: expect.b,
+		a: function(x) { return func(expect.a(x)); }
+	};
+});
+
+function _Http_toDataView(arrayBuffer)
+{
+	return new DataView(arrayBuffer);
+}
+
+
+// BODY and PARTS
+
+var _Http_emptyBody = { $: 0 };
+var _Http_pair = F2(function(a, b) { return { $: 0, a: a, b: b }; });
+
+function _Http_toFormData(parts)
+{
+	for (var formData = new FormData(); parts.b; parts = parts.b) // WHILE_CONS
+	{
+		var part = parts.a;
+		formData.append(part.a, part.b);
+	}
+	return formData;
+}
+
+var _Http_bytesToBlob = F2(function(mime, bytes)
+{
+	return new Blob([bytes], { type: mime });
+});
+
+
+// PROGRESS
+
+function _Http_track(router, xhr, tracker)
+{
+	// TODO check out lengthComputable on loadstart event
+
+	xhr.upload.addEventListener('progress', function(event) {
+		if (xhr.c) { return; }
+		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Sending({
+			sent: event.loaded,
+			size: event.total
+		}))));
+	});
+	xhr.addEventListener('progress', function(event) {
+		if (xhr.c) { return; }
+		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Receiving({
+			received: event.loaded,
+			size: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
+		}))));
+	});
+}var $elm$core$Maybe$Just = function (a) {
 	return {$: 'Just', a: a};
 };
 var $elm$core$Maybe$Nothing = {$: 'Nothing'};
@@ -5855,6 +5855,7 @@ var $author$project$Theme$Light = {$: 'Light'};
 var $author$project$Common$Model$PrintWaiting = {$: 'PrintWaiting'};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
+var $elm$core$Basics$ge = _Utils_ge;
 var $author$project$Differential$AbstractDifferentialParser$init = F3(
 	function (f, initialData, content) {
 		var chunks = f.chunker(content);
@@ -11197,7 +11198,6 @@ var $elm$core$Elm$JsArray$push = _JsArray_push;
 var $elm$core$Bitwise$and = _Bitwise_and;
 var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
 var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
-var $elm$core$Basics$ge = _Utils_ge;
 var $elm$core$Elm$JsArray$singleton = _JsArray_singleton;
 var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
 var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
@@ -22828,7 +22828,23 @@ var $author$project$Common$Model$initCommon = function (flags) {
 		currentDocument: $elm$core$Maybe$Nothing,
 		currentLanguage: $author$project$ScriptaV2$Language$EnclosureLang,
 		currentTime: currentTime,
-		displaySettings: {counter: 0, data: $elm$core$Dict$empty, idsOfOpenNodes: _List_Nil, longEquationLimit: 100.0, numberToLevel: 0, scale: 1.0, selectedId: '-', selectedSlug: $elm$core$Maybe$Nothing, windowWidth: (flags.window.windowWidth / 3) | 0},
+		displaySettings: {
+			counter: 0,
+			data: $elm$core$Dict$empty,
+			idsOfOpenNodes: _List_Nil,
+			longEquationLimit: 100.0,
+			numberToLevel: 0,
+			scale: 1.0,
+			selectedId: '-',
+			selectedSlug: $elm$core$Maybe$Nothing,
+			windowWidth: A2(
+				$elm$core$Basics$max,
+				310,
+				A2(
+					$elm$core$Basics$max,
+					350,
+					((((flags.window.windowWidth - 230) - ((flags.window.windowWidth >= 1000) ? 221 : 0)) - 3) / 2) | 0) - 40)
+		},
 		doSync: false,
 		documents: _List_Nil,
 		editRecord: A3($author$project$ScriptaV2$DifferentialCompiler$init, $elm$core$Dict$empty, $author$project$ScriptaV2$Language$EnclosureLang, ''),
@@ -23772,8 +23788,17 @@ var $author$project$MainLocal$subscriptions = function (model) {
 			]));
 };
 var $author$project$Common$Model$CreateNewDocument = {$: 'CreateNewDocument'};
+var $author$project$MainLocal$FileLoaded = function (a) {
+	return {$: 'FileLoaded', a: a};
+};
+var $author$project$MainLocal$FileSelected = function (a) {
+	return {$: 'FileSelected', a: a};
+};
 var $author$project$Common$Model$GeneratedId = function (a) {
 	return {$: 'GeneratedId', a: a};
+};
+var $author$project$Common$Model$InputText = function (a) {
+	return {$: 'InputText', a: a};
 };
 var $author$project$Common$Model$PrintProcessing = {$: 'PrintProcessing'};
 var $author$project$Common$Model$PrintReady = {$: 'PrintReady'};
@@ -51854,7 +51879,7 @@ var $author$project$Render$Export$Preamble$packagesNeeded = function (names) {
 		$elm_community$list_extra$List$Extra$unique(
 			$author$project$Render$Export$Preamble$newPackageList(names)));
 };
-var $author$project$Render$Export$Preamble$standardPackages = '\n%% Packages\n\n%% Standard packages\n\\usepackage{geometry}\n\\geometry{letterpaper}\n\\usepackage{changepage}   % for the adjustwidth environment\n\\usepackage{tocbibind}    % put unnumbered sections in toc\n\n%% AMS\n\\usepackage{amssymb}\n\\usepackage{amsmath}\n\n\\usepackage{amscd}\n\n\\usepackage{fancyvrb} %% for inline verbatim\n';
+var $author$project$Render$Export$Preamble$standardPackages = '\n%% Packages\n\n%% Standard packages\n\\usepackage{geometry}\n\\geometry{letterpaper}\n\\usepackage{changepage}   % for the adjustwidth environment\n\n%% AMS\n\\usepackage{amssymb}\n\\usepackage{amsmath}\n\n\\usepackage{amscd}\n\n\\usepackage{fancyvrb} %% for inline verbatim\n';
 var $author$project$Render$Export$Preamble$addCode = F4(
 	function (packagesInDocument, _package, codeText, accumulatedCodeText) {
 		return A2($elm$core$List$member, _package, packagesInDocument) ? (codeText + ('\n\n' + accumulatedCodeText)) : accumulatedCodeText;
@@ -54242,6 +54267,13 @@ var $author$project$Render$Export$LaTeX$export = F3(
 		}();
 		return A2($author$project$Render$Export$Preamble$make, rawBlockNames, expressionNames) + (A2($author$project$Render$Export$LaTeX$frontMatter, currentTime, ast) + (setTheFirstSection + (A2($author$project$Render$Export$LaTeX$tableofcontents, properties, rawBlockNames) + ('\n\n' + (A2($author$project$Render$Export$LaTeX$rawExport, settings, ast) + '\n\n\\end{document}\n')))));
 	});
+var $elm$file$File$Select$file = F2(
+	function (mimes, toMsg) {
+		return A2(
+			$elm$core$Task$perform,
+			toMsg,
+			_File_uploadOne(mimes));
+	});
 var $elm$random$Random$Generate = function (a) {
 	return {$: 'Generate', a: a};
 };
@@ -55130,6 +55162,7 @@ var $elm$file$File$Download$string = F3(
 			$elm$core$Basics$never,
 			A3(_File_download, name, mime, content));
 	});
+var $elm$file$File$toString = _File_toString;
 var $ohanhi$keyboard$Keyboard$Backspace = {$: 'Backspace'};
 var $ohanhi$keyboard$Keyboard$Clear = {$: 'Clear'};
 var $ohanhi$keyboard$Keyboard$Copy = {$: 'Copy'};
@@ -55803,12 +55836,70 @@ var $author$project$ScriptaV2$DifferentialCompiler$update = F2(
 	});
 var $author$project$MainLocal$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'CommonMsg') {
-			var commonMsg = msg.a;
-			return A2($author$project$MainLocal$updateCommon, commonMsg, model);
-		} else {
-			var storageMsg = msg.a;
-			return A2($author$project$MainLocal$handleStorageMsg, storageMsg, model);
+		switch (msg.$) {
+			case 'CommonMsg':
+				var commonMsg = msg.a;
+				return A2($author$project$MainLocal$updateCommon, commonMsg, model);
+			case 'StorageMsg':
+				var storageMsg = msg.a;
+				return A2($author$project$MainLocal$handleStorageMsg, storageMsg, model);
+			case 'FileSelected':
+				var file = msg.a;
+				return _Utils_Tuple2(
+					model,
+					A2(
+						$elm$core$Task$perform,
+						$author$project$MainLocal$FileLoaded,
+						$elm$file$File$toString(file)));
+			default:
+				var content = msg.a;
+				var title = $author$project$Common$Model$getTitleFromContent(content);
+				var storage = $author$project$Storage$Local$storage($author$project$MainLocal$StorageMsg);
+				var _v9 = A2(
+					$author$project$MainLocal$updateCommon,
+					$author$project$Common$Model$InputText(content),
+					model);
+				var modelWithContent = _v9.a;
+				var cmdFromUpdate = _v9.b;
+				var newId = 'imported-' + $elm$core$String$fromInt(
+					($elm$time$Time$posixToMillis(modelWithContent.common.currentTime) / 1) | 0);
+				var newDoc = A6(
+					$author$project$Document$newDocument,
+					newId,
+					title,
+					A2($elm$core$Maybe$withDefault, '', modelWithContent.common.userName),
+					content,
+					modelWithContent.common.theme,
+					modelWithContent.common.currentTime);
+				var updatedCommon = function () {
+					var oldCommon = modelWithContent.common;
+					return _Utils_update(
+						oldCommon,
+						{
+							currentDocument: $elm$core$Maybe$Just(newDoc),
+							documents: A2($elm$core$List$cons, newDoc, modelWithContent.common.documents),
+							initialText: content,
+							lastLoadedDocumentId: $elm$core$Maybe$Just(newId),
+							loadDocumentIntoEditor: true,
+							sourceText: content
+						});
+				}();
+				var updatedModel = _Utils_update(
+					modelWithContent,
+					{common: updatedCommon});
+				return _Utils_Tuple2(
+					updatedModel,
+					$elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[
+								cmdFromUpdate,
+								storage.saveDocument(newDoc),
+								A2(
+								$elm$core$Task$perform,
+								$elm$core$Basics$always(
+									$author$project$MainLocal$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
+								$elm$core$Process$sleep(100))
+							])));
 		}
 	});
 var $author$project$MainLocal$updateCommon = F2(
@@ -55823,10 +55914,12 @@ var $author$project$MainLocal$updateCommon = F2(
 				var newEditRecord = A2($author$project$ScriptaV2$DifferentialCompiler$update, common.editRecord, str);
 				var newCount = common.count + 1;
 				var updatedDisplaySettings = function () {
+					var tocSpace = (common.windowWidth >= 1000) ? (220 + 1) : 0;
 					var oldSettings = common.displaySettings;
+					var actualPanelWidth = A2($elm$core$Basics$max, 350, ((((common.windowWidth - 230) - tocSpace) - 3) / 2) | 0);
 					return _Utils_update(
 						oldSettings,
-						{counter: newCount});
+						{counter: newCount, windowWidth: actualPanelWidth});
 				}();
 				var newCompilerOutput = A4(
 					$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
@@ -55856,10 +55949,12 @@ var $author$project$MainLocal$updateCommon = F2(
 				var newEditRecord = A2($author$project$ScriptaV2$DifferentialCompiler$update, common.editRecord, source);
 				var newCount = common.count + 1;
 				var updatedDisplaySettings = function () {
+					var tocSpace = (common.windowWidth >= 1000) ? (220 + 1) : 0;
 					var oldSettings = common.displaySettings;
+					var actualPanelWidth = A2($elm$core$Basics$max, 350, ((((common.windowWidth - 230) - tocSpace) - 3) / 2) | 0);
 					return _Utils_update(
 						oldSettings,
-						{counter: newCount});
+						{counter: newCount, windowWidth: actualPanelWidth});
 				}();
 				var newCompilerOutput = A4(
 					$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
@@ -56205,10 +56300,18 @@ var $author$project$MainLocal$updateCommon = F2(
 					model,
 					A3($elm$file$File$Download$string, fileName, 'application/x-latex', exportText));
 			case 'ExportScriptaFile':
-				var fileName = ($elm$core$String$trim(common.title) === '') ? 'document.txt' : (common.title + '.txt');
+				var fileName = ($elm$core$String$trim(common.title) === '') ? 'document.scripta' : (common.title + '.scripta');
 				return _Utils_Tuple2(
 					model,
 					A3($elm$file$File$Download$string, fileName, 'text/plain', common.sourceText));
+			case 'ImportScriptaFile':
+				return _Utils_Tuple2(
+					model,
+					A2(
+						$elm$file$File$Select$file,
+						_List_fromArray(
+							['text/plain', '.scripta', '.txt']),
+						$author$project$MainLocal$FileSelected));
 			case 'PrintToPDF':
 				var settings = A7(
 					$author$project$Render$Settings$makeSettings,
@@ -56596,7 +56699,6 @@ var $author$project$Style$borderColor = function (theme) {
 		return A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5);
 	}
 };
-var $mdgriffith$elm_ui$Element$clipY = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.clipY);
 var $mdgriffith$elm_ui$Element$Keyed$column = F2(
 	function (attrs, children) {
 		return A4(
@@ -56624,8 +56726,8 @@ var $author$project$Common$View$container = F2(
 				$author$project$Style$background_(model.theme),
 				_List_fromArray(
 					[
-						$mdgriffith$elm_ui$Element$centerX,
-						$mdgriffith$elm_ui$Element$spacing(24)
+						$mdgriffith$elm_ui$Element$spacing(24),
+						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 					])),
 			elements_);
 	});
@@ -56647,12 +56749,14 @@ var $mdgriffith$elm_ui$Element$map = $mdgriffith$elm_ui$Internal$Model$map;
 var $author$project$Common$View$appWidth = function (model) {
 	return model.windowWidth;
 };
-var $author$project$Common$View$sidebarWidth = 260;
+var $author$project$Common$View$sidebarWidth = 230;
+var $author$project$Common$View$tocWidth = 220;
 var $author$project$Common$View$panelWidth = function (model) {
+	var tocSpace = (model.windowWidth >= 1000) ? ($author$project$Common$View$tocWidth + 1) : 0;
 	return A2(
 		$elm$core$Basics$max,
-		200,
-		((((($author$project$Common$View$appWidth(model) - $author$project$Common$View$sidebarWidth) - 16) - 4) - 16) / 2) | 0);
+		350,
+		(((($author$project$Common$View$appWidth(model) - $author$project$Common$View$sidebarWidth) - tocSpace) - 3) / 2) | 0);
 };
 var $mdgriffith$elm_ui$Element$scrollbarY = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.scrollbarsY);
 var $author$project$Style$textColor = function (theme) {
@@ -56675,12 +56779,11 @@ var $author$project$Common$View$displayRenderedText = F2(
 					$mdgriffith$elm_ui$Element$width(
 					$mdgriffith$elm_ui$Element$px(
 						$author$project$Common$View$panelWidth(model))),
-					$mdgriffith$elm_ui$Element$clipY,
 					$mdgriffith$elm_ui$Element$scrollbarY,
 					$mdgriffith$elm_ui$Element$htmlAttribute(
 					A2($elm$html$Html$Attributes$style, 'overflow-y', 'auto')),
 					$mdgriffith$elm_ui$Element$htmlAttribute(
-					A2($elm$html$Html$Attributes$style, 'overflow-x', 'hidden')),
+					A2($elm$html$Html$Attributes$style, 'overflow-x', 'auto')),
 					$author$project$Style$htmlId('rendered-text-container')
 				]),
 			A2(
@@ -56688,13 +56791,14 @@ var $author$project$Common$View$displayRenderedText = F2(
 				_List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$Font$size(14),
-						$mdgriffith$elm_ui$Element$padding(16),
+						$mdgriffith$elm_ui$Element$paddingEach(
+						{bottom: 16, left: 20, right: 20, top: 16}),
 						$mdgriffith$elm_ui$Element$spacing(24),
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 						$author$project$Style$htmlId('rendered-text'),
 						$author$project$Style$background_(model.theme),
 						$mdgriffith$elm_ui$Element$alignTop,
-						$mdgriffith$elm_ui$Element$centerX,
+						$mdgriffith$elm_ui$Element$alignLeft,
 						$mdgriffith$elm_ui$Element$Font$color(
 						$author$project$Style$textColor(model.theme)),
 						$author$project$Style$forceColorStyle(model.theme)
@@ -56888,6 +56992,13 @@ var $author$project$Style$debugTextColor = function (theme_) {
 		return A3($mdgriffith$elm_ui$Element$rgb255, 255, 255, 255);
 	}
 };
+var $author$project$Style$mutedTextColor = function (theme) {
+	if (theme.$ === 'Light') {
+		return A3($mdgriffith$elm_ui$Element$rgb, 0.6, 0.6, 0.6);
+	} else {
+		return A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5);
+	}
+};
 var $mdgriffith$elm_ui$Element$Border$widthXY = F2(
 	function (x, y) {
 		return A2(
@@ -56951,7 +57062,21 @@ var $author$project$Common$View$header = function (model) {
 						$mdgriffith$elm_ui$Element$Font$semiBold,
 						$author$project$Style$forceColorStyle(model.theme)
 					]),
-				$mdgriffith$elm_ui$Element$text(model.title))
+				$mdgriffith$elm_ui$Element$text(model.title)),
+				A2(
+				$mdgriffith$elm_ui$Element$el,
+				_List_fromArray(
+					[
+						$mdgriffith$elm_ui$Element$alignRight,
+						$mdgriffith$elm_ui$Element$centerY,
+						$mdgriffith$elm_ui$Element$Font$color(
+						$author$project$Style$mutedTextColor(model.theme)),
+						$mdgriffith$elm_ui$Element$Font$size(14),
+						$author$project$Style$forceColorStyle(model.theme)
+					]),
+				$mdgriffith$elm_ui$Element$text(
+					'Window: ' + ($elm$core$String$fromInt(model.windowWidth) + ('px | Panel: ' + ($elm$core$String$fromInt(
+						$author$project$Common$View$panelWidth(model)) + ('px | Compiler: ' + ($elm$core$String$fromInt(model.displaySettings.windowWidth) + 'px')))))))
 			]));
 };
 var $author$project$Common$View$mainColumnStyle = _List_fromArray(
@@ -56959,6 +57084,17 @@ var $author$project$Common$View$mainColumnStyle = _List_fromArray(
 		$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 		$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
 	]);
+var $mdgriffith$elm_ui$Internal$Model$Hover = {$: 'Hover'};
+var $mdgriffith$elm_ui$Internal$Flag$hover = $mdgriffith$elm_ui$Internal$Flag$flag(33);
+var $mdgriffith$elm_ui$Element$mouseOver = function (decs) {
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$hover,
+		A2(
+			$mdgriffith$elm_ui$Internal$Model$PseudoSelector,
+			$mdgriffith$elm_ui$Internal$Model$Hover,
+			$mdgriffith$elm_ui$Internal$Model$unwrapDecorations(decs)));
+};
 var $mdgriffith$elm_ui$Element$Border$roundEach = function (_v0) {
 	var topLeft = _v0.topLeft;
 	var topRight = _v0.topRight;
@@ -56979,7 +57115,7 @@ var $author$project$Widget$sidebarButton = F3(
 			$mdgriffith$elm_ui$Element$Input$button,
 			_List_fromArray(
 				[
-					A2($mdgriffith$elm_ui$Element$paddingXY, 12, 6),
+					A2($mdgriffith$elm_ui$Element$paddingXY, 8, 4),
 					$mdgriffith$elm_ui$Element$Background$color(
 					_Utils_eq(theme, $author$project$Theme$Light) ? A3($mdgriffith$elm_ui$Element$rgb255, 255, 255, 255) : A3($mdgriffith$elm_ui$Element$rgb255, 48, 54, 59)),
 					$mdgriffith$elm_ui$Element$Font$color(
@@ -56992,7 +57128,7 @@ var $author$project$Widget$sidebarButton = F3(
 							if (theme.$ === 'Light') {
 								return 'rgb(0, 40, 40)';
 							} else {
-								return 'rgb(255, 165, 0)';
+								return 'rgb(100, 150, 255)';
 							}
 						}())),
 					$mdgriffith$elm_ui$Element$Border$roundEach(
@@ -57000,8 +57136,24 @@ var $author$project$Widget$sidebarButton = F3(
 					$mdgriffith$elm_ui$Element$Border$width(
 					_Utils_eq(theme, $author$project$Theme$Light) ? 1 : 1),
 					$mdgriffith$elm_ui$Element$Border$color(
-					_Utils_eq(theme, $author$project$Theme$Light) ? A4($mdgriffith$elm_ui$Element$rgba, 0.2, 0.2, 0.2, 1.0) : A4($mdgriffith$elm_ui$Element$rgba, 1.0, 0.647, 0.0, 0.5)),
-					$mdgriffith$elm_ui$Element$Font$size(14)
+					_Utils_eq(theme, $author$project$Theme$Light) ? A4($mdgriffith$elm_ui$Element$rgba, 0.2, 0.2, 0.2, 1.0) : A4($mdgriffith$elm_ui$Element$rgba, 0.39, 0.59, 1.0, 0.5)),
+					$mdgriffith$elm_ui$Element$Font$size(12),
+					$mdgriffith$elm_ui$Element$mouseOver(
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$Background$color(
+							_Utils_eq(theme, $author$project$Theme$Light) ? A3($mdgriffith$elm_ui$Element$rgb255, 240, 240, 240) : A3($mdgriffith$elm_ui$Element$rgb255, 65, 72, 78)),
+							$mdgriffith$elm_ui$Element$Border$color(
+							_Utils_eq(theme, $author$project$Theme$Light) ? A4($mdgriffith$elm_ui$Element$rgba, 0.3, 0.3, 0.3, 1.0) : A4($mdgriffith$elm_ui$Element$rgba, 0.39, 0.59, 1.0, 0.7))
+						])),
+					$mdgriffith$elm_ui$Element$mouseDown(
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$Background$color(
+							_Utils_eq(theme, $author$project$Theme$Light) ? A3($mdgriffith$elm_ui$Element$rgb255, 220, 220, 220) : A3($mdgriffith$elm_ui$Element$rgb255, 75, 82, 88)),
+							$mdgriffith$elm_ui$Element$Border$color(
+							_Utils_eq(theme, $author$project$Theme$Light) ? A4($mdgriffith$elm_ui$Element$rgba, 0.4, 0.4, 0.4, 1.0) : A4($mdgriffith$elm_ui$Element$rgba, 0.39, 0.59, 1.0, 0.9))
+						]))
 				]),
 			{
 				label: $mdgriffith$elm_ui$Element$text(label),
@@ -57054,17 +57206,6 @@ var $author$project$Style$formatRelativeTime = F2(
 		var hours = (minutes / 60) | 0;
 		return (!savedMillis) ? 'Never' : ((seconds < 5) ? 'Just now' : ((seconds < 60) ? ($elm$core$String$fromInt(seconds) + ' seconds ago') : ((minutes < 60) ? ($elm$core$String$fromInt(minutes) + (' minute' + (((minutes === 1) ? '' : 's') + ' ago'))) : ((hours < 24) ? ($elm$core$String$fromInt(hours) + (' hour' + (((hours === 1) ? '' : 's') + ' ago'))) : ($elm$core$String$fromInt((hours / 24) | 0) + (' day' + (((((hours / 24) | 0) === 1) ? '' : 's') + ' ago')))))));
 	});
-var $mdgriffith$elm_ui$Internal$Model$Hover = {$: 'Hover'};
-var $mdgriffith$elm_ui$Internal$Flag$hover = $mdgriffith$elm_ui$Internal$Flag$flag(33);
-var $mdgriffith$elm_ui$Element$mouseOver = function (decs) {
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$hover,
-		A2(
-			$mdgriffith$elm_ui$Internal$Model$PseudoSelector,
-			$mdgriffith$elm_ui$Internal$Model$Hover,
-			$mdgriffith$elm_ui$Internal$Model$unwrapDecorations(decs)));
-};
 var $author$project$Common$View$documentItem = F3(
 	function (toMsg, model, doc) {
 		var isActive = function () {
@@ -57182,6 +57323,7 @@ var $author$project$Common$View$documentItem = F3(
 var $author$project$Common$Model$ExportScriptaFile = {$: 'ExportScriptaFile'};
 var $author$project$Common$Model$ExportToLaTeX = {$: 'ExportToLaTeX'};
 var $author$project$Common$Model$ExportToRawLaTeX = {$: 'ExportToRawLaTeX'};
+var $author$project$Common$Model$ImportScriptaFile = {$: 'ImportScriptaFile'};
 var $author$project$Common$Model$PrintToPDF = {$: 'PrintToPDF'};
 var $author$project$Common$View$extractFileName = function (pdfLink) {
 	return A2(
@@ -57249,12 +57391,28 @@ var $author$project$Common$View$exportStuff = F2(
 													toMsg($author$project$Common$Model$ExportToRawLaTeX)),
 												'Raw LaTeX')
 											])),
-										A3(
-										$author$project$Widget$sidebarButton,
-										model.theme,
-										$elm$core$Maybe$Just(
-											toMsg($author$project$Common$Model$ExportScriptaFile)),
-										'Save to Disk')
+										A2(
+										$mdgriffith$elm_ui$Element$row,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$spacing(4),
+												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+											]),
+										_List_fromArray(
+											[
+												A3(
+												$author$project$Widget$sidebarButton,
+												model.theme,
+												$elm$core$Maybe$Just(
+													toMsg($author$project$Common$Model$ExportScriptaFile)),
+												'Save Scripta'),
+												A3(
+												$author$project$Widget$sidebarButton,
+												model.theme,
+												$elm$core$Maybe$Just(
+													toMsg($author$project$Common$Model$ImportScriptaFile)),
+												'Import Scripta')
+											]))
 									]));
 						case 'PrintProcessing':
 							return A2(
@@ -57275,6 +57433,28 @@ var $author$project$Common$View$exportStuff = F2(
 									]),
 								_List_fromArray(
 									[
+										A2(
+										$mdgriffith$elm_ui$Element$row,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$spacing(4),
+												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+											]),
+										_List_fromArray(
+											[
+												A3(
+												$author$project$Widget$sidebarButton,
+												model.theme,
+												$elm$core$Maybe$Just(
+													toMsg($author$project$Common$Model$ExportScriptaFile)),
+												'Save Scripta'),
+												A3(
+												$author$project$Widget$sidebarButton,
+												model.theme,
+												$elm$core$Maybe$Just(
+													toMsg($author$project$Common$Model$ImportScriptaFile)),
+												'Import Scripta')
+											])),
 										function () {
 										var _v1 = model.pdfResponse;
 										if (_v1.$ === 'Nothing') {
@@ -57284,7 +57464,7 @@ var $author$project$Common$View$exportStuff = F2(
 													[
 														$mdgriffith$elm_ui$Element$Font$size(14),
 														$mdgriffith$elm_ui$Element$Font$color(
-														A3($mdgriffith$elm_ui$Element$rgb, 0, 0, 0.8))
+														_Utils_eq(model.theme, $author$project$Theme$Light) ? A3($mdgriffith$elm_ui$Element$rgb, 0, 0, 0.8) : A3($mdgriffith$elm_ui$Element$rgb, 0.4, 0.6, 1.0))
 													]),
 												{
 													label: $mdgriffith$elm_ui$Element$text('Click for PDF'),
@@ -57313,7 +57493,7 @@ var $author$project$Common$View$exportStuff = F2(
 																	[
 																		$mdgriffith$elm_ui$Element$Font$size(14),
 																		$mdgriffith$elm_ui$Element$Font$color(
-																		A3($mdgriffith$elm_ui$Element$rgb, 0, 0, 0.8))
+																		_Utils_eq(model.theme, $author$project$Theme$Light) ? A3($mdgriffith$elm_ui$Element$rgb, 0, 0, 0.8) : A3($mdgriffith$elm_ui$Element$rgb, 0.4, 0.6, 1.0))
 																	]),
 																{
 																	label: response.hasErrors ? $mdgriffith$elm_ui$Element$text('PDF (with errors)') : $mdgriffith$elm_ui$Element$text('Click for PDF'),
@@ -58335,7 +58515,7 @@ var $author$project$Common$View$sidebarButton2 = F4(
 			$mdgriffith$elm_ui$Element$Input$button,
 			_List_fromArray(
 				[
-					A2($mdgriffith$elm_ui$Element$paddingXY, 12, 6),
+					A2($mdgriffith$elm_ui$Element$paddingXY, 8, 4),
 					$mdgriffith$elm_ui$Element$Background$color(
 					_Utils_eq(modelTheme, $author$project$Theme$Light) ? A3($mdgriffith$elm_ui$Element$rgb255, 255, 255, 255) : A3($mdgriffith$elm_ui$Element$rgb255, 48, 54, 59)),
 					$mdgriffith$elm_ui$Element$Font$color(
@@ -58348,15 +58528,15 @@ var $author$project$Common$View$sidebarButton2 = F4(
 							if (modelTheme.$ === 'Light') {
 								return 'rgb(0, 40, 40)';
 							} else {
-								return 'rgb(255, 165, 0)';
+								return 'rgb(100, 150, 255)';
 							}
 						}())),
 					$mdgriffith$elm_ui$Element$Border$roundEach(
 					{bottomLeft: 0, bottomRight: 4, topLeft: 0, topRight: 4}),
 					$mdgriffith$elm_ui$Element$Border$width(1),
 					$mdgriffith$elm_ui$Element$Border$color(
-					_Utils_eq(modelTheme, $author$project$Theme$Light) ? A4($mdgriffith$elm_ui$Element$rgba, 0.2, 0.2, 0.2, 1.0) : A4($mdgriffith$elm_ui$Element$rgba, 1.0, 0.647, 0.0, 0.5)),
-					$mdgriffith$elm_ui$Element$Font$size(16),
+					_Utils_eq(modelTheme, $author$project$Theme$Light) ? A4($mdgriffith$elm_ui$Element$rgba, 0.2, 0.2, 0.2, 1.0) : A4($mdgriffith$elm_ui$Element$rgba, 0.39, 0.59, 1.0, 0.5)),
+					$mdgriffith$elm_ui$Element$Font$size(12),
 					_Utils_eq(buttonTheme, modelTheme) ? $mdgriffith$elm_ui$Element$Font$bold : $mdgriffith$elm_ui$Element$Font$extraLight
 				]),
 			{
@@ -58370,10 +58550,6 @@ var $author$project$Common$View$toggleTheme = F2(
 			$mdgriffith$elm_ui$Element$row,
 			_List_fromArray(
 				[
-					$mdgriffith$elm_ui$Element$Border$width(1),
-					$mdgriffith$elm_ui$Element$Border$color(
-					A3($mdgriffith$elm_ui$Element$rgb, 0.7, 0.7, 0.7)),
-					$mdgriffith$elm_ui$Element$Border$rounded(4),
 					$mdgriffith$elm_ui$Element$height(
 					$mdgriffith$elm_ui$Element$px(30))
 				]),
@@ -58477,69 +58653,65 @@ var $author$project$Common$View$sidebar = F2(
 						]))
 				]));
 	});
-var $author$project$Style$mutedTextColor = function (theme) {
-	if (theme.$ === 'Light') {
-		return A3($mdgriffith$elm_ui$Element$rgb, 0.6, 0.6, 0.6);
-	} else {
-		return A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5);
-	}
-};
 var $author$project$ScriptaV2$Compiler$viewTOC = function (compiled) {
 	return compiled.toc;
 };
 var $author$project$Common$View$tocPanel = F2(
 	function (renderMsg, model) {
-		var tocWidth = 180;
-		var tocItems = A2(
-			$elm$core$List$map,
-			$mdgriffith$elm_ui$Element$map(renderMsg),
-			$author$project$ScriptaV2$Compiler$viewTOC(model.compilerOutput));
-		return A2(
-			$mdgriffith$elm_ui$Element$column,
-			_List_fromArray(
-				[
-					$mdgriffith$elm_ui$Element$width(
-					$mdgriffith$elm_ui$Element$px(tocWidth)),
-					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-					$mdgriffith$elm_ui$Element$Font$color(
-					$author$project$Style$textColor(model.theme)),
-					$mdgriffith$elm_ui$Element$Font$size(12),
-					$mdgriffith$elm_ui$Element$Background$color(
-					$author$project$Style$backgroundColor(model.theme)),
-					$mdgriffith$elm_ui$Element$scrollbarY,
-					$mdgriffith$elm_ui$Element$htmlAttribute(
-					A2($elm$html$Html$Attributes$style, 'overflow-y', 'auto')),
-					$mdgriffith$elm_ui$Element$htmlAttribute(
-					A2($elm$html$Html$Attributes$style, 'overflow-x', 'hidden')),
-					$mdgriffith$elm_ui$Element$htmlAttribute(
-					$elm$html$Html$Attributes$id('toc-panel')),
-					$mdgriffith$elm_ui$Element$padding(12),
-					$mdgriffith$elm_ui$Element$spacing(6)
-				]),
-			$elm$core$List$isEmpty(tocItems) ? _List_fromArray(
-				[
+		if (model.windowWidth < 1000) {
+			return $mdgriffith$elm_ui$Element$none;
+		} else {
+			var tocItems = A2(
+				$elm$core$List$map,
+				$mdgriffith$elm_ui$Element$map(renderMsg),
+				$author$project$ScriptaV2$Compiler$viewTOC(model.compilerOutput));
+			return A2(
+				$mdgriffith$elm_ui$Element$column,
+				_List_fromArray(
+					[
+						$mdgriffith$elm_ui$Element$width(
+						$mdgriffith$elm_ui$Element$px($author$project$Common$View$tocWidth)),
+						$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+						$mdgriffith$elm_ui$Element$Font$color(
+						$author$project$Style$textColor(model.theme)),
+						$mdgriffith$elm_ui$Element$Font$size(12),
+						$mdgriffith$elm_ui$Element$Background$color(
+						$author$project$Style$backgroundColor(model.theme)),
+						$mdgriffith$elm_ui$Element$scrollbarY,
+						$mdgriffith$elm_ui$Element$htmlAttribute(
+						A2($elm$html$Html$Attributes$style, 'overflow-y', 'auto')),
+						$mdgriffith$elm_ui$Element$htmlAttribute(
+						A2($elm$html$Html$Attributes$style, 'overflow-x', 'hidden')),
+						$mdgriffith$elm_ui$Element$htmlAttribute(
+						$elm$html$Html$Attributes$id('toc-panel')),
+						$mdgriffith$elm_ui$Element$padding(12),
+						$mdgriffith$elm_ui$Element$spacing(6)
+					]),
+				$elm$core$List$isEmpty(tocItems) ? _List_fromArray(
+					[
+						A2(
+						$mdgriffith$elm_ui$Element$el,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$Font$color(
+								$author$project$Style$mutedTextColor(model.theme)),
+								$mdgriffith$elm_ui$Element$Font$italic
+							]),
+						$mdgriffith$elm_ui$Element$text('No headings'))
+					]) : A2(
+					$elm$core$List$cons,
 					A2(
-					$mdgriffith$elm_ui$Element$el,
-					_List_fromArray(
-						[
-							$mdgriffith$elm_ui$Element$Font$color(
-							$author$project$Style$mutedTextColor(model.theme)),
-							$mdgriffith$elm_ui$Element$Font$italic
-						]),
-					$mdgriffith$elm_ui$Element$text('No headings'))
-				]) : A2(
-				$elm$core$List$cons,
-				A2(
-					$mdgriffith$elm_ui$Element$el,
-					_List_fromArray(
-						[
-							$mdgriffith$elm_ui$Element$Font$bold,
-							$mdgriffith$elm_ui$Element$Font$size(14),
-							$mdgriffith$elm_ui$Element$paddingEach(
-							{bottom: 8, left: 0, right: 0, top: 0})
-						]),
-					$mdgriffith$elm_ui$Element$text('Contents')),
-				tocItems));
+						$mdgriffith$elm_ui$Element$el,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$Font$bold,
+								$mdgriffith$elm_ui$Element$Font$size(14),
+								$mdgriffith$elm_ui$Element$paddingEach(
+								{bottom: 8, left: 0, right: 0, top: 0})
+							]),
+						$mdgriffith$elm_ui$Element$text('Contents')),
+					tocItems));
+		}
 	});
 var $author$project$Common$View$mainColumn = F3(
 	function (toMsg, renderMsg, model) {
@@ -58589,46 +58761,54 @@ var $author$project$Common$View$mainColumn = F3(
 									$mdgriffith$elm_ui$Element$htmlAttribute(
 									A2($elm$html$Html$Attributes$style, 'min-height', '0'))
 								]),
-							_List_fromArray(
-								[
-									A2($author$project$Common$View$editorView, toMsg, model),
-									A2(
-									$mdgriffith$elm_ui$Element$el,
+							_Utils_ap(
+								_List_fromArray(
+									[
+										A2($author$project$Common$View$editorView, toMsg, model),
+										A2(
+										$mdgriffith$elm_ui$Element$el,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$width(
+												$mdgriffith$elm_ui$Element$px(1)),
+												$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+												$mdgriffith$elm_ui$Element$Background$color(
+												$author$project$Style$borderColor(model.theme))
+											]),
+										$mdgriffith$elm_ui$Element$none),
+										A2($author$project$Common$View$displayRenderedText, renderMsg, model)
+									]),
+								_Utils_ap(
+									(model.windowWidth >= 1000) ? _List_fromArray(
+										[
+											A2(
+											$mdgriffith$elm_ui$Element$el,
+											_List_fromArray(
+												[
+													$mdgriffith$elm_ui$Element$width(
+													$mdgriffith$elm_ui$Element$px(1)),
+													$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+													$mdgriffith$elm_ui$Element$Background$color(
+													$author$project$Style$borderColor(model.theme))
+												]),
+											$mdgriffith$elm_ui$Element$none),
+											A2($author$project$Common$View$tocPanel, renderMsg, model)
+										]) : _List_Nil,
 									_List_fromArray(
 										[
-											$mdgriffith$elm_ui$Element$width(
-											$mdgriffith$elm_ui$Element$px(1)),
-											$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-											$mdgriffith$elm_ui$Element$Background$color(
-											$author$project$Style$borderColor(model.theme))
-										]),
-									$mdgriffith$elm_ui$Element$none),
-									A2($author$project$Common$View$displayRenderedText, renderMsg, model),
-									A2(
-									$mdgriffith$elm_ui$Element$el,
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$width(
-											$mdgriffith$elm_ui$Element$px(1)),
-											$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-											$mdgriffith$elm_ui$Element$Background$color(
-											$author$project$Style$borderColor(model.theme))
-										]),
-									$mdgriffith$elm_ui$Element$none),
-									A2($author$project$Common$View$tocPanel, renderMsg, model),
-									A2(
-									$mdgriffith$elm_ui$Element$el,
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$width(
-											$mdgriffith$elm_ui$Element$px(1)),
-											$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-											$mdgriffith$elm_ui$Element$Background$color(
-											$author$project$Style$borderColor(model.theme))
-										]),
-									$mdgriffith$elm_ui$Element$none),
-									A2($author$project$Common$View$sidebar, toMsg, model)
-								]))
+											A2(
+											$mdgriffith$elm_ui$Element$el,
+											_List_fromArray(
+												[
+													$mdgriffith$elm_ui$Element$width(
+													$mdgriffith$elm_ui$Element$px(1)),
+													$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+													$mdgriffith$elm_ui$Element$Background$color(
+													$author$project$Style$borderColor(model.theme))
+												]),
+											$mdgriffith$elm_ui$Element$none),
+											A2($author$project$Common$View$sidebar, toMsg, model)
+										]))))
 						]))
 				]));
 	});

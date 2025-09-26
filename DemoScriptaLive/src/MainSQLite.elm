@@ -868,6 +868,24 @@ handleStorageMsg msg model =
         Storage.StorageInitialized (Err error) ->
             ( model, Cmd.none )
 
+        Storage.FileOpened content ->
+            -- Handle file opened from native dialog
+            let
+                newCommon =
+                    { common | sourceText = content }
+            in
+            ( { model | common = newCommon }
+            , Cmd.none
+            )
+
+        Storage.FileSaved _ ->
+            -- File saved via native dialog
+            ( model, Cmd.none )
+
+        Storage.PdfGenerated _ ->
+            -- PDF generation result
+            ( model, Cmd.none )
+
 
 
 -- VIEW

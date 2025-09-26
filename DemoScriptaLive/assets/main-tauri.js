@@ -51644,7 +51644,7 @@ var $author$project$Render$Export$Preamble$packagesNeeded = function (names) {
 		$elm_community$list_extra$List$Extra$unique(
 			$author$project$Render$Export$Preamble$newPackageList(names)));
 };
-var $author$project$Render$Export$Preamble$standardPackages = '\n%% Packages\n\n%% Standard packages\n\\usepackage{geometry}\n\\geometry{letterpaper}\n\\usepackage{changepage}   % for the adjustwidth environment\n\\usepackage{tocbibind}    % put unnumbered sections in toc\n\n%% AMS\n\\usepackage{amssymb}\n\\usepackage{amsmath}\n\n\\usepackage{amscd}\n\n\\usepackage{fancyvrb} %% for inline verbatim\n';
+var $author$project$Render$Export$Preamble$standardPackages = '\n%% Packages\n\n%% Standard packages\n\\usepackage{geometry}\n\\geometry{letterpaper}\n\\usepackage{changepage}   % for the adjustwidth environment\n\n%% AMS\n\\usepackage{amssymb}\n\\usepackage{amsmath}\n\n\\usepackage{amscd}\n\n\\usepackage{fancyvrb} %% for inline verbatim\n';
 var $author$project$Render$Export$Preamble$addCode = F4(
 	function (packagesInDocument, _package, codeText, accumulatedCodeText) {
 		return A2($elm$core$List$member, _package, packagesInDocument) ? (codeText + ('\n\n' + accumulatedCodeText)) : accumulatedCodeText;
@@ -56880,6 +56880,28 @@ var $author$project$Common$View$exportStuff = F2(
 									]),
 								_List_fromArray(
 									[
+										A2(
+										$mdgriffith$elm_ui$Element$row,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$spacing(4),
+												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+											]),
+										_List_fromArray(
+											[
+												A3(
+												$author$project$Widget$sidebarButton,
+												model.theme,
+												$elm$core$Maybe$Just(
+													toMsg($author$project$Common$Model$ExportScriptaFile)),
+												'Save Scripta'),
+												A3(
+												$author$project$Widget$sidebarButton,
+												model.theme,
+												$elm$core$Maybe$Just(
+													toMsg($author$project$Common$Model$ImportScriptaFile)),
+												'Import Scripta')
+											])),
 										function () {
 										var _v1 = model.pdfResponse;
 										if (_v1.$ === 'Nothing') {
