@@ -686,7 +686,7 @@ updateCommon msg model =
 
         Common.LoadContentIntoEditorDelayed ->
             ( { model | common = { common | loadDocumentIntoEditor = True } }
-            , Process.sleep 100
+            , Process.sleep 300
                 |> Task.perform (always (CommonMsg Common.ResetLoadFlag))
             )
 
@@ -727,7 +727,7 @@ updateCommon msg model =
                         , initialText = content
                         , title = title
                         , editRecord = editRecord
-                        , loadDocumentIntoEditor = True
+                        , loadDocumentIntoEditor = False  -- Will be set by LoadContentIntoEditorDelayed
                         , compilerOutput = compilerOutput
                     }
             in
@@ -735,7 +735,7 @@ updateCommon msg model =
             , Cmd.batch
                 [ storage.saveDocument initialDoc
                 , storage.saveLastDocumentId initialDoc.id
-                , Process.sleep 200
+                , Process.sleep 500
                     |> Task.perform (always (CommonMsg Common.LoadContentIntoEditorDelayed))
                 ]
             )
@@ -757,7 +757,7 @@ handleStorageMsg msg model =
                 -- No documents in storage, create default document
                 ( { model | common = { common | documents = docs } }
                 , Random.generate
-                    (CommonMsg << Common.InitialDocumentId AppData.defaultDocumentText "Announcement" common.currentTime common.theme)
+                    (CommonMsg << Common.InitialDocumentId (String.trim AppData.defaultDocumentText) "Announcement" common.currentTime common.theme)
                     generateId
                 )
 

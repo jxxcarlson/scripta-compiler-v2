@@ -54541,7 +54541,12 @@ var $author$project$MainSQLite$handleStorageMsg = F2(
 							A2(
 								$elm$core$Basics$composeL,
 								$author$project$MainSQLite$CommonMsg,
-								A4($author$project$Common$Model$InitialDocumentId, $author$project$AppData$defaultDocumentText, 'Announcement', common.currentTime, common.theme)),
+								A4(
+									$author$project$Common$Model$InitialDocumentId,
+									$elm$core$String$trim($author$project$AppData$defaultDocumentText),
+									'Announcement',
+									common.currentTime,
+									common.theme)),
 							$author$project$MainSQLite$generateId)) : _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -56598,7 +56603,7 @@ var $author$project$MainSQLite$updateCommon = F2(
 						$elm$core$Task$perform,
 						$elm$core$Basics$always(
 							$author$project$MainSQLite$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
-						$elm$core$Process$sleep(100)));
+						$elm$core$Process$sleep(300)));
 			case 'ResetLoadFlag':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -56653,7 +56658,7 @@ var $author$project$MainSQLite$updateCommon = F2(
 						documents: A2($elm$core$List$cons, initialDoc, common.documents),
 						editRecord: editRecord,
 						initialText: content,
-						loadDocumentIntoEditor: true,
+						loadDocumentIntoEditor: false,
 						sourceText: content,
 						title: title
 					});
@@ -56676,7 +56681,7 @@ var $author$project$MainSQLite$updateCommon = F2(
 								$elm$core$Task$perform,
 								$elm$core$Basics$always(
 									$author$project$MainSQLite$CommonMsg($author$project$Common$Model$LoadContentIntoEditorDelayed)),
-								$elm$core$Process$sleep(200))
+								$elm$core$Process$sleep(500))
 							])));
 			default:
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);

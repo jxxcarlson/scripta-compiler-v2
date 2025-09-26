@@ -291,7 +291,7 @@ if command -v pdflatex &> /dev/null; then
 
     if [ -f "${BASE_NAME}.pdf" ]; then
         echo "✓ PDF generated: ${BASE_NAME}.pdf"
-    fi
+    fi/
 else
     echo "Warning: pdflatex not found. Skipping PDF generation."
 fi
