@@ -15,7 +15,7 @@
     
     "// Scripta Desktop (Tauri + SQLite)": "",
     "dev-desktop": "tauri dev",
-    "build-desktop": "elm make src/MainTauri.elm --output=assets/main-tauri.js && tauri build",
+    "build-desktop": "elm make src/MainTauri.elm --output=assets/main-tauri.js --optimize && tauri build",
     
     "// Legacy/Development": "",
     "build-elm": "elm make src/Main.elm --output=assets/main.js",
