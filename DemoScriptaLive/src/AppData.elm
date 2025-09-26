@@ -3,91 +3,93 @@ module AppData exposing (defaultDocumentText, processImagesText)
 
 defaultDocumentText : String
 defaultDocumentText =
-    """| title number-to-level:0
+    """| title number-to-level:1
 Announcement
 
- [vspace 3
- 0]
- [large [italic This is what you can do with Scripta Live:]]
+[vspace 30]
+[large [italic This is what you can do with Scripta Live:]]
 
- | image figure:1 caption: Humming bird
- https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg
+| image figure:1 caption: Humming bird
+https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg
 
- | equation label:wave-equation
- pdd(u,x) + pdd(u,y) + pdd(u,z) = frac(1,c^2) pdd(u,t))
-
- [large [i ...make beautiful things with simple tools.]]
- [vspace 30]
+| equation label:wave-equation
+pdd(u,x) + pdd(u,y) + pdd(u,z) = frac(1,c^2) pdd(u,t))
 
 
- # About Scripta Live
-
- Scripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax.
- Better yet: what you write (here, on the left) is rendered
- [i instantaneously ] in the right-hand window pane. No setup required.
- Just click the "New" button and start writing.
-
- - Your documents are saved in the browser's local storage.  If you refresh the
- browser or close it and come back to it later, it weill be there, waiting for you..
-
- - Use the megaphone icon on the right to report bugs, ask questions, and make suggestions.
-
- - Scripta documents can be exported to standard LaTeX.  If there are no images
- in the document, it can be turned into a pdf file using `pdflatex`.  Otherwise,
- use the downloadable shell script — get it by clicking on the button  [blue Download Script],
- lower right corner.  We
- will soon provide a simpler solution.
+[large [i ...make beautiful things with simple tools.]]
+[vspace 30]
 
 
- # Examples
+[i Note: See [eqref heat-equation] for the heat equation in three dimensions.]
 
- | mathmacros
- pdd:  frac(partial^2 #1, partial #2^2)
- nat:    mathbb N
- reals: mathbb R
- pd:  frac(partial #1, partial #2)
- set:    \\{ #1 \\}
- sett:   \\{ #1 \\ | \\ #2 \\}
+# About Scripta Live
 
- Pythagoras said: $a^2 + b^2 = c^2$.
+Scripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax.
+Better yet: what you write (here, on the left) is rendered
+[i instantaneously ] in the right-hand window pane. No setup required.
+Just click the "New" button and start writing.
 
- This will be on the test:
+- Your documents are saved in the browser's local storage or in an
+sqlite database, depending on the version.  If you refresh the
+browser or close it and come back to it later, it will be there, waiting for you.
 
- | equation
- int_0^1 x^n dx = frac(1,n+1)
+- Use the megaphone icon on the right to report bugs, ask questions, and make suggestions.
 
-
- Both of the above equalities were written using an `equation` block.  If you look
- at the source text you will see that [eqref wave-equation] an [u argument] `numbered` and
- a property, namely  `label:wave-equation`. That property is used for cross-referencing: we say `[eqref wave-equation]` to make a hot link to [eqref wave-equation].  Click on it now
- to see what happens.
-
- Here is an [u aligned] block:
-
- | aligned
- nat &= set("positive whole numbers and zero")
- nat &= sett(n " is a whole number", n > 0)
+- Scripta documents can be exported to standard LaTeX or to PDF.
 
 
- | equation
- \\begin{pmatrix}
- 2 & 1 \\\\
- 1 & 2
- \\end{pmatrix}
- \\begin{pmatrix}
- 2 & 1 \\\\
- 1 & 2
- \\end{pmatrix}
- =
- \\begin{pmatrix}
- 5 & 4 \\\\
- 4 & 5
- \\end{pmatrix}
+# Examples
+
+| mathmacros
+pdd:  frac(partial^2 #1, partial #2^2)
+nat:    mathbb N
+reals: mathbb R
+pd:  frac(partial #1, partial #2)
+set:    \\{ #1 \\}
+sett:   \\{ #1 \\ | \\ #2 \\}
+
+Pythagoras said: $a^2 + b^2 = c^2$.
+
+This will be on the test:
+
+| equation
+int_0^1 x^n dx = frac(1,n+1)
 
 
- [b Note:] The equation [eqref wave-equation] is the wave equation in four dimensions —
- three of space and one of time.
-    [vspace 20]
+Both of the above equalities were written using an `equation` block.  If you look
+at the source text on the left,
+you will see that [eqref wave-equation] a
+a property, namely  `label:wave-equation`. The property is used for cross-referencing: we say `[eqref wave-equation]` to make a hot link to [eqref wave-equation].  Click on it now
+to see what happens.
+
+Here is an [u aligned] block:
+
+| aligned
+nat &= set("positive whole numbers and zero")
+nat &= sett(n " is a whole number", n > 0)
+
+| equation
+\\begin{pmatrix}
+2 & 1 \\
+1 & 2
+\\end{pmatrix}
+\\begin{pmatrix}
+2 & 1 \\
+1 & 2
+\\end{pmatrix}
+=
+\\begin{pmatrix}
+5 & 4 \\
+4 & 5
+\\end{pmatrix}
+
+| hide
+| image caption: Cloud Chamber
+https://www.researchgate.net/publication/329220318/figure/fig2/AS:697638865338375@1543341475684/Trajectories-in-a-Cloud-Chamber-the-core-evidence-for-the-local-particle-nature-of.png
+
+| equation label:heat-equation
+alpha \\left( pdd(u,x) + pdd(u,y) + pdd(u,z) \\right) =  pd(u,t))
+qquad "Heat Equation"
 """
 
 

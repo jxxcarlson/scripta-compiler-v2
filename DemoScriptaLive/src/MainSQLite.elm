@@ -722,6 +722,7 @@ updateCommon msg model =
                 newCommon =
                     { common
                         | currentDocument = Just initialDoc
+                        , documents = initialDoc :: common.documents
                         , sourceText = content
                         , initialText = content
                         , title = title
@@ -734,6 +735,8 @@ updateCommon msg model =
             , Cmd.batch
                 [ storage.saveDocument initialDoc
                 , storage.saveLastDocumentId initialDoc.id
+                , Process.sleep 200
+                    |> Task.perform (always (CommonMsg Common.LoadContentIntoEditorDelayed))
                 ]
             )
 

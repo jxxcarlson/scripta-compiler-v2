@@ -22870,7 +22870,7 @@ var $author$project$Common$Model$initCommon = function (flags) {
 		targetData: $elm$core$Maybe$Nothing,
 		theme: theme,
 		title: '',
-		userName: $elm$core$Maybe$Nothing,
+		userName: $elm$core$Maybe$Just(''),
 		windowHeight: flags.window.windowHeight,
 		windowWidth: flags.window.windowWidth
 	};
@@ -54447,7 +54447,7 @@ var $author$project$Common$Model$InitialDocumentId = F5(
 var $author$project$Common$Model$LoadDocument = function (a) {
 	return {$: 'LoadDocument', a: a};
 };
-var $author$project$AppData$defaultDocumentText = '| title number-to-level:0\nAnnouncement\n\n [vspace 3\n 0]\n [large [italic This is what you can do with Scripta Live:]]\n\n | image figure:1 caption: Humming bird\n https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg\n\n | equation label:wave-equation\n pdd(u,x) + pdd(u,y) + pdd(u,z) = frac(1,c^2) pdd(u,t))\n\n [large [i ...make beautiful things with simple tools.]]\n [vspace 30]\n\n\n # About Scripta Live\n\n Scripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax.\n Better yet: what you write (here, on the left) is rendered\n [i instantaneously ] in the right-hand window pane. No setup required.\n Just click the "New" button and start writing.\n\n - Your documents are saved in the browser\'s local storage.  If you refresh the\n browser or close it and come back to it later, it weill be there, waiting for you..\n\n - Use the megaphone icon on the right to report bugs, ask questions, and make suggestions.\n\n - Scripta documents can be exported to standard LaTeX.  If there are no images\n in the document, it can be turned into a pdf file using `pdflatex`.  Otherwise,\n use the downloadable shell script — get it by clicking on the button  [blue Download Script],\n lower right corner.  We\n will soon provide a simpler solution.\n\n\n # Examples\n\n | mathmacros\n pdd:  frac(partial^2 #1, partial #2^2)\n nat:    mathbb N\n reals: mathbb R\n pd:  frac(partial #1, partial #2)\n set:    \\{ #1 \\}\n sett:   \\{ #1 \\ | \\ #2 \\}\n\n Pythagoras said: $a^2 + b^2 = c^2$.\n\n This will be on the test:\n\n | equation\n int_0^1 x^n dx = frac(1,n+1)\n\n\n Both of the above equalities were written using an `equation` block.  If you look\n at the source text you will see that [eqref wave-equation] an [u argument] `numbered` and\n a property, namely  `label:wave-equation`. That property is used for cross-referencing: we say `[eqref wave-equation]` to make a hot link to [eqref wave-equation].  Click on it now\n to see what happens.\n\n Here is an [u aligned] block:\n\n | aligned\n nat &= set("positive whole numbers and zero")\n nat &= sett(n " is a whole number", n > 0)\n\n\n | equation\n \\begin{pmatrix}\n 2 & 1 \\\\\n 1 & 2\n \\end{pmatrix}\n \\begin{pmatrix}\n 2 & 1 \\\\\n 1 & 2\n \\end{pmatrix}\n =\n \\begin{pmatrix}\n 5 & 4 \\\\\n 4 & 5\n \\end{pmatrix}\n\n\n [b Note:] The equation [eqref wave-equation] is the wave equation in four dimensions —\n three of space and one of time.\n    [vspace 20]\n';
+var $author$project$AppData$defaultDocumentText = '| title number-to-level:1\nAnnouncement\n\n[vspace 30]\n[large [italic This is what you can do with Scripta Live:]]\n\n| image figure:1 caption: Humming bird\nhttps://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg\n\n| equation label:wave-equation\npdd(u,x) + pdd(u,y) + pdd(u,z) = frac(1,c^2) pdd(u,t))\n\n\n[large [i ...make beautiful things with simple tools.]]\n[vspace 30]\n\n\n[i Note: See [eqref heat-equation] for the heat equation in three dimensions.]\n\n# About Scripta Live\n\nScripta is a markup language much like LaTeX, but with a simplified, ergonomic syntax.\nBetter yet: what you write (here, on the left) is rendered\n[i instantaneously ] in the right-hand window pane. No setup required.\nJust click the "New" button and start writing.\n\n- Your documents are saved in the browser\'s local storage or in an\nsqlite database, depending on the version.  If you refresh the\nbrowser or close it and come back to it later, it will be there, waiting for you.\n\n- Use the megaphone icon on the right to report bugs, ask questions, and make suggestions.\n\n- Scripta documents can be exported to standard LaTeX or to PDF.\n\n\n# Examples\n\n| mathmacros\npdd:  frac(partial^2 #1, partial #2^2)\nnat:    mathbb N\nreals: mathbb R\npd:  frac(partial #1, partial #2)\nset:    \\{ #1 \\}\nsett:   \\{ #1 \\ | \\ #2 \\}\n\nPythagoras said: $a^2 + b^2 = c^2$.\n\nThis will be on the test:\n\n| equation\nint_0^1 x^n dx = frac(1,n+1)\n\n\nBoth of the above equalities were written using an `equation` block.  If you look\nat the source text on the left,\nyou will see that [eqref wave-equation] a\na property, namely  `label:wave-equation`. The property is used for cross-referencing: we say `[eqref wave-equation]` to make a hot link to [eqref wave-equation].  Click on it now\nto see what happens.\n\nHere is an [u aligned] block:\n\n| aligned\nnat &= set("positive whole numbers and zero")\nnat &= sett(n " is a whole number", n > 0)\n\n| equation\n\\begin{pmatrix}\n2 & 1 \\\n1 & 2\n\\end{pmatrix}\n\\begin{pmatrix}\n2 & 1 \\\n1 & 2\n\\end{pmatrix}\n=\n\\begin{pmatrix}\n5 & 4 \\\n4 & 5\n\\end{pmatrix}\n\n| hide\n| image caption: Cloud Chamber\nhttps://www.researchgate.net/publication/329220318/figure/fig2/AS:697638865338375@1543341475684/Trajectories-in-a-Cloud-Chamber-the-core-evidence-for-the-local-particle-nature-of.png\n\n| equation label:heat-equation\nalpha \\left( pdd(u,x) + pdd(u,y) + pdd(u,z) \\right) =  pd(u,t))\nqquad "Heat Equation"\n';
 var $author$project$Render$Theme$Dark = {$: 'Dark'};
 var $author$project$Render$Theme$Light = {$: 'Light'};
 var $author$project$Theme$mapTheme = function (theme) {
@@ -56992,13 +56992,6 @@ var $author$project$Style$debugTextColor = function (theme_) {
 		return A3($mdgriffith$elm_ui$Element$rgb255, 255, 255, 255);
 	}
 };
-var $author$project$Style$mutedTextColor = function (theme) {
-	if (theme.$ === 'Light') {
-		return A3($mdgriffith$elm_ui$Element$rgb, 0.6, 0.6, 0.6);
-	} else {
-		return A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5);
-	}
-};
 var $mdgriffith$elm_ui$Element$Border$widthXY = F2(
 	function (x, y) {
 		return A2(
@@ -57062,21 +57055,7 @@ var $author$project$Common$View$header = function (model) {
 						$mdgriffith$elm_ui$Element$Font$semiBold,
 						$author$project$Style$forceColorStyle(model.theme)
 					]),
-				$mdgriffith$elm_ui$Element$text(model.title)),
-				A2(
-				$mdgriffith$elm_ui$Element$el,
-				_List_fromArray(
-					[
-						$mdgriffith$elm_ui$Element$alignRight,
-						$mdgriffith$elm_ui$Element$centerY,
-						$mdgriffith$elm_ui$Element$Font$color(
-						$author$project$Style$mutedTextColor(model.theme)),
-						$mdgriffith$elm_ui$Element$Font$size(14),
-						$author$project$Style$forceColorStyle(model.theme)
-					]),
-				$mdgriffith$elm_ui$Element$text(
-					'Window: ' + ($elm$core$String$fromInt(model.windowWidth) + ('px | Panel: ' + ($elm$core$String$fromInt(
-						$author$project$Common$View$panelWidth(model)) + ('px | Compiler: ' + ($elm$core$String$fromInt(model.displaySettings.windowWidth) + 'px')))))))
+				$mdgriffith$elm_ui$Element$text(model.title))
 			]));
 };
 var $author$project$Common$View$mainColumnStyle = _List_fromArray(
@@ -57575,6 +57554,27 @@ var $author$project$Style$innerColumn = _List_fromArray(
 	]);
 var $author$project$Common$Model$InputUserName = function (a) {
 	return {$: 'InputUserName', a: a};
+};
+var $mdgriffith$elm_ui$Internal$Model$Transparency = F2(
+	function (a, b) {
+		return {$: 'Transparency', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Internal$Flag$transparency = $mdgriffith$elm_ui$Internal$Flag$flag(0);
+var $mdgriffith$elm_ui$Element$alpha = function (o) {
+	var transparency = function (x) {
+		return 1 - x;
+	}(
+		A2(
+			$elm$core$Basics$min,
+			1.0,
+			A2($elm$core$Basics$max, 0.0, o)));
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$transparency,
+		A2(
+			$mdgriffith$elm_ui$Internal$Model$Transparency,
+			'transparency-' + $mdgriffith$elm_ui$Internal$Model$floatClass(transparency),
+			transparency));
 };
 var $mdgriffith$elm_ui$Element$Input$HiddenLabel = function (a) {
 	return {$: 'HiddenLabel', a: a};
@@ -58089,27 +58089,6 @@ var $mdgriffith$elm_ui$Element$Input$renderBox = function (_v0) {
 	var left = _v0.left;
 	return $elm$core$String$fromInt(top) + ('px ' + ($elm$core$String$fromInt(right) + ('px ' + ($elm$core$String$fromInt(bottom) + ('px ' + ($elm$core$String$fromInt(left) + 'px'))))));
 };
-var $mdgriffith$elm_ui$Internal$Model$Transparency = F2(
-	function (a, b) {
-		return {$: 'Transparency', a: a, b: b};
-	});
-var $mdgriffith$elm_ui$Internal$Flag$transparency = $mdgriffith$elm_ui$Internal$Flag$flag(0);
-var $mdgriffith$elm_ui$Element$alpha = function (o) {
-	var transparency = function (x) {
-		return 1 - x;
-	}(
-		A2(
-			$elm$core$Basics$min,
-			1.0,
-			A2($elm$core$Basics$max, 0.0, o)));
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$transparency,
-		A2(
-			$mdgriffith$elm_ui$Internal$Model$Transparency,
-			'transparency-' + $mdgriffith$elm_ui$Internal$Model$floatClass(transparency),
-			transparency));
-};
 var $mdgriffith$elm_ui$Element$Input$charcoal = A3($mdgriffith$elm_ui$Element$rgb, 136 / 255, 138 / 255, 133 / 255);
 var $mdgriffith$elm_ui$Element$Input$renderPlaceholder = F3(
 	function (_v0, forPlaceholder, on) {
@@ -58440,61 +58419,32 @@ var $author$project$Common$View$inputTextWidget = F3(
 	});
 var $author$project$Common$View$nameElement = F2(
 	function (toMsg, model) {
-		var _v0 = model.userName;
-		if (_v0.$ === 'Just') {
-			var name = _v0.a;
-			return ($elm$core$String$trim(name) !== '') ? A3(
-				$author$project$Common$View$inputTextWidget,
-				model.theme,
-				name,
-				A2($elm$core$Basics$composeL, toMsg, $author$project$Common$Model$InputUserName)) : A2(
-				$mdgriffith$elm_ui$Element$column,
-				_List_fromArray(
-					[
-						$mdgriffith$elm_ui$Element$spacing(8)
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$mdgriffith$elm_ui$Element$el,
-						_List_fromArray(
-							[
-								$mdgriffith$elm_ui$Element$Font$size(14),
-								$mdgriffith$elm_ui$Element$Font$color(
-								$author$project$Style$textColor(model.theme))
-							]),
-						$mdgriffith$elm_ui$Element$text('Name your app:')),
-						A3(
-						$author$project$Common$View$inputTextWidget,
-						model.theme,
-						'',
-						A2($elm$core$Basics$composeL, toMsg, $author$project$Common$Model$InputUserName))
-					]));
-		} else {
-			return A2(
-				$mdgriffith$elm_ui$Element$column,
-				_List_fromArray(
-					[
-						$mdgriffith$elm_ui$Element$spacing(8)
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$mdgriffith$elm_ui$Element$el,
-						_List_fromArray(
-							[
-								$mdgriffith$elm_ui$Element$Font$size(14),
-								$mdgriffith$elm_ui$Element$Font$color(
-								$author$project$Style$textColor(model.theme))
-							]),
-						$mdgriffith$elm_ui$Element$text('Name your app:')),
-						A3(
-						$author$project$Common$View$inputTextWidget,
-						model.theme,
-						'',
-						A2($elm$core$Basics$composeL, toMsg, $author$project$Common$Model$InputUserName))
-					]));
-		}
+		var currentValue = A2($elm$core$Maybe$withDefault, '', model.userName);
+		var showLabel = $elm$core$String$trim(currentValue) === '';
+		return A2(
+			$mdgriffith$elm_ui$Element$column,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$spacing(8)
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$mdgriffith$elm_ui$Element$el,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$Font$size(14),
+							$mdgriffith$elm_ui$Element$Font$color(
+							$author$project$Style$textColor(model.theme)),
+							showLabel ? $mdgriffith$elm_ui$Element$alpha(1) : $mdgriffith$elm_ui$Element$alpha(0)
+						]),
+					$mdgriffith$elm_ui$Element$text('Name your app:')),
+					A3(
+					$author$project$Common$View$inputTextWidget,
+					model.theme,
+					currentValue,
+					A2($elm$core$Basics$composeL, toMsg, $author$project$Common$Model$InputUserName))
+				]));
 	});
 var $author$project$Style$rightPanelBackgroundColor = function (theme) {
 	if (theme.$ === 'Light') {
@@ -58653,6 +58603,13 @@ var $author$project$Common$View$sidebar = F2(
 						]))
 				]));
 	});
+var $author$project$Style$mutedTextColor = function (theme) {
+	if (theme.$ === 'Light') {
+		return A3($mdgriffith$elm_ui$Element$rgb, 0.6, 0.6, 0.6);
+	} else {
+		return A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5);
+	}
+};
 var $author$project$ScriptaV2$Compiler$viewTOC = function (compiled) {
 	return compiled.toc;
 };

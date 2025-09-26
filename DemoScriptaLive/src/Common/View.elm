@@ -474,14 +474,6 @@ header model =
             , Style.forceColorStyle model.theme
             ]
             (Element.text model.title)
-        , Element.el
-            [ alignRight
-            , centerY
-            , Font.color (Style.mutedTextColor model.theme)
-            , Font.size 14
-            , Style.forceColorStyle model.theme
-            ]
-            (Element.text <| "Window: " ++ String.fromInt model.windowWidth ++ "px | Panel: " ++ String.fromInt (panelWidth model) ++ "px | Compiler: " ++ String.fromInt model.displaySettings.windowWidth ++ "px")
         ]
 
 
@@ -602,33 +594,26 @@ stringOfBool b =
 
 nameElement : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
 nameElement toMsg model =
-    case model.userName of
-        Just name ->
-            if String.trim name /= "" then
-                -- Show just the username when it's filled
-                inputTextWidget model.theme name (toMsg << Common.InputUserName)
+    let
+        currentValue =
+            Maybe.withDefault "" model.userName
 
-            else
-                -- Show label and input when empty
-                Element.column [ spacing 8 ]
-                    [ Element.el 
-                        [ Font.size 14
-                        , Font.color (Style.textColor model.theme)
-                        ] 
-                        (text "Name your app:")
-                    , inputTextWidget model.theme "" (toMsg << Common.InputUserName)
-                    ]
-
-        Nothing ->
-            -- Show label and input when no username
-            Element.column [ spacing 8 ]
-                [ Element.el 
-                    [ Font.size 14
-                    , Font.color (Style.textColor model.theme)
-                    ] 
-                    (text "Name your app:")
-                , inputTextWidget model.theme "" (toMsg << Common.InputUserName)
-                ]
+        showLabel =
+            String.trim currentValue == ""
+    in
+    -- Always show the same structure to prevent DOM changes
+    Element.column [ spacing 8 ]
+        [ Element.el
+            [ Font.size 14
+            , Font.color (Style.textColor model.theme)
+            , if showLabel then
+                Element.alpha 1
+              else
+                Element.alpha 0  -- Hide label but keep structure
+            ]
+            (text "Name your app:")
+        , inputTextWidget model.theme currentValue (toMsg << Common.InputUserName)
+        ]
 
 
 inputTextWidget : Theme.Theme -> String -> (String -> msg) -> Element msg
