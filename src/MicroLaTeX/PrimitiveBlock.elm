@@ -146,7 +146,7 @@ init idPrefix outerCount lines =
 
 
 verbatimBlocks =
-    [ "table", "textarray", "array", "code", "equation", "aligned", "verbatim" ]
+    [ "table", "textarray", "array", "code", "equation", "align", "aligned", "verbatim" ]
 
 
 {-|
@@ -262,8 +262,11 @@ nexStepAux currentLine mTopLabel state =
             else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "equation" ] then
                 { state | label = "CEndBlock 3" } |> endBlockOnMatch Nothing (CBeginBlock "equation") currentLine |> Loop
 
+            else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "align", Just <| CBeginBlock "aligned" ] then
+                { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "align") currentLine |> Loop
+
             else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "aligned" ] then
-                { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "aligned") currentLine |> Loop
+                { state | label = "CEndBlock 4a" } |> endBlockOnMatch Nothing (CBeginBlock "aligned") currentLine |> Loop
 
             else if List.member (state.labelStack |> List.reverse |> List.head |> Maybe.map .classification) [ Just <| CBeginBlock "array" ] then
                 { state | label = "CEndBlock 4" } |> endBlockOnMatch Nothing (CBeginBlock "array") currentLine |> Loop
@@ -923,6 +926,7 @@ plainText state_ currentLine =
                                     [ CBeginBlock "equation"
                                     , CBeginBlock "array"
                                     , CBeginBlock "textarray"
+                                    , CBeginBlock "align"
                                     , CBeginBlock "aligned"
                                     ]
                            )
@@ -1539,6 +1543,7 @@ verbatimBlockNames =
     , "table"
     , "array"
     , "textarray"
+    , "align"
     , "aligned"
     , "math"
     , "code"
