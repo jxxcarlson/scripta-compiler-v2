@@ -52421,7 +52421,8 @@ var $author$project$Render$Export$LaTeX$aliases = $elm$core$Dict$fromList(
 			_Utils_Tuple2('i', 'textit'),
 			_Utils_Tuple2('italic', 'textit'),
 			_Utils_Tuple2('b', 'textbf'),
-			_Utils_Tuple2('bold', 'textbf')
+			_Utils_Tuple2('bold', 'textbf'),
+			_Utils_Tuple2('large', 'large')
 		]));
 var $author$project$Render$Export$LaTeX$unalias = function (str) {
 	var _v0 = A2($elm$core$Dict$get, str, $author$project$Render$Export$LaTeX$aliases);

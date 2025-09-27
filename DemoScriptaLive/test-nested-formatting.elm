@@ -15,6 +15,10 @@ main =
 [i [b Italic Bold Text]]
 
 [b Normal bold [i with italic inside] and more bold]
+
+[large [italic Large Italic Text]]
+
+[large [b [i Large Bold Italic Text]]]
 """
 
         -- Compile to AST

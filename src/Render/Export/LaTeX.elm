@@ -1243,6 +1243,7 @@ aliases =
         , ( "italic", "textit" )
         , ( "b", "textbf" )
         , ( "bold", "textbf" )
+        , ( "large", "large" )
         ]
 
 

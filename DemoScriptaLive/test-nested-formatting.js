@@ -9217,7 +9217,8 @@ var $author$project$Render$Export$LaTeX$aliases = $elm$core$Dict$fromList(
 			_Utils_Tuple2('i', 'textit'),
 			_Utils_Tuple2('italic', 'textit'),
 			_Utils_Tuple2('b', 'textbf'),
-			_Utils_Tuple2('bold', 'textbf')
+			_Utils_Tuple2('bold', 'textbf'),
+			_Utils_Tuple2('large', 'large')
 		]));
 var $author$project$Render$Export$LaTeX$unalias = function (str) {
 	var _v0 = A2($elm$core$Dict$get, str, $author$project$Render$Export$LaTeX$aliases);
@@ -15150,7 +15151,7 @@ var $author$project$ScriptaV2$Compiler$ps = function (str) {
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$TestNestedFormatting$main = function () {
-	var sourceText = '\n[b [i Bold Italic Text]]\n\n[i [b Italic Bold Text]]\n\n[b Normal bold [i with italic inside] and more bold]\n';
+	var sourceText = '\n[b [i Bold Italic Text]]\n\n[i [b Italic Bold Text]]\n\n[b Normal bold [i with italic inside] and more bold]\n\n[large [italic Large Italic Text]]\n\n[large [b [i Large Bold Italic Text]]]\n';
 	var settings = $author$project$Render$Settings$defaultSettings($author$project$Render$Settings$defaultDisplaySettings);
 	var ast = $author$project$ScriptaV2$Compiler$ps(sourceText);
 	var latexOutput = A3(
