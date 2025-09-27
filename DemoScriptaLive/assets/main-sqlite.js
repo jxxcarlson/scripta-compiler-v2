@@ -55430,6 +55430,23 @@ var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F2(
 				} else {
 					return '[image]';
 				}
+			case 'imagecentercaptioned':
+				if (args.b) {
+					if (args.b.b && args.b.b.b) {
+						var url = args.a;
+						var _v5 = args.b;
+						var width = _v5.a;
+						var _v6 = _v5.b;
+						var caption = _v6.a;
+						var _v7 = width;
+						return '| image caption:' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(caption) + ('\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url)));
+					} else {
+						var url = args.a;
+						return '| image\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url);
+					}
+				} else {
+					return '| image';
+				}
 			default:
 				return '[' + (name + (' ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']')));
 		}

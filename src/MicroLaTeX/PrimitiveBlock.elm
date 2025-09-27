@@ -146,7 +146,7 @@ init idPrefix outerCount lines =
 
 
 verbatimBlocks =
-    [ "table", "textarray", "array", "code", "equation", "align", "aligned", "verbatim" ]
+    [ "table", "textarray", "array", "code", "equation", "align", "aligned", "verbatim", "figure" ]
 
 
 {-|
@@ -1548,6 +1548,7 @@ verbatimBlockNames =
     , "math"
     , "code"
     , "verbatim"
+    , "figure"
     , "verse"
     , "mathmacros"
     , "textmacros"

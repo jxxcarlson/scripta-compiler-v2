@@ -226,6 +226,9 @@ renderVerbatim name block =
         "minted" ->
             renderCodeBlock block
 
+        "figure" ->
+            renderFigureVerbatim block
+
         _ ->
             -- Generic verbatim block
             "| " ++ name
@@ -367,6 +370,28 @@ renderFunction name args =
 
                 _ ->
                     "[image]"
+
+        "imagecentercaptioned" ->
+            -- MicroLaTeX parser appears to give us args in reverse order: [caption, width, url]
+            case args of
+                caption :: width :: url :: _ ->
+                    -- Three args: caption, width, url (in that order from parser)
+                    let
+                        _ = width  -- Acknowledge width parameter even though we don't use it
+                    in
+                    "| image caption:" ++ renderExpression caption ++ "\n" ++ renderExpression url
+
+                caption :: url :: _ ->
+                    -- Two args: might be caption and url (width missing)
+                    "| image caption:" ++ renderExpression caption ++ "\n" ++ renderExpression url
+
+                url :: _ ->
+                    -- One arg: just the URL
+                    "| image\n" ++ renderExpression url
+
+                _ ->
+                    -- No args
+                    "| image"
 
         _ ->
             "[" ++ name ++ " " ++ renderArgs args ++ "]"
@@ -545,6 +570,67 @@ renderTable block =
 
         Right _ ->
             "| table"
+
+
+{-| Render a figure verbatim block
+-}
+renderFigureVerbatim : ExpressionBlock -> String
+renderFigureVerbatim block =
+    case block.body of
+        Left str ->
+            -- Parse the figure content to extract image and caption
+            let
+                lines = String.lines str
+
+                -- Look for \includegraphics command
+                extractImageUrl line =
+                    if String.contains "\\includegraphics" line then
+                        -- Extract URL from \includegraphics[...]{url}
+                        line
+                            |> String.split "{"
+                            |> List.drop 1
+                            |> List.head
+                            |> Maybe.withDefault ""
+                            |> String.split "}"
+                            |> List.head
+                            |> Maybe.withDefault ""
+                    else
+                        ""
+
+                -- Look for \caption command
+                extractCaption lines_ =
+                    lines_
+                        |> List.filter (String.contains "\\caption")
+                        |> List.head
+                        |> Maybe.map (\line ->
+                            line
+                                |> String.split "\\caption{"
+                                |> List.drop 1
+                                |> String.join ""
+                                |> String.split "}"
+                                |> List.head
+                                |> Maybe.withDefault ""
+                        )
+                        |> Maybe.withDefault ""
+
+                imageUrl =
+                    lines
+                        |> List.map extractImageUrl
+                        |> List.filter ((/=) "")
+                        |> List.head
+                        |> Maybe.withDefault ""
+
+                caption = extractCaption lines
+            in
+            if String.isEmpty imageUrl then
+                "| figure"
+            else if String.isEmpty caption then
+                "| image\n" ++ imageUrl
+            else
+                "| image caption:" ++ caption ++ "\n" ++ imageUrl
+
+        _ ->
+            "| figure"
 
 
 {-| Render an aligned block

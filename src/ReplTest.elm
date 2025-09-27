@@ -5,9 +5,8 @@ import Generic.Language
 import Generic.Pipeline
 import M.Expression
 import M.PrimitiveBlock
-import Render.Export.LaTeX
+import MicroLaTeX.PrimitiveBlock
 import Render.Settings
-import RoseTree.Tree
 import ScriptaV2.Compiler
 
 
@@ -16,9 +15,19 @@ p str =
     M.PrimitiveBlock.parse "0" 0 (String.lines str)
 
 
+pL : String -> List Generic.Language.PrimitiveBlock
+pL str =
+    MicroLaTeX.PrimitiveBlock.parse "0" 0 (String.lines str)
+
+
 q : String -> List Generic.Language.ExpressionBlock
 q =
     p >> List.map expressionBlockFromPrimitiveBlock
+
+
+qL : String -> List Generic.Language.ExpressionBlock
+qL =
+    pL >> List.map expressionBlockFromPrimitiveBlock
 
 
 t : String -> Generic.Forest.Forest Generic.Language.ExpressionBlock
@@ -38,59 +47,31 @@ expressionBlockFromPrimitiveBlock =
 
 t1 =
     """
-- [b Bread] $x^2$ abc def efg hij klm nop qrs tuv wxy z bc def efg hij [b KLM.]
-- Cheese
-- Wine
+| image caption:Entropy
+https://upload.wikimedia.org/wikipedia/commons/3/3d/Entropy_diagram.png
+
 """
 
 
 t2 =
     """
-The notion of entropy stems from the observation that
-early steam engines were grossly inefficient: a large
-input of heat energy resulted in a small output of 
-mechanical energy. The efficiency of the Newcomen engine, 
-discussed in section [ref heat-engines] below was estimated 
-to be only $0.02\\%$! [anchor The first
-forward step in understanding
-the cause] of this poor result came from Sadi Carnot
-in 1824.  He defined efficiency of a heat engine as
- 
+\\begin{figure}[h]
+  \\centering
+  % scale image to 50% of text width
+  \\includegraphics[width=0.5\\textwidth]{hummingbird.jpg}
+  \\caption{A hummingbird drinking from a flower.}
+  \\label{fig:hummingbird}
+\\end{figure}
 
-| equation numbered
-\\label{efficiency-def}
-eta = frac("work produced","heat supplied") = frac(W,Q_H)
 """
 
 
 t3 =
     """
-| title
-Remarks on Optics (Test)
+\\begin{equation}
+a^2 + b^2 = c^2
+\\end{equation}
 
-aaa
-
-bbb
-
-ccc
-
-[tags jxxcarlson:remarks-on-optics-test]
-
-In this article we trace some important developments in optics, 
-beginning with Roman Aliexandria in the period 10 to 200 CE.
-While Egypt came under Roman rule after the defeat of Cleopatra
-by Marc Antony in the battle of Actium in 30 BCE, it remained
-a cosmopolitan hub of Greek-speaking culture, philosophy, science,
-and commerce, inhabited by a mix of Greeks, Egyptians, Jews, and Romans.
-
-# Hero of Alexandria
-
-[anchor Our first real phyiscal theory goes back to Hero of 
-Alexandria (10-70 CE)], A mathematican and engineer who 
-explained in precise terms the law that governs 
-reflection in a mirror: as in Figure 1 below,
-the angle of incidence $alpha$ of a light ray $AP$ is 
-equal to the angle $beta$ of the reflected ray $PB$.
 """
 
 

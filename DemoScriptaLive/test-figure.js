@@ -5353,6 +5353,8 @@ var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$html$Html$pre = _VirtualDom_node('pre');
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$core$List$isEmpty = function (xs) {
 	if (!xs.b) {
 		return true;
@@ -9600,7 +9602,7 @@ var $author$project$Generic$Language$Verbatim = function (a) {
 	return {$: 'Verbatim', a: a};
 };
 var $author$project$MicroLaTeX$PrimitiveBlock$verbatimBlockNames = _List_fromArray(
-	['equation', 'table', 'array', 'textarray', 'align', 'aligned', 'math', 'code', 'verbatim', 'verse', 'mathmacros', 'textmacros', 'hide', 'docinfo', 'csvtable', 'chart', 'svg', 'quiver', 'image', 'tikz', 'load-files', 'include', 'iframe']);
+	['equation', 'table', 'array', 'textarray', 'align', 'aligned', 'math', 'code', 'verbatim', 'figure', 'verse', 'mathmacros', 'textmacros', 'hide', 'docinfo', 'csvtable', 'chart', 'svg', 'quiver', 'image', 'tikz', 'load-files', 'include', 'iframe']);
 var $author$project$MicroLaTeX$PrimitiveBlock$getHeading = function (str) {
 	var _v0 = $author$project$MicroLaTeX$ClassifyBlock$classify(str);
 	switch (_v0.$) {
@@ -10639,7 +10641,7 @@ var $author$project$MicroLaTeX$PrimitiveBlock$finishBlock = F2(
 		}
 	});
 var $author$project$MicroLaTeX$PrimitiveBlock$verbatimBlocks = _List_fromArray(
-	['table', 'textarray', 'array', 'code', 'equation', 'align', 'aligned', 'verbatim']);
+	['table', 'textarray', 'array', 'code', 'equation', 'align', 'aligned', 'verbatim', 'figure']);
 var $author$project$MicroLaTeX$PrimitiveBlock$endBlockOnMismatch = F4(
 	function (label_, classifier, line, state) {
 		var _v0 = $elm_community$list_extra$List$Extra$uncons(state.stack);
@@ -14681,14 +14683,21 @@ var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F2(
 				}
 			case 'imagecentercaptioned':
 				if (args.b) {
-					if (args.b.b && args.b.b.b) {
-						var url = args.a;
-						var _v5 = args.b;
-						var width = _v5.a;
-						var _v6 = _v5.b;
-						var caption = _v6.a;
-						var _v7 = width;
-						return '| image figure:1 caption: ' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(caption) + ('\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url)));
+					if (args.b.b) {
+						if (args.b.b.b) {
+							var caption = args.a;
+							var _v5 = args.b;
+							var width = _v5.a;
+							var _v6 = _v5.b;
+							var url = _v6.a;
+							var _v7 = width;
+							return '| image caption:' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(caption) + ('\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url)));
+						} else {
+							var caption = args.a;
+							var _v8 = args.b;
+							var url = _v8.a;
+							return '| image caption:' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(caption) + ('\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url)));
+						}
 					} else {
 						var url = args.a;
 						return '| image\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url);
@@ -14951,6 +14960,70 @@ var $author$project$Render$Export$LaTeXToScripta2$renderEquationBlock = function
 		return 'Error: Invalid equation block';
 	}
 };
+var $author$project$Render$Export$LaTeXToScripta2$renderFigureVerbatim = function (block) {
+	var _v0 = block.body;
+	if (_v0.$ === 'Left') {
+		var str = _v0.a;
+		var lines = $elm$core$String$lines(str);
+		var extractImageUrl = function (line) {
+			return A2($elm$core$String$contains, '\\includegraphics', line) ? A2(
+				$elm$core$Maybe$withDefault,
+				'',
+				$elm$core$List$head(
+					A2(
+						$elm$core$String$split,
+						'}',
+						A2(
+							$elm$core$Maybe$withDefault,
+							'',
+							$elm$core$List$head(
+								A2(
+									$elm$core$List$drop,
+									1,
+									A2($elm$core$String$split, '{', line))))))) : '';
+		};
+		var imageUrl = A2(
+			$elm$core$Maybe$withDefault,
+			'',
+			$elm$core$List$head(
+				A2(
+					$elm$core$List$filter,
+					$elm$core$Basics$neq(''),
+					A2($elm$core$List$map, extractImageUrl, lines))));
+		var extractCaption = function (lines_) {
+			return A2(
+				$elm$core$Maybe$withDefault,
+				'',
+				A2(
+					$elm$core$Maybe$map,
+					function (line) {
+						return A2(
+							$elm$core$Maybe$withDefault,
+							'',
+							$elm$core$List$head(
+								A2(
+									$elm$core$String$split,
+									'}',
+									A2(
+										$elm$core$String$join,
+										'',
+										A2(
+											$elm$core$List$drop,
+											1,
+											A2($elm$core$String$split, '\\caption{', line))))));
+					},
+					$elm$core$List$head(
+						A2(
+							$elm$core$List$filter,
+							$elm$core$String$contains('\\caption'),
+							lines_))));
+		};
+		var caption = extractCaption(lines);
+		return $elm$core$String$isEmpty(imageUrl) ? '| figure' : ($elm$core$String$isEmpty(caption) ? ('| image\n' + imageUrl) : ('| image caption:' + (caption + ('\n' + imageUrl))));
+	} else {
+		return '| figure';
+	}
+};
 var $author$project$Render$Export$LaTeXToScripta2$renderMathBlock = function (block) {
 	var _v0 = block.body;
 	if (_v0.$ === 'Left') {
@@ -14986,6 +15059,8 @@ var $author$project$Render$Export$LaTeXToScripta2$renderVerbatim = F2(
 				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
 			case 'minted':
 				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
+			case 'figure':
+				return $author$project$Render$Export$LaTeXToScripta2$renderFigureVerbatim(block);
 			default:
 				return '| ' + name;
 		}
@@ -15047,143 +15122,13 @@ var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSou
 	return ($elm$core$List$isEmpty(forest) && (!$elm$core$String$isEmpty(
 		$elm$core$String$trim(latexSource)))) ? latexSource : $author$project$Render$Export$LaTeXToScripta2$renderS(forest);
 };
-var $author$project$Render$Export$LaTeXToScripta2Test$test1 = function () {
-	var latex = 'Hello world\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 1: Simple paragraph\n' + ('Input:  ' + (latex + ('\n' + ('Output: ' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test10 = function () {
-	var latex = '\\begin{example}\nConsider the function $f(x) = x^2$. For $x = 3$, we have $f(3) = 9$.\n\\end{example}\n\n\\begin{remark}\nThis function is always non-negative.\n\\end{remark}\n\n\\begin{note}\nRemember to check the domain of the function.\n\\end{note}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 10: Example, remark, and note environments\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test11 = function () {
-	var latex = '\\begin{abstract}\nThis paper discusses the fundamental principles of mathematics.\n\\end{abstract}\n\n\\begin{quote}\n"Mathematics is the language of the universe." - Galileo\n\\end{quote}\n\n\\begin{center}\nCentered Text\n\\end{center}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 11: Abstract, quote, and center environments\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test12 = function () {
-	var latex = '\\begin{figure}\n\\includegraphics{diagram.png}\n\\caption{A sample diagram}\n\\end{figure}\n\n\\begin{table}\n\\begin{tabular}{cc}\nA & B \\\\\nC & D\n\\end{tabular}\n\\caption{Sample table}\n\\end{table}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 12: Figure and table environments\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test13 = function () {
-	var latex = '\\begin{verbatim}\nfunction hello() {\n  console.log("Hello, world!");\n}\n\\end{verbatim}\n\nThis is \\underline{underlined text} in the middle of a sentence.\n\n\\begin{lstlisting}\nfor i in range(10):\n    print(i)\n\\end{lstlisting}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 13: Verbatim blocks and underline formatting\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test14 = function () {
-	var latex = 'Here are some compact items:\n\n\\compactItem{First item}\n\\compactItem{Second item}\n\\compactItem{Third item with longer text}\n\nAnd a list with compact items:\n\n\\begin{itemize}\n\\compactItem{Compact item in list}\n\\compactItem{Another compact item}\n\\end{itemize}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 14: CompactItem formatting\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test15 = function () {
-	var latex = 'Here is an image with caption:\n\n\\imagecentercaptioned{https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg}{0.51\\textwidth,keepaspectratio}{Humming bird}\n\nAnd another image:\n\n\\imagecentercaptioned{https://example.com/image.jpg}{0.8\\textwidth}{A sample image}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 15: imagecentercaptioned command\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test2 = function () {
-	var latex = '\\section{Introduction}\n\nThis is some text.\n\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 2: Section with content\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test3 = function () {
-	var latex = '\\section{Main}\n\nSome content here.\n\n\\subsection{Sub}\n\nMore content.\n\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 3: Nested sections\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test4 = function () {
-	var latex = 'The formula $E = mc^2$ is famous.\n\n\\begin{equation}\n\\int_0^\\infty e^{-x} dx = 1\n\\end{equation}\n\nThis is \\textbf{bold} and \\emph{italic} text.\n\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 4: Math and formatting\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test5 = function () {
-	var latex = '\\begin{itemize}\n\n\\item First item\n\n\\item Second item\n\n\\end{itemize}\n\n\\begin{enumerate}\n\n\\item First numbered\n\n\\item Second numbered\n\n\\end{enumerate}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 5: Lists\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test6 = function () {
-	var latex = 'Here is an important equation:\n\n\\begin{equation}\nE = mc^2\n\\end{equation}\n\nAnd another one:\n\n\\begin{equation}\n\\nabla \\cdot \\vec{E} = \\frac{\\rho}{\\epsilon_0}\n\\end{equation}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 6: Equation blocks\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test7 = function () {
-	var latex = 'Multiple aligned equations:\n\n\\begin{align}\nx + y &= 5 \\\\\n2x - y &= 1 \\\\\nx &= 2\n\\end{align}\n\nThis shows the solution step by step.\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 7: Align blocks\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test8 = function () {
-	var latex = '\\begin{theorem}[Pythagorean]\nFor a right triangle with legs $a$ and $b$ and hypotenuse $c$,\nwe have $a^2 + b^2 = c^2$.\n\\end{theorem}\n\n\\begin{definition}\nA prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself.\n\\end{definition}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 8: Theorem and Definition blocks\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test9 = function () {
-	var latex = 'This is a \\href{https://example.com}{link to a website}.\n\nSee \\cite{knuth1984} for more details.\n\nThis statement needs clarification\\footnote{This is the footnote text.}.\n\nAs shown in Figure \\ref{fig:example}.\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 9: Links, citations, and footnotes\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$TestDirect$view = function (_v0) {
-	var tests = _List_fromArray(
-		[
-			_Utils_Tuple2('Test 1', $author$project$Render$Export$LaTeXToScripta2Test$test1),
-			_Utils_Tuple2('Test 2', $author$project$Render$Export$LaTeXToScripta2Test$test2),
-			_Utils_Tuple2('Test 3', $author$project$Render$Export$LaTeXToScripta2Test$test3),
-			_Utils_Tuple2('Test 4', $author$project$Render$Export$LaTeXToScripta2Test$test4),
-			_Utils_Tuple2('Test 5', $author$project$Render$Export$LaTeXToScripta2Test$test5),
-			_Utils_Tuple2('Test 6', $author$project$Render$Export$LaTeXToScripta2Test$test6),
-			_Utils_Tuple2('Test 7', $author$project$Render$Export$LaTeXToScripta2Test$test7),
-			_Utils_Tuple2('Test 8', $author$project$Render$Export$LaTeXToScripta2Test$test8),
-			_Utils_Tuple2('Test 9', $author$project$Render$Export$LaTeXToScripta2Test$test9),
-			_Utils_Tuple2('Test 10', $author$project$Render$Export$LaTeXToScripta2Test$test10),
-			_Utils_Tuple2('Test 11', $author$project$Render$Export$LaTeXToScripta2Test$test11),
-			_Utils_Tuple2('Test 12', $author$project$Render$Export$LaTeXToScripta2Test$test12),
-			_Utils_Tuple2('Test 13', $author$project$Render$Export$LaTeXToScripta2Test$test13),
-			_Utils_Tuple2('Test 14', $author$project$Render$Export$LaTeXToScripta2Test$test14),
-			_Utils_Tuple2('Test 15', $author$project$Render$Export$LaTeXToScripta2Test$test15)
-		]);
-	var testDivs = A2(
-		$elm$core$List$map,
-		function (_v1) {
-			var label = _v1.a;
-			var content = _v1.b;
-			return A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$h2,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(label)
-							])),
-						A2(
-						$elm$html$Html$pre,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'background', '#f0f0f0'),
-								A2($elm$html$Html$Attributes$style, 'padding', '10px'),
-								A2($elm$html$Html$Attributes$style, 'white-space', 'pre-wrap'),
-								A2($elm$html$Html$Attributes$style, 'max-height', '300px'),
-								A2($elm$html$Html$Attributes$style, 'overflow', 'auto')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(content)
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text('========================================')
-							]))
-					]));
-		},
-		tests);
+var $author$project$TestFigure$view = function (_v0) {
+	var input = '\\begin{figure}[h]\n  \\centering\n  \\includegraphics[width=0.5\\textwidth]{hummingbird.jpg}\n  \\caption{A hummingbird drinking from a flower.}\n  \\label{fig:hummingbird}\n\\end{figure}\n';
+	var expectedOutput = '| image caption:A hummingbird drinking from a flower.\nhummingbird.jpg';
+	var actualOutput = $author$project$Render$Export$LaTeXToScripta2$translate(input);
+	var isCorrect = _Utils_eq(
+		$elm$core$String$trim(actualOutput),
+		$elm$core$String$trim(expectedOutput));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -15191,25 +15136,99 @@ var $author$project$TestDirect$view = function (_v0) {
 				A2($elm$html$Html$Attributes$style, 'padding', '20px'),
 				A2($elm$html$Html$Attributes$style, 'font-family', 'monospace')
 			]),
-		A2(
-			$elm$core$List$cons,
-			A2(
+		_List_fromArray(
+			[
+				A2(
 				$elm$html$Html$h1,
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('LaTeX to Scripta Translation Tests (Direct)')
+						$elm$html$Html$text('Test: \\\\begin{figure} environment')
 					])),
-			testDivs));
+				A2(
+				$elm$html$Html$h2,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Input:')
+					])),
+				A2(
+				$elm$html$Html$pre,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'background', '#f0f0f0'),
+						A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+						A2($elm$html$Html$Attributes$style, 'white-space', 'pre-wrap')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(input)
+					])),
+				A2(
+				$elm$html$Html$h2,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Expected Output:')
+					])),
+				A2(
+				$elm$html$Html$pre,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'background', '#e0ffe0'),
+						A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+						A2($elm$html$Html$Attributes$style, 'white-space', 'pre-wrap')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(expectedOutput)
+					])),
+				A2(
+				$elm$html$Html$h2,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Actual Output:')
+					])),
+				A2(
+				$elm$html$Html$pre,
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$Attributes$style,
+						'background',
+						isCorrect ? '#e0ffe0' : '#ffe0e0'),
+						A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+						A2($elm$html$Html$Attributes$style, 'white-space', 'pre-wrap')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(actualOutput)
+					])),
+				A2(
+				$elm$html$Html$h2,
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$Attributes$style,
+						'color',
+						isCorrect ? 'green' : 'red')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						isCorrect ? '✓ Test Passed' : '✗ Test Failed')
+					]))
+			]));
 };
-var $author$project$TestDirect$main = $elm$browser$Browser$sandbox(
+var $author$project$TestFigure$main = $elm$browser$Browser$sandbox(
 	{
 		init: _Utils_Tuple0,
 		update: F2(
 			function (_v0, model) {
 				return model;
 			}),
-		view: $author$project$TestDirect$view
+		view: $author$project$TestFigure$view
 	});
-_Platform_export({'TestDirect':{'init':$author$project$TestDirect$main(
+_Platform_export({'TestFigure':{'init':$author$project$TestFigure$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));

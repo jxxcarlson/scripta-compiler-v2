@@ -1,4 +1,4 @@
-module Render.Export.LaTeXToScripta2Test exposing (runTests, test1, test10, test11, test12, test13, test14, test2, test3, test4, test5, test6, test7, test8, test9)
+module Render.Export.LaTeXToScripta2Test exposing (runTests, test1, test10, test11, test12, test13, test14, test15, test2, test3, test4, test5, test6, test7, test8, test9)
 
 import Render.Export.LaTeXToScripta2 as L2S
 
@@ -21,6 +21,7 @@ runTests =
     , test12
     , test13
     , test14
+    , test15
     ]
         |> String.join "\n\n========================================\n\n"
 
@@ -416,4 +417,28 @@ And a list with compact items:
         ++ latex
         ++ "\n"
         ++ "Output:\n"
+        ++ result
+
+
+{-| Test 15: imagecentercaptioned command
+-}
+test15 : String
+test15 =
+    let
+        latex =
+            """\\imagecentercaptioned{https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg}{0.51\\textwidth,keepaspectratio}{Humming bird}
+"""
+
+        result =
+            L2S.translate latex
+    in
+    "Test 15: imagecentercaptioned command\n"
+        ++ "Input:\n"
+        ++ latex
+        ++ "\n"
+        ++ "Expected Output:\n"
+        ++ "| image caption:Humming bird\n"
+        ++ "https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg\n"
+        ++ "\n"
+        ++ "Actual Output:\n"
         ++ result

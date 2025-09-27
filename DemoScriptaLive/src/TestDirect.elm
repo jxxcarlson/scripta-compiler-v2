@@ -34,6 +34,7 @@ view _ =
             , ("Test 12", Test.test12)
             , ("Test 13", Test.test13)
             , ("Test 14", Test.test14)
+            , ("Test 15", Test.test15)
             ]
 
         testDivs =

@@ -80,87 +80,6 @@ function A9(fun, a, b, c, d, e, f, g, h, i) {
 console.warn('Compiled in DEV mode. Follow the advice at https://elm-lang.org/0.19.1/optimize for better performance and smaller assets.');
 
 
-var _List_Nil_UNUSED = { $: 0 };
-var _List_Nil = { $: '[]' };
-
-function _List_Cons_UNUSED(hd, tl) { return { $: 1, a: hd, b: tl }; }
-function _List_Cons(hd, tl) { return { $: '::', a: hd, b: tl }; }
-
-
-var _List_cons = F2(_List_Cons);
-
-function _List_fromArray(arr)
-{
-	var out = _List_Nil;
-	for (var i = arr.length; i--; )
-	{
-		out = _List_Cons(arr[i], out);
-	}
-	return out;
-}
-
-function _List_toArray(xs)
-{
-	for (var out = []; xs.b; xs = xs.b) // WHILE_CONS
-	{
-		out.push(xs.a);
-	}
-	return out;
-}
-
-var _List_map2 = F3(function(f, xs, ys)
-{
-	for (var arr = []; xs.b && ys.b; xs = xs.b, ys = ys.b) // WHILE_CONSES
-	{
-		arr.push(A2(f, xs.a, ys.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map3 = F4(function(f, xs, ys, zs)
-{
-	for (var arr = []; xs.b && ys.b && zs.b; xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A3(f, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map4 = F5(function(f, ws, xs, ys, zs)
-{
-	for (var arr = []; ws.b && xs.b && ys.b && zs.b; ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A4(f, ws.a, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map5 = F6(function(f, vs, ws, xs, ys, zs)
-{
-	for (var arr = []; vs.b && ws.b && xs.b && ys.b && zs.b; vs = vs.b, ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A5(f, vs.a, ws.a, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_sortBy = F2(function(f, xs)
-{
-	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
-		return _Utils_cmp(f(a), f(b));
-	}));
-});
-
-var _List_sortWith = F2(function(f, xs)
-{
-	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
-		var ord = A2(f, a, b);
-		return ord === $elm$core$Basics$EQ ? 0 : ord === $elm$core$Basics$LT ? -1 : 1;
-	}));
-});
-
-
-
 var _JsArray_empty = [];
 
 function _JsArray_singleton(value)
@@ -790,6 +709,87 @@ function _Utils_ap(xs, ys)
 	}
 	return root;
 }
+
+
+
+var _List_Nil_UNUSED = { $: 0 };
+var _List_Nil = { $: '[]' };
+
+function _List_Cons_UNUSED(hd, tl) { return { $: 1, a: hd, b: tl }; }
+function _List_Cons(hd, tl) { return { $: '::', a: hd, b: tl }; }
+
+
+var _List_cons = F2(_List_Cons);
+
+function _List_fromArray(arr)
+{
+	var out = _List_Nil;
+	for (var i = arr.length; i--; )
+	{
+		out = _List_Cons(arr[i], out);
+	}
+	return out;
+}
+
+function _List_toArray(xs)
+{
+	for (var out = []; xs.b; xs = xs.b) // WHILE_CONS
+	{
+		out.push(xs.a);
+	}
+	return out;
+}
+
+var _List_map2 = F3(function(f, xs, ys)
+{
+	for (var arr = []; xs.b && ys.b; xs = xs.b, ys = ys.b) // WHILE_CONSES
+	{
+		arr.push(A2(f, xs.a, ys.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map3 = F4(function(f, xs, ys, zs)
+{
+	for (var arr = []; xs.b && ys.b && zs.b; xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A3(f, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map4 = F5(function(f, ws, xs, ys, zs)
+{
+	for (var arr = []; ws.b && xs.b && ys.b && zs.b; ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A4(f, ws.a, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map5 = F6(function(f, vs, ws, xs, ys, zs)
+{
+	for (var arr = []; vs.b && ws.b && xs.b && ys.b && zs.b; vs = vs.b, ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A5(f, vs.a, ws.a, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_sortBy = F2(function(f, xs)
+{
+	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
+		return _Utils_cmp(f(a), f(b));
+	}));
+});
+
+var _List_sortWith = F2(function(f, xs)
+{
+	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
+		var ord = A2(f, a, b);
+		return ord === $elm$core$Basics$EQ ? 0 : ord === $elm$core$Basics$LT ? -1 : 1;
+	}));
+});
 
 
 
@@ -3933,447 +3933,6 @@ function _VirtualDom_dekey(keyedNode)
 
 
 
-// ELEMENT
-
-
-var _Debugger_element;
-
-var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debugMetadata, args)
-{
-	return _Platform_initialize(
-		flagDecoder,
-		args,
-		impl.init,
-		impl.update,
-		impl.subscriptions,
-		function(sendToApp, initialModel) {
-			var view = impl.view;
-			/**_UNUSED/
-			var domNode = args['node'];
-			//*/
-			/**/
-			var domNode = args && args['node'] ? args['node'] : _Debug_crash(0);
-			//*/
-			var currNode = _VirtualDom_virtualize(domNode);
-
-			return _Browser_makeAnimator(initialModel, function(model)
-			{
-				var nextNode = view(model);
-				var patches = _VirtualDom_diff(currNode, nextNode);
-				domNode = _VirtualDom_applyPatches(domNode, currNode, patches, sendToApp);
-				currNode = nextNode;
-			});
-		}
-	);
-});
-
-
-
-// DOCUMENT
-
-
-var _Debugger_document;
-
-var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, debugMetadata, args)
-{
-	return _Platform_initialize(
-		flagDecoder,
-		args,
-		impl.init,
-		impl.update,
-		impl.subscriptions,
-		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.setup && impl.setup(sendToApp)
-			var view = impl.view;
-			var title = _VirtualDom_doc.title;
-			var bodyNode = _VirtualDom_doc.body;
-			var currNode = _VirtualDom_virtualize(bodyNode);
-			return _Browser_makeAnimator(initialModel, function(model)
-			{
-				_VirtualDom_divertHrefToApp = divertHrefToApp;
-				var doc = view(model);
-				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.body);
-				var patches = _VirtualDom_diff(currNode, nextNode);
-				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
-				currNode = nextNode;
-				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.title) && (_VirtualDom_doc.title = title = doc.title);
-			});
-		}
-	);
-});
-
-
-
-// ANIMATION
-
-
-var _Browser_cancelAnimationFrame =
-	typeof cancelAnimationFrame !== 'undefined'
-		? cancelAnimationFrame
-		: function(id) { clearTimeout(id); };
-
-var _Browser_requestAnimationFrame =
-	typeof requestAnimationFrame !== 'undefined'
-		? requestAnimationFrame
-		: function(callback) { return setTimeout(callback, 1000 / 60); };
-
-
-function _Browser_makeAnimator(model, draw)
-{
-	draw(model);
-
-	var state = 0;
-
-	function updateIfNeeded()
-	{
-		state = state === 1
-			? 0
-			: ( _Browser_requestAnimationFrame(updateIfNeeded), draw(model), 1 );
-	}
-
-	return function(nextModel, isSync)
-	{
-		model = nextModel;
-
-		isSync
-			? ( draw(model),
-				state === 2 && (state = 1)
-				)
-			: ( state === 0 && _Browser_requestAnimationFrame(updateIfNeeded),
-				state = 2
-				);
-	};
-}
-
-
-
-// APPLICATION
-
-
-function _Browser_application(impl)
-{
-	var onUrlChange = impl.onUrlChange;
-	var onUrlRequest = impl.onUrlRequest;
-	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
-
-	return _Browser_document({
-		setup: function(sendToApp)
-		{
-			key.a = sendToApp;
-			_Browser_window.addEventListener('popstate', key);
-			_Browser_window.navigator.userAgent.indexOf('Trident') < 0 || _Browser_window.addEventListener('hashchange', key);
-
-			return F2(function(domNode, event)
-			{
-				if (!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button < 1 && !domNode.target && !domNode.hasAttribute('download'))
-				{
-					event.preventDefault();
-					var href = domNode.href;
-					var curr = _Browser_getUrl();
-					var next = $elm$url$Url$fromString(href).a;
-					sendToApp(onUrlRequest(
-						(next
-							&& curr.protocol === next.protocol
-							&& curr.host === next.host
-							&& curr.port_.a === next.port_.a
-						)
-							? $elm$browser$Browser$Internal(next)
-							: $elm$browser$Browser$External(href)
-					));
-				}
-			});
-		},
-		init: function(flags)
-		{
-			return A3(impl.init, flags, _Browser_getUrl(), key);
-		},
-		view: impl.view,
-		update: impl.update,
-		subscriptions: impl.subscriptions
-	});
-}
-
-function _Browser_getUrl()
-{
-	return $elm$url$Url$fromString(_VirtualDom_doc.location.href).a || _Debug_crash(1);
-}
-
-var _Browser_go = F2(function(key, n)
-{
-	return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
-		n && history.go(n);
-		key();
-	}));
-});
-
-var _Browser_pushUrl = F2(function(key, url)
-{
-	return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
-		history.pushState({}, '', url);
-		key();
-	}));
-});
-
-var _Browser_replaceUrl = F2(function(key, url)
-{
-	return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
-		history.replaceState({}, '', url);
-		key();
-	}));
-});
-
-
-
-// GLOBAL EVENTS
-
-
-var _Browser_fakeNode = { addEventListener: function() {}, removeEventListener: function() {} };
-var _Browser_doc = typeof document !== 'undefined' ? document : _Browser_fakeNode;
-var _Browser_window = typeof window !== 'undefined' ? window : _Browser_fakeNode;
-
-var _Browser_on = F3(function(node, eventName, sendToSelf)
-{
-	return _Scheduler_spawn(_Scheduler_binding(function(callback)
-	{
-		function handler(event)	{ _Scheduler_rawSpawn(sendToSelf(event)); }
-		node.addEventListener(eventName, handler, _VirtualDom_passiveSupported && { passive: true });
-		return function() { node.removeEventListener(eventName, handler); };
-	}));
-});
-
-var _Browser_decodeEvent = F2(function(decoder, event)
-{
-	var result = _Json_runHelp(decoder, event);
-	return $elm$core$Result$isOk(result) ? $elm$core$Maybe$Just(result.a) : $elm$core$Maybe$Nothing;
-});
-
-
-
-// PAGE VISIBILITY
-
-
-function _Browser_visibilityInfo()
-{
-	return (typeof _VirtualDom_doc.hidden !== 'undefined')
-		? { hidden: 'hidden', change: 'visibilitychange' }
-		:
-	(typeof _VirtualDom_doc.mozHidden !== 'undefined')
-		? { hidden: 'mozHidden', change: 'mozvisibilitychange' }
-		:
-	(typeof _VirtualDom_doc.msHidden !== 'undefined')
-		? { hidden: 'msHidden', change: 'msvisibilitychange' }
-		:
-	(typeof _VirtualDom_doc.webkitHidden !== 'undefined')
-		? { hidden: 'webkitHidden', change: 'webkitvisibilitychange' }
-		: { hidden: 'hidden', change: 'visibilitychange' };
-}
-
-
-
-// ANIMATION FRAMES
-
-
-function _Browser_rAF()
-{
-	return _Scheduler_binding(function(callback)
-	{
-		var id = _Browser_requestAnimationFrame(function() {
-			callback(_Scheduler_succeed(Date.now()));
-		});
-
-		return function() {
-			_Browser_cancelAnimationFrame(id);
-		};
-	});
-}
-
-
-function _Browser_now()
-{
-	return _Scheduler_binding(function(callback)
-	{
-		callback(_Scheduler_succeed(Date.now()));
-	});
-}
-
-
-
-// DOM STUFF
-
-
-function _Browser_withNode(id, doStuff)
-{
-	return _Scheduler_binding(function(callback)
-	{
-		_Browser_requestAnimationFrame(function() {
-			var node = document.getElementById(id);
-			callback(node
-				? _Scheduler_succeed(doStuff(node))
-				: _Scheduler_fail($elm$browser$Browser$Dom$NotFound(id))
-			);
-		});
-	});
-}
-
-
-function _Browser_withWindow(doStuff)
-{
-	return _Scheduler_binding(function(callback)
-	{
-		_Browser_requestAnimationFrame(function() {
-			callback(_Scheduler_succeed(doStuff()));
-		});
-	});
-}
-
-
-// FOCUS and BLUR
-
-
-var _Browser_call = F2(function(functionName, id)
-{
-	return _Browser_withNode(id, function(node) {
-		node[functionName]();
-		return _Utils_Tuple0;
-	});
-});
-
-
-
-// WINDOW VIEWPORT
-
-
-function _Browser_getViewport()
-{
-	return {
-		scene: _Browser_getScene(),
-		viewport: {
-			x: _Browser_window.pageXOffset,
-			y: _Browser_window.pageYOffset,
-			width: _Browser_doc.documentElement.clientWidth,
-			height: _Browser_doc.documentElement.clientHeight
-		}
-	};
-}
-
-function _Browser_getScene()
-{
-	var body = _Browser_doc.body;
-	var elem = _Browser_doc.documentElement;
-	return {
-		width: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		height: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
-	};
-}
-
-var _Browser_setViewport = F2(function(x, y)
-{
-	return _Browser_withWindow(function()
-	{
-		_Browser_window.scroll(x, y);
-		return _Utils_Tuple0;
-	});
-});
-
-
-
-// ELEMENT VIEWPORT
-
-
-function _Browser_getViewportOf(id)
-{
-	return _Browser_withNode(id, function(node)
-	{
-		return {
-			scene: {
-				width: node.scrollWidth,
-				height: node.scrollHeight
-			},
-			viewport: {
-				x: node.scrollLeft,
-				y: node.scrollTop,
-				width: node.clientWidth,
-				height: node.clientHeight
-			}
-		};
-	});
-}
-
-
-var _Browser_setViewportOf = F3(function(id, x, y)
-{
-	return _Browser_withNode(id, function(node)
-	{
-		node.scrollLeft = x;
-		node.scrollTop = y;
-		return _Utils_Tuple0;
-	});
-});
-
-
-
-// ELEMENT
-
-
-function _Browser_getElement(id)
-{
-	return _Browser_withNode(id, function(node)
-	{
-		var rect = node.getBoundingClientRect();
-		var x = _Browser_window.pageXOffset;
-		var y = _Browser_window.pageYOffset;
-		return {
-			scene: _Browser_getScene(),
-			viewport: {
-				x: x,
-				y: y,
-				width: _Browser_doc.documentElement.clientWidth,
-				height: _Browser_doc.documentElement.clientHeight
-			},
-			element: {
-				x: x + rect.left,
-				y: y + rect.top,
-				width: rect.width,
-				height: rect.height
-			}
-		};
-	});
-}
-
-
-
-// LOAD and RELOAD
-
-
-function _Browser_reload(skipCache)
-{
-	return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function(callback)
-	{
-		_VirtualDom_doc.location.reload(skipCache);
-	}));
-}
-
-function _Browser_load(url)
-{
-	return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function(callback)
-	{
-		try
-		{
-			_Browser_window.location = url;
-		}
-		catch(err)
-		{
-			// Only Firefox can throw a NS_ERROR_MALFORMED_URI exception here.
-			// Other browsers reload the page, so let's be consistent about that.
-			_VirtualDom_doc.location.reload(false);
-		}
-	}));
-}
-
-
-
-
 // STRINGS
 
 
@@ -4537,8 +4096,6 @@ var _Bitwise_shiftRightZfBy = F2(function(offset, a)
 {
 	return a >>> offset;
 });
-var $elm$core$Basics$EQ = {$: 'EQ'};
-var $elm$core$Basics$LT = {$: 'LT'};
 var $elm$core$List$cons = _List_cons;
 var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var $elm$core$Array$foldr = F3(
@@ -4616,7 +4173,9 @@ var $elm$core$Set$toList = function (_v0) {
 	var dict = _v0.a;
 	return $elm$core$Dict$keys(dict);
 };
+var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
+var $elm$core$Basics$LT = {$: 'LT'};
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
 };
@@ -5027,340 +4586,8 @@ var $elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 			return 3;
 	}
 };
-var $elm$browser$Browser$External = function (a) {
-	return {$: 'External', a: a};
-};
-var $elm$browser$Browser$Internal = function (a) {
-	return {$: 'Internal', a: a};
-};
-var $elm$core$Basics$identity = function (x) {
-	return x;
-};
-var $elm$browser$Browser$Dom$NotFound = function (a) {
-	return {$: 'NotFound', a: a};
-};
-var $elm$url$Url$Http = {$: 'Http'};
-var $elm$url$Url$Https = {$: 'Https'};
-var $elm$url$Url$Url = F6(
-	function (protocol, host, port_, path, query, fragment) {
-		return {fragment: fragment, host: host, path: path, port_: port_, protocol: protocol, query: query};
-	});
-var $elm$core$String$contains = _String_contains;
-var $elm$core$String$length = _String_length;
-var $elm$core$String$slice = _String_slice;
-var $elm$core$String$dropLeft = F2(
-	function (n, string) {
-		return (n < 1) ? string : A3(
-			$elm$core$String$slice,
-			n,
-			$elm$core$String$length(string),
-			string);
-	});
-var $elm$core$String$indexes = _String_indexes;
-var $elm$core$String$isEmpty = function (string) {
-	return string === '';
-};
-var $elm$core$String$left = F2(
-	function (n, string) {
-		return (n < 1) ? '' : A3($elm$core$String$slice, 0, n, string);
-	});
-var $elm$core$String$toInt = _String_toInt;
-var $elm$url$Url$chompBeforePath = F5(
-	function (protocol, path, params, frag, str) {
-		if ($elm$core$String$isEmpty(str) || A2($elm$core$String$contains, '@', str)) {
-			return $elm$core$Maybe$Nothing;
-		} else {
-			var _v0 = A2($elm$core$String$indexes, ':', str);
-			if (!_v0.b) {
-				return $elm$core$Maybe$Just(
-					A6($elm$url$Url$Url, protocol, str, $elm$core$Maybe$Nothing, path, params, frag));
-			} else {
-				if (!_v0.b.b) {
-					var i = _v0.a;
-					var _v1 = $elm$core$String$toInt(
-						A2($elm$core$String$dropLeft, i + 1, str));
-					if (_v1.$ === 'Nothing') {
-						return $elm$core$Maybe$Nothing;
-					} else {
-						var port_ = _v1;
-						return $elm$core$Maybe$Just(
-							A6(
-								$elm$url$Url$Url,
-								protocol,
-								A2($elm$core$String$left, i, str),
-								port_,
-								path,
-								params,
-								frag));
-					}
-				} else {
-					return $elm$core$Maybe$Nothing;
-				}
-			}
-		}
-	});
-var $elm$url$Url$chompBeforeQuery = F4(
-	function (protocol, params, frag, str) {
-		if ($elm$core$String$isEmpty(str)) {
-			return $elm$core$Maybe$Nothing;
-		} else {
-			var _v0 = A2($elm$core$String$indexes, '/', str);
-			if (!_v0.b) {
-				return A5($elm$url$Url$chompBeforePath, protocol, '/', params, frag, str);
-			} else {
-				var i = _v0.a;
-				return A5(
-					$elm$url$Url$chompBeforePath,
-					protocol,
-					A2($elm$core$String$dropLeft, i, str),
-					params,
-					frag,
-					A2($elm$core$String$left, i, str));
-			}
-		}
-	});
-var $elm$url$Url$chompBeforeFragment = F3(
-	function (protocol, frag, str) {
-		if ($elm$core$String$isEmpty(str)) {
-			return $elm$core$Maybe$Nothing;
-		} else {
-			var _v0 = A2($elm$core$String$indexes, '?', str);
-			if (!_v0.b) {
-				return A4($elm$url$Url$chompBeforeQuery, protocol, $elm$core$Maybe$Nothing, frag, str);
-			} else {
-				var i = _v0.a;
-				return A4(
-					$elm$url$Url$chompBeforeQuery,
-					protocol,
-					$elm$core$Maybe$Just(
-						A2($elm$core$String$dropLeft, i + 1, str)),
-					frag,
-					A2($elm$core$String$left, i, str));
-			}
-		}
-	});
-var $elm$url$Url$chompAfterProtocol = F2(
-	function (protocol, str) {
-		if ($elm$core$String$isEmpty(str)) {
-			return $elm$core$Maybe$Nothing;
-		} else {
-			var _v0 = A2($elm$core$String$indexes, '#', str);
-			if (!_v0.b) {
-				return A3($elm$url$Url$chompBeforeFragment, protocol, $elm$core$Maybe$Nothing, str);
-			} else {
-				var i = _v0.a;
-				return A3(
-					$elm$url$Url$chompBeforeFragment,
-					protocol,
-					$elm$core$Maybe$Just(
-						A2($elm$core$String$dropLeft, i + 1, str)),
-					A2($elm$core$String$left, i, str));
-			}
-		}
-	});
-var $elm$core$String$startsWith = _String_startsWith;
-var $elm$url$Url$fromString = function (str) {
-	return A2($elm$core$String$startsWith, 'http://', str) ? A2(
-		$elm$url$Url$chompAfterProtocol,
-		$elm$url$Url$Http,
-		A2($elm$core$String$dropLeft, 7, str)) : (A2($elm$core$String$startsWith, 'https://', str) ? A2(
-		$elm$url$Url$chompAfterProtocol,
-		$elm$url$Url$Https,
-		A2($elm$core$String$dropLeft, 8, str)) : $elm$core$Maybe$Nothing);
-};
-var $elm$core$Basics$never = function (_v0) {
-	never:
-	while (true) {
-		var nvr = _v0.a;
-		var $temp$_v0 = nvr;
-		_v0 = $temp$_v0;
-		continue never;
-	}
-};
-var $elm$core$Task$Perform = function (a) {
-	return {$: 'Perform', a: a};
-};
-var $elm$core$Task$succeed = _Scheduler_succeed;
-var $elm$core$Task$init = $elm$core$Task$succeed(_Utils_Tuple0);
-var $elm$core$List$foldrHelper = F4(
-	function (fn, acc, ctr, ls) {
-		if (!ls.b) {
-			return acc;
-		} else {
-			var a = ls.a;
-			var r1 = ls.b;
-			if (!r1.b) {
-				return A2(fn, a, acc);
-			} else {
-				var b = r1.a;
-				var r2 = r1.b;
-				if (!r2.b) {
-					return A2(
-						fn,
-						a,
-						A2(fn, b, acc));
-				} else {
-					var c = r2.a;
-					var r3 = r2.b;
-					if (!r3.b) {
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(fn, c, acc)));
-					} else {
-						var d = r3.a;
-						var r4 = r3.b;
-						var res = (ctr > 500) ? A3(
-							$elm$core$List$foldl,
-							fn,
-							acc,
-							$elm$core$List$reverse(r4)) : A4($elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(
-									fn,
-									c,
-									A2(fn, d, res))));
-					}
-				}
-			}
-		}
-	});
-var $elm$core$List$foldr = F3(
-	function (fn, acc, ls) {
-		return A4($elm$core$List$foldrHelper, fn, acc, 0, ls);
-	});
-var $elm$core$List$map = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, acc) {
-					return A2(
-						$elm$core$List$cons,
-						f(x),
-						acc);
-				}),
-			_List_Nil,
-			xs);
-	});
-var $elm$core$Task$andThen = _Scheduler_andThen;
-var $elm$core$Task$map = F2(
-	function (func, taskA) {
-		return A2(
-			$elm$core$Task$andThen,
-			function (a) {
-				return $elm$core$Task$succeed(
-					func(a));
-			},
-			taskA);
-	});
-var $elm$core$Task$map2 = F3(
-	function (func, taskA, taskB) {
-		return A2(
-			$elm$core$Task$andThen,
-			function (a) {
-				return A2(
-					$elm$core$Task$andThen,
-					function (b) {
-						return $elm$core$Task$succeed(
-							A2(func, a, b));
-					},
-					taskB);
-			},
-			taskA);
-	});
-var $elm$core$Task$sequence = function (tasks) {
-	return A3(
-		$elm$core$List$foldr,
-		$elm$core$Task$map2($elm$core$List$cons),
-		$elm$core$Task$succeed(_List_Nil),
-		tasks);
-};
-var $elm$core$Platform$sendToApp = _Platform_sendToApp;
-var $elm$core$Task$spawnCmd = F2(
-	function (router, _v0) {
-		var task = _v0.a;
-		return _Scheduler_spawn(
-			A2(
-				$elm$core$Task$andThen,
-				$elm$core$Platform$sendToApp(router),
-				task));
-	});
-var $elm$core$Task$onEffects = F3(
-	function (router, commands, state) {
-		return A2(
-			$elm$core$Task$map,
-			function (_v0) {
-				return _Utils_Tuple0;
-			},
-			$elm$core$Task$sequence(
-				A2(
-					$elm$core$List$map,
-					$elm$core$Task$spawnCmd(router),
-					commands)));
-	});
-var $elm$core$Task$onSelfMsg = F3(
-	function (_v0, _v1, _v2) {
-		return $elm$core$Task$succeed(_Utils_Tuple0);
-	});
-var $elm$core$Task$cmdMap = F2(
-	function (tagger, _v0) {
-		var task = _v0.a;
-		return $elm$core$Task$Perform(
-			A2($elm$core$Task$map, tagger, task));
-	});
-_Platform_effectManagers['Task'] = _Platform_createManager($elm$core$Task$init, $elm$core$Task$onEffects, $elm$core$Task$onSelfMsg, $elm$core$Task$cmdMap);
-var $elm$core$Task$command = _Platform_leaf('Task');
-var $elm$core$Task$perform = F2(
-	function (toMessage, task) {
-		return $elm$core$Task$command(
-			$elm$core$Task$Perform(
-				A2($elm$core$Task$map, toMessage, task)));
-	});
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $elm$browser$Browser$sandbox = function (impl) {
-	return _Browser_element(
-		{
-			init: function (_v0) {
-				return _Utils_Tuple2(impl.init, $elm$core$Platform$Cmd$none);
-			},
-			subscriptions: function (_v1) {
-				return $elm$core$Platform$Sub$none;
-			},
-			update: F2(
-				function (msg, model) {
-					return _Utils_Tuple2(
-						A2(impl.update, msg, model),
-						$elm$core$Platform$Cmd$none);
-				}),
-			view: impl.view
-		});
-};
 var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $elm$html$Html$h2 = _VirtualDom_node('h2');
-var $elm$html$Html$pre = _VirtualDom_node('pre');
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
-};
-var $elm$core$Basics$not = _Basics_not;
+var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $author$project$ScriptaV2$Language$MicroLaTeXLang = {$: 'MicroLaTeXLang'};
 var $author$project$ScriptaV2$Config$idPrefix = 'L';
 var $elm$core$String$lines = _String_lines;
@@ -5487,6 +4714,13 @@ var $elm_community$list_extra$List$Extra$getAt = F2(
 		return (idx < 0) ? $elm$core$Maybe$Nothing : $elm$core$List$head(
 			A2($elm$core$List$drop, idx, xs));
 	});
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
 var $author$project$Generic$Language$Fun = F3(
 	function (a, b, c) {
 		return {$: 'Fun', a: a, b: b, c: c};
@@ -5797,6 +5031,75 @@ var $author$project$MicroLaTeX$Expression$addErrorMessage = F2(
 		return _Utils_update(
 			state,
 			{committed: committed});
+	});
+var $elm$core$List$foldrHelper = F4(
+	function (fn, acc, ctr, ls) {
+		if (!ls.b) {
+			return acc;
+		} else {
+			var a = ls.a;
+			var r1 = ls.b;
+			if (!r1.b) {
+				return A2(fn, a, acc);
+			} else {
+				var b = r1.a;
+				var r2 = r1.b;
+				if (!r2.b) {
+					return A2(
+						fn,
+						a,
+						A2(fn, b, acc));
+				} else {
+					var c = r2.a;
+					var r3 = r2.b;
+					if (!r3.b) {
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(fn, c, acc)));
+					} else {
+						var d = r3.a;
+						var r4 = r3.b;
+						var res = (ctr > 500) ? A3(
+							$elm$core$List$foldl,
+							fn,
+							acc,
+							$elm$core$List$reverse(r4)) : A4($elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(
+									fn,
+									c,
+									A2(fn, d, res))));
+					}
+				}
+			}
+		}
+	});
+var $elm$core$List$foldr = F3(
+	function (fn, acc, ls) {
+		return A4($elm$core$List$foldrHelper, fn, acc, 0, ls);
+	});
+var $elm$core$List$map = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A2(
+						$elm$core$List$cons,
+						f(x),
+						acc);
+				}),
+			_List_Nil,
+			xs);
 	});
 var $elm$core$List$sum = function (numbers) {
 	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
@@ -6267,6 +5570,7 @@ var $elm$core$Maybe$map = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
+var $elm$core$Basics$not = _Basics_not;
 var $rtfeldman$console_print$Console$bgYellow = function (str) {
 	return A2(
 		$elm$core$String$join,
@@ -6281,6 +5585,16 @@ var $author$project$MicroLaTeX$LogTools$forklogYellow = F4(
 var $author$project$Generic$Language$VFun = F3(
 	function (a, b, c) {
 		return {$: 'VFun', a: a, b: b, c: c};
+	});
+var $elm$core$String$length = _String_length;
+var $elm$core$String$slice = _String_slice;
+var $elm$core$String$dropLeft = F2(
+	function (n, string) {
+		return (n < 1) ? string : A3(
+			$elm$core$String$slice,
+			n,
+			$elm$core$String$length(string),
+			string);
 	});
 var $elm$core$String$dropRight = F2(
 	function (n, string) {
@@ -6495,6 +5809,9 @@ var $author$project$MicroLaTeX$Expression$handleMath = function (state) {
 	} else {
 		return state;
 	}
+};
+var $elm$core$Basics$identity = function (x) {
+	return x;
 };
 var $author$project$MicroLaTeX$Token$BS = function (a) {
 	return {$: 'BS', a: a};
@@ -7809,6 +7126,9 @@ var $elm$parser$Parser$Advanced$Token = F2(
 	function (a, b) {
 		return {$: 'Token', a: a, b: b};
 	});
+var $elm$core$String$isEmpty = function (string) {
+	return string === '';
+};
 var $elm$parser$Parser$Advanced$isSubString = _Parser_isSubString;
 var $elm$parser$Parser$Advanced$token = function (_v0) {
 	var str = _v0.a;
@@ -9699,6 +9019,7 @@ var $author$project$MicroLaTeX$PrimitiveBlock$blockFromLine = F5(
 			style: $elm$core$Maybe$Nothing
 		};
 	});
+var $elm$core$String$contains = _String_contains;
 var $elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -11199,6 +10520,10 @@ var $author$project$MicroLaTeX$PrimitiveBlock$handleComment = F2(
 				lineNumber: line.lineNumber,
 				stack: A2($elm$core$List$cons, newBlock, state.stack)
 			});
+	});
+var $elm$core$String$left = F2(
+	function (n, string) {
+		return (n < 1) ? '' : A3($elm$core$String$slice, 0, n, string);
 	});
 var $author$project$MicroLaTeX$PrimitiveBlock$plainText = F2(
 	function (state_, currentLine) {
@@ -14597,6 +13922,7 @@ var $author$project$Render$Export$LaTeXToScripta2$parseL = function (latexSource
 	var idPrefix = $author$project$ScriptaV2$Config$idPrefix;
 	return A6($author$project$Generic$Compiler$parse_, $author$project$ScriptaV2$Language$MicroLaTeXLang, $author$project$MicroLaTeX$PrimitiveBlock$parse, $author$project$MicroLaTeX$Expression$parse, idPrefix, outerCount, lines);
 };
+var $elm$html$Html$pre = _VirtualDom_node('pre');
 var $author$project$Render$Export$LaTeXToScripta2$renderVerbatimFunction = F2(
 	function (name, content) {
 		switch (name) {
@@ -14688,7 +14014,7 @@ var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F2(
 						var _v6 = _v5.b;
 						var caption = _v6.a;
 						var _v7 = width;
-						return '| image figure:1 caption: ' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(caption) + ('\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url)));
+						return '| image caption:' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(caption) + ('\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url)));
 					} else {
 						var url = args.a;
 						return '| image\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url);
@@ -15042,174 +14368,42 @@ var $author$project$Render$Export$LaTeXToScripta2$renderS = function (forest) {
 			$author$project$Render$Export$LaTeXToScripta2$renderTree(0),
 			forest));
 };
-var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSource) {
-	var forest = $author$project$Render$Export$LaTeXToScripta2$parseL(latexSource);
-	return ($elm$core$List$isEmpty(forest) && (!$elm$core$String$isEmpty(
-		$elm$core$String$trim(latexSource)))) ? latexSource : $author$project$Render$Export$LaTeXToScripta2$renderS(forest);
-};
-var $author$project$Render$Export$LaTeXToScripta2Test$test1 = function () {
-	var latex = 'Hello world\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 1: Simple paragraph\n' + ('Input:  ' + (latex + ('\n' + ('Output: ' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test10 = function () {
-	var latex = '\\begin{example}\nConsider the function $f(x) = x^2$. For $x = 3$, we have $f(3) = 9$.\n\\end{example}\n\n\\begin{remark}\nThis function is always non-negative.\n\\end{remark}\n\n\\begin{note}\nRemember to check the domain of the function.\n\\end{note}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 10: Example, remark, and note environments\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test11 = function () {
-	var latex = '\\begin{abstract}\nThis paper discusses the fundamental principles of mathematics.\n\\end{abstract}\n\n\\begin{quote}\n"Mathematics is the language of the universe." - Galileo\n\\end{quote}\n\n\\begin{center}\nCentered Text\n\\end{center}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 11: Abstract, quote, and center environments\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test12 = function () {
-	var latex = '\\begin{figure}\n\\includegraphics{diagram.png}\n\\caption{A sample diagram}\n\\end{figure}\n\n\\begin{table}\n\\begin{tabular}{cc}\nA & B \\\\\nC & D\n\\end{tabular}\n\\caption{Sample table}\n\\end{table}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 12: Figure and table environments\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test13 = function () {
-	var latex = '\\begin{verbatim}\nfunction hello() {\n  console.log("Hello, world!");\n}\n\\end{verbatim}\n\nThis is \\underline{underlined text} in the middle of a sentence.\n\n\\begin{lstlisting}\nfor i in range(10):\n    print(i)\n\\end{lstlisting}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 13: Verbatim blocks and underline formatting\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test14 = function () {
-	var latex = 'Here are some compact items:\n\n\\compactItem{First item}\n\\compactItem{Second item}\n\\compactItem{Third item with longer text}\n\nAnd a list with compact items:\n\n\\begin{itemize}\n\\compactItem{Compact item in list}\n\\compactItem{Another compact item}\n\\end{itemize}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 14: CompactItem formatting\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test15 = function () {
-	var latex = 'Here is an image with caption:\n\n\\imagecentercaptioned{https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg}{0.51\\textwidth,keepaspectratio}{Humming bird}\n\nAnd another image:\n\n\\imagecentercaptioned{https://example.com/image.jpg}{0.8\\textwidth}{A sample image}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 15: imagecentercaptioned command\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test2 = function () {
-	var latex = '\\section{Introduction}\n\nThis is some text.\n\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 2: Section with content\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test3 = function () {
-	var latex = '\\section{Main}\n\nSome content here.\n\n\\subsection{Sub}\n\nMore content.\n\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 3: Nested sections\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test4 = function () {
-	var latex = 'The formula $E = mc^2$ is famous.\n\n\\begin{equation}\n\\int_0^\\infty e^{-x} dx = 1\n\\end{equation}\n\nThis is \\textbf{bold} and \\emph{italic} text.\n\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 4: Math and formatting\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test5 = function () {
-	var latex = '\\begin{itemize}\n\n\\item First item\n\n\\item Second item\n\n\\end{itemize}\n\n\\begin{enumerate}\n\n\\item First numbered\n\n\\item Second numbered\n\n\\end{enumerate}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 5: Lists\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test6 = function () {
-	var latex = 'Here is an important equation:\n\n\\begin{equation}\nE = mc^2\n\\end{equation}\n\nAnd another one:\n\n\\begin{equation}\n\\nabla \\cdot \\vec{E} = \\frac{\\rho}{\\epsilon_0}\n\\end{equation}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 6: Equation blocks\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test7 = function () {
-	var latex = 'Multiple aligned equations:\n\n\\begin{align}\nx + y &= 5 \\\\\n2x - y &= 1 \\\\\nx &= 2\n\\end{align}\n\nThis shows the solution step by step.\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 7: Align blocks\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test8 = function () {
-	var latex = '\\begin{theorem}[Pythagorean]\nFor a right triangle with legs $a$ and $b$ and hypotenuse $c$,\nwe have $a^2 + b^2 = c^2$.\n\\end{theorem}\n\n\\begin{definition}\nA prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself.\n\\end{definition}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 8: Theorem and Definition blocks\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test9 = function () {
-	var latex = 'This is a \\href{https://example.com}{link to a website}.\n\nSee \\cite{knuth1984} for more details.\n\nThis statement needs clarification\\footnote{This is the footnote text.}.\n\nAs shown in Figure \\ref{fig:example}.\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 9: Links, citations, and footnotes\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$TestDirect$view = function (_v0) {
-	var tests = _List_fromArray(
-		[
-			_Utils_Tuple2('Test 1', $author$project$Render$Export$LaTeXToScripta2Test$test1),
-			_Utils_Tuple2('Test 2', $author$project$Render$Export$LaTeXToScripta2Test$test2),
-			_Utils_Tuple2('Test 3', $author$project$Render$Export$LaTeXToScripta2Test$test3),
-			_Utils_Tuple2('Test 4', $author$project$Render$Export$LaTeXToScripta2Test$test4),
-			_Utils_Tuple2('Test 5', $author$project$Render$Export$LaTeXToScripta2Test$test5),
-			_Utils_Tuple2('Test 6', $author$project$Render$Export$LaTeXToScripta2Test$test6),
-			_Utils_Tuple2('Test 7', $author$project$Render$Export$LaTeXToScripta2Test$test7),
-			_Utils_Tuple2('Test 8', $author$project$Render$Export$LaTeXToScripta2Test$test8),
-			_Utils_Tuple2('Test 9', $author$project$Render$Export$LaTeXToScripta2Test$test9),
-			_Utils_Tuple2('Test 10', $author$project$Render$Export$LaTeXToScripta2Test$test10),
-			_Utils_Tuple2('Test 11', $author$project$Render$Export$LaTeXToScripta2Test$test11),
-			_Utils_Tuple2('Test 12', $author$project$Render$Export$LaTeXToScripta2Test$test12),
-			_Utils_Tuple2('Test 13', $author$project$Render$Export$LaTeXToScripta2Test$test13),
-			_Utils_Tuple2('Test 14', $author$project$Render$Export$LaTeXToScripta2Test$test14),
-			_Utils_Tuple2('Test 15', $author$project$Render$Export$LaTeXToScripta2Test$test15)
-		]);
-	var testDivs = A2(
-		$elm$core$List$map,
-		function (_v1) {
-			var label = _v1.a;
-			var content = _v1.b;
-			return A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$h2,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(label)
-							])),
-						A2(
-						$elm$html$Html$pre,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'background', '#f0f0f0'),
-								A2($elm$html$Html$Attributes$style, 'padding', '10px'),
-								A2($elm$html$Html$Attributes$style, 'white-space', 'pre-wrap'),
-								A2($elm$html$Html$Attributes$style, 'max-height', '300px'),
-								A2($elm$html$Html$Attributes$style, 'overflow', 'auto')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(content)
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text('========================================')
-							]))
-					]));
-		},
-		tests);
+var $elm$core$Debug$toString = _Debug_toString;
+var $author$project$DebugImageCaptioned$main = function () {
+	var latex = '\\imagecentercaptioned{https://www.realsimple.com/thmb/7xn0oIF6a9eJ-y_4OO5vN0lJhCg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/humming-bird-flowers-GettyImages-1271839175-b515cb4f06a34e66b084ba617995f00a.jpg}{0.51\\textwidth,keepaspectratio}{Humming bird}\n';
+	var forest = $author$project$Render$Export$LaTeXToScripta2$parseL(latex);
+	var result = $author$project$Render$Export$LaTeXToScripta2$renderS(forest);
+	var debugInfo = 'Input:\n' + (latex + ('\n\n' + ('Parsed Forest Structure:\n' + ($elm$core$Debug$toString(forest) + ('\n\n' + ('Output:\n' + result))))));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				A2($elm$html$Html$Attributes$style, 'padding', '20px'),
-				A2($elm$html$Html$Attributes$style, 'font-family', 'monospace')
+				A2($elm$html$Html$Attributes$style, 'padding', '20px')
 			]),
-		A2(
-			$elm$core$List$cons,
-			A2(
-				$elm$html$Html$h1,
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h3,
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('LaTeX to Scripta Translation Tests (Direct)')
+						$elm$html$Html$text('Debug imagecentercaptioned parsing:')
 					])),
-			testDivs));
-};
-var $author$project$TestDirect$main = $elm$browser$Browser$sandbox(
-	{
-		init: _Utils_Tuple0,
-		update: F2(
-			function (_v0, model) {
-				return model;
-			}),
-		view: $author$project$TestDirect$view
-	});
-_Platform_export({'TestDirect':{'init':$author$project$TestDirect$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));
+				A2(
+				$elm$html$Html$pre,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'white-space', 'pre-wrap'),
+						A2($elm$html$Html$Attributes$style, 'font-size', '10px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(debugInfo)
+					]))
+			]));
+}();
+_Platform_export({'DebugImageCaptioned':{'init':_VirtualDom_init($author$project$DebugImageCaptioned$main)(0)(0)}});}(this));
