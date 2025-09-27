@@ -132,7 +132,8 @@ standardPackages =
 %% Standard packages
 \\usepackage{geometry}
 \\geometry{letterpaper}
-\\usepackage{changepage}   % for the adjustwidth environment
+\\usepackage{changepage}  % for the adjustwidth environment
+\\usepackage{graphicx}    % for \\includegraphics
 
 %% AMS
 \\usepackage{amssymb}
@@ -147,6 +148,25 @@ standardPackages =
 commands =
     """
 %% Commands
+
+\\newcommand{\\hang}[1]{%
+  {%
+    \\setlength{\\leftskip}{1em}%
+    \\setlength{\\hangindent}{1em}%
+    \\hangafter=1 %
+    #1\\ \\vpace{4}%
+  }%
+}
+
+\\renewcommand{\\labelitemi}{\\scalebox{0.7}{\\textbullet}}
+
+% Dot box = 1em, gap = 1em → total = 2em
+\\newcommand{\\compactItem}[1]{%
+  \\par
+\\noindent
+  \\hangindent=2em \\hangafter=1%
+  \\makebox[1em][l]{\\labelitemi}\\hspace{1em}#1\\par
+}
 
 \\newcommand{\\code}[1]{{\\tt #1}}
 \\newcommand{\\ellie}[1]{\\href{#1}{Link to Ellie}}

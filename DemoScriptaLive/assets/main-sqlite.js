@@ -51841,7 +51841,7 @@ var $author$project$Generic$TextMacro$getTextMacroFunctionNames = function (str)
 								$author$project$Generic$TextMacro$buildDictionary(
 									$elm$core$String$lines(str)))))))));
 };
-var $author$project$Render$Export$Preamble$commands = '\n%% Commands\n\n\\newcommand{\\code}[1]{{\\tt #1}}\n\\newcommand{\\ellie}[1]{\\href{#1}{Link to Ellie}}\n% \\newcommand{\\image}[3]{\\includegraphics[width=3cm]{#1}}\n\n%% width=4truein,keepaspectratio]\n\n\n\\newcommand{\\imagecentercaptioned}[3]{\n   \\medskip\n   \\begin{figure}[htp]\n   \\centering\n    \\includegraphics[width=#2]{#1}\n    \\vglue0pt\n    \\caption{#3}\n    \\end{figure}\n    \\medskip\n}\n\n\\newcommand{\\imagecenter}[2]{\n   \\medskip\n   \\begin{figure}[htp]\n   \\centering\n    \\includegraphics[width=#2]{#1}\n    \\vglue0pt\n    \\end{figure}\n    \\medskip\n}\n\n\\newcommand{\\imagefloat}[4]{\n    \\begin{wrapfigure}{#4}{#2}\n    \\includegraphics[width=#2]{#1}\n    \\caption{#3}\n    \\end{wrapfigure}\n}\n\n\n\\newcommand{\\imagefloatright}[3]{\n    \\begin{wrapfigure}{R}{0.30\\textwidth}\n    \\includegraphics[width=0.30\\textwidth]{#1}\n    \\caption{#2}\n    \\end{wrapfigure}\n}\n\n\\newcommand{\\hide}[1]{}\n\n\n\\newcommand{\\imagefloatleft}[3]{\n    \\begin{wrapfigure}{L}{0.3-\\textwidth}\n    \\includegraphics[width=0.30\\textwidth]{#1}\n    \\caption{#2}\n    \\end{wrapfigure}\n}\n% Font style\n\\newcommand{\\italic}[1]{{\\sl #1}}\n\\newcommand{\\strong}[1]{{\\bf #1}}\n\\newcommand{\\strike}[1]{\\st{#1}}\n\n% Scripta\n\\newcommand{\\ilink}[2]{\\href{{https://scripta.io/s/#1}}{#2}}\n\\newcommand{\\markwith}[1]{}\n\\newcommand{\\anchor}[1]{#1}\n\n% Color\n\\newcommand{\\red}[1]{\\textcolor{red}{#1}}\n\\newcommand{\\blue}[1]{\\textcolor{blue}{#1}}\n\\newcommand{\\violet}[1]{\\textcolor{violet}{#1}}\n\\newcommand{\\highlight}[1]{\\hl{#1}}\n\\newcommand{\\note}[2]{\\textcolor{blue}{#1}{\\hl{#1}}}\n\n% WTF?\n\\newcommand{\\remote}[1]{\\textcolor{red}{#1}}\n\\newcommand{\\local}[1]{\\textcolor{blue}{#1}}\n\n% Unclassified\n\\newcommand{\\subheading}[1]{{\\bf #1}\\par}\n\\newcommand{\\term}[1]{{\\sl #1}}\n\\newcommand{\\termx}[1]{}\n\\newcommand{\\comment}[1]{}\n\\newcommand{\\innertableofcontents}{}\n\n\n% Special character\n\\newcommand{\\dollarSign}[0]{{\\$}}\n\\newcommand{\\backTick}[0]{\\`{}}\n\n%% Theorems\n\\newtheorem{remark}{Remark}\n\\newtheorem{theorem}{Theorem}\n\\newtheorem{axiom}{Axiom}\n\\newtheorem{lemma}{Lemma}\n\\newtheorem{proposition}{Proposition}\n\\newtheorem{corollary}{Corollary}\n\\newtheorem{definition}{Definition}\n\\newtheorem{example}{Example}\n\\newtheorem{exercise}{Exercise}\n\\newtheorem{problem}{Problem}\n\\newtheorem{exercises}{Exercises}\n\\newcommand{\\bs}[1]{$\\backslash$#1}\n\\newcommand{\\texarg}[1]{\\{#1\\}}\n\n\n%% Environments\n\\renewenvironment{quotation}\n  {\\begin{adjustwidth}{2cm}{} \\footnotesize}\n  {\\end{adjustwidth}}\n\n\\def\\changemargin#1#2{\\list{}{\\rightmargin#2\\leftmargin#1}\\item[]}\n\\let\\endchangemargin=\\endlist\n\n\\renewenvironment{indent}\n  {\\begin{adjustwidth}{0.75cm}{}}\n  {\\end{adjustwidth}}\n\n\n%% NEWCOMMAND\n\n% \\definecolor{mypink1}{rgb}{0.858, 0.188, 0.478}\n% \\definecolor{mypink2}{RGB}{219, 48, 122}\n\\newcommand{\\fontRGB}[4]{\n    \\definecolor{mycolor}{RGB}{#1, #2, #3}\n    \\textcolor{mycolor}{#4}\n    }\n\n\\newcommand{\\highlightRGB}[4]{\n    \\definecolor{mycolor}{RGB}{#1, #2, #3}\n    \\sethlcolor{mycolor}\n    \\hl{#4}\n     \\sethlcolor{yellow}\n    }\n\n\\newcommand{\\gray}[2]{\n\\definecolor{mygray}{gray}{#1}\n\\textcolor{mygray}{#2}\n}\n\n\\newcommand{\\white}[1]{\\gray{1}[#1]}\n\\newcommand{\\medgray}[1]{\\gray{0.5}[#1]}\n\\newcommand{\\black}[1]{\\gray{0}[#1]}\n\n% Spacing\n\\parindent0pt\n\\parskip5pt\n\n';
+var $author$project$Render$Export$Preamble$commands = '\n%% Commands\n\n\\newcommand{\\hang}[1]{%\n  {%\n    \\setlength{\\leftskip}{1em}%\n    \\setlength{\\hangindent}{1em}%\n    \\hangafter=1 %\n    #1\\ \\vpace{4}%\n  }%\n}\n\n\\renewcommand{\\labelitemi}{\\scalebox{0.7}{\\textbullet}}\n\n% Dot box = 1em, gap = 1em → total = 2em\n\\newcommand{\\compactItem}[1]{%\n  \\par\n\\noindent\n  \\hangindent=2em \\hangafter=1%\n  \\makebox[1em][l]{\\labelitemi}\\hspace{1em}#1\\par\n}\n\n\\newcommand{\\code}[1]{{\\tt #1}}\n\\newcommand{\\ellie}[1]{\\href{#1}{Link to Ellie}}\n% \\newcommand{\\image}[3]{\\includegraphics[width=3cm]{#1}}\n\n%% width=4truein,keepaspectratio]\n\n\n\\newcommand{\\imagecentercaptioned}[3]{\n   \\medskip\n   \\begin{figure}[htp]\n   \\centering\n    \\includegraphics[width=#2]{#1}\n    \\vglue0pt\n    \\caption{#3}\n    \\end{figure}\n    \\medskip\n}\n\n\\newcommand{\\imagecenter}[2]{\n   \\medskip\n   \\begin{figure}[htp]\n   \\centering\n    \\includegraphics[width=#2]{#1}\n    \\vglue0pt\n    \\end{figure}\n    \\medskip\n}\n\n\\newcommand{\\imagefloat}[4]{\n    \\begin{wrapfigure}{#4}{#2}\n    \\includegraphics[width=#2]{#1}\n    \\caption{#3}\n    \\end{wrapfigure}\n}\n\n\n\\newcommand{\\imagefloatright}[3]{\n    \\begin{wrapfigure}{R}{0.30\\textwidth}\n    \\includegraphics[width=0.30\\textwidth]{#1}\n    \\caption{#2}\n    \\end{wrapfigure}\n}\n\n\\newcommand{\\hide}[1]{}\n\n\n\\newcommand{\\imagefloatleft}[3]{\n    \\begin{wrapfigure}{L}{0.3-\\textwidth}\n    \\includegraphics[width=0.30\\textwidth]{#1}\n    \\caption{#2}\n    \\end{wrapfigure}\n}\n% Font style\n\\newcommand{\\italic}[1]{{\\sl #1}}\n\\newcommand{\\strong}[1]{{\\bf #1}}\n\\newcommand{\\strike}[1]{\\st{#1}}\n\n% Scripta\n\\newcommand{\\ilink}[2]{\\href{{https://scripta.io/s/#1}}{#2}}\n\\newcommand{\\markwith}[1]{}\n\\newcommand{\\anchor}[1]{#1}\n\n% Color\n\\newcommand{\\red}[1]{\\textcolor{red}{#1}}\n\\newcommand{\\blue}[1]{\\textcolor{blue}{#1}}\n\\newcommand{\\violet}[1]{\\textcolor{violet}{#1}}\n\\newcommand{\\highlight}[1]{\\hl{#1}}\n\\newcommand{\\note}[2]{\\textcolor{blue}{#1}{\\hl{#1}}}\n\n% WTF?\n\\newcommand{\\remote}[1]{\\textcolor{red}{#1}}\n\\newcommand{\\local}[1]{\\textcolor{blue}{#1}}\n\n% Unclassified\n\\newcommand{\\subheading}[1]{{\\bf #1}\\par}\n\\newcommand{\\term}[1]{{\\sl #1}}\n\\newcommand{\\termx}[1]{}\n\\newcommand{\\comment}[1]{}\n\\newcommand{\\innertableofcontents}{}\n\n\n% Special character\n\\newcommand{\\dollarSign}[0]{{\\$}}\n\\newcommand{\\backTick}[0]{\\`{}}\n\n%% Theorems\n\\newtheorem{remark}{Remark}\n\\newtheorem{theorem}{Theorem}\n\\newtheorem{axiom}{Axiom}\n\\newtheorem{lemma}{Lemma}\n\\newtheorem{proposition}{Proposition}\n\\newtheorem{corollary}{Corollary}\n\\newtheorem{definition}{Definition}\n\\newtheorem{example}{Example}\n\\newtheorem{exercise}{Exercise}\n\\newtheorem{problem}{Problem}\n\\newtheorem{exercises}{Exercises}\n\\newcommand{\\bs}[1]{$\\backslash$#1}\n\\newcommand{\\texarg}[1]{\\{#1\\}}\n\n\n%% Environments\n\\renewenvironment{quotation}\n  {\\begin{adjustwidth}{2cm}{} \\footnotesize}\n  {\\end{adjustwidth}}\n\n\\def\\changemargin#1#2{\\list{}{\\rightmargin#2\\leftmargin#1}\\item[]}\n\\let\\endchangemargin=\\endlist\n\n\\renewenvironment{indent}\n  {\\begin{adjustwidth}{0.75cm}{}}\n  {\\end{adjustwidth}}\n\n\n%% NEWCOMMAND\n\n% \\definecolor{mypink1}{rgb}{0.858, 0.188, 0.478}\n% \\definecolor{mypink2}{RGB}{219, 48, 122}\n\\newcommand{\\fontRGB}[4]{\n    \\definecolor{mycolor}{RGB}{#1, #2, #3}\n    \\textcolor{mycolor}{#4}\n    }\n\n\\newcommand{\\highlightRGB}[4]{\n    \\definecolor{mycolor}{RGB}{#1, #2, #3}\n    \\sethlcolor{mycolor}\n    \\hl{#4}\n     \\sethlcolor{yellow}\n    }\n\n\\newcommand{\\gray}[2]{\n\\definecolor{mygray}{gray}{#1}\n\\textcolor{mygray}{#2}\n}\n\n\\newcommand{\\white}[1]{\\gray{1}[#1]}\n\\newcommand{\\medgray}[1]{\\gray{0.5}[#1]}\n\\newcommand{\\black}[1]{\\gray{0}[#1]}\n\n% Spacing\n\\parindent0pt\n\\parskip5pt\n\n';
 var $author$project$Render$Export$Preamble$newPackageText = function (packagesNeeded_) {
 	return A2(
 		$elm$core$String$join,
@@ -51949,7 +51949,7 @@ var $author$project$Render$Export$Preamble$packagesNeeded = function (names) {
 		$elm_community$list_extra$List$Extra$unique(
 			$author$project$Render$Export$Preamble$newPackageList(names)));
 };
-var $author$project$Render$Export$Preamble$standardPackages = '\n%% Packages\n\n%% Standard packages\n\\usepackage{geometry}\n\\geometry{letterpaper}\n\\usepackage{changepage}   % for the adjustwidth environment\n\n%% AMS\n\\usepackage{amssymb}\n\\usepackage{amsmath}\n\n\\usepackage{amscd}\n\n\\usepackage{fancyvrb} %% for inline verbatim\n';
+var $author$project$Render$Export$Preamble$standardPackages = '\n%% Packages\n\n%% Standard packages\n\\usepackage{geometry}\n\\geometry{letterpaper}\n\\usepackage{changepage}  % for the adjustwidth environment\n\\usepackage{graphicx}    % for \\includegraphics\n\n%% AMS\n\\usepackage{amssymb}\n\\usepackage{amsmath}\n\n\\usepackage{amscd}\n\n\\usepackage{fancyvrb} %% for inline verbatim\n';
 var $author$project$Render$Export$Preamble$addCode = F4(
 	function (packagesInDocument, _package, codeText, accumulatedCodeText) {
 		return A2($elm$core$List$member, _package, packagesInDocument) ? (codeText + ('\n\n' + accumulatedCodeText)) : accumulatedCodeText;
@@ -54042,23 +54042,6 @@ var $author$project$Render$Export$LaTeX$exportTree = F3(
 			if (_v0.$ === 'Ordinary') {
 				switch (_v0.a) {
 					case 'itemList':
-						var hang = function (str) {
-							return '\\leftskip=1em\\hangindent=1em\n\\hangafter=1\n' + str;
-						};
-						var renderExprList = function (exprs) {
-							return A2(
-								$elm$core$String$join,
-								'\n\n',
-								A2(
-									$elm$core$List$map,
-									A2(
-										$elm$core$Basics$composeR,
-										A2($author$project$Render$Export$LaTeX$exportExpr, mathMacroDict, settings),
-										function (x) {
-											return ' •  ' + hang(x);
-										}),
-									exprs));
-						};
 						var exprList = function () {
 							var _v1 = $maca$elm_rose_tree$RoseTree$Tree$value(tree).body;
 							if (_v1.$ === 'Left') {
@@ -54068,6 +54051,21 @@ var $author$project$Render$Export$LaTeX$exportTree = F3(
 								return exprs;
 							}
 						}();
+						var compactItem = function (x) {
+							return '\\compactItem {' + (x + '}');
+						};
+						var renderExprList = function (exprs) {
+							return A2(
+								$elm$core$String$join,
+								'',
+								A2(
+									$elm$core$List$map,
+									A2(
+										$elm$core$Basics$composeR,
+										A2($author$project$Render$Export$LaTeX$exportExpr, mathMacroDict, settings),
+										compactItem),
+									exprs));
+						};
 						return renderExprList(exprList);
 					case 'numberedList':
 						var label = function (n) {
@@ -55503,6 +55501,126 @@ var $author$project$Render$Export$LaTeXToScripta$convertFractions = function (in
 		convertFrac(
 			protectDelimiters(input)));
 };
+var $author$project$Render$Export$MacroConvert$emitBlock = function (items) {
+	var render = function (ml) {
+		return ml.name + (':   ' + ml.body);
+	};
+	return A2(
+		$elm$core$String$join,
+		'\n',
+		A2(
+			$elm$core$List$cons,
+			'| mathmacros',
+			A2($elm$core$List$map, render, items)));
+};
+var $author$project$Render$Export$MacroConvert$commaSpaces = A2(
+	$elm$core$Maybe$withDefault,
+	$elm$regex$Regex$never,
+	$elm$regex$Regex$fromString(',\\s+'));
+var $author$project$Render$Export$MacroConvert$cleanBody = function (body) {
+	return $elm$core$String$trim(
+		A3(
+			$elm$regex$Regex$replace,
+			$author$project$Render$Export$MacroConvert$commaSpaces,
+			function (_v0) {
+				return ', ';
+			},
+			body));
+};
+var $author$project$Render$Export$MacroConvert$patCanonical = A2(
+	$elm$core$Maybe$withDefault,
+	$elm$regex$Regex$never,
+	$elm$regex$Regex$fromString('\\\\?newcommand\\{\\\\([A-Za-z]+)\\}(?:\\[(\\d+)\\])?\\{([^}]*)\\}'));
+var $author$project$Render$Export$MacroConvert$patShorthand = A2(
+	$elm$core$Maybe$withDefault,
+	$elm$regex$Regex$never,
+	$elm$regex$Regex$fromString('\\\\?newcommand\\{\\\\([A-Za-z]+)\\}\\\\([1-9])\\{([^}]*)\\}'));
+var $author$project$Render$Export$MacroConvert$matchNewcommandLine = function (line) {
+	var _v0 = A2($elm$regex$Regex$find, $author$project$Render$Export$MacroConvert$patCanonical, line);
+	if (_v0.b) {
+		var m = _v0.a;
+		var _v1 = m.submatches;
+		if (((((_v1.b && (_v1.a.$ === 'Just')) && _v1.b.b) && _v1.b.b.b) && (_v1.b.b.a.$ === 'Just')) && (!_v1.b.b.b.b)) {
+			var name = _v1.a.a;
+			var _v2 = _v1.b;
+			var _v3 = _v2.b;
+			var body = _v3.a.a;
+			return $elm$core$Maybe$Just(
+				{
+					body: $author$project$Render$Export$MacroConvert$cleanBody(body),
+					name: name
+				});
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	} else {
+		var _v4 = A2($elm$regex$Regex$find, $author$project$Render$Export$MacroConvert$patShorthand, line);
+		if (_v4.b) {
+			var m2 = _v4.a;
+			var _v5 = m2.submatches;
+			if ((((((_v5.b && (_v5.a.$ === 'Just')) && _v5.b.b) && (_v5.b.a.$ === 'Just')) && _v5.b.b.b) && (_v5.b.b.a.$ === 'Just')) && (!_v5.b.b.b.b)) {
+				var name = _v5.a.a;
+				var _v6 = _v5.b;
+				var _v7 = _v6.b;
+				var body = _v7.a.a;
+				return $elm$core$Maybe$Just(
+					{
+						body: $author$project$Render$Export$MacroConvert$cleanBody(body),
+						name: name
+					});
+			} else {
+				return $elm$core$Maybe$Nothing;
+			}
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	}
+};
+var $author$project$Render$Export$MacroConvert$step = F3(
+	function (matcher, line, _v0) {
+		var outRev = _v0.a;
+		var inBlock = _v0.b;
+		var accBlockRev = _v0.c;
+		var _v1 = matcher(line);
+		if (_v1.$ === 'Just') {
+			var ml = _v1.a;
+			return _Utils_Tuple3(
+				outRev,
+				true,
+				A2($elm$core$List$cons, ml, accBlockRev));
+		} else {
+			return inBlock ? _Utils_Tuple3(
+				A2(
+					$elm$core$List$cons,
+					$author$project$Render$Export$MacroConvert$emitBlock(
+						$elm$core$List$reverse(accBlockRev)),
+					A2($elm$core$List$cons, line, outRev)),
+				false,
+				_List_Nil) : _Utils_Tuple3(
+				A2($elm$core$List$cons, line, outRev),
+				false,
+				accBlockRev);
+		}
+	});
+var $author$project$Render$Export$MacroConvert$convertMathMacrosPreservingContext = function (input) {
+	var lines = $elm$core$String$lines(input);
+	var _v0 = A3(
+		$elm$core$List$foldl,
+		$author$project$Render$Export$MacroConvert$step($author$project$Render$Export$MacroConvert$matchNewcommandLine),
+		_Utils_Tuple3(_List_Nil, false, _List_Nil),
+		lines);
+	var resultReversed = _v0.a;
+	var accBlockReversed = _v0.c;
+	var finalResultReversed = $elm$core$List$isEmpty(accBlockReversed) ? resultReversed : A2(
+		$elm$core$List$cons,
+		$author$project$Render$Export$MacroConvert$emitBlock(
+			$elm$core$List$reverse(accBlockReversed)),
+		resultReversed);
+	return A2(
+		$elm$core$String$join,
+		'\n',
+		$elm$core$List$reverse(finalResultReversed));
+};
 var $author$project$Render$Export$LaTeXToScripta$convertMathSymbols = function (input) {
 	var removeMathBackslash = F2(
 		function (cmd, text) {
@@ -55567,32 +55685,36 @@ var $author$project$Render$Export$LaTeXToScripta$convertSections = function (inp
 		input);
 };
 var $author$project$Render$Export$LaTeXToScripta$convertTerms = function (input) {
+	var pattern = A2(
+		$elm$core$Maybe$withDefault,
+		$elm$regex$Regex$never,
+		$elm$regex$Regex$fromString('\\\\([A-Za-z][A-Za-z0-9]*)\\{([^}]*)\\}'));
 	return A3(
 		$elm$regex$Regex$replace,
-		A2(
-			$elm$core$Maybe$withDefault,
-			$elm$regex$Regex$never,
-			$elm$regex$Regex$fromString('\\\\term\\{([^}]*)\\}')),
-		function (match) {
-			var _v0 = match.submatches;
-			if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
+		pattern,
+		function (m) {
+			var _v0 = m.submatches;
+			if ((((_v0.b && (_v0.a.$ === 'Just')) && _v0.b.b) && (_v0.b.a.$ === 'Just')) && (!_v0.b.b.b)) {
 				var term = _v0.a.a;
-				return '[term ' + (term + ']');
+				var _v1 = _v0.b;
+				var stuff = _v1.a.a;
+				return '[' + (term + (' ' + (stuff + ']')));
 			} else {
-				return match.match;
+				return m.match;
 			}
 		},
 		input);
 };
 var $author$project$Render$Export$LaTeXToScripta$translate = function (input) {
-	return $author$project$Render$Export$LaTeXToScripta$cleanupBackslashes(
-		$author$project$Render$Export$LaTeXToScripta$convertTerms(
-			$author$project$Render$Export$LaTeXToScripta$convertBibItems(
-				$author$project$Render$Export$LaTeXToScripta$convertReferences(
-					$author$project$Render$Export$LaTeXToScripta$convertMathSymbols(
-						$author$project$Render$Export$LaTeXToScripta$convertFractions(
-							$author$project$Render$Export$LaTeXToScripta$convertSections(
-								$author$project$Render$Export$LaTeXToScripta$convertEnvironments(input))))))));
+	return $author$project$Render$Export$MacroConvert$convertMathMacrosPreservingContext(
+		$author$project$Render$Export$LaTeXToScripta$cleanupBackslashes(
+			$author$project$Render$Export$LaTeXToScripta$convertTerms(
+				$author$project$Render$Export$LaTeXToScripta$convertBibItems(
+					$author$project$Render$Export$LaTeXToScripta$convertReferences(
+						$author$project$Render$Export$LaTeXToScripta$convertMathSymbols(
+							$author$project$Render$Export$LaTeXToScripta$convertFractions(
+								$author$project$Render$Export$LaTeXToScripta$convertSections(
+									$author$project$Render$Export$LaTeXToScripta$convertEnvironments(input)))))))));
 };
 var $ohanhi$keyboard$Keyboard$Backspace = {$: 'Backspace'};
 var $ohanhi$keyboard$Keyboard$Clear = {$: 'Clear'};

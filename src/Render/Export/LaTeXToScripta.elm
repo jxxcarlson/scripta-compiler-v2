@@ -7,6 +7,7 @@ module Render.Export.LaTeXToScripta exposing (translate)
 -}
 
 import Regex
+import Render.Export.MacroConvert as MacroConvert
 
 
 {-| Main translation function that converts LaTeX to Scripta.
@@ -14,6 +15,7 @@ import Regex
 translate : String -> String
 translate input =
     input
+        |> MacroConvert.convertMathMacrosPreservingContext
         |> convertEnvironments
         |> convertSections
         |> convertFractions
@@ -281,21 +283,46 @@ convertBibItems input =
 
 {-| Convert \\term{...} to [term ...].
 -}
+
+
+
+--convertTerms : String -> String
+--convertTerms input =
+--    input
+--        |> Regex.replace
+--            (Regex.fromString "\\\\term\\{([^}]*)\\}"
+--                |> Maybe.withDefault Regex.never
+--            )
+--            (\match ->
+--                case match.submatches of
+--                    [ Just term ] ->
+--                        "[term " ++ term ++ "]"
+--
+--                    _ ->
+--                        match.match
+--            )
+
+
 convertTerms : String -> String
 convertTerms input =
-    input
-        |> Regex.replace
-            (Regex.fromString "\\\\term\\{([^}]*)\\}"
+    let
+        -- Matches: backslash + TERM (A–Z/a–z then alphanumerics) + {STUFF}
+        -- 1st group = TERM, 2nd group = STUFF (up to the next })
+        pattern : Regex.Regex
+        pattern =
+            Regex.fromString "\\\\([A-Za-z][A-Za-z0-9]*)\\{([^}]*)\\}"
                 |> Maybe.withDefault Regex.never
-            )
-            (\match ->
-                case match.submatches of
-                    [ Just term ] ->
-                        "[term " ++ term ++ "]"
+    in
+    Regex.replace pattern
+        (\m ->
+            case m.submatches of
+                [ Just term, Just stuff ] ->
+                    "[" ++ term ++ " " ++ stuff ++ "]"
 
-                    _ ->
-                        match.match
-            )
+                _ ->
+                    m.match
+        )
+        input
 
 
 {-| Clean up remaining backslashes that should be removed.

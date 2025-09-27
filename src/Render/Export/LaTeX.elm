@@ -230,9 +230,6 @@ exportTree mathMacroDict settings tree =
     case Tree.value tree |> Generic.Language.getHeadingFromBlock of
         Ordinary "itemList" ->
             let
-                hang str =
-                    "\\leftskip=1em\\hangindent=1em\n\\hangafter=1\n" ++ str
-
                 exprList : List Expression
                 exprList =
                     case Tree.value tree |> .body of
@@ -242,9 +239,12 @@ exportTree mathMacroDict settings tree =
                         Right exprs ->
                             exprs
 
+                compactItem x =
+                    "\\compactItem {" ++ x ++ "}"
+
                 renderExprList : List Expression -> String
                 renderExprList exprs =
-                    List.map (exportExpr mathMacroDict settings >> (\x -> " •  " ++ hang x)) exprs |> String.join "\n\n"
+                    List.map (exportExpr mathMacroDict settings >> compactItem) exprs |> String.join ""
             in
             renderExprList exprList
 
