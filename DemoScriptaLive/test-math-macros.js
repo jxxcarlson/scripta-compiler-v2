@@ -4652,7 +4652,7 @@ var $elm$core$Maybe$withDefault = F2(
 	});
 var $author$project$Render$Export$LaTeXToScripta2$parseNewCommand = function (line) {
 	if (A2($elm$core$String$startsWith, '\\newcommand{\\', line)) {
-		var nameStart = A2($elm$core$String$dropLeft, 12, line);
+		var nameStart = A2($elm$core$String$dropLeft, 13, line);
 		var nameEnd = A2(
 			$elm$core$Maybe$withDefault,
 			-1,

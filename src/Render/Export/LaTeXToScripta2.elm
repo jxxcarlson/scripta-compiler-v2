@@ -704,9 +704,9 @@ parseNewCommand : String -> Maybe ( String, String )
 parseNewCommand line =
     if String.startsWith "\\newcommand{\\" line then
         let
-            -- Extract command name
+            -- Extract command name (without the backslash)
             nameStart =
-                String.dropLeft 12 line  -- Drop "\\newcommand{\\"
+                String.dropLeft 13 line  -- Drop "\\newcommand{\\" (13 chars)
 
             nameEnd =
                 String.indexes "}" nameStart
