@@ -145,10 +145,10 @@ renderOrdinary name block =
             renderSection 3 block ++ "\n"
 
         "itemize" ->
-            "| itemize"
+            ""
 
         "enumerate" ->
-            "| enumerate"
+            ""
 
         _ ->
             -- Generic block
