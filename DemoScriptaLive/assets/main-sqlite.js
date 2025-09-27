@@ -52418,7 +52418,8 @@ var $author$project$Render$Export$LaTeX$mapChars2 = function (str) {
 var $author$project$Render$Export$LaTeX$aliases = $elm$core$Dict$fromList(
 	_List_fromArray(
 		[
-			_Utils_Tuple2('i', 'italic'),
+			_Utils_Tuple2('i', 'textit'),
+			_Utils_Tuple2('italic', 'textit'),
 			_Utils_Tuple2('b', 'textbf'),
 			_Utils_Tuple2('bold', 'textbf')
 		]));
@@ -52888,9 +52889,6 @@ var $author$project$Render$Export$Image$exportBlock = F2(
 		var widthOption = (params.fractionalWidth === '') ? '0.75\\textwidth' : params.fractionalWidth;
 		return A3($author$project$Render$Export$Image$exportCenteredFigure, params.url, widthOption, params.caption);
 	});
-var $author$project$Render$Export$LaTeX$encloseWithBraces = function (str_) {
-	return '{' + ($elm$core$String$trim(str_) + '}');
-};
 var $author$project$Render$Export$LaTeX$blindIndex = '';
 var $author$project$Render$Export$Util$getArgs = A2(
 	$elm$core$Basics$composeR,
@@ -53509,16 +53507,12 @@ var $author$project$Render$Export$LaTeX$exportExpr = F3(
 						var f = _v2.a;
 						return A2(f, settings, exps_);
 					} else {
-						return '\\' + ($author$project$Render$Export$LaTeX$unalias(name) + A2(
-							$elm$core$String$join,
-							'',
-							A2(
-								$elm$core$List$map,
-								A2(
-									$elm$core$Basics$composeL,
-									$author$project$Render$Export$LaTeX$encloseWithBraces,
-									A2($author$project$Render$Export$LaTeX$exportExpr, mathMacroDict, settings)),
-								exps_)));
+						var exportedExprs = A2(
+							$elm$core$List$map,
+							A2($author$project$Render$Export$LaTeX$exportExpr, mathMacroDict, settings),
+							exps_);
+						var combinedContent = A2($elm$core$String$join, '', exportedExprs);
+						return '\\' + ($author$project$Render$Export$LaTeX$unalias(name) + ('{' + (combinedContent + '}')));
 					}
 				}
 			case 'Text':

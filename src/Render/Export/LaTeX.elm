@@ -1206,7 +1206,12 @@ exportExpr mathMacroDict settings expr =
                         f settings exps_
 
                     Nothing ->
-                        "\\" ++ unalias name ++ (List.map (encloseWithBraces << exportExpr mathMacroDict settings) exps_ |> String.join "")
+                        -- For nested expressions, we need to combine the content properly
+                        let
+                            exportedExprs = List.map (exportExpr mathMacroDict settings) exps_
+                            combinedContent = String.join "" exportedExprs
+                        in
+                        "\\" ++ unalias name ++ "{" ++ combinedContent ++ "}"
 
         Text str _ ->
             mapChars2 str
@@ -1234,7 +1239,8 @@ unalias str =
 aliases : Dict String String
 aliases =
     Dict.fromList
-        [ ( "i", "italic" )
+        [ ( "i", "textit" )
+        , ( "italic", "textit" )
         , ( "b", "textbf" )
         , ( "bold", "textbf" )
         ]
