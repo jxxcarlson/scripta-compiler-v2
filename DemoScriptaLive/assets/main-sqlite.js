@@ -8897,7 +8897,7 @@ var $elm$core$List$isEmpty = function (xs) {
 var $author$project$MicroLaTeX$PrimitiveBlock$Filled = {$: 'Filled'};
 var $author$project$MicroLaTeX$PrimitiveBlock$Started = {$: 'Started'};
 var $author$project$MicroLaTeX$PrimitiveBlock$verbatimBlockNames = _List_fromArray(
-	['equation', 'table', 'array', 'textarray', 'align', 'aligned', 'math', 'code', 'verbatim', 'verse', 'mathmacros', 'textmacros', 'hide', 'docinfo', 'csvtable', 'chart', 'svg', 'quiver', 'image', 'tikz', 'load-files', 'include', 'iframe']);
+	['equation', 'table', 'array', 'textarray', 'align', 'aligned', 'math', 'code', 'verbatim', 'figure', 'verse', 'mathmacros', 'textmacros', 'hide', 'docinfo', 'csvtable', 'chart', 'svg', 'quiver', 'image', 'tikz', 'load-files', 'include', 'iframe']);
 var $author$project$MicroLaTeX$PrimitiveBlock$getHeading = function (str) {
 	var _v0 = $author$project$MicroLaTeX$ClassifyBlock$classify(str);
 	switch (_v0.$) {
@@ -9851,7 +9851,7 @@ var $author$project$MicroLaTeX$PrimitiveBlock$finishBlock = F2(
 		}
 	});
 var $author$project$MicroLaTeX$PrimitiveBlock$verbatimBlocks = _List_fromArray(
-	['table', 'textarray', 'array', 'code', 'equation', 'align', 'aligned', 'verbatim']);
+	['table', 'textarray', 'array', 'code', 'equation', 'align', 'aligned', 'verbatim', 'figure']);
 var $author$project$MicroLaTeX$PrimitiveBlock$endBlockOnMismatch = F4(
 	function (label_, classifier, line, state) {
 		var _v0 = $elm_community$list_extra$List$Extra$uncons(state.stack);
@@ -51865,7 +51865,7 @@ var $author$project$Generic$TextMacro$getTextMacroFunctionNames = function (str)
 								$author$project$Generic$TextMacro$buildDictionary(
 									$elm$core$String$lines(str)))))))));
 };
-var $author$project$Render$Export$Preamble$commands = '\n%% Commands\n\n\\newcommand{\\hang}[1]{%\n  {%\n    \\setlength{\\leftskip}{1em}%\n    \\setlength{\\hangindent}{1em}%\n    \\hangafter=1 %\n    #1\\ \\vpace{4}%\n  }%\n}\n\n\\renewcommand{\\labelitemi}{\\scalebox{0.7}{\\textbullet}}\n\n% Dot box = 1em, gap = 1em → total = 2em\n\\newcommand{\\compactItem}[1]{%\n  \\par\n\\noindent\n  \\hangindent=2em \\hangafter=1%\n  \\makebox[1em][l]{\\labelitemi}\\hspace{1em}#1\\par\n}\n\n\\newcommand{\\code}[1]{{\\tt #1}}\n\\newcommand{\\ellie}[1]{\\href{#1}{Link to Ellie}}\n% \\newcommand{\\image}[3]{\\includegraphics[width=3cm]{#1}}\n\n%% width=4truein,keepaspectratio]\n\n\n\\newcommand{\\imagecentercaptioned}[3]{\n   \\medskip\n   \\begin{figure}[htp]\n   \\centering\n    \\includegraphics[width=#2]{#1}\n    \\vglue0pt\n    \\caption{#3}\n    \\end{figure}\n    \\medskip\n}\n\n\\newcommand{\\imagecenter}[2]{\n   \\medskip\n   \\begin{figure}[htp]\n   \\centering\n    \\includegraphics[width=#2]{#1}\n    \\vglue0pt\n    \\end{figure}\n    \\medskip\n}\n\n\\newcommand{\\imagefloat}[4]{\n    \\begin{wrapfigure}{#4}{#2}\n    \\includegraphics[width=#2]{#1}\n    \\caption{#3}\n    \\end{wrapfigure}\n}\n\n\n\\newcommand{\\imagefloatright}[3]{\n    \\begin{wrapfigure}{R}{0.30\\textwidth}\n    \\includegraphics[width=0.30\\textwidth]{#1}\n    \\caption{#2}\n    \\end{wrapfigure}\n}\n\n\\newcommand{\\hide}[1]{}\n\n\n\\newcommand{\\imagefloatleft}[3]{\n    \\begin{wrapfigure}{L}{0.3-\\textwidth}\n    \\includegraphics[width=0.30\\textwidth]{#1}\n    \\caption{#2}\n    \\end{wrapfigure}\n}\n% Font style\n\\newcommand{\\italic}[1]{{\\sl #1}}\n\\newcommand{\\strong}[1]{{\\bf #1}}\n\\newcommand{\\strike}[1]{\\st{#1}}\n\n% Scripta\n\\newcommand{\\ilink}[2]{\\href{{https://scripta.io/s/#1}}{#2}}\n\\newcommand{\\markwith}[1]{}\n\\newcommand{\\anchor}[1]{#1}\n\n% Color\n\\newcommand{\\red}[1]{\\textcolor{red}{#1}}\n\\newcommand{\\blue}[1]{\\textcolor{blue}{#1}}\n\\newcommand{\\violet}[1]{\\textcolor{violet}{#1}}\n\\newcommand{\\highlight}[1]{\\hl{#1}}\n\\newcommand{\\note}[2]{\\textcolor{blue}{#1}{\\hl{#1}}}\n\n% WTF?\n\\newcommand{\\remote}[1]{\\textcolor{red}{#1}}\n\\newcommand{\\local}[1]{\\textcolor{blue}{#1}}\n\n% Unclassified\n\\newcommand{\\subheading}[1]{{\\bf #1}\\par}\n\\newcommand{\\term}[1]{{\\sl #1}}\n\\newcommand{\\termx}[1]{}\n\\newcommand{\\comment}[1]{}\n\\newcommand{\\innertableofcontents}{}\n\n\n% Special character\n\\newcommand{\\dollarSign}[0]{{\\$}}\n\\newcommand{\\backTick}[0]{\\`{}}\n\n%% Theorems\n\\newtheorem{remark}{Remark}\n\\newtheorem{theorem}{Theorem}\n\\newtheorem{axiom}{Axiom}\n\\newtheorem{lemma}{Lemma}\n\\newtheorem{proposition}{Proposition}\n\\newtheorem{corollary}{Corollary}\n\\newtheorem{definition}{Definition}\n\\newtheorem{example}{Example}\n\\newtheorem{exercise}{Exercise}\n\\newtheorem{problem}{Problem}\n\\newtheorem{exercises}{Exercises}\n\\newcommand{\\bs}[1]{$\\backslash$#1}\n\\newcommand{\\texarg}[1]{\\{#1\\}}\n\n\n%% Environments\n\\renewenvironment{quotation}\n  {\\begin{adjustwidth}{2cm}{} \\footnotesize}\n  {\\end{adjustwidth}}\n\n\\def\\changemargin#1#2{\\list{}{\\rightmargin#2\\leftmargin#1}\\item[]}\n\\let\\endchangemargin=\\endlist\n\n\\renewenvironment{indent}\n  {\\begin{adjustwidth}{0.75cm}{}}\n  {\\end{adjustwidth}}\n\n\n%% NEWCOMMAND\n\n% \\definecolor{mypink1}{rgb}{0.858, 0.188, 0.478}\n% \\definecolor{mypink2}{RGB}{219, 48, 122}\n\\newcommand{\\fontRGB}[4]{\n    \\definecolor{mycolor}{RGB}{#1, #2, #3}\n    \\textcolor{mycolor}{#4}\n    }\n\n\\newcommand{\\highlightRGB}[4]{\n    \\definecolor{mycolor}{RGB}{#1, #2, #3}\n    \\sethlcolor{mycolor}\n    \\hl{#4}\n     \\sethlcolor{yellow}\n    }\n\n\\newcommand{\\gray}[2]{\n\\definecolor{mygray}{gray}{#1}\n\\textcolor{mygray}{#2}\n}\n\n\\newcommand{\\white}[1]{\\gray{1}[#1]}\n\\newcommand{\\medgray}[1]{\\gray{0.5}[#1]}\n\\newcommand{\\black}[1]{\\gray{0}[#1]}\n\n% Spacing\n\\parindent0pt\n\\parskip5pt\n\n';
+var $author$project$Render$Export$Preamble$commands = '\n%% Commands\n\n\\newcommand{\\hang}[1]{%\n  {%\n    \\setlength{\\leftskip}{1em}%\n    \\setlength{\\hangindent}{1em}%\n    \\hangafter=1 %\n    #1\\ \\vpace{4}%\n  }%\n}\n\n\\renewcommand{\\labelitemi}{\\scalebox{0.7}{\\textbullet}}\n\n% Dot box = 1em, gap = 1em → total = 2em\n\\newcommand{\\compactItem}[1]{%\n  \\par\n\\noindent\n  \\hangindent=2em \\hangafter=1%\n  \\makebox[1em][l]{\\labelitemi}\\hspace{1em}#1\\par\n}\n\n\\newcommand{\\code}[1]{{\\tt #1}}\n\\newcommand{\\ellie}[1]{\\href{#1}{Link to Ellie}}\n% \\newcommand{\\image}[3]{\\includegraphics[width=3cm]{#1}}\n\n%% width=4truein,keepaspectratio]\n\n\n% imagecentercaptioned command removed - using standard figure environment instead\n\n\\newcommand{\\imagecenter}[2]{\n   \\medskip\n   \\begin{figure}[htp]\n   \\centering\n    \\includegraphics[width=#2]{#1}\n    \\vglue0pt\n    \\end{figure}\n    \\medskip\n}\n\n\\newcommand{\\imagefloat}[4]{\n    \\begin{wrapfigure}{#4}{#2}\n    \\includegraphics[width=#2]{#1}\n    \\caption{#3}\n    \\end{wrapfigure}\n}\n\n\n\\newcommand{\\imagefloatright}[3]{\n    \\begin{wrapfigure}{R}{0.30\\textwidth}\n    \\includegraphics[width=0.30\\textwidth]{#1}\n    \\caption{#2}\n    \\end{wrapfigure}\n}\n\n\\newcommand{\\hide}[1]{}\n\n\n\\newcommand{\\imagefloatleft}[3]{\n    \\begin{wrapfigure}{L}{0.3-\\textwidth}\n    \\includegraphics[width=0.30\\textwidth]{#1}\n    \\caption{#2}\n    \\end{wrapfigure}\n}\n% Font style\n\\newcommand{\\italic}[1]{{\\sl #1}}\n\\newcommand{\\strong}[1]{{\\bf #1}}\n\\newcommand{\\strike}[1]{\\st{#1}}\n\n% Scripta\n\\newcommand{\\ilink}[2]{\\href{{https://scripta.io/s/#1}}{#2}}\n\\newcommand{\\markwith}[1]{}\n\\newcommand{\\anchor}[1]{#1}\n\n% Color\n\\newcommand{\\red}[1]{\\textcolor{red}{#1}}\n\\newcommand{\\blue}[1]{\\textcolor{blue}{#1}}\n\\newcommand{\\violet}[1]{\\textcolor{violet}{#1}}\n\\newcommand{\\highlight}[1]{\\hl{#1}}\n\\newcommand{\\note}[2]{\\textcolor{blue}{#1}{\\hl{#1}}}\n\n% WTF?\n\\newcommand{\\remote}[1]{\\textcolor{red}{#1}}\n\\newcommand{\\local}[1]{\\textcolor{blue}{#1}}\n\n% Unclassified\n\\newcommand{\\subheading}[1]{{\\bf #1}\\par}\n\\newcommand{\\term}[1]{{\\sl #1}}\n\\newcommand{\\termx}[1]{}\n\\newcommand{\\comment}[1]{}\n\\newcommand{\\innertableofcontents}{}\n\n\n% Special character\n\\newcommand{\\dollarSign}[0]{{\\$}}\n\\newcommand{\\backTick}[0]{\\`{}}\n\n%% Theorems\n\\newtheorem{remark}{Remark}\n\\newtheorem{theorem}{Theorem}\n\\newtheorem{axiom}{Axiom}\n\\newtheorem{lemma}{Lemma}\n\\newtheorem{proposition}{Proposition}\n\\newtheorem{corollary}{Corollary}\n\\newtheorem{definition}{Definition}\n\\newtheorem{example}{Example}\n\\newtheorem{exercise}{Exercise}\n\\newtheorem{problem}{Problem}\n\\newtheorem{exercises}{Exercises}\n\\newcommand{\\bs}[1]{$\\backslash$#1}\n\\newcommand{\\texarg}[1]{\\{#1\\}}\n\n\n%% Environments\n\\renewenvironment{quotation}\n  {\\begin{adjustwidth}{2cm}{} \\footnotesize}\n  {\\end{adjustwidth}}\n\n\\def\\changemargin#1#2{\\list{}{\\rightmargin#2\\leftmargin#1}\\item[]}\n\\let\\endchangemargin=\\endlist\n\n\\renewenvironment{indent}\n  {\\begin{adjustwidth}{0.75cm}{}}\n  {\\end{adjustwidth}}\n\n\n%% NEWCOMMAND\n\n% \\definecolor{mypink1}{rgb}{0.858, 0.188, 0.478}\n% \\definecolor{mypink2}{RGB}{219, 48, 122}\n\\newcommand{\\fontRGB}[4]{\n    \\definecolor{mycolor}{RGB}{#1, #2, #3}\n    \\textcolor{mycolor}{#4}\n    }\n\n\\newcommand{\\highlightRGB}[4]{\n    \\definecolor{mycolor}{RGB}{#1, #2, #3}\n    \\sethlcolor{mycolor}\n    \\hl{#4}\n     \\sethlcolor{yellow}\n    }\n\n\\newcommand{\\gray}[2]{\n\\definecolor{mygray}{gray}{#1}\n\\textcolor{mygray}{#2}\n}\n\n\\newcommand{\\white}[1]{\\gray{1}[#1]}\n\\newcommand{\\medgray}[1]{\\gray{0.5}[#1]}\n\\newcommand{\\black}[1]{\\gray{0}[#1]}\n\n% Spacing\n\\parindent0pt\n\\parskip5pt\n\n';
 var $author$project$Render$Export$Preamble$newPackageText = function (packagesNeeded_) {
 	return A2(
 		$elm$core$String$join,
@@ -52765,17 +52765,33 @@ var $author$project$Render$Export$LaTeX$environment = F2(
 					A2($author$project$Render$Export$LaTeX$tagged, 'end', name)
 				]));
 	});
+var $elm$core$String$filter = _String_filter;
 var $author$project$Render$Export$Image$exportCenteredFigure = F3(
 	function (url, options, caption) {
-		return (caption === 'none') ? A2(
-			$elm$core$String$join,
-			'',
-			_List_fromArray(
-				['\\imagecenter{', url, '}{' + (options + '}')])) : A2(
-			$elm$core$String$join,
-			'',
-			_List_fromArray(
-				['\\imagecentercaptioned{', url, '}{' + (options + ('}{' + (caption + '}')))]));
+		if ((caption === 'none') || (caption === '')) {
+			return A2(
+				$elm$core$String$join,
+				'',
+				_List_fromArray(
+					['\\begin{center}\n', '\\includegraphics[width=' + (options + (']{' + (url + '}\n'))), '\\end{center}']));
+		} else {
+			var label = A2(
+				$elm$core$String$filter,
+				$elm$core$Char$isAlphaNum,
+				$elm$core$String$toLower(
+					A2(
+						$elm$core$String$join,
+						'',
+						A2(
+							$elm$core$List$take,
+							2,
+							$elm$core$String$words(caption)))));
+			return A2(
+				$elm$core$String$join,
+				'',
+				_List_fromArray(
+					['\\begin{figure}[h]\n', '  \\centering\n', '  \\includegraphics[width=' + (options + (']{' + (url + '}\n'))), '  \\caption{' + (caption + '}\n'), '  \\label{fig:' + (label + '}\n'), '\\end{figure}']));
+		}
 	});
 var $author$project$Render$Export$Image$fractionaRescale = function (k) {
 	var f = $elm$core$String$fromFloat(k / 600.0);
@@ -52869,12 +52885,8 @@ var $author$project$Render$Export$Image$imageParametersForBlock = F2(
 var $author$project$Render$Export$Image$exportBlock = F2(
 	function (settings, block) {
 		var params = A2($author$project$Render$Export$Image$imageParametersForBlock, settings, block);
-		var options = A2(
-			$elm$core$String$join,
-			'',
-			_List_fromArray(
-				[params.fractionalWidth, ',keepaspectratio']));
-		return A3($author$project$Render$Export$Image$exportCenteredFigure, params.url, options, params.caption);
+		var widthOption = (params.fractionalWidth === '') ? '0.75\\textwidth' : params.fractionalWidth;
+		return A3($author$project$Render$Export$Image$exportCenteredFigure, params.url, widthOption, params.caption);
 	});
 var $author$project$Render$Export$LaTeX$encloseWithBraces = function (str_) {
 	return '{' + ($elm$core$String$trim(str_) + '}');
@@ -52915,25 +52927,41 @@ var $author$project$Render$Export$LaTeX$dontRender = F2(
 	});
 var $author$project$Render$Export$Image$exportWrappedFigure = F4(
 	function (placement, url, options, caption) {
-		return A2(
-			$elm$core$String$join,
-			'',
-			_List_fromArray(
-				['\\imagefloat{', url, '}{' + (options + ('}{' + (caption + ('}{' + (placement + '}')))))]));
+		var placementChar = function () {
+			switch (placement) {
+				case 'L':
+					return 'l';
+				case 'R':
+					return 'r';
+				default:
+					return 'r';
+			}
+		}();
+		if ((caption === 'none') || (caption === '')) {
+			return A2(
+				$elm$core$String$join,
+				'',
+				_List_fromArray(
+					['\\begin{wrapfigure}{' + (placementChar + ('}{' + (options + '}\n'))), '\\centering\n', '\\includegraphics[width=' + (options + (']{' + (url + '}\n'))), '\\end{wrapfigure}']));
+		} else {
+			var label = A2(
+				$elm$core$String$filter,
+				$elm$core$Char$isAlphaNum,
+				$elm$core$String$toLower(
+					A2(
+						$elm$core$String$join,
+						'',
+						A2(
+							$elm$core$List$take,
+							2,
+							$elm$core$String$words(caption)))));
+			return A2(
+				$elm$core$String$join,
+				'',
+				_List_fromArray(
+					['\\begin{wrapfigure}{' + (placementChar + ('}{' + (options + '}\n'))), '\\centering\n', '\\includegraphics[width=' + (options + (']{' + (url + '}\n'))), '\\caption{' + (caption + '}\n'), '\\label{fig:' + (label + '}\n'), '\\end{wrapfigure}']));
+		}
 	});
-var $author$project$Render$Export$Image$fixWidth = function (w) {
-	return ((w === '') || (w === 'fill')) ? '500' : w;
-};
-var $author$project$Render$Export$Util$getOneArg = function (exprs) {
-	var _v0 = $elm$core$List$head(
-		$author$project$Render$Export$Util$getArgs(exprs));
-	if (_v0.$ === 'Nothing') {
-		return '';
-	} else {
-		var str = _v0.a;
-		return str;
-	}
-};
 var $author$project$Render$Export$Image$imageParameters = F2(
 	function (settings, body) {
 		var displayWidth = settings.width;
@@ -53049,23 +53077,8 @@ var $author$project$Render$Export$Image$imageParameters = F2(
 var $author$project$Render$Export$Image$export = F2(
 	function (s, exprs) {
 		var params = A2($author$project$Render$Export$Image$imageParameters, s, exprs);
-		var options = A2(
-			$elm$core$String$join,
-			'',
-			_List_fromArray(
-				[
-					$author$project$Render$Export$Image$fixWidth(params.width),
-					',keepaspectratio'
-				]));
-		var args = $elm$core$String$words(
-			$author$project$Render$Export$Util$getOneArg(exprs));
-		var _v0 = $elm$core$List$head(args);
-		if (_v0.$ === 'Nothing') {
-			return 'ERROR IN IMAGE';
-		} else {
-			var url_ = _v0.a;
-			return (params.placement === 'C') ? A3($author$project$Render$Export$Image$exportCenteredFigure, url_, options, params.caption) : A4($author$project$Render$Export$Image$exportWrappedFigure, params.placement, url_, params.fractionalWidth, params.caption);
-		}
+		var widthOption = (params.fractionalWidth === '') ? '0.75\\textwidth' : params.fractionalWidth;
+		return (params.url === 'no-image') ? 'ERROR IN IMAGE' : ((params.placement === 'C') ? A3($author$project$Render$Export$Image$exportCenteredFigure, params.url, widthOption, params.caption) : A4($author$project$Render$Export$Image$exportWrappedFigure, params.placement, params.url, params.fractionalWidth, params.caption));
 	});
 var $author$project$Render$Export$Util$getTwoArgs = function (exprs) {
 	var args = $author$project$Render$Export$Util$getArgs(exprs);
@@ -53098,6 +53111,16 @@ var $author$project$Render$Export$LaTeX$link = function (exprs) {
 		'',
 		_List_fromArray(
 			['\\href{', args.second, '}{', args.first, '}']));
+};
+var $author$project$Render$Export$Util$getOneArg = function (exprs) {
+	var _v0 = $elm$core$List$head(
+		$author$project$Render$Export$Util$getArgs(exprs));
+	if (_v0.$ === 'Nothing') {
+		return '';
+	} else {
+		var str = _v0.a;
+		return str;
+	}
 };
 var $author$project$Render$Export$LaTeX$markwith = function (exprs) {
 	var arg = $author$project$Render$Export$Util$getOneArg(exprs);
@@ -55432,14 +55455,21 @@ var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F2(
 				}
 			case 'imagecentercaptioned':
 				if (args.b) {
-					if (args.b.b && args.b.b.b) {
-						var url = args.a;
-						var _v5 = args.b;
-						var width = _v5.a;
-						var _v6 = _v5.b;
-						var caption = _v6.a;
-						var _v7 = width;
-						return '| image caption:' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(caption) + ('\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url)));
+					if (args.b.b) {
+						if (args.b.b.b) {
+							var caption = args.a;
+							var _v5 = args.b;
+							var width = _v5.a;
+							var _v6 = _v5.b;
+							var url = _v6.a;
+							var _v7 = width;
+							return '| image caption:' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(caption) + ('\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url)));
+						} else {
+							var caption = args.a;
+							var _v8 = args.b;
+							var url = _v8.a;
+							return '| image caption:' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(caption) + ('\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url)));
+						}
 					} else {
 						var url = args.a;
 						return '| image\n' + $author$project$Render$Export$LaTeXToScripta2$renderExpression(url);
@@ -55689,6 +55719,70 @@ var $author$project$Render$Export$LaTeXToScripta2$renderEquationBlock = function
 		return 'Error: Invalid equation block';
 	}
 };
+var $author$project$Render$Export$LaTeXToScripta2$renderFigureVerbatim = function (block) {
+	var _v0 = block.body;
+	if (_v0.$ === 'Left') {
+		var str = _v0.a;
+		var lines = $elm$core$String$lines(str);
+		var extractImageUrl = function (line) {
+			return A2($elm$core$String$contains, '\\includegraphics', line) ? A2(
+				$elm$core$Maybe$withDefault,
+				'',
+				$elm$core$List$head(
+					A2(
+						$elm$core$String$split,
+						'}',
+						A2(
+							$elm$core$Maybe$withDefault,
+							'',
+							$elm$core$List$head(
+								A2(
+									$elm$core$List$drop,
+									1,
+									A2($elm$core$String$split, '{', line))))))) : '';
+		};
+		var imageUrl = A2(
+			$elm$core$Maybe$withDefault,
+			'',
+			$elm$core$List$head(
+				A2(
+					$elm$core$List$filter,
+					$elm$core$Basics$neq(''),
+					A2($elm$core$List$map, extractImageUrl, lines))));
+		var extractCaption = function (lines_) {
+			return A2(
+				$elm$core$Maybe$withDefault,
+				'',
+				A2(
+					$elm$core$Maybe$map,
+					function (line) {
+						return A2(
+							$elm$core$Maybe$withDefault,
+							'',
+							$elm$core$List$head(
+								A2(
+									$elm$core$String$split,
+									'}',
+									A2(
+										$elm$core$String$join,
+										'',
+										A2(
+											$elm$core$List$drop,
+											1,
+											A2($elm$core$String$split, '\\caption{', line))))));
+					},
+					$elm$core$List$head(
+						A2(
+							$elm$core$List$filter,
+							$elm$core$String$contains('\\caption'),
+							lines_))));
+		};
+		var caption = extractCaption(lines);
+		return $elm$core$String$isEmpty(imageUrl) ? '| figure' : ($elm$core$String$isEmpty(caption) ? ('| image\n' + imageUrl) : ('| image caption:' + (caption + ('\n' + imageUrl))));
+	} else {
+		return '| figure';
+	}
+};
 var $author$project$Render$Export$LaTeXToScripta2$renderMathBlock = function (block) {
 	var _v0 = block.body;
 	if (_v0.$ === 'Left') {
@@ -55724,6 +55818,8 @@ var $author$project$Render$Export$LaTeXToScripta2$renderVerbatim = F2(
 				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
 			case 'minted':
 				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
+			case 'figure':
+				return $author$project$Render$Export$LaTeXToScripta2$renderFigureVerbatim(block);
 			default:
 				return '| ' + name;
 		}

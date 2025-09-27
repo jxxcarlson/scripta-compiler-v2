@@ -175,16 +175,7 @@ commands =
 %% width=4truein,keepaspectratio]
 
 
-\\newcommand{\\imagecentercaptioned}[3]{
-   \\medskip
-   \\begin{figure}[htp]
-   \\centering
-    \\includegraphics[width=#2]{#1}
-    \\vglue0pt
-    \\caption{#3}
-    \\end{figure}
-    \\medskip
-}
+% imagecentercaptioned command removed - using standard figure environment instead
 
 \\newcommand{\\imagecenter}[2]{
    \\medskip

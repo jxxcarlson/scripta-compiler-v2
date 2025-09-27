@@ -17,10 +17,14 @@ exportBlock settings block =
         params =
             imageParametersForBlock settings block
 
-        options =
-            [ params.fractionalWidth, ",keepaspectratio" ] |> String.join ""
+        -- For LaTeX figure environment, we want the width without comma prefix
+        widthOption =
+            if params.fractionalWidth == "" then
+                "0.75\\textwidth"
+            else
+                params.fractionalWidth
     in
-    exportCenteredFigure params.url options params.caption
+    exportCenteredFigure params.url widthOption params.caption
 
 
 fixWidth : String -> String
@@ -35,38 +39,88 @@ fixWidth w =
 export : RenderSettings -> List Expression -> String
 export s exprs =
     let
-        args =
-            Render.Export.Util.getOneArg exprs |> String.words
-
         params =
             imageParameters s exprs
 
-        options =
-            [ params.width |> fixWidth, ",keepaspectratio" ] |> String.join ""
-    in
-    case List.head args of
-        Nothing ->
-            "ERROR IN IMAGE"
-
-        Just url_ ->
-            if params.placement == "C" then
-                exportCenteredFigure url_ options params.caption
-
+        -- For standard LaTeX, use fractional width
+        widthOption =
+            if params.fractionalWidth == "" then
+                "0.75\\textwidth"
             else
-                exportWrappedFigure params.placement url_ params.fractionalWidth params.caption
+                params.fractionalWidth
+    in
+    if params.url == "no-image" then
+        "ERROR IN IMAGE"
+    else
+        if params.placement == "C" then
+            exportCenteredFigure params.url widthOption params.caption
+        else
+            exportWrappedFigure params.placement params.url params.fractionalWidth params.caption
 
 
 exportCenteredFigure url options caption =
-    if caption == "none" then
-        [ "\\imagecenter{", url, "}{" ++ options ++ "}" ] |> String.join ""
+    if caption == "none" || caption == "" then
+        -- No caption, just center the image without figure environment
+        [ "\\begin{center}\n"
+        , "\\includegraphics[width=" ++ options ++ "]{" ++ url ++ "}\n"
+        , "\\end{center}"
+        ] |> String.join ""
 
     else
-        [ "\\imagecentercaptioned{", url, "}{" ++ options ++ "}{" ++ caption ++ "}" ] |> String.join ""
+        -- With caption, use figure environment
+        let
+            -- Generate a label from the caption (simplified version)
+            label =
+                caption
+                    |> String.words
+                    |> List.take 2
+                    |> String.join ""
+                    |> String.toLower
+                    |> String.filter Char.isAlphaNum
+        in
+        [ "\\begin{figure}[h]\n"
+        , "  \\centering\n"
+        , "  \\includegraphics[width=" ++ options ++ "]{" ++ url ++ "}\n"
+        , "  \\caption{" ++ caption ++ "}\n"
+        , "  \\label{fig:" ++ label ++ "}\n"
+        , "\\end{figure}"
+        ] |> String.join ""
 
 
 exportWrappedFigure placement url options caption =
-    [ "\\imagefloat{", url, "}{" ++ options ++ "}{" ++ caption ++ "}{" ++ placement ++ "}" ]
-        |> String.join ""
+    -- For non-centered images, use wrapfigure package
+    let
+        placementChar =
+            case placement of
+                "L" -> "l"
+                "R" -> "r"
+                _ -> "r"
+    in
+    if caption == "none" || caption == "" then
+        -- No caption, just wrap the image
+        [ "\\begin{wrapfigure}{" ++ placementChar ++ "}{" ++ options ++ "}\n"
+        , "\\centering\n"
+        , "\\includegraphics[width=" ++ options ++ "]{" ++ url ++ "}\n"
+        , "\\end{wrapfigure}"
+        ] |> String.join ""
+    else
+        -- With caption
+        let
+            label =
+                caption
+                    |> String.words
+                    |> List.take 2
+                    |> String.join ""
+                    |> String.toLower
+                    |> String.filter Char.isAlphaNum
+        in
+        [ "\\begin{wrapfigure}{" ++ placementChar ++ "}{" ++ options ++ "}\n"
+        , "\\centering\n"
+        , "\\includegraphics[width=" ++ options ++ "]{" ++ url ++ "}\n"
+        , "\\caption{" ++ caption ++ "}\n"
+        , "\\label{fig:" ++ label ++ "}\n"
+        , "\\end{wrapfigure}"
+        ] |> String.join ""
 
 
 type alias ImageParameters =
