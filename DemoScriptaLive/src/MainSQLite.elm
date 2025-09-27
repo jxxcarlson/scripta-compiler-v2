@@ -24,7 +24,7 @@ import Ports
 import Process
 import Random
 import Render.Export.LaTeX
-import Render.Export.LaTeXToScripta
+import Render.Export.LaTeXToScripta2
 import Render.Settings
 import ScriptaV2.API
 import ScriptaV2.Compiler
@@ -122,27 +122,32 @@ update msg model =
         FileLoaded content ->
             let
                 -- First update the content in the editor
-                ( modelWithContent, cmdFromUpdate ) = updateCommon (Common.InputText content) model
+                ( modelWithContent, cmdFromUpdate ) =
+                    updateCommon (Common.InputText content) model
 
                 -- Extract the title from the content
-                title = Common.getTitleFromContent content
+                title =
+                    Common.getTitleFromContent content
 
                 -- Generate a new document ID
-                newId = "imported-" ++ String.fromInt (Time.posixToMillis modelWithContent.common.currentTime // 1)
+                newId =
+                    "imported-" ++ String.fromInt (Time.posixToMillis modelWithContent.common.currentTime // 1)
 
                 -- Create a new document
-                newDoc = Document.newDocument
-                    newId
-                    title
-                    (Maybe.withDefault "" modelWithContent.common.userName)
-                    content
-                    modelWithContent.common.theme
-                    modelWithContent.common.currentTime
+                newDoc =
+                    Document.newDocument
+                        newId
+                        title
+                        (Maybe.withDefault "" modelWithContent.common.userName)
+                        content
+                        modelWithContent.common.theme
+                        modelWithContent.common.currentTime
 
                 -- Update the model with the new document
                 updatedCommon =
                     let
-                        oldCommon = modelWithContent.common
+                        oldCommon =
+                            modelWithContent.common
                     in
                     { oldCommon
                         | currentDocument = Just newDoc
@@ -153,10 +158,12 @@ update msg model =
                         , loadDocumentIntoEditor = True
                     }
 
-                updatedModel = { modelWithContent | common = updatedCommon }
+                updatedModel =
+                    { modelWithContent | common = updatedCommon }
 
                 -- Get the storage command to save the document
-                storage = Storage.SQLite.storage StorageMsg
+                storage =
+                    Storage.SQLite.storage StorageMsg
             in
             ( updatedModel
             , Cmd.batch
@@ -178,35 +185,41 @@ update msg model =
                 basename =
                     if String.endsWith ".tex" filename then
                         String.dropRight 4 filename
+
                     else
                         filename
 
                 -- Translate LaTeX to Scripta
-                translatedContent = Render.Export.LaTeXToScripta.translate content
+                translatedContent =
+                    Render.Export.LaTeXToScripta2.translate content
 
                 -- Add title block at the top
                 scriptaContent =
                     "| title\n" ++ basename ++ "\n\n" ++ translatedContent
 
                 -- First update the content in the editor
-                ( modelWithContent, cmdFromUpdate ) = updateCommon (Common.InputText scriptaContent) model
+                ( modelWithContent, cmdFromUpdate ) =
+                    updateCommon (Common.InputText scriptaContent) model
 
                 -- Generate a new document ID with .scripta extension indication
-                newId = "latex-import-" ++ String.fromInt (Time.posixToMillis modelWithContent.common.currentTime // 1000)
+                newId =
+                    "latex-import-" ++ String.fromInt (Time.posixToMillis modelWithContent.common.currentTime // 1000)
 
                 -- Create a new document
-                newDoc = Document.newDocument
-                    newId
-                    basename
-                    (Maybe.withDefault "" modelWithContent.common.userName)
-                    scriptaContent
-                    modelWithContent.common.theme
-                    modelWithContent.common.currentTime
+                newDoc =
+                    Document.newDocument
+                        newId
+                        basename
+                        (Maybe.withDefault "" modelWithContent.common.userName)
+                        scriptaContent
+                        modelWithContent.common.theme
+                        modelWithContent.common.currentTime
 
                 -- Update the model with the new document
                 updatedCommon =
                     let
-                        oldCommon = modelWithContent.common
+                        oldCommon =
+                            modelWithContent.common
                     in
                     { oldCommon
                         | currentDocument = Just newDoc
@@ -217,10 +230,12 @@ update msg model =
                         , loadDocumentIntoEditor = True
                     }
 
-                updatedModel = { modelWithContent | common = updatedCommon }
+                updatedModel =
+                    { modelWithContent | common = updatedCommon }
 
                 -- Get the storage command to save the document
-                storage = Storage.SQLite.storage StorageMsg
+                storage =
+                    Storage.SQLite.storage StorageMsg
             in
             ( updatedModel
             , Cmd.batch
@@ -262,24 +277,31 @@ updateCommon msg model =
                         panelWidth =
                             max 350
                                 ((common.windowWidth
-                                    - 230  -- sidebar
+                                    - 230
+                                    -- sidebar
                                     - (if common.windowWidth >= 1000 then
-                                        221  -- TOC + border
+                                        221
+                                        -- TOC + border
+
                                        else
                                         0
                                       )
-                                    - 3  -- borders
+                                    - 3
+                                  -- borders
                                  )
                                     // 2
                                 )
 
                         -- Subtract padding and extra margin for actual content width
                         -- We need more buffer: 20px padding each side + extra margin
-                        contentWidth = panelWidth - 40  -- Reduced padding experiment
+                        contentWidth =
+                            panelWidth - 40
+
+                        -- Reduced padding experiment
                     in
                     { oldSettings
                         | counter = newCount
-                        , windowWidth = max 310 contentWidth  -- Minimum 310px for content
+                        , windowWidth = max 310 contentWidth -- Minimum 310px for content
                     }
 
                 newCompilerOutput =
@@ -319,24 +341,31 @@ updateCommon msg model =
                         panelWidth =
                             max 350
                                 ((common.windowWidth
-                                    - 230  -- sidebar
+                                    - 230
+                                    -- sidebar
                                     - (if common.windowWidth >= 1000 then
-                                        221  -- TOC + border
+                                        221
+                                        -- TOC + border
+
                                        else
                                         0
                                       )
-                                    - 3  -- borders
+                                    - 3
+                                  -- borders
                                  )
                                     // 2
                                 )
 
                         -- Subtract padding and extra margin for actual content width
                         -- We need more buffer: 20px padding each side + extra margin
-                        contentWidth = panelWidth - 40  -- Reduced padding experiment
+                        contentWidth =
+                            panelWidth - 40
+
+                        -- Reduced padding experiment
                     in
                     { oldSettings
                         | counter = newCount
-                        , windowWidth = max 310 contentWidth  -- Minimum 310px for content
+                        , windowWidth = max 310 contentWidth -- Minimum 310px for content
                     }
 
                 newCompilerOutput =
@@ -375,10 +404,24 @@ updateCommon msg model =
                 displaySettings =
                     common.displaySettings
 
-                panelWidth = max 350 ((width - 230 - (if width >= 1000 then 221 else 0) - 3) // 2)
+                panelWidth =
+                    max 350
+                        ((width - 230
+                            - (if width >= 1000 then
+                                221
 
-                contentWidth = panelWidth - 40  -- Reduced padding experiment
+                               else
+                                0
+                              )
+                            - 3
+                         )
+                            // 2
+                        )
 
+                contentWidth =
+                    panelWidth - 40
+
+                -- Reduced padding experiment
                 newDisplaySettings =
                     { displaySettings
                         | windowWidth = max 310 contentWidth
@@ -642,12 +685,12 @@ updateCommon msg model =
 
         Common.ImportScriptaFile ->
             ( model
-            , File.Select.file ["text/plain", ".scripta", ".txt"] FileSelected
+            , File.Select.file [ "text/plain", ".scripta", ".txt" ] FileSelected
             )
 
         Common.ImportLaTeXFile ->
             ( model
-            , File.Select.file ["text/x-tex", "text/x-latex", ".tex", "application/x-tex"] LaTeXFileSelected
+            , File.Select.file [ "text/x-tex", "text/x-latex", ".tex", "application/x-tex" ] LaTeXFileSelected
             )
 
         Common.PrintToPDF ->
@@ -799,7 +842,7 @@ updateCommon msg model =
                         , initialText = content
                         , title = title
                         , editRecord = editRecord
-                        , loadDocumentIntoEditor = False  -- Will be set by LoadContentIntoEditorDelayed
+                        , loadDocumentIntoEditor = False -- Will be set by LoadContentIntoEditorDelayed
                         , compilerOutput = compilerOutput
                     }
             in

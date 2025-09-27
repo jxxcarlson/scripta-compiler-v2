@@ -145,10 +145,11 @@ sidebar toMsg model =
         , Style.forceColorStyle model.theme
         , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
         , Border.color (Element.rgb 0.5 0.5 0.5)
+        , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
         ]
         [ -- Documents section that can grow
           Element.column
-            Style.innerColumn
+            (Style.innerColumn ++ [height fill])
             [ -- User name section
               nameElement toMsg model
             , Element.el [ Element.paddingXY 0 8, Element.width Element.fill ] (Element.text "")
@@ -159,10 +160,12 @@ sidebar toMsg model =
             , Element.column
                 [ spacing 4
                 , width fill
-                , height (px 300)
+                , height fill
                 , scrollbarY
                 , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
                 , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+                , Element.htmlAttribute (Html.Attributes.style "flex" "1")
+                , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
                 ]
                 (List.map (documentItem toMsg model) (List.sortBy (\d -> d.title) model.documents))
             ]
@@ -375,7 +378,7 @@ documentItem toMsg model doc =
     in
     Element.row
         ([ width fill
-         , padding 8
+         , padding 4
          , Border.rounded 4
          , spacing 8
          , mouseOver [ Background.color (Element.rgba 0.5 0.5 0.5 0.2) ]
@@ -385,24 +388,7 @@ documentItem toMsg model doc =
         [ Input.button
             [ width fill ]
             { onPress = Just (toMsg (Common.LoadDocument doc.id))
-            , label =
-                Element.column [ spacing 2 ]
-                    [ Element.el [ Font.size 13 ] (text doc.title)
-                    , Element.el
-                        [ Font.size 11
-                        , Font.color
-                            (case model.theme of
-                                Theme.Light ->
-                                    Element.rgb 0.4 0.4 0.4
-
-                                -- Darker gray for light mode
-                                Theme.Dark ->
-                                    Element.rgb 0.7 0.7 0.7
-                             -- Original lighter gray for dark mode
-                            )
-                        ]
-                        (text <| Style.formatRelativeTime model.currentTime doc.modifiedAt)
-                    ]
+            , label = Element.el [ Font.size 13 ] (text doc.title)
             }
         , Input.button
             [ Font.color (Element.rgb 1 0.5 0.5)

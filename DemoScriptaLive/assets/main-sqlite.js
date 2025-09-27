@@ -8897,7 +8897,7 @@ var $elm$core$List$isEmpty = function (xs) {
 var $author$project$MicroLaTeX$PrimitiveBlock$Filled = {$: 'Filled'};
 var $author$project$MicroLaTeX$PrimitiveBlock$Started = {$: 'Started'};
 var $author$project$MicroLaTeX$PrimitiveBlock$verbatimBlockNames = _List_fromArray(
-	['equation', 'table', 'array', 'textarray', 'aligned', 'math', 'code', 'verbatim', 'verse', 'mathmacros', 'textmacros', 'hide', 'docinfo', 'csvtable', 'chart', 'svg', 'quiver', 'image', 'tikz', 'load-files', 'include', 'iframe']);
+	['equation', 'table', 'array', 'textarray', 'align', 'aligned', 'math', 'code', 'verbatim', 'verse', 'mathmacros', 'textmacros', 'hide', 'docinfo', 'csvtable', 'chart', 'svg', 'quiver', 'image', 'tikz', 'load-files', 'include', 'iframe']);
 var $author$project$MicroLaTeX$PrimitiveBlock$getHeading = function (str) {
 	var _v0 = $author$project$MicroLaTeX$ClassifyBlock$classify(str);
 	switch (_v0.$) {
@@ -9851,7 +9851,7 @@ var $author$project$MicroLaTeX$PrimitiveBlock$finishBlock = F2(
 		}
 	});
 var $author$project$MicroLaTeX$PrimitiveBlock$verbatimBlocks = _List_fromArray(
-	['table', 'textarray', 'array', 'code', 'equation', 'aligned', 'verbatim']);
+	['table', 'textarray', 'array', 'code', 'equation', 'align', 'aligned', 'verbatim']);
 var $author$project$MicroLaTeX$PrimitiveBlock$endBlockOnMismatch = F4(
 	function (label_, classifier, line, state) {
 		var _v0 = $elm_community$list_extra$List$Extra$uncons(state.stack);
@@ -10444,6 +10444,7 @@ var $author$project$MicroLaTeX$PrimitiveBlock$plainText = F2(
 							$author$project$MicroLaTeX$ClassifyBlock$CBeginBlock('equation'),
 							$author$project$MicroLaTeX$ClassifyBlock$CBeginBlock('array'),
 							$author$project$MicroLaTeX$ClassifyBlock$CBeginBlock('textarray'),
+							$author$project$MicroLaTeX$ClassifyBlock$CBeginBlock('align'),
 							$author$project$MicroLaTeX$ClassifyBlock$CBeginBlock('aligned')
 						])))) ? $author$project$MicroLaTeX$PrimitiveBlock$Loop(
 					A5($author$project$MicroLaTeX$PrimitiveBlock$dispatchBeginBlock, state.idPrefix, state.outerCount, $author$project$MicroLaTeX$ClassifyBlock$CPlainText, currentLine, state)) : $author$project$MicroLaTeX$PrimitiveBlock$Loop(state);
@@ -10533,6 +10534,29 @@ var $author$project$MicroLaTeX$PrimitiveBlock$nexStepAux = F3(
 					_List_fromArray(
 						[
 							$elm$core$Maybe$Just(
+							$author$project$MicroLaTeX$ClassifyBlock$CBeginBlock('align')),
+							$elm$core$Maybe$Just(
+							$author$project$MicroLaTeX$ClassifyBlock$CBeginBlock('aligned'))
+						])) ? $author$project$MicroLaTeX$PrimitiveBlock$Loop(
+					A4(
+						$author$project$MicroLaTeX$PrimitiveBlock$endBlockOnMatch,
+						$elm$core$Maybe$Nothing,
+						$author$project$MicroLaTeX$ClassifyBlock$CBeginBlock('align'),
+						currentLine,
+						_Utils_update(
+							state,
+							{label: 'CEndBlock 4'}))) : (A2(
+					$elm$core$List$member,
+					A2(
+						$elm$core$Maybe$map,
+						function ($) {
+							return $.classification;
+						},
+						$elm$core$List$head(
+							$elm$core$List$reverse(state.labelStack))),
+					_List_fromArray(
+						[
+							$elm$core$Maybe$Just(
 							$author$project$MicroLaTeX$ClassifyBlock$CBeginBlock('aligned'))
 						])) ? $author$project$MicroLaTeX$PrimitiveBlock$Loop(
 					A4(
@@ -10542,7 +10566,7 @@ var $author$project$MicroLaTeX$PrimitiveBlock$nexStepAux = F3(
 						currentLine,
 						_Utils_update(
 							state,
-							{label: 'CEndBlock 4'}))) : (A2(
+							{label: 'CEndBlock 4a'}))) : (A2(
 					$elm$core$List$member,
 					A2(
 						$elm$core$Maybe$map,
@@ -10611,7 +10635,7 @@ var $author$project$MicroLaTeX$PrimitiveBlock$nexStepAux = F3(
 					currentLine,
 					_Utils_update(
 						state,
-						{label: 'CEndBlock 5'})))))));
+						{label: 'CEndBlock 5'}))))))));
 			case 'CSpecialBlock':
 				var label = _v0.a;
 				var _v3 = _Utils_Tuple2(label, currentLine.lineNumber);
@@ -55318,403 +55342,425 @@ var $elm$file$File$Download$string = F3(
 			A3(_File_download, name, mime, content));
 	});
 var $elm$file$File$toString = _File_toString;
-var $author$project$Render$Export$LaTeXToScripta$cleanupBackslashes = function (input) {
-	var textCommands = _List_fromArray(
-		['ell', 'ldots', 'dots', 'quad', 'qquad', 'text', 'mathrm']);
-	var removeTextBackslash = F2(
-		function (cmd, text) {
-			return A3($elm$core$String$replace, '\\' + cmd, cmd, text);
-		});
-	return A3($elm$core$List$foldl, removeTextBackslash, input, textCommands);
+var $author$project$Render$Export$LaTeXToScripta2$parseL = function (latexSource) {
+	var outerCount = 0;
+	var lines = $elm$core$String$lines(latexSource);
+	var idPrefix = $author$project$ScriptaV2$Config$idPrefix;
+	return A6($author$project$Generic$Compiler$parse_, $author$project$ScriptaV2$Language$MicroLaTeXLang, $author$project$MicroLaTeX$PrimitiveBlock$parse, $author$project$MicroLaTeX$Expression$parse, idPrefix, outerCount, lines);
 };
-var $author$project$Render$Export$LaTeXToScripta$convertBibItems = function (input) {
-	return A3(
-		$elm$regex$Regex$replace,
-		A2(
-			$elm$core$Maybe$withDefault,
-			$elm$regex$Regex$never,
-			$elm$regex$Regex$fromString('\\\\href\\{([^}]*)\\}\\{([^}]*)\\}')),
-		function (match) {
-			var _v1 = match.submatches;
-			if ((((_v1.b && (_v1.a.$ === 'Just')) && _v1.b.b) && (_v1.b.a.$ === 'Just')) && (!_v1.b.b.b)) {
-				var url = _v1.a.a;
-				var _v2 = _v1.b;
-				var text = _v2.a.a;
-				return '[link \"' + (text + ('\" ' + (url + ']')));
-			} else {
-				return match.match;
-			}
-		},
-		A3(
-			$elm$regex$Regex$replace,
-			A2(
-				$elm$core$Maybe$withDefault,
-				$elm$regex$Regex$never,
-				$elm$regex$Regex$fromString('\\\\bibitem\\{([^}]*)\\}')),
-			function (match) {
-				var _v0 = match.submatches;
-				if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
-					var label = _v0.a.a;
-					return '| bibitem ' + label;
-				} else {
-					return match.match;
-				}
-			},
-			input));
-};
-var $author$project$Render$Export$LaTeXToScripta$convertEnvironments = function (input) {
-	var convertRemark = function (text) {
-		return A3(
-			$elm$regex$Regex$replace,
-			A2(
-				$elm$core$Maybe$withDefault,
-				$elm$regex$Regex$never,
-				A2(
-					$elm$regex$Regex$fromStringWith,
-					{caseInsensitive: false, multiline: true},
-					'\\\\begin\\{remark\\}([\\s\\S]*?)\\\\end\\{remark\\}')),
-			function (match) {
-				var _v2 = match.submatches;
-				if ((_v2.b && (_v2.a.$ === 'Just')) && (!_v2.b.b)) {
-					var content = _v2.a.a;
-					return '| remark' + content;
-				} else {
-					return match.match;
-				}
-			},
-			text);
-	};
-	var convertEquation = function (text) {
-		return A3(
-			$elm$regex$Regex$replace,
-			A2(
-				$elm$core$Maybe$withDefault,
-				$elm$regex$Regex$never,
-				A2(
-					$elm$regex$Regex$fromStringWith,
-					{caseInsensitive: false, multiline: true},
-					'\\\\begin\\{equation\\}([\\s\\S]*?)\\\\end\\{equation\\}')),
-			function (match) {
-				var _v1 = match.submatches;
-				if ((_v1.b && (_v1.a.$ === 'Just')) && (!_v1.b.b)) {
-					var content = _v1.a.a;
-					return '| equation' + content;
-				} else {
-					return match.match;
-				}
-			},
-			text);
-	};
-	var convertAligned = function (text) {
-		return A3(
-			$elm$regex$Regex$replace,
-			A2(
-				$elm$core$Maybe$withDefault,
-				$elm$regex$Regex$never,
-				A2(
-					$elm$regex$Regex$fromStringWith,
-					{caseInsensitive: false, multiline: true},
-					'\\\\begin\\{align\\}([\\s\\S]*?)\\\\end\\{align\\}')),
-			function (match) {
-				var _v0 = match.submatches;
-				if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
-					var content = _v0.a.a;
-					return '| aligned' + content;
-				} else {
-					return match.match;
-				}
-			},
-			text);
-	};
-	return convertAligned(
-		convertRemark(
-			convertEquation(input)));
-};
-var $author$project$Render$Export$LaTeXToScripta$convertFractions = function (input) {
-	var restoreDelimiters = function (text) {
-		return A3(
-			$elm$core$String$replace,
-			'<<<RIGHTBRACE>>>',
-			'\\right\\}',
-			A3(
-				$elm$core$String$replace,
-				'<<<LEFTBRACE>>>',
-				'\\left\\{',
-				A3(
-					$elm$core$String$replace,
-					'<<<RIGHTBRACKET>>>',
-					'\\right]',
-					A3(
-						$elm$core$String$replace,
-						'<<<LEFTBRACKET>>>',
-						'\\left[',
-						A3(
-							$elm$core$String$replace,
-							'<<<RIGHTPAREN>>>',
-							'\\right)',
-							A3($elm$core$String$replace, '<<<LEFTPAREN>>>', '\\left(', text))))));
-	};
-	var protectDelimiters = function (text) {
-		return A3(
-			$elm$core$String$replace,
-			'\\right\\}',
-			'<<<RIGHTBRACE>>>',
-			A3(
-				$elm$core$String$replace,
-				'\\left\\{',
-				'<<<LEFTBRACE>>>',
-				A3(
-					$elm$core$String$replace,
-					'\\right]',
-					'<<<RIGHTBRACKET>>>',
-					A3(
-						$elm$core$String$replace,
-						'\\left[',
-						'<<<LEFTBRACKET>>>',
-						A3(
-							$elm$core$String$replace,
-							'\\right)',
-							'<<<RIGHTPAREN>>>',
-							A3($elm$core$String$replace, '\\left(', '<<<LEFTPAREN>>>', text))))));
-	};
-	var convertFrac = function (text) {
-		return A3(
-			$elm$regex$Regex$replace,
-			A2(
-				$elm$core$Maybe$withDefault,
-				$elm$regex$Regex$never,
-				$elm$regex$Regex$fromString('\\\\frac\\{([^{}]*)\\}\\{([^{}]*)\\}')),
-			function (match) {
-				var _v0 = match.submatches;
-				if ((((_v0.b && (_v0.a.$ === 'Just')) && _v0.b.b) && (_v0.b.a.$ === 'Just')) && (!_v0.b.b.b)) {
-					var num = _v0.a.a;
-					var _v1 = _v0.b;
-					var denom = _v1.a.a;
-					return 'frac(' + (num + (', ' + (denom + ')')));
-				} else {
-					return match.match;
-				}
-			},
-			text);
-	};
-	return restoreDelimiters(
-		convertFrac(
-			protectDelimiters(input)));
-};
-var $author$project$Render$Export$MacroConvert$emitBlock = function (items) {
-	var render = function (ml) {
-		return ml.name + (':   ' + ml.body);
-	};
-	return A2(
-		$elm$core$String$join,
-		'\n',
-		A2(
-			$elm$core$List$cons,
-			'| mathmacros',
-			A2($elm$core$List$map, render, items)));
-};
-var $author$project$Render$Export$MacroConvert$commaSpaces = A2(
-	$elm$core$Maybe$withDefault,
-	$elm$regex$Regex$never,
-	$elm$regex$Regex$fromString(',\\s+'));
-var $author$project$Render$Export$MacroConvert$cleanBody = function (body) {
-	return $elm$core$String$trim(
-		A3(
-			$elm$regex$Regex$replace,
-			$author$project$Render$Export$MacroConvert$commaSpaces,
-			function (_v0) {
-				return ', ';
-			},
-			body));
-};
-var $author$project$Render$Export$MacroConvert$patCanonical = A2(
-	$elm$core$Maybe$withDefault,
-	$elm$regex$Regex$never,
-	$elm$regex$Regex$fromString('\\\\?newcommand\\{\\\\([A-Za-z]+)\\}(?:\\[(\\d+)\\])?\\{([^}]*)\\}'));
-var $author$project$Render$Export$MacroConvert$patShorthand = A2(
-	$elm$core$Maybe$withDefault,
-	$elm$regex$Regex$never,
-	$elm$regex$Regex$fromString('\\\\?newcommand\\{\\\\([A-Za-z]+)\\}\\\\([1-9])\\{([^}]*)\\}'));
-var $author$project$Render$Export$MacroConvert$matchNewcommandLine = function (line) {
-	var _v0 = A2($elm$regex$Regex$find, $author$project$Render$Export$MacroConvert$patCanonical, line);
-	if (_v0.b) {
-		var m = _v0.a;
-		var _v1 = m.submatches;
-		if (((((_v1.b && (_v1.a.$ === 'Just')) && _v1.b.b) && _v1.b.b.b) && (_v1.b.b.a.$ === 'Just')) && (!_v1.b.b.b.b)) {
-			var name = _v1.a.a;
-			var _v2 = _v1.b;
-			var _v3 = _v2.b;
-			var body = _v3.a.a;
-			return $elm$core$Maybe$Just(
-				{
-					body: $author$project$Render$Export$MacroConvert$cleanBody(body),
-					name: name
-				});
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	} else {
-		var _v4 = A2($elm$regex$Regex$find, $author$project$Render$Export$MacroConvert$patShorthand, line);
-		if (_v4.b) {
-			var m2 = _v4.a;
-			var _v5 = m2.submatches;
-			if ((((((_v5.b && (_v5.a.$ === 'Just')) && _v5.b.b) && (_v5.b.a.$ === 'Just')) && _v5.b.b.b) && (_v5.b.b.a.$ === 'Just')) && (!_v5.b.b.b.b)) {
-				var name = _v5.a.a;
-				var _v6 = _v5.b;
-				var _v7 = _v6.b;
-				var body = _v7.a.a;
-				return $elm$core$Maybe$Just(
-					{
-						body: $author$project$Render$Export$MacroConvert$cleanBody(body),
-						name: name
-					});
-			} else {
-				return $elm$core$Maybe$Nothing;
-			}
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	}
-};
-var $author$project$Render$Export$MacroConvert$step = F3(
-	function (matcher, line, _v0) {
-		var outRev = _v0.a;
-		var inBlock = _v0.b;
-		var accBlockRev = _v0.c;
-		var _v1 = matcher(line);
-		if (_v1.$ === 'Just') {
-			var ml = _v1.a;
-			return _Utils_Tuple3(
-				outRev,
-				true,
-				A2($elm$core$List$cons, ml, accBlockRev));
-		} else {
-			return inBlock ? _Utils_Tuple3(
-				A2(
-					$elm$core$List$cons,
-					$author$project$Render$Export$MacroConvert$emitBlock(
-						$elm$core$List$reverse(accBlockRev)),
-					A2($elm$core$List$cons, line, outRev)),
-				false,
-				_List_Nil) : _Utils_Tuple3(
-				A2($elm$core$List$cons, line, outRev),
-				false,
-				accBlockRev);
+var $author$project$Render$Export$LaTeXToScripta2$renderVerbatimFunction = F2(
+	function (name, content) {
+		switch (name) {
+			case 'math':
+				return '$' + (content + '$');
+			case 'code':
+				return '`' + (content + '`');
+			default:
+				return '[' + (name + (' ' + (content + ']')));
 		}
 	});
-var $author$project$Render$Export$MacroConvert$convertMathMacrosPreservingContext = function (input) {
-	var lines = $elm$core$String$lines(input);
-	var _v0 = A3(
-		$elm$core$List$foldl,
-		$author$project$Render$Export$MacroConvert$step($author$project$Render$Export$MacroConvert$matchNewcommandLine),
-		_Utils_Tuple3(_List_Nil, false, _List_Nil),
-		lines);
-	var resultReversed = _v0.a;
-	var accBlockReversed = _v0.c;
-	var finalResultReversed = $elm$core$List$isEmpty(accBlockReversed) ? resultReversed : A2(
-		$elm$core$List$cons,
-		$author$project$Render$Export$MacroConvert$emitBlock(
-			$elm$core$List$reverse(accBlockReversed)),
-		resultReversed);
+var $author$project$Render$Export$LaTeXToScripta2$renderArgs = function (args) {
 	return A2(
 		$elm$core$String$join,
-		'\n',
-		$elm$core$List$reverse(finalResultReversed));
+		' ',
+		A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$renderExpression, args));
 };
-var $author$project$Render$Export$LaTeXToScripta$convertMathSymbols = function (input) {
-	var removeMathBackslash = F2(
-		function (cmd, text) {
-			return A3($elm$core$String$replace, '\\' + cmd, cmd, text);
-		});
-	var mathCommands = _List_fromArray(
-		['psi', 'epsilon', 'omega', 'lambda', 'alpha', 'beta', 'gamma', 'delta', 'theta', 'phi', 'sigma', 'tau', 'rho', 'mu', 'nu', 'xi', 'pi', 'Delta', 'Gamma', 'Lambda', 'Omega', 'Sigma', 'Pi', 'infty', 'cdot', 'cdots', 'sum', 'int', 'hat', 'langle', 'rangle', 'ne', 'le', 'ge', 'equiv', 'approx', 'times', 'div']);
-	var processAllCommands = function (text) {
-		return A3($elm$core$List$foldl, removeMathBackslash, text, mathCommands);
-	};
-	return processAllCommands(input);
+var $author$project$Render$Export$LaTeXToScripta2$renderExpression = function (expr) {
+	switch (expr.$) {
+		case 'Text':
+			var str = expr.a;
+			return str;
+		case 'Fun':
+			var name = expr.a;
+			var args = expr.b;
+			return A2($author$project$Render$Export$LaTeXToScripta2$renderFunction, name, args);
+		case 'VFun':
+			var name = expr.a;
+			var arg = expr.b;
+			return A2($author$project$Render$Export$LaTeXToScripta2$renderVerbatimFunction, name, arg);
+		default:
+			var exprs = expr.a;
+			return A2(
+				$elm$core$String$join,
+				' ',
+				A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$renderExpression, exprs));
+	}
 };
-var $author$project$Render$Export$LaTeXToScripta$convertReferences = function (input) {
-	return A3(
-		$elm$regex$Regex$replace,
-		A2(
-			$elm$core$Maybe$withDefault,
-			$elm$regex$Regex$never,
-			$elm$regex$Regex$fromString('\\\\ref\\{([^}]*)\\}')),
-		function (match) {
-			var _v1 = match.submatches;
-			if ((_v1.b && (_v1.a.$ === 'Just')) && (!_v1.b.b)) {
-				var ref = _v1.a.a;
-				return '[ref ' + (ref + ']');
-			} else {
-				return match.match;
-			}
-		},
-		A3(
-			$elm$regex$Regex$replace,
-			A2(
-				$elm$core$Maybe$withDefault,
-				$elm$regex$Regex$never,
-				$elm$regex$Regex$fromString('\\\\eqref\\{([^}]*)\\}')),
-			function (match) {
-				var _v0 = match.submatches;
-				if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
-					var ref = _v0.a.a;
-					return '[ref ' + (ref + ']');
+var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F2(
+	function (name, args) {
+		switch (name) {
+			case 'bold':
+				return '[b ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
+			case 'textbf':
+				return '[b ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
+			case 'italic':
+				return '[i ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
+			case 'emph':
+				return '[i ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
+			case 'underline':
+				return '[underline ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
+			case 'footnote':
+				return '[footnote ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
+			case 'cite':
+				return '[cite ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
+			case 'ref':
+				return '[ref ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
+			case 'label':
+				return '[label ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
+			case 'href':
+				if (args.b) {
+					if (args.b.b) {
+						var first = args.a;
+						var _v2 = args.b;
+						var second = _v2.a;
+						return '[link ' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(second) + (' ' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(first) + ']')));
+					} else {
+						var single = args.a;
+						return '[link ' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(single) + ']');
+					}
 				} else {
-					return match.match;
+					return '[link]';
 				}
-			},
-			input));
+			case 'includegraphics':
+				if (args.b) {
+					var path = args.a;
+					return '[image ' + ($author$project$Render$Export$LaTeXToScripta2$renderExpression(path) + ']');
+				} else {
+					return '[image]';
+				}
+			default:
+				return '[' + (name + (' ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']')));
+		}
+	});
+var $author$project$Render$Export$LaTeXToScripta2$renderEnvironment = F2(
+	function (envName, block) {
+		var content = function () {
+			var _v0 = block.body;
+			if (_v0.$ === 'Left') {
+				var str = _v0.a;
+				return $elm$core$String$trim(str);
+			} else {
+				var exprs = _v0.a;
+				return A2(
+					$elm$core$String$join,
+					' ',
+					A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$renderExpression, exprs));
+			}
+		}();
+		return '| ' + (envName + ('\n' + content));
+	});
+var $author$project$Render$Export$LaTeXToScripta2$renderFigure = function (block) {
+	var caption = function () {
+		var _v0 = block.args;
+		if (!_v0.b) {
+			return '';
+		} else {
+			var arg = _v0.a;
+			return '\nCaption: ' + arg;
+		}
+	}();
+	return '| figure' + caption;
 };
-var $author$project$Render$Export$LaTeXToScripta$convertSections = function (input) {
-	return A3(
-		$elm$regex$Regex$replace,
+var $author$project$Render$Export$LaTeXToScripta2$renderItem = function (block) {
+	var isEnumerate = A2($elm$core$String$contains, '\\begin{enumerate}', block.meta.sourceText) || A2($elm$core$String$contains, 'enumerate', block.firstLine);
+	var prefix = isEnumerate ? '. ' : '- ';
+	var content = function () {
+		var _v0 = block.body;
+		if (_v0.$ === 'Left') {
+			var str = _v0.a;
+			return $elm$core$String$trim(str);
+		} else {
+			var exprs = _v0.a;
+			return A2(
+				$elm$core$String$join,
+				' ',
+				A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$renderExpression, exprs));
+		}
+	}();
+	return _Utils_ap(prefix, content);
+};
+var $author$project$Render$Export$LaTeXToScripta2$renderNoteLike = F2(
+	function (envName, block) {
+		var content = function () {
+			var _v0 = block.body;
+			if (_v0.$ === 'Left') {
+				var str = _v0.a;
+				return $elm$core$String$trim(str);
+			} else {
+				var exprs = _v0.a;
+				return A2(
+					$elm$core$String$join,
+					' ',
+					A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$renderExpression, exprs));
+			}
+		}();
+		return '| ' + (envName + ('\n' + content));
+	});
+var $author$project$Render$Export$LaTeXToScripta2$renderSection = F2(
+	function (level, block) {
+		var title = function () {
+			var _v0 = block.body;
+			if (_v0.$ === 'Right') {
+				var exprs = _v0.a;
+				if (exprs.b && (exprs.a.$ === 'Text')) {
+					var _v2 = exprs.a;
+					var titleText = _v2.a;
+					return titleText;
+				} else {
+					var _v3 = block.args;
+					if (_v3.b) {
+						var arg = _v3.a;
+						return arg;
+					} else {
+						return 'Section';
+					}
+				}
+			} else {
+				var str = _v0.a;
+				return str;
+			}
+		}();
+		var marker = A2($elm$core$String$repeat, level, '#');
+		return marker + (' ' + title);
+	});
+var $author$project$Render$Export$LaTeXToScripta2$renderSectionWithLevel = function (block) {
+	var level = A2($elm$core$String$contains, '\\subsection', block.firstLine) ? 2 : (A2($elm$core$String$contains, '\\subsubsection', block.firstLine) ? 3 : 1);
+	return A2($author$project$Render$Export$LaTeXToScripta2$renderSection, level, block);
+};
+var $author$project$Render$Export$LaTeXToScripta2$renderTable = function (block) {
+	var _v0 = block.body;
+	if (_v0.$ === 'Left') {
+		var str = _v0.a;
+		return '| table\n' + $elm$core$String$trim(str);
+	} else {
+		return '| table';
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$renderTheoremLike = F2(
+	function (envName, block) {
+		var title = function () {
+			var _v1 = block.args;
+			if (!_v1.b) {
+				return '';
+			} else {
+				var arg = _v1.a;
+				return ' ' + arg;
+			}
+		}();
+		var content = function () {
+			var _v0 = block.body;
+			if (_v0.$ === 'Left') {
+				var str = _v0.a;
+				return $elm$core$String$trim(str);
+			} else {
+				var exprs = _v0.a;
+				return A2(
+					$elm$core$String$join,
+					' ',
+					A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$renderExpression, exprs));
+			}
+		}();
+		return '| ' + (envName + (title + ('\n' + content)));
+	});
+var $author$project$Render$Export$LaTeXToScripta2$renderOrdinary = F2(
+	function (name, block) {
+		switch (name) {
+			case 'section':
+				return $author$project$Render$Export$LaTeXToScripta2$renderSectionWithLevel(block) + '\n';
+			case 'subsection':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderSection, 2, block) + '\n';
+			case 'subsubsection':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderSection, 3, block) + '\n';
+			case 'itemize':
+				return '';
+			case 'enumerate':
+				return '';
+			case 'item':
+				return $author$project$Render$Export$LaTeXToScripta2$renderItem(block);
+			case 'theorem':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, 'theorem', block);
+			case 'lemma':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, 'lemma', block);
+			case 'proposition':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, 'proposition', block);
+			case 'corollary':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, 'corollary', block);
+			case 'definition':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, 'definition', block);
+			case 'example':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderNoteLike, 'example', block);
+			case 'remark':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderNoteLike, 'remark', block);
+			case 'note':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderNoteLike, 'note', block);
+			case 'abstract':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderEnvironment, 'abstract', block);
+			case 'quote':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderEnvironment, 'quote', block);
+			case 'center':
+				return A2($author$project$Render$Export$LaTeXToScripta2$renderEnvironment, 'center', block);
+			case 'figure':
+				return $author$project$Render$Export$LaTeXToScripta2$renderFigure(block);
+			case 'table':
+				return $author$project$Render$Export$LaTeXToScripta2$renderTable(block);
+			default:
+				return '| ' + name;
+		}
+	});
+var $author$project$Render$Export$LaTeXToScripta2$renderParagraph = function (block) {
+	var _v0 = block.body;
+	if (_v0.$ === 'Left') {
+		var str = _v0.a;
+		return $elm$core$String$trim(str);
+	} else {
+		var exprs = _v0.a;
+		return $elm$core$String$trim(
+			A2(
+				$elm$core$String$join,
+				' ',
+				A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$renderExpression, exprs)));
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$renderAlignedBlock = function (block) {
+	var content = function () {
+		var _v0 = block.body;
+		if (_v0.$ === 'Left') {
+			var str = _v0.a;
+			return $elm$core$String$trim(str);
+		} else {
+			var _v1 = block.args;
+			if (!_v1.b) {
+				var sourceLines = $elm$core$String$lines(block.meta.sourceText);
+				var extractContent = function (lines) {
+					return $elm$core$String$trim(
+						A2(
+							$elm$core$String$join,
+							'\n',
+							A2(
+								$elm$core$List$filter,
+								function (line) {
+									return (!A2($elm$core$String$contains, '\\begin{align}', line)) && (!A2($elm$core$String$contains, '\\end{align}', line));
+								},
+								lines)));
+				};
+				return extractContent(sourceLines);
+			} else {
+				var args = _v1;
+				return A2($elm$core$String$join, '\n', args);
+			}
+		}
+	}();
+	return $elm$core$String$isEmpty(content) ? '| aligned' : ('| aligned\n' + content);
+};
+var $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock = function (block) {
+	var _v0 = block.body;
+	if (_v0.$ === 'Left') {
+		var str = _v0.a;
+		return '| code\n' + str;
+	} else {
+		return 'Error: Invalid code block';
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$renderEquationBlock = function (block) {
+	var _v0 = block.body;
+	if (_v0.$ === 'Left') {
+		var str = _v0.a;
+		return '| equation\n' + str;
+	} else {
+		return 'Error: Invalid equation block';
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$renderMathBlock = function (block) {
+	var _v0 = block.body;
+	if (_v0.$ === 'Left') {
+		var str = _v0.a;
+		return '| math\n' + str;
+	} else {
+		return '| math';
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$renderVerbatimBlock = function (block) {
+	var _v0 = block.body;
+	if (_v0.$ === 'Left') {
+		var str = _v0.a;
+		return '| verbatim\n' + str;
+	} else {
+		return '| verbatim';
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$renderVerbatim = F2(
+	function (name, block) {
+		switch (name) {
+			case 'math':
+				return $author$project$Render$Export$LaTeXToScripta2$renderMathBlock(block);
+			case 'equation':
+				return $author$project$Render$Export$LaTeXToScripta2$renderEquationBlock(block);
+			case 'align':
+				return $author$project$Render$Export$LaTeXToScripta2$renderAlignedBlock(block);
+			case 'code':
+				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
+			case 'verbatim':
+				return $author$project$Render$Export$LaTeXToScripta2$renderVerbatimBlock(block);
+			case 'lstlisting':
+				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
+			case 'minted':
+				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
+			default:
+				return '| ' + name;
+		}
+	});
+var $author$project$Render$Export$LaTeXToScripta2$renderBlock = function (block) {
+	var _v0 = block.heading;
+	switch (_v0.$) {
+		case 'Paragraph':
+			return $author$project$Render$Export$LaTeXToScripta2$renderParagraph(block);
+		case 'Ordinary':
+			var name = _v0.a;
+			return A2($author$project$Render$Export$LaTeXToScripta2$renderOrdinary, name, block);
+		default:
+			var name = _v0.a;
+			return A2($author$project$Render$Export$LaTeXToScripta2$renderVerbatim, name, block);
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$renderTree = F2(
+	function (indent, tree) {
+		var indentStr = A2($elm$core$String$repeat, indent * 2, ' ');
+		var currentBlock = $maca$elm_rose_tree$RoseTree$Tree$value(tree);
+		var currentRendered = _Utils_ap(
+			indentStr,
+			$author$project$Render$Export$LaTeXToScripta2$renderBlock(currentBlock));
+		var children = $maca$elm_rose_tree$RoseTree$Tree$children(tree);
+		var childrenRendered = function () {
+			if (!children.b) {
+				return '';
+			} else {
+				return function (s) {
+					return '\n' + s;
+				}(
+					A2(
+						$elm$core$String$join,
+						'\n',
+						A2(
+							$elm$core$List$map,
+							$author$project$Render$Export$LaTeXToScripta2$renderTree(indent + 1),
+							children)));
+			}
+		}();
+		return _Utils_ap(currentRendered, childrenRendered);
+	});
+var $author$project$Render$Export$LaTeXToScripta2$renderS = function (forest) {
+	return A2(
+		$elm$core$String$join,
+		'\n\n',
 		A2(
-			$elm$core$Maybe$withDefault,
-			$elm$regex$Regex$never,
-			$elm$regex$Regex$fromString('\\\\section\\{([^}]*)\\}')),
-		function (match) {
-			var _v0 = match.submatches;
-			if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
-				var title = _v0.a.a;
-				return '## ' + title;
-			} else {
-				return match.match;
-			}
-		},
-		input);
+			$elm$core$List$map,
+			$author$project$Render$Export$LaTeXToScripta2$renderTree(0),
+			forest));
 };
-var $author$project$Render$Export$LaTeXToScripta$convertTerms = function (input) {
-	var pattern = A2(
-		$elm$core$Maybe$withDefault,
-		$elm$regex$Regex$never,
-		$elm$regex$Regex$fromString('\\\\([A-Za-z][A-Za-z0-9]*)\\{([^}]*)\\}'));
-	return A3(
-		$elm$regex$Regex$replace,
-		pattern,
-		function (m) {
-			var _v0 = m.submatches;
-			if ((((_v0.b && (_v0.a.$ === 'Just')) && _v0.b.b) && (_v0.b.a.$ === 'Just')) && (!_v0.b.b.b)) {
-				var term = _v0.a.a;
-				var _v1 = _v0.b;
-				var stuff = _v1.a.a;
-				return '[' + (term + (' ' + (stuff + ']')));
-			} else {
-				return m.match;
-			}
-		},
-		input);
-};
-var $author$project$Render$Export$LaTeXToScripta$translate = function (input) {
-	return $author$project$Render$Export$MacroConvert$convertMathMacrosPreservingContext(
-		$author$project$Render$Export$LaTeXToScripta$cleanupBackslashes(
-			$author$project$Render$Export$LaTeXToScripta$convertTerms(
-				$author$project$Render$Export$LaTeXToScripta$convertBibItems(
-					$author$project$Render$Export$LaTeXToScripta$convertReferences(
-						$author$project$Render$Export$LaTeXToScripta$convertMathSymbols(
-							$author$project$Render$Export$LaTeXToScripta$convertFractions(
-								$author$project$Render$Export$LaTeXToScripta$convertSections(
-									$author$project$Render$Export$LaTeXToScripta$convertEnvironments(input)))))))));
+var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSource) {
+	var forest = $author$project$Render$Export$LaTeXToScripta2$parseL(latexSource);
+	return ($elm$core$List$isEmpty(forest) && (!$elm$core$String$isEmpty(
+		$elm$core$String$trim(latexSource)))) ? latexSource : $author$project$Render$Export$LaTeXToScripta2$renderS(forest);
 };
 var $ohanhi$keyboard$Keyboard$Backspace = {$: 'Backspace'};
 var $ohanhi$keyboard$Keyboard$Clear = {$: 'Clear'};
@@ -56470,7 +56516,7 @@ var $author$project$MainSQLite$update = F2(
 			default:
 				var filename = msg.a.filename;
 				var content = msg.a.content;
-				var translatedContent = $author$project$Render$Export$LaTeXToScripta$translate(content);
+				var translatedContent = $author$project$Render$Export$LaTeXToScripta2$translate(content);
 				var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
 				var basename = A2($elm$core$String$endsWith, '.tex', filename) ? A2($elm$core$String$dropRight, 4, filename) : filename;
 				var scriptaContent = '| title\n' + (basename + ('\n\n' + translatedContent));
@@ -57868,22 +57914,12 @@ var $author$project$Common$View$crudButtons = F2(
 var $author$project$Common$Model$DeleteDocument = function (a) {
 	return {$: 'DeleteDocument', a: a};
 };
-var $author$project$Style$formatRelativeTime = F2(
-	function (currentTime, savedTime) {
-		var savedMillis = $elm$time$Time$posixToMillis(savedTime);
-		var currentMillis = $elm$time$Time$posixToMillis(currentTime);
-		var diffMillis = currentMillis - savedMillis;
-		var seconds = (diffMillis / 1000) | 0;
-		var minutes = (seconds / 60) | 0;
-		var hours = (minutes / 60) | 0;
-		return (!savedMillis) ? 'Never' : ((seconds < 5) ? 'Just now' : ((seconds < 60) ? ($elm$core$String$fromInt(seconds) + ' seconds ago') : ((minutes < 60) ? ($elm$core$String$fromInt(minutes) + (' minute' + (((minutes === 1) ? '' : 's') + ' ago'))) : ((hours < 24) ? ($elm$core$String$fromInt(hours) + (' hour' + (((hours === 1) ? '' : 's') + ' ago'))) : ($elm$core$String$fromInt((hours / 24) | 0) + (' day' + (((((hours / 24) | 0) === 1) ? '' : 's') + ' ago')))))));
-	});
 var $author$project$Common$View$documentItem = F3(
 	function (toMsg, model, doc) {
 		var isActive = function () {
-			var _v2 = model.currentDocument;
-			if (_v2.$ === 'Just') {
-				var currentDoc = _v2.a;
+			var _v1 = model.currentDocument;
+			if (_v1.$ === 'Just') {
+				var currentDoc = _v1.a;
 				return _Utils_eq(currentDoc.id, doc.id);
 			} else {
 				return false;
@@ -57894,8 +57930,8 @@ var $author$project$Common$View$documentItem = F3(
 				$mdgriffith$elm_ui$Element$Border$width(1),
 				$mdgriffith$elm_ui$Element$Border$color(
 				function () {
-					var _v1 = model.theme;
-					if (_v1.$ === 'Light') {
+					var _v0 = model.theme;
+					if (_v0.$ === 'Light') {
 						return A3($mdgriffith$elm_ui$Element$rgb255, 64, 64, 64);
 					} else {
 						return A3($mdgriffith$elm_ui$Element$rgb255, 220, 220, 220);
@@ -57908,7 +57944,7 @@ var $author$project$Common$View$documentItem = F3(
 				_List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-						$mdgriffith$elm_ui$Element$padding(8),
+						$mdgriffith$elm_ui$Element$padding(4),
 						$mdgriffith$elm_ui$Element$Border$rounded(4),
 						$mdgriffith$elm_ui$Element$spacing(8),
 						$mdgriffith$elm_ui$Element$mouseOver(
@@ -57929,38 +57965,12 @@ var $author$project$Common$View$documentItem = F3(
 						]),
 					{
 						label: A2(
-							$mdgriffith$elm_ui$Element$column,
+							$mdgriffith$elm_ui$Element$el,
 							_List_fromArray(
 								[
-									$mdgriffith$elm_ui$Element$spacing(2)
+									$mdgriffith$elm_ui$Element$Font$size(13)
 								]),
-							_List_fromArray(
-								[
-									A2(
-									$mdgriffith$elm_ui$Element$el,
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$Font$size(13)
-										]),
-									$mdgriffith$elm_ui$Element$text(doc.title)),
-									A2(
-									$mdgriffith$elm_ui$Element$el,
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$Font$size(11),
-											$mdgriffith$elm_ui$Element$Font$color(
-											function () {
-												var _v0 = model.theme;
-												if (_v0.$ === 'Light') {
-													return A3($mdgriffith$elm_ui$Element$rgb, 0.4, 0.4, 0.4);
-												} else {
-													return A3($mdgriffith$elm_ui$Element$rgb, 0.7, 0.7, 0.7);
-												}
-											}())
-										]),
-									$mdgriffith$elm_ui$Element$text(
-										A2($author$project$Style$formatRelativeTime, model.currentTime, doc.modifiedAt)))
-								])),
+							$mdgriffith$elm_ui$Element$text(doc.title)),
 						onPress: $elm$core$Maybe$Just(
 							toMsg(
 								$author$project$Common$Model$LoadDocument(doc.id)))
@@ -59274,13 +59284,20 @@ var $author$project$Common$View$sidebar = F2(
 					$mdgriffith$elm_ui$Element$Border$widthEach(
 					{bottom: 0, left: 1, right: 0, top: 0}),
 					$mdgriffith$elm_ui$Element$Border$color(
-					A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5))
+					A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5)),
+					$mdgriffith$elm_ui$Element$htmlAttribute(
+					A2($elm$html$Html$Attributes$style, 'overflow', 'hidden'))
 				]),
 			_List_fromArray(
 				[
 					A2(
 					$mdgriffith$elm_ui$Element$column,
-					$author$project$Style$innerColumn,
+					_Utils_ap(
+						$author$project$Style$innerColumn,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
+							])),
 					_List_fromArray(
 						[
 							A2($author$project$Common$View$nameElement, toMsg, model),
@@ -59309,13 +59326,16 @@ var $author$project$Common$View$sidebar = F2(
 								[
 									$mdgriffith$elm_ui$Element$spacing(4),
 									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$height(
-									$mdgriffith$elm_ui$Element$px(300)),
+									$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
 									$mdgriffith$elm_ui$Element$scrollbarY,
 									$mdgriffith$elm_ui$Element$htmlAttribute(
 									A2($elm$html$Html$Attributes$style, 'overflow-y', 'auto')),
 									$mdgriffith$elm_ui$Element$htmlAttribute(
-									A2($elm$html$Html$Attributes$style, 'overflow-x', 'hidden'))
+									A2($elm$html$Html$Attributes$style, 'overflow-x', 'hidden')),
+									$mdgriffith$elm_ui$Element$htmlAttribute(
+									A2($elm$html$Html$Attributes$style, 'flex', '1')),
+									$mdgriffith$elm_ui$Element$htmlAttribute(
+									A2($elm$html$Html$Attributes$style, 'min-height', '0'))
 								]),
 							A2(
 								$elm$core$List$map,

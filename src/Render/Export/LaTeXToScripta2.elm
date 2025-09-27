@@ -1,4 +1,4 @@
-module Render.Export.LaTeXToScripta2 exposing (parseL, renderBlock, renderS, renderTree, translate)
+module Render.Export.LaTeXToScripta2 exposing (parseL, renderBlock, renderExpression, renderS, renderTree, translate)
 
 import Either exposing (Either(..))
 import Generic.Compiler
@@ -150,6 +150,51 @@ renderOrdinary name block =
         "enumerate" ->
             ""
 
+        "item" ->
+            renderItem block
+
+        -- Theorem-like environments
+        "theorem" ->
+            renderTheoremLike "theorem" block
+
+        "lemma" ->
+            renderTheoremLike "lemma" block
+
+        "proposition" ->
+            renderTheoremLike "proposition" block
+
+        "corollary" ->
+            renderTheoremLike "corollary" block
+
+        "definition" ->
+            renderTheoremLike "definition" block
+
+        -- Note-like environments
+        "example" ->
+            renderNoteLike "example" block
+
+        "remark" ->
+            renderNoteLike "remark" block
+
+        "note" ->
+            renderNoteLike "note" block
+
+        -- Other common environments
+        "abstract" ->
+            renderEnvironment "abstract" block
+
+        "quote" ->
+            renderEnvironment "quote" block
+
+        "center" ->
+            renderEnvironment "center" block
+
+        "figure" ->
+            renderFigure block
+
+        "table" ->
+            renderTable block
+
         _ ->
             -- Generic block
             "| " ++ name
@@ -170,6 +215,15 @@ renderVerbatim name block =
             renderAlignedBlock block
 
         "code" ->
+            renderCodeBlock block
+
+        "verbatim" ->
+            renderVerbatimBlock block
+
+        "lstlisting" ->
+            renderCodeBlock block
+
+        "minted" ->
             renderCodeBlock block
 
         _ ->
@@ -274,6 +328,40 @@ renderFunction name args =
         "emph" ->
             "[i " ++ renderArgs args ++ "]"
 
+        "underline" ->
+            "[underline " ++ renderArgs args ++ "]"
+
+        "footnote" ->
+            "[footnote " ++ renderArgs args ++ "]"
+
+        "cite" ->
+            "[cite " ++ renderArgs args ++ "]"
+
+        "ref" ->
+            "[ref " ++ renderArgs args ++ "]"
+
+        "label" ->
+            "[label " ++ renderArgs args ++ "]"
+
+        "href" ->
+            case args of
+                first :: second :: _ ->
+                    -- MicroLaTeX gives us \href{url}{text} as args [url, text]
+                    -- We need [link text url] in Scripta
+                    -- So we swap: second (text) then first (url)
+                    "[link " ++ renderExpression second ++ " " ++ renderExpression first ++ "]"
+                single :: _ ->
+                    "[link " ++ renderExpression single ++ "]"
+                _ ->
+                    "[link]"
+
+        "includegraphics" ->
+            case args of
+                path :: _ ->
+                    "[image " ++ renderExpression path ++ "]"
+                _ ->
+                    "[image]"
+
         _ ->
             "[" ++ name ++ " " ++ renderArgs args ++ "]"
 
@@ -317,6 +405,18 @@ renderCodeBlock block =
             "Error: Invalid code block"
 
 
+{-| Render a verbatim block
+-}
+renderVerbatimBlock : ExpressionBlock -> String
+renderVerbatimBlock block =
+    case block.body of
+        Left str ->
+            "| verbatim\n" ++ str
+
+        _ ->
+            "| verbatim"
+
+
 {-| Render a equation block
 -}
 renderEquationBlock : ExpressionBlock -> String
@@ -327,6 +427,111 @@ renderEquationBlock block =
 
         _ ->
             "Error: Invalid equation block"
+
+
+{-| Render an item block
+-}
+renderItem : ExpressionBlock -> String
+renderItem block =
+    let
+        -- Check if we're in an enumerate context by looking at the source
+        isEnumerate =
+            String.contains "\\begin{enumerate}" block.meta.sourceText
+                || String.contains "enumerate" block.firstLine
+
+        prefix =
+            if isEnumerate then
+                ". "
+            else
+                "- "
+
+        content =
+            case block.body of
+                Left str ->
+                    String.trim str
+
+                Right exprs ->
+                    exprs |> List.map renderExpression |> String.join " "
+    in
+    prefix ++ content
+
+
+{-| Render theorem-like environments
+-}
+renderTheoremLike : String -> ExpressionBlock -> String
+renderTheoremLike envName block =
+    let
+        title =
+            case block.args of
+                [] ->
+                    ""
+                arg :: _ ->
+                    " " ++ arg
+
+        content =
+            case block.body of
+                Left str ->
+                    String.trim str
+                Right exprs ->
+                    exprs |> List.map renderExpression |> String.join " "
+    in
+    "| " ++ envName ++ title ++ "\n" ++ content
+
+
+{-| Render note-like environments
+-}
+renderNoteLike : String -> ExpressionBlock -> String
+renderNoteLike envName block =
+    let
+        content =
+            case block.body of
+                Left str ->
+                    String.trim str
+                Right exprs ->
+                    exprs |> List.map renderExpression |> String.join " "
+    in
+    "| " ++ envName ++ "\n" ++ content
+
+
+{-| Render generic environments
+-}
+renderEnvironment : String -> ExpressionBlock -> String
+renderEnvironment envName block =
+    let
+        content =
+            case block.body of
+                Left str ->
+                    String.trim str
+                Right exprs ->
+                    exprs |> List.map renderExpression |> String.join " "
+    in
+    "| " ++ envName ++ "\n" ++ content
+
+
+{-| Render figure environment
+-}
+renderFigure : ExpressionBlock -> String
+renderFigure block =
+    let
+        caption =
+            case block.args of
+                [] ->
+                    ""
+                arg :: _ ->
+                    "\nCaption: " ++ arg
+    in
+    "| figure" ++ caption
+
+
+{-| Render table environment
+-}
+renderTable : ExpressionBlock -> String
+renderTable block =
+    case block.body of
+        Left str ->
+            "| table\n" ++ String.trim str
+        Right _ ->
+            "| table"
 
 
 {-| Render an aligned block

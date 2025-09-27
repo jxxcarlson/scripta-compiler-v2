@@ -1,4 +1,4 @@
-module Render.Export.LaTeXToScripta2Test exposing (runTests, test1, test2, test3, test4, test5, test6, test7)
+module Render.Export.LaTeXToScripta2Test exposing (runTests, test1, test2, test3, test4, test5, test6, test7, test8, test9, test10, test11, test12, test13)
 
 import Render.Export.LaTeXToScripta2 as L2S
 
@@ -14,6 +14,12 @@ runTests =
     , test5
     , test6
     , test7
+    , test8
+    , test9
+    , test10
+    , test11
+    , test12
+    , test13
     ]
         |> String.join "\n\n========================================\n\n"
 
@@ -204,3 +210,160 @@ This shows the solution step by step.
         ++ "\n"
         ++ "Output:\n"
         ++ result
+
+
+{-| Test 8: Theorem and Definition blocks
+-}
+test8 : String
+test8 =
+    let
+        latex =
+            """\\begin{theorem}[Pythagorean]
+For a right triangle with legs $a$ and $b$ and hypotenuse $c$,
+we have $a^2 + b^2 = c^2$.
+\\end{theorem}
+
+\\begin{definition}
+A prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself.
+\\end{definition}
+"""
+
+        result =
+            L2S.translate latex
+    in
+    "Test 8: Theorem and Definition blocks\n"
+        ++ "Input:\n" ++ latex ++ "\n"
+        ++ "Output:\n" ++ result
+
+
+{-| Test 9: Links, citations, and footnotes
+-}
+test9 : String
+test9 =
+    let
+        latex =
+            """This is a \\href{https://example.com}{link to a website}.
+
+See \\cite{knuth1984} for more details.
+
+This statement needs clarification\\footnote{This is the footnote text.}.
+
+As shown in Figure \\ref{fig:example}.
+"""
+
+        result =
+            L2S.translate latex
+    in
+    "Test 9: Links, citations, and footnotes\n"
+        ++ "Input:\n" ++ latex ++ "\n"
+        ++ "Output:\n" ++ result
+
+
+{-| Test 10: Example, remark, and note environments
+-}
+test10 : String
+test10 =
+    let
+        latex =
+            """\\begin{example}
+Consider the function $f(x) = x^2$. For $x = 3$, we have $f(3) = 9$.
+\\end{example}
+
+\\begin{remark}
+This function is always non-negative.
+\\end{remark}
+
+\\begin{note}
+Remember to check the domain of the function.
+\\end{note}
+"""
+
+        result =
+            L2S.translate latex
+    in
+    "Test 10: Example, remark, and note environments\n"
+        ++ "Input:\n" ++ latex ++ "\n"
+        ++ "Output:\n" ++ result
+
+
+{-| Test 11: Abstract, quote, and center environments
+-}
+test11 : String
+test11 =
+    let
+        latex =
+            """\\begin{abstract}
+This paper discusses the fundamental principles of mathematics.
+\\end{abstract}
+
+\\begin{quote}
+"Mathematics is the language of the universe." - Galileo
+\\end{quote}
+
+\\begin{center}
+Centered Text
+\\end{center}
+"""
+
+        result =
+            L2S.translate latex
+    in
+    "Test 11: Abstract, quote, and center environments\n"
+        ++ "Input:\n" ++ latex ++ "\n"
+        ++ "Output:\n" ++ result
+
+
+{-| Test 12: Figure and table environments
+-}
+test12 : String
+test12 =
+    let
+        latex =
+            """\\begin{figure}
+\\includegraphics{diagram.png}
+\\caption{A sample diagram}
+\\end{figure}
+
+\\begin{table}
+\\begin{tabular}{cc}
+A & B \\\\
+C & D
+\\end{tabular}
+\\caption{Sample table}
+\\end{table}
+"""
+
+        result =
+            L2S.translate latex
+    in
+    "Test 12: Figure and table environments\n"
+        ++ "Input:\n" ++ latex ++ "\n"
+        ++ "Output:\n" ++ result
+
+
+{-| Test 13: Verbatim blocks and underline formatting
+-}
+test13 : String
+test13 =
+    let
+        latex =
+            """\\begin{verbatim}
+function hello() {
+  console.log("Hello, world!");
+}
+\\end{verbatim}
+
+This is \\underline{underlined text} in the middle of a sentence.
+
+\\begin{lstlisting}
+for i in range(10):
+    print(i)
+\\end{lstlisting}
+"""
+
+        result =
+            L2S.translate latex
+    in
+    "Test 13: Verbatim blocks and underline formatting\n"
+        ++ "Input:\n" ++ latex ++ "\n"
+        ++ "Output:\n" ++ result
