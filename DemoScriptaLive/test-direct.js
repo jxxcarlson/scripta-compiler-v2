@@ -5351,6 +5351,8 @@ var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$html$Html$pre = _VirtualDom_node('pre');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$core$List$isEmpty = function (xs) {
 	if (!xs.b) {
 		return true;
@@ -15098,33 +15100,32 @@ var $author$project$Render$Export$LaTeXToScripta2Test$test9 = function () {
 	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
 	return 'Test 9: Links, citations, and footnotes\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
 }();
-var $author$project$Render$Export$LaTeXToScripta2Test$runTests = A2(
-	$elm$core$String$join,
-	'\n\n========================================\n\n',
-	_List_fromArray(
-		[$author$project$Render$Export$LaTeXToScripta2Test$test1, $author$project$Render$Export$LaTeXToScripta2Test$test2, $author$project$Render$Export$LaTeXToScripta2Test$test3, $author$project$Render$Export$LaTeXToScripta2Test$test4, $author$project$Render$Export$LaTeXToScripta2Test$test5, $author$project$Render$Export$LaTeXToScripta2Test$test6, $author$project$Render$Export$LaTeXToScripta2Test$test7, $author$project$Render$Export$LaTeXToScripta2Test$test8, $author$project$Render$Export$LaTeXToScripta2Test$test9, $author$project$Render$Export$LaTeXToScripta2Test$test10, $author$project$Render$Export$LaTeXToScripta2Test$test11, $author$project$Render$Export$LaTeXToScripta2Test$test12, $author$project$Render$Export$LaTeXToScripta2Test$test13, $author$project$Render$Export$LaTeXToScripta2Test$test14]));
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$TestLaTeXToScripta$view = function (_v0) {
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				A2($elm$html$Html$Attributes$style, 'padding', '20px'),
-				A2($elm$html$Html$Attributes$style, 'font-family', 'monospace')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$h1,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('LaTeX to Scripta Translation Tests')
-					])),
-				A2(
+var $author$project$TestDirect$view = function (_v0) {
+	var tests = _List_fromArray(
+		[
+			_Utils_Tuple2('Test 1', $author$project$Render$Export$LaTeXToScripta2Test$test1),
+			_Utils_Tuple2('Test 2', $author$project$Render$Export$LaTeXToScripta2Test$test2),
+			_Utils_Tuple2('Test 3', $author$project$Render$Export$LaTeXToScripta2Test$test3),
+			_Utils_Tuple2('Test 4', $author$project$Render$Export$LaTeXToScripta2Test$test4),
+			_Utils_Tuple2('Test 5', $author$project$Render$Export$LaTeXToScripta2Test$test5),
+			_Utils_Tuple2('Test 6', $author$project$Render$Export$LaTeXToScripta2Test$test6),
+			_Utils_Tuple2('Test 7', $author$project$Render$Export$LaTeXToScripta2Test$test7),
+			_Utils_Tuple2('Test 8', $author$project$Render$Export$LaTeXToScripta2Test$test8),
+			_Utils_Tuple2('Test 9', $author$project$Render$Export$LaTeXToScripta2Test$test9),
+			_Utils_Tuple2('Test 10', $author$project$Render$Export$LaTeXToScripta2Test$test10),
+			_Utils_Tuple2('Test 11', $author$project$Render$Export$LaTeXToScripta2Test$test11),
+			_Utils_Tuple2('Test 12', $author$project$Render$Export$LaTeXToScripta2Test$test12),
+			_Utils_Tuple2('Test 13', $author$project$Render$Export$LaTeXToScripta2Test$test13),
+			_Utils_Tuple2('Test 14', $author$project$Render$Export$LaTeXToScripta2Test$test14)
+		]);
+	var testDivs = A2(
+		$elm$core$List$map,
+		function (_v1) {
+			var label = _v1.a;
+			var content = _v1.b;
+			return A2(
 				$elm$html$Html$div,
 				_List_Nil,
 				_List_fromArray(
@@ -15134,7 +15135,7 @@ var $author$project$TestLaTeXToScripta$view = function (_v0) {
 						_List_Nil,
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Test Results:')
+								$elm$html$Html$text(label)
 							])),
 						A2(
 						$elm$html$Html$pre,
@@ -15142,23 +15143,50 @@ var $author$project$TestLaTeXToScripta$view = function (_v0) {
 							[
 								A2($elm$html$Html$Attributes$style, 'background', '#f0f0f0'),
 								A2($elm$html$Html$Attributes$style, 'padding', '10px'),
-								A2($elm$html$Html$Attributes$style, 'white-space', 'pre-wrap')
+								A2($elm$html$Html$Attributes$style, 'white-space', 'pre-wrap'),
+								A2($elm$html$Html$Attributes$style, 'max-height', '300px'),
+								A2($elm$html$Html$Attributes$style, 'overflow', 'auto')
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text($author$project$Render$Export$LaTeXToScripta2Test$runTests)
+								$elm$html$Html$text(content)
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('========================================')
 							]))
-					]))
-			]));
+					]));
+		},
+		tests);
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'padding', '20px'),
+				A2($elm$html$Html$Attributes$style, 'font-family', 'monospace')
+			]),
+		A2(
+			$elm$core$List$cons,
+			A2(
+				$elm$html$Html$h1,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('LaTeX to Scripta Translation Tests (Direct)')
+					])),
+			testDivs));
 };
-var $author$project$TestLaTeXToScripta$main = $elm$browser$Browser$sandbox(
+var $author$project$TestDirect$main = $elm$browser$Browser$sandbox(
 	{
 		init: _Utils_Tuple0,
 		update: F2(
 			function (_v0, model) {
 				return model;
 			}),
-		view: $author$project$TestLaTeXToScripta$view
+		view: $author$project$TestDirect$view
 	});
-_Platform_export({'TestLaTeXToScripta':{'init':$author$project$TestLaTeXToScripta$main(
+_Platform_export({'TestDirect':{'init':$author$project$TestDirect$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));

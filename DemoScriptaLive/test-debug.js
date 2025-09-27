@@ -5349,8 +5349,8 @@ var $elm$browser$Browser$sandbox = function (impl) {
 };
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $elm$html$Html$h2 = _VirtualDom_node('h2');
-var $elm$html$Html$pre = _VirtualDom_node('pre');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$core$List$isEmpty = function (xs) {
 	if (!xs.b) {
 		return true;
@@ -15028,11 +15028,6 @@ var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSou
 	return ($elm$core$List$isEmpty(forest) && (!$elm$core$String$isEmpty(
 		$elm$core$String$trim(latexSource)))) ? latexSource : $author$project$Render$Export$LaTeXToScripta2$renderS(forest);
 };
-var $author$project$Render$Export$LaTeXToScripta2Test$test1 = function () {
-	var latex = 'Hello world\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 1: Simple paragraph\n' + ('Input:  ' + (latex + ('\n' + ('Output: ' + result))));
-}();
 var $author$project$Render$Export$LaTeXToScripta2Test$test10 = function () {
 	var latex = '\\begin{example}\nConsider the function $f(x) = x^2$. For $x = 3$, we have $f(3) = 9$.\n\\end{example}\n\n\\begin{remark}\nThis function is always non-negative.\n\\end{remark}\n\n\\begin{note}\nRemember to check the domain of the function.\n\\end{note}\n';
 	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
@@ -15058,63 +15053,17 @@ var $author$project$Render$Export$LaTeXToScripta2Test$test14 = function () {
 	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
 	return 'Test 14: CompactItem formatting\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
 }();
-var $author$project$Render$Export$LaTeXToScripta2Test$test2 = function () {
-	var latex = '\\section{Introduction}\n\nThis is some text.\n\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 2: Section with content\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test3 = function () {
-	var latex = '\\section{Main}\n\nSome content here.\n\n\\subsection{Sub}\n\nMore content.\n\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 3: Nested sections\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test4 = function () {
-	var latex = 'The formula $E = mc^2$ is famous.\n\n\\begin{equation}\n\\int_0^\\infty e^{-x} dx = 1\n\\end{equation}\n\nThis is \\textbf{bold} and \\emph{italic} text.\n\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 4: Math and formatting\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test5 = function () {
-	var latex = '\\begin{itemize}\n\n\\item First item\n\n\\item Second item\n\n\\end{itemize}\n\n\\begin{enumerate}\n\n\\item First numbered\n\n\\item Second numbered\n\n\\end{enumerate}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 5: Lists\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test6 = function () {
-	var latex = 'Here is an important equation:\n\n\\begin{equation}\nE = mc^2\n\\end{equation}\n\nAnd another one:\n\n\\begin{equation}\n\\nabla \\cdot \\vec{E} = \\frac{\\rho}{\\epsilon_0}\n\\end{equation}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 6: Equation blocks\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test7 = function () {
-	var latex = 'Multiple aligned equations:\n\n\\begin{align}\nx + y &= 5 \\\\\n2x - y &= 1 \\\\\nx &= 2\n\\end{align}\n\nThis shows the solution step by step.\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 7: Align blocks\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
-var $author$project$Render$Export$LaTeXToScripta2Test$test8 = function () {
-	var latex = '\\begin{theorem}[Pythagorean]\nFor a right triangle with legs $a$ and $b$ and hypotenuse $c$,\nwe have $a^2 + b^2 = c^2$.\n\\end{theorem}\n\n\\begin{definition}\nA prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself.\n\\end{definition}\n';
-	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
-	return 'Test 8: Theorem and Definition blocks\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
-}();
 var $author$project$Render$Export$LaTeXToScripta2Test$test9 = function () {
 	var latex = 'This is a \\href{https://example.com}{link to a website}.\n\nSee \\cite{knuth1984} for more details.\n\nThis statement needs clarification\\footnote{This is the footnote text.}.\n\nAs shown in Figure \\ref{fig:example}.\n';
 	var result = $author$project$Render$Export$LaTeXToScripta2$translate(latex);
 	return 'Test 9: Links, citations, and footnotes\n' + ('Input:\n' + (latex + ('\n' + ('Output:\n' + result))));
 }();
-var $author$project$Render$Export$LaTeXToScripta2Test$runTests = A2(
-	$elm$core$String$join,
-	'\n\n========================================\n\n',
-	_List_fromArray(
-		[$author$project$Render$Export$LaTeXToScripta2Test$test1, $author$project$Render$Export$LaTeXToScripta2Test$test2, $author$project$Render$Export$LaTeXToScripta2Test$test3, $author$project$Render$Export$LaTeXToScripta2Test$test4, $author$project$Render$Export$LaTeXToScripta2Test$test5, $author$project$Render$Export$LaTeXToScripta2Test$test6, $author$project$Render$Export$LaTeXToScripta2Test$test7, $author$project$Render$Export$LaTeXToScripta2Test$test8, $author$project$Render$Export$LaTeXToScripta2Test$test9, $author$project$Render$Export$LaTeXToScripta2Test$test10, $author$project$Render$Export$LaTeXToScripta2Test$test11, $author$project$Render$Export$LaTeXToScripta2Test$test12, $author$project$Render$Export$LaTeXToScripta2Test$test13, $author$project$Render$Export$LaTeXToScripta2Test$test14]));
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$TestLaTeXToScripta$view = function (_v0) {
+var $author$project$TestDebug$view = function (_v0) {
 	return A2(
 		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				A2($elm$html$Html$Attributes$style, 'padding', '20px'),
-				A2($elm$html$Html$Attributes$style, 'font-family', 'monospace')
-			]),
+		_List_Nil,
 		_List_fromArray(
 			[
 				A2(
@@ -15122,43 +15071,138 @@ var $author$project$TestLaTeXToScripta$view = function (_v0) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('LaTeX to Scripta Translation Tests')
+						$elm$html$Html$text('Individual Tests:')
 					])),
 				A2(
 				$elm$html$Html$div,
 				_List_Nil,
 				_List_fromArray(
 					[
-						A2(
-						$elm$html$Html$h2,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Test Results:')
-							])),
-						A2(
-						$elm$html$Html$pre,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'background', '#f0f0f0'),
-								A2($elm$html$Html$Attributes$style, 'padding', '10px'),
-								A2($elm$html$Html$Attributes$style, 'white-space', 'pre-wrap')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text($author$project$Render$Export$LaTeXToScripta2Test$runTests)
-							]))
+						$elm$html$Html$text('Test 9 output:')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'border', '1px solid black'),
+						A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+						A2($elm$html$Html$Attributes$style, 'margin', '10px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						A2($elm$core$String$left, 200, $author$project$Render$Export$LaTeXToScripta2Test$test9))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Test 10 output:')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'border', '1px solid black'),
+						A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+						A2($elm$html$Html$Attributes$style, 'margin', '10px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						A2($elm$core$String$left, 200, $author$project$Render$Export$LaTeXToScripta2Test$test10))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Test 11 output:')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'border', '1px solid black'),
+						A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+						A2($elm$html$Html$Attributes$style, 'margin', '10px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						A2($elm$core$String$left, 200, $author$project$Render$Export$LaTeXToScripta2Test$test11))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Test 12 output:')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'border', '1px solid black'),
+						A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+						A2($elm$html$Html$Attributes$style, 'margin', '10px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						A2($elm$core$String$left, 200, $author$project$Render$Export$LaTeXToScripta2Test$test12))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Test 13 output:')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'border', '1px solid black'),
+						A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+						A2($elm$html$Html$Attributes$style, 'margin', '10px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						A2($elm$core$String$left, 200, $author$project$Render$Export$LaTeXToScripta2Test$test13))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Test 14 output:')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'border', '1px solid black'),
+						A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+						A2($elm$html$Html$Attributes$style, 'margin', '10px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						A2($elm$core$String$left, 200, $author$project$Render$Export$LaTeXToScripta2Test$test14))
 					]))
 			]));
 };
-var $author$project$TestLaTeXToScripta$main = $elm$browser$Browser$sandbox(
+var $author$project$TestDebug$main = $elm$browser$Browser$sandbox(
 	{
 		init: _Utils_Tuple0,
 		update: F2(
 			function (_v0, model) {
 				return model;
 			}),
-		view: $author$project$TestLaTeXToScripta$view
+		view: $author$project$TestDebug$view
 	});
-_Platform_export({'TestLaTeXToScripta':{'init':$author$project$TestLaTeXToScripta$main(
+_Platform_export({'TestDebug':{'init':$author$project$TestDebug$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));

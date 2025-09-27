@@ -54076,12 +54076,12 @@ var $author$project$Render$Export$LaTeX$exportTree = F3(
 							}
 						}();
 						var compactItem = function (x) {
-							return '\\compactItem {' + (x + '}');
+							return '\\compactItem{' + (x + '}');
 						};
 						var renderExprList = function (exprs) {
 							return A2(
 								$elm$core$String$join,
-								'',
+								'\n',
 								A2(
 									$elm$core$List$map,
 									A2(
@@ -55403,6 +55403,8 @@ var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F2(
 				return '[footnote ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
 			case 'cite':
 				return '[cite ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
+			case 'compactItem':
+				return '- ' + $author$project$Render$Export$LaTeXToScripta2$renderArgs(args);
 			case 'ref':
 				return '[ref ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
 			case 'label':

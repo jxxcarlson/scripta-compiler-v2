@@ -337,6 +337,9 @@ renderFunction name args =
         "cite" ->
             "[cite " ++ renderArgs args ++ "]"
 
+        "compactItem" ->
+            "- " ++ renderArgs args
+
         "ref" ->
             "[ref " ++ renderArgs args ++ "]"
 
@@ -350,8 +353,10 @@ renderFunction name args =
                     -- We need [link text url] in Scripta
                     -- So we swap: second (text) then first (url)
                     "[link " ++ renderExpression second ++ " " ++ renderExpression first ++ "]"
+
                 single :: _ ->
                     "[link " ++ renderExpression single ++ "]"
+
                 _ ->
                     "[link]"
 
@@ -359,6 +364,7 @@ renderFunction name args =
             case args of
                 path :: _ ->
                     "[image " ++ renderExpression path ++ "]"
+
                 _ ->
                     "[image]"
 
@@ -442,6 +448,7 @@ renderItem block =
         prefix =
             if isEnumerate then
                 ". "
+
             else
                 "- "
 
@@ -465,6 +472,7 @@ renderTheoremLike envName block =
             case block.args of
                 [] ->
                     ""
+
                 arg :: _ ->
                     " " ++ arg
 
@@ -472,6 +480,7 @@ renderTheoremLike envName block =
             case block.body of
                 Left str ->
                     String.trim str
+
                 Right exprs ->
                     exprs |> List.map renderExpression |> String.join " "
     in
@@ -487,6 +496,7 @@ renderNoteLike envName block =
             case block.body of
                 Left str ->
                     String.trim str
+
                 Right exprs ->
                     exprs |> List.map renderExpression |> String.join " "
     in
@@ -502,6 +512,7 @@ renderEnvironment envName block =
             case block.body of
                 Left str ->
                     String.trim str
+
                 Right exprs ->
                     exprs |> List.map renderExpression |> String.join " "
     in
@@ -517,6 +528,7 @@ renderFigure block =
             case block.args of
                 [] ->
                     ""
+
                 arg :: _ ->
                     "\nCaption: " ++ arg
     in
@@ -530,6 +542,7 @@ renderTable block =
     case block.body of
         Left str ->
             "| table\n" ++ String.trim str
+
         Right _ ->
             "| table"
 
@@ -544,27 +557,34 @@ renderAlignedBlock block =
             case block.body of
                 Left str ->
                     String.trim str
+
                 Right _ ->
                     -- Try to get content from args or properties
                     case block.args of
                         [] ->
                             -- Check if there's content in the sourceText of meta
                             let
-                                sourceLines = String.lines block.meta.sourceText
+                                sourceLines =
+                                    String.lines block.meta.sourceText
+
                                 -- Extract content between \begin{align} and \end{align}
                                 extractContent lines =
                                     lines
-                                        |> List.filter (\line ->
-                                            not (String.contains "\\begin{align}" line) &&
-                                            not (String.contains "\\end{align}" line))
+                                        |> List.filter
+                                            (\line ->
+                                                not (String.contains "\\begin{align}" line)
+                                                    && not (String.contains "\\end{align}" line)
+                                            )
                                         |> String.join "\n"
                                         |> String.trim
                             in
                             extractContent sourceLines
+
                         args ->
                             String.join "\n" args
     in
     if String.isEmpty content then
         "| aligned"
+
     else
         "| aligned\n" ++ content

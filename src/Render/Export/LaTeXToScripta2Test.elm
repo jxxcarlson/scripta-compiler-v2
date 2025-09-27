@@ -1,4 +1,4 @@
-module Render.Export.LaTeXToScripta2Test exposing (runTests, test1, test2, test3, test4, test5, test6, test7, test8, test9, test10, test11, test12, test13)
+module Render.Export.LaTeXToScripta2Test exposing (runTests, test1, test10, test11, test12, test13, test14, test2, test3, test4, test5, test6, test7, test8, test9)
 
 import Render.Export.LaTeXToScripta2 as L2S
 
@@ -20,6 +20,7 @@ runTests =
     , test11
     , test12
     , test13
+    , test14
     ]
         |> String.join "\n\n========================================\n\n"
 
@@ -232,8 +233,11 @@ A prime number is a natural number greater than 1 that has no positive divisors 
             L2S.translate latex
     in
     "Test 8: Theorem and Definition blocks\n"
-        ++ "Input:\n" ++ latex ++ "\n"
-        ++ "Output:\n" ++ result
+        ++ "Input:\n"
+        ++ latex
+        ++ "\n"
+        ++ "Output:\n"
+        ++ result
 
 
 {-| Test 9: Links, citations, and footnotes
@@ -255,8 +259,11 @@ As shown in Figure \\ref{fig:example}.
             L2S.translate latex
     in
     "Test 9: Links, citations, and footnotes\n"
-        ++ "Input:\n" ++ latex ++ "\n"
-        ++ "Output:\n" ++ result
+        ++ "Input:\n"
+        ++ latex
+        ++ "\n"
+        ++ "Output:\n"
+        ++ result
 
 
 {-| Test 10: Example, remark, and note environments
@@ -282,8 +289,11 @@ Remember to check the domain of the function.
             L2S.translate latex
     in
     "Test 10: Example, remark, and note environments\n"
-        ++ "Input:\n" ++ latex ++ "\n"
-        ++ "Output:\n" ++ result
+        ++ "Input:\n"
+        ++ latex
+        ++ "\n"
+        ++ "Output:\n"
+        ++ result
 
 
 {-| Test 11: Abstract, quote, and center environments
@@ -309,8 +319,11 @@ Centered Text
             L2S.translate latex
     in
     "Test 11: Abstract, quote, and center environments\n"
-        ++ "Input:\n" ++ latex ++ "\n"
-        ++ "Output:\n" ++ result
+        ++ "Input:\n"
+        ++ latex
+        ++ "\n"
+        ++ "Output:\n"
+        ++ result
 
 
 {-| Test 12: Figure and table environments
@@ -337,8 +350,11 @@ C & D
             L2S.translate latex
     in
     "Test 12: Figure and table environments\n"
-        ++ "Input:\n" ++ latex ++ "\n"
-        ++ "Output:\n" ++ result
+        ++ "Input:\n"
+        ++ latex
+        ++ "\n"
+        ++ "Output:\n"
+        ++ result
 
 
 {-| Test 13: Verbatim blocks and underline formatting
@@ -365,5 +381,39 @@ for i in range(10):
             L2S.translate latex
     in
     "Test 13: Verbatim blocks and underline formatting\n"
-        ++ "Input:\n" ++ latex ++ "\n"
-        ++ "Output:\n" ++ result
+        ++ "Input:\n"
+        ++ latex
+        ++ "\n"
+        ++ "Output:\n"
+        ++ result
+
+
+{-| Test 14: CompactItem formatting
+-}
+test14 : String
+test14 =
+    let
+        latex =
+            """Here are some compact items:
+
+\\compactItem{First item}
+\\compactItem{Second item}
+\\compactItem{Third item with longer text}
+
+And a list with compact items:
+
+\\begin{itemize}
+\\compactItem{Compact item in list}
+\\compactItem{Another compact item}
+\\end{itemize}
+"""
+
+        result =
+            L2S.translate latex
+    in
+    "Test 14: CompactItem formatting\n"
+        ++ "Input:\n"
+        ++ latex
+        ++ "\n"
+        ++ "Output:\n"
+        ++ result

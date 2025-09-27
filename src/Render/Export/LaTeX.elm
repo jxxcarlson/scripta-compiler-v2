@@ -240,11 +240,11 @@ exportTree mathMacroDict settings tree =
                             exprs
 
                 compactItem x =
-                    "\\compactItem {" ++ x ++ "}"
+                    "\\compactItem{" ++ x ++ "}"
 
                 renderExprList : List Expression -> String
                 renderExprList exprs =
-                    List.map (exportExpr mathMacroDict settings >> compactItem) exprs |> String.join ""
+                    List.map (exportExpr mathMacroDict settings >> compactItem) exprs |> String.join "\n"
             in
             renderExprList exprList
 
