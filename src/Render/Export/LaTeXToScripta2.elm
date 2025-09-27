@@ -1,4 +1,4 @@
-module Render.Export.LaTeXToScripta2 exposing (parseL, renderBlock, renderExpression, renderS, renderTree, translate)
+module Render.Export.LaTeXToScripta2 exposing (mathMacros, parseL, renderBlock, renderExpression, renderS, renderTree, translate)
 
 import Either exposing (Either(..))
 import Generic.Compiler
@@ -674,3 +674,127 @@ renderAlignedBlock block =
 
     else
         "| aligned\n" ++ content
+
+
+{-| Convert LaTeX newcommand macros to Scripta mathmacros format
+-}
+mathMacros : String -> String
+mathMacros latexMacros =
+    let
+        lines =
+            String.lines latexMacros
+                |> List.map String.trim
+                |> List.filter (not << String.isEmpty)
+
+        macroDefinitions =
+            lines
+                |> List.filterMap parseNewCommand
+                |> List.map formatMacroDefinition
+    in
+    if List.isEmpty macroDefinitions then
+        ""
+    else
+        "| mathmacros\n" ++ String.join "\n" macroDefinitions
+
+
+{-| Parse a single \newcommand line
+Returns Just (name, body) or Nothing
+-}
+parseNewCommand : String -> Maybe ( String, String )
+parseNewCommand line =
+    if String.startsWith "\\newcommand{\\" line then
+        let
+            -- Extract command name
+            nameStart =
+                String.dropLeft 12 line  -- Drop "\\newcommand{\\"
+
+            nameEnd =
+                String.indexes "}" nameStart
+                    |> List.head
+                    |> Maybe.withDefault -1
+
+            name =
+                String.left nameEnd nameStart
+
+            -- Extract the body (everything between the final {...})
+            remainingAfterName =
+                String.dropLeft (nameEnd + 1) nameStart
+
+            -- Find the body between the last pair of braces
+            bodyStart =
+                String.indexes "{" remainingAfterName
+                    |> List.reverse
+                    |> List.head
+                    |> Maybe.map ((+) 1)
+                    |> Maybe.withDefault 0
+
+            bodyEnd =
+                String.indexes "}" remainingAfterName
+                    |> List.reverse
+                    |> List.head
+                    |> Maybe.withDefault (String.length remainingAfterName)
+
+            body =
+                String.slice bodyStart bodyEnd remainingAfterName
+                    |> transformMacroBody
+        in
+        if String.isEmpty name then
+            Nothing
+        else
+            Just ( name, body )
+    else
+        Nothing
+
+
+{-| Transform the macro body from LaTeX to Scripta format
+-}
+transformMacroBody : String -> String
+transformMacroBody body =
+    body
+        -- Replace LaTeX backslash commands with their names
+        |> String.replace "\\langle" "langle"
+        |> String.replace "\\rangle" "rangle"
+        |> String.replace "\\frac{" "frac("
+        -- Handle frac specifically - convert \frac{a}{b} to frac(a, b)
+        |> transformFrac
+        -- Clean up spaces
+        |> String.trim
+
+
+{-| Transform \frac{a}{b} patterns to frac(a, b)
+-}
+transformFrac : String -> String
+transformFrac str =
+    if String.contains "frac(" str then
+        -- Find and replace }{  with ,  for frac arguments
+        let
+            -- Simple approach: replace }{ with , when it appears after frac(
+            parts =
+                String.split "frac(" str
+
+            processPart part =
+                if String.contains "}" part && String.contains "{" part then
+                    -- Find the first }{ pattern and replace with ,
+                    String.replace "}{" ", " part
+                        |> String.replace "}" ")"
+                else
+                    part
+
+            processedParts =
+                case parts of
+                    first :: rest ->
+                        first :: List.map processPart rest
+
+                    [] ->
+                        []
+        in
+        String.join "frac(" processedParts
+    else
+        str
+
+
+{-| Format a macro definition for Scripta output
+-}
+formatMacroDefinition : ( String, String ) -> String
+formatMacroDefinition ( name, body ) =
+    name ++ ": " ++ body
