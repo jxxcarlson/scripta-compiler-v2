@@ -4592,6 +4592,8 @@ var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $elm$html$Html$pre = _VirtualDom_node('pre');
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $elm$html$Html$strong = _VirtualDom_node('strong');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$core$List$foldrHelper = F4(
@@ -15497,58 +15499,125 @@ var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSou
 		$elm$core$String$trim(contentSource)))) ? contentSource : A2($author$project$Render$Export$LaTeXToScripta2$renderS, newMacroNames, forest);
 	return _Utils_ap(macroBlock, renderedContent);
 };
-var $author$project$TestLatexFull$testCase = function () {
-	var input = '\\newcommand{\\ket}[1]{| #1 \\rangle}\n\\newcommand{\\bra}[1]{\\langle #1 |}\n\n\\section{Schroedinger\'s Cat} \\label{schroedingers-cat}\n\nSuppose the radioactive atom can be in two states:\n\n\\begin{align}\n\\ket{0} & \\text{ undecayed}\\\\\n\\ket{1} & \\text{ decayed}\n\\end{align}\n\nAfter setting up the coupling (atom decay triggers poison release), the joint system evolves into:\n\n\\begin{equation}\n\\ket{\\Psi} = \\tfrac{1}{{\\sqrt{2}}}( \\ket{0} \\otimes \\ket{\\text{alive}}  + \\ket{1} \\otimes \\ket{\\text{dead}})\n\\end{equation}';
-	var fullConversion = $author$project$Render$Export$LaTeXToScripta2$translate(input);
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				A2($elm$html$Html$Attributes$style, 'border', '1px solid #ccc'),
-				A2($elm$html$Html$Attributes$style, 'padding', '10px'),
-				A2($elm$html$Html$Attributes$style, 'margin', '10px 0')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$h3,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('LaTeX Source:')
-					])),
-				A2(
-				$elm$html$Html$pre,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'background', '#f0f0f0'),
-						A2($elm$html$Html$Attributes$style, 'padding', '10px')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(input)
-					])),
-				A2(
-				$elm$html$Html$h3,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Full Scripta Translation:')
-					])),
-				A2(
-				$elm$html$Html$pre,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'background', '#e0e0f0'),
-						A2($elm$html$Html$Attributes$style, 'padding', '10px')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(fullConversion)
-					]))
-			]));
-}();
-var $author$project$TestLatexFull$main = A2(
+var $author$project$TestMacroConversion$testCase = F3(
+	function (title, input, expected) {
+		var output = $author$project$Render$Export$LaTeXToScripta2$translate(input);
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'border', '1px solid #ccc'),
+					A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+					A2($elm$html$Html$Attributes$style, 'margin', '10px 0')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$h3,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(title)
+						])),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'background', '#f0f0f0'),
+							A2($elm$html$Html$Attributes$style, 'padding', '10px')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$strong,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text('LaTeX Input:')
+								])),
+							A2(
+							$elm$html$Html$pre,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text(input)
+								]))
+						])),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'background', '#e0f0e0'),
+							A2($elm$html$Html$Attributes$style, 'padding', '10px')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$strong,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text('Expected:')
+								])),
+							A2(
+							$elm$html$Html$pre,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text(expected)
+								]))
+						])),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$Attributes$style,
+							'background',
+							_Utils_eq(output, expected) ? '#e0f0e0' : '#ffe0e0'),
+							A2($elm$html$Html$Attributes$style, 'padding', '10px')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$strong,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text('Actual Output:')
+								])),
+							A2(
+							$elm$html$Html$pre,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text(output)
+								])),
+							_Utils_eq(output, expected) ? A2(
+							$elm$html$Html$span,
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'color', 'green'),
+									A2($elm$html$Html$Attributes$style, 'font-weight', 'bold')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(' ✓ PASS')
+								])) : A2(
+							$elm$html$Html$span,
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'color', 'red'),
+									A2($elm$html$Html$Attributes$style, 'font-weight', 'bold')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(' ✗ FAIL')
+								]))
+						]))
+				]));
+	});
+var $author$project$TestMacroConversion$main = A2(
 	$elm$html$Html$div,
 	_List_fromArray(
 		[
@@ -15562,8 +15631,8 @@ var $author$project$TestLatexFull$main = A2(
 			_List_Nil,
 			_List_fromArray(
 				[
-					$elm$html$Html$text('Full LaTeX to Scripta Conversion Test')
+					$elm$html$Html$text('LaTeX Macro Conversion Test')
 				])),
-			$author$project$TestLatexFull$testCase
+			A3($author$project$TestMacroConversion$testCase, 'User-defined macros', '\\newcommand{\\ket}[1]{| #1 \\rangle}\n\\newcommand{\\bra}[1]{\\langle #1 |}\n\n\\begin{equation}\n\\ket{0} \\ne \\ket{1}\n\\end{equation}', '| mathmacros\nket: | #1 rangle\nbra: langle #1 |\n\n| equation\nket(0) ne ket(1)')
 		]));
-_Platform_export({'TestLatexFull':{'init':_VirtualDom_init($author$project$TestLatexFull$main)(0)(0)}});}(this));
+_Platform_export({'TestMacroConversion':{'init':_VirtualDom_init($author$project$TestMacroConversion$main)(0)(0)}});}(this));

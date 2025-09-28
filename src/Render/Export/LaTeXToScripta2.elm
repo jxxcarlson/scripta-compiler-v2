@@ -41,7 +41,15 @@ translate latexSource =
         newMacroNames : List String
         newMacroNames =
             newCommandLines
-                |> List.map (\line -> String.replace "\\newcommand{" "" line |> String.dropRight 1)
+                |> List.filterMap
+                    (\line ->
+                        case E.parseNewCommand line of
+                            Ok (E.NewCommand (E.MacroName name) _ _) ->
+                                Just name
+                            _ ->
+                                Nothing
+                    )
+                |> Debug.log "@@New_Macro_Names"
 
         -- Convert \newcommand lines to mathmacros
         macroBlock : String

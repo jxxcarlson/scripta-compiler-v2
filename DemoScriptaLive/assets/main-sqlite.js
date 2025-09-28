@@ -55360,6 +55360,7 @@ var $elm$file$File$Download$string = F3(
 			A3(_File_download, name, mime, content));
 	});
 var $elm$file$File$toString = _File_toString;
+var $elm$core$Debug$log = _Debug_log;
 var $author$project$Render$Export$LaTeXToScripta2$formatMacroDefinition = function (_v0) {
 	var name = _v0.a;
 	var body = _v0.b;
@@ -56568,14 +56569,21 @@ var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSou
 	var contentSource = A2($elm$core$String$join, '\n', contentLines);
 	var forest = $author$project$Render$Export$LaTeXToScripta2$parseL(contentSource);
 	var newMacroNames = A2(
-		$elm$core$List$map,
-		function (line) {
-			return A2(
-				$elm$core$String$dropRight,
-				1,
-				A3($elm$core$String$replace, '\\newcommand{', '', line));
-		},
-		newCommandLines);
+		$elm$core$Debug$log,
+		'@@New_Macro_Names',
+		A2(
+			$elm$core$List$filterMap,
+			function (line) {
+				var _v1 = $author$project$ETeX$MathMacros$parseNewCommand(line);
+				if ((_v1.$ === 'Ok') && (_v1.a.a.$ === 'MacroName')) {
+					var _v2 = _v1.a;
+					var name = _v2.a.a;
+					return $elm$core$Maybe$Just(name);
+				} else {
+					return $elm$core$Maybe$Nothing;
+				}
+			},
+			newCommandLines));
 	var macroBlock = $elm$core$List$isEmpty(newCommandLines) ? '' : (A2(
 		$author$project$Render$Export$LaTeXToScripta2$mathMacros,
 		newMacroNames,
