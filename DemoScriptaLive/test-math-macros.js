@@ -4558,11 +4558,11 @@ var $author$project$TestMathMacros$test2Input = '\\newcommand{\\od}[2]{\\frac{d 
 var $author$project$TestMathMacros$test3Input = '\\newcommand{\\ket}[1]{| #1 \\rangle}\n\\newcommand{\\bra}[1]{\\langle #1 |}\n\\newcommand{\\bracket}[2]{\\langle #1 | #2 \\rangle}\n\\newcommand{\\ketbra}[2]{| #1 \\rangle \\langle #2 |}\n\\newcommand{\\diag}[1]{| #1 \\rangle \\langle #1 |}\n\\newcommand{\\od}[2]{\\frac{d #1}{d #2}}';
 var $author$project$TestMathMacros$test4Input = '';
 var $author$project$TestMathMacros$test5Input = 'Some random text\n\\newcommand{\\ket}[1]{| #1 \\rangle}\nThis should be ignored\n\\newcommand{\\bra}[1]{\\langle #1 |}\nMore text';
-var $author$project$TestMathMacros$expectedOutput1 = '| mathmacros\nket: | #1 rangle\nbra: langle #1 |';
-var $author$project$TestMathMacros$expectedOutput2 = '| mathmacros\nod: frac(d #1, d #2)';
-var $author$project$TestMathMacros$expectedOutput3 = '| mathmacros\nket: | #1 rangle\nbra: langle #1 |\nbracket: langle #1 | #2 rangle\nketbra: | #1 rangle langle #2 |\ndiag: | #1 rangle langle #1 |\nod: frac(d #1, d #2)';
+var $author$project$TestMathMacros$expectedOutput1 = '| mathmacros\nket: {| #1 rangle}\nbra: {langle #1 |}';
+var $author$project$TestMathMacros$expectedOutput2 = '| mathmacros\nod: {frac(d #1, d #2)}';
+var $author$project$TestMathMacros$expectedOutput3 = '| mathmacros\nket: {| #1 rangle}\nbra: {langle #1 |}\nbracket: {langle #1 | #2 rangle}\nketbra: {| #1 rangle langle #2 |}\ndiag: {| #1 rangle langle #1 |}\nod: {frac(d #1, d #2)}';
 var $author$project$TestMathMacros$expectedOutput4 = '';
-var $author$project$TestMathMacros$expectedOutput5 = '| mathmacros\nket: | #1 rangle\nbra: langle #1 |';
+var $author$project$TestMathMacros$expectedOutput5 = '| mathmacros\nket: {| #1 rangle}\nbra: {langle #1 |}';
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $elm$core$Basics$composeL = F3(
 	function (g, f, x) {
