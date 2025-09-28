@@ -30,9 +30,6 @@ After setting up the coupling (atom decay triggers poison release), the joint sy
 \\ket{\\Psi} = \\tfrac{1}{{\\sqrt{2}}}( \\ket{0} \\otimes \\ket{\\text{alive}}  + \\ket{1} \\otimes \\ket{\\text{dead}})
 \\end{equation}"""
 
-        -- First extract and convert macros
-        macros = L2S.mathMacros input
-
         -- Then convert the full document
         fullConversion = L2S.translate input
     in
@@ -40,10 +37,6 @@ After setting up the coupling (atom decay triggers poison release), the joint sy
         [ h3 [] [ text "LaTeX Source:" ]
         , pre [ style "background" "#f0f0f0", style "padding" "10px" ]
             [ text input ]
-
-        , h3 [] [ text "Extracted Math Macros:" ]
-        , pre [ style "background" "#e0f0e0", style "padding" "10px" ]
-            [ text macros ]
 
         , h3 [] [ text "Full Scripta Translation:" ]
         , pre [ style "background" "#e0e0f0", style "padding" "10px" ]

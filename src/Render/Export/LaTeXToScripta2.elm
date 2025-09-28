@@ -38,13 +38,19 @@ translate latexSource =
             lines
                 |> List.partition isNewCommand
 
+        newMacroNames : List String
+        newMacroNames =
+            newCommandLines
+                |> List.map (\line -> String.replace "\\newcommand{" "" line |> String.dropRight 1)
+
         -- Convert \newcommand lines to mathmacros
+        macroBlock : String
         macroBlock =
             if List.isEmpty newCommandLines then
                 ""
 
             else
-                mathMacros (String.join "\n" newCommandLines) ++ "\n\n"
+                mathMacros newMacroNames (String.join "\n" newCommandLines) ++ "\n\n"
 
         -- Parse and render the remaining content
         contentSource =
@@ -60,7 +66,7 @@ translate latexSource =
                 contentSource
 
             else
-                renderS forest
+                renderS newMacroNames forest
     in
     -- Combine macros and content
     macroBlock ++ renderedContent
@@ -91,17 +97,17 @@ parseL latexSource =
 
 {-| Render the AST to Scripta (Enclosure) syntax
 -}
-renderS : Forest ExpressionBlock -> String
-renderS forest =
+renderS : List String -> Forest ExpressionBlock -> String
+renderS newMacroNames forest =
     forest
-        |> List.map (renderTree 0)
+        |> List.map (renderTree newMacroNames 0)
         |> String.join "\n\n"
 
 
 {-| Render a tree with proper indentation
 -}
-renderTree : Int -> Tree ExpressionBlock -> String
-renderTree indent tree =
+renderTree : List String -> Int -> Tree ExpressionBlock -> String
+renderTree newMacroNames indent tree =
     let
         -- Create indentation string (2 spaces per level)
         indentStr =
@@ -112,7 +118,7 @@ renderTree indent tree =
             Tree.value tree
 
         currentRendered =
-            indentStr ++ renderBlock currentBlock
+            indentStr ++ renderBlock newMacroNames currentBlock
 
         -- Recursively render all children with increased indentation
         children =
@@ -125,7 +131,7 @@ renderTree indent tree =
 
                 _ ->
                     children
-                        |> List.map (renderTree (indent + 1))
+                        |> List.map (renderTree newMacroNames (indent + 1))
                         |> String.join "\n"
                         |> (\s -> "\n" ++ s)
     in
@@ -134,26 +140,26 @@ renderTree indent tree =
 
 {-| Render an individual ExpressionBlock to Scripta syntax
 -}
-renderBlock : ExpressionBlock -> String
-renderBlock block =
+renderBlock : List String -> ExpressionBlock -> String
+renderBlock newMacroNames block =
     case block.heading of
         Paragraph ->
             -- Handle paragraph blocks
-            renderParagraph block
+            renderParagraph newMacroNames block
 
         Ordinary name ->
             -- Handle ordinary blocks (sections, environments, etc.)
-            renderOrdinary name block
+            renderOrdinary newMacroNames name block
 
         Verbatim name ->
             -- Handle verbatim blocks (code, math, etc.)
-            renderVerbatim name block
+            renderVerbatim newMacroNames name block
 
 
 {-| Render a paragraph block
 -}
-renderParagraph : ExpressionBlock -> String
-renderParagraph block =
+renderParagraph : List String -> ExpressionBlock -> String
+renderParagraph newMacroNames block =
     case block.body of
         Left str ->
             -- Simple string content (trim to remove extra whitespace)
@@ -162,15 +168,15 @@ renderParagraph block =
         Right exprs ->
             -- Expression list
             exprs
-                |> List.map renderExpression
+                |> List.map (renderExpression newMacroNames)
                 |> String.join " "
                 |> String.trim
 
 
 {-| Render an ordinary block (sections, environments, etc.)
 -}
-renderOrdinary : String -> ExpressionBlock -> String
-renderOrdinary name block =
+renderOrdinary : List String -> String -> ExpressionBlock -> String
+renderOrdinary newMacroNames name block =
     case name of
         "section" ->
             -- Need to check if it's actually a subsection or subsubsection
@@ -189,43 +195,43 @@ renderOrdinary name block =
             ""
 
         "item" ->
-            renderItem block
+            renderItem newMacroNames block
 
         -- Theorem-like environments
         "theorem" ->
-            renderTheoremLike "theorem" block
+            renderTheoremLike newMacroNames "theorem" block
 
         "lemma" ->
-            renderTheoremLike "lemma" block
+            renderTheoremLike newMacroNames "lemma" block
 
         "proposition" ->
-            renderTheoremLike "proposition" block
+            renderTheoremLike newMacroNames "proposition" block
 
         "corollary" ->
-            renderTheoremLike "corollary" block
+            renderTheoremLike newMacroNames "corollary" block
 
         "definition" ->
-            renderTheoremLike "definition" block
+            renderTheoremLike newMacroNames "definition" block
 
         -- Note-like environments
         "example" ->
-            renderNoteLike "example" block
+            renderNoteLike newMacroNames "example" block
 
         "remark" ->
-            renderNoteLike "remark" block
+            renderNoteLike newMacroNames "remark" block
 
         "note" ->
-            renderNoteLike "note" block
+            renderNoteLike newMacroNames "note" block
 
         -- Other common environments
         "abstract" ->
-            renderEnvironment "abstract" block
+            renderEnvironment newMacroNames "abstract" block
 
         "quote" ->
-            renderEnvironment "quote" block
+            renderEnvironment newMacroNames "quote" block
 
         "center" ->
-            renderEnvironment "center" block
+            renderEnvironment newMacroNames "center" block
 
         "figure" ->
             renderFigure block
@@ -240,17 +246,17 @@ renderOrdinary name block =
 
 {-| Render a verbatim block (code, math, etc.)
 -}
-renderVerbatim : String -> ExpressionBlock -> String
-renderVerbatim name block =
+renderVerbatim : List String -> String -> ExpressionBlock -> String
+renderVerbatim newMacroNames name block =
     case name of
         "math" ->
-            renderMathBlock block
+            renderMathBlock newMacroNames block
 
         "equation" ->
-            renderEquationBlock block
+            renderEquationBlock newMacroNames block
 
         "align" ->
-            renderAlignedBlock block
+            renderAlignedBlock newMacroNames block
 
         "code" ->
             renderCodeBlock block
@@ -325,71 +331,71 @@ renderSection level block =
 
 {-| Render function arguments (typically section titles)
 -}
-renderArgs : List Expression -> String
-renderArgs args =
+renderArgs : List String -> List Expression -> String
+renderArgs newMacroNames args =
     args
-        |> List.map renderExpression
+        |> List.map (renderExpression newMacroNames)
         |> String.join " "
 
 
 {-| Render a single expression
 -}
-renderExpression : Expression -> String
-renderExpression expr =
+renderExpression : List String -> Expression -> String
+renderExpression newMacroNames expr =
     case expr of
         Text str _ ->
             str
 
         Fun name args _ ->
-            renderFunction name args
+            renderFunction newMacroNames name args
 
         VFun name arg _ ->
-            renderVerbatimFunction name arg
+            renderVerbatimFunction newMacroNames name arg
 
         ExprList exprs _ ->
             exprs
-                |> List.map renderExpression
+                |> List.map (renderExpression newMacroNames)
                 |> String.join " "
 
 
 {-| Render a function call
 -}
-renderFunction : String -> List Expression -> String
-renderFunction name args =
+renderFunction : List String -> String -> List Expression -> String
+renderFunction newMacroNames name args =
     case name of
         "text" ->
             -- Convert \text{...} to quoted text "..." in Scripta math
-            "\"" ++ renderArgs args ++ "\""
+            "\"" ++ renderArgs newMacroNames args ++ "\""
 
         "bold" ->
-            "[b " ++ renderArgs args ++ "]"
+            "[b " ++ renderArgs newMacroNames args ++ "]"
 
         "textbf" ->
-            "[b " ++ renderArgs args ++ "]"
+            "[b " ++ renderArgs newMacroNames args ++ "]"
 
         "italic" ->
-            "[i " ++ renderArgs args ++ "]"
+            "[i " ++ renderArgs newMacroNames args ++ "]"
 
         "emph" ->
-            "[i " ++ renderArgs args ++ "]"
+            "[i " ++ renderArgs newMacroNames args ++ "]"
 
         "underline" ->
-            "[underline " ++ renderArgs args ++ "]"
+            "[u " ++ renderArgs newMacroNames args ++ "]"
 
         "footnote" ->
-            "[footnote " ++ renderArgs args ++ "]"
+            "[footnote " ++ renderArgs newMacroNames args ++ "]"
 
         "cite" ->
-            "[cite " ++ renderArgs args ++ "]"
+            "[cite " ++ renderArgs newMacroNames args ++ "]"
 
         "compactItem" ->
-            "- " ++ renderArgs args
+            "- " ++ renderArgs newMacroNames args
 
         "ref" ->
-            "[ref " ++ renderArgs args ++ "]"
+            "[ref " ++ renderArgs newMacroNames args ++ "]"
 
         "label" ->
-            "[label " ++ renderArgs args ++ "]"
+            "[label " ++ renderArgs newMacroNames args ++ "]"
 
         "href" ->
             case args of
@@ -397,10 +403,10 @@ renderFunction name args =
                     -- MicroLaTeX gives us \href{url}{text} as args [url, text]
                     -- We need [link text url] in Scripta
                     -- So we swap: second (text) then first (url)
-                    "[link " ++ renderExpression second ++ " " ++ renderExpression first ++ "]"
+                    "[link " ++ renderExpression newMacroNames second ++ " " ++ renderExpression newMacroNames first ++ "]"
 
                 single :: _ ->
-                    "[link " ++ renderExpression single ++ "]"
+                    "[link " ++ renderExpression newMacroNames single ++ "]"
 
                 _ ->
                     "[link]"
@@ -408,7 +414,7 @@ renderFunction name args =
         "includegraphics" ->
             case args of
                 path :: _ ->
-                    "[image " ++ renderExpression path ++ "]"
+                    "[image " ++ renderExpression newMacroNames path ++ "]"
 
                 _ ->
                     "[image]"
@@ -424,32 +430,32 @@ renderFunction name args =
 
                         -- Acknowledge width parameter even though we don't use it
                     in
-                    "| image caption:" ++ renderExpression caption ++ "\n" ++ renderExpression url
+                    "| image caption:" ++ renderExpression newMacroNames caption ++ "\n" ++ renderExpression newMacroNames url
 
                 caption :: url :: _ ->
                     -- Two args: might be caption and url (width missing)
-                    "| image caption:" ++ renderExpression caption ++ "\n" ++ renderExpression url
+                    "| image caption:" ++ renderExpression newMacroNames caption ++ "\n" ++ renderExpression newMacroNames url
 
                 url :: _ ->
                     -- One arg: just the URL
-                    "| image\n" ++ renderExpression url
+                    "| image\n" ++ renderExpression newMacroNames url
 
                 _ ->
                     -- No args
                     "| image"
 
         _ ->
-            "[" ++ name ++ " " ++ renderArgs args ++ "]"
+            "[" ++ name ++ " " ++ renderArgs newMacroNames args ++ "]"
 
 
 {-| Render a verbatim function
 -}
-renderVerbatimFunction : String -> String -> String
-renderVerbatimFunction name content =
+renderVerbatimFunction : List String -> String -> String -> String
+renderVerbatimFunction newMacroNames name content =
     case name of
         "math" ->
             -- Convert LaTeX math to Scripta math format
-            "$" ++ convertLatexMathToScripta content ++ "$"
+            "$" ++ convertLatexMathToScripta newMacroNames content ++ "$"
 
         "code" ->
             "`" ++ content ++ "`"
@@ -460,11 +466,11 @@ renderVerbatimFunction name content =
 
 {-| Render a math block
 -}
-renderMathBlock : ExpressionBlock -> String
-renderMathBlock block =
+renderMathBlock : List String -> ExpressionBlock -> String
+renderMathBlock newMacroNames block =
     case block.body of
         Left str ->
-            "| math\n" ++ convertLatexMathToScripta str
+            "| math\n" ++ convertLatexMathToScripta newMacroNames str
 
         _ ->
             "| math"
@@ -496,11 +502,11 @@ renderVerbatimBlock block =
 
 {-| Render a equation block
 -}
-renderEquationBlock : ExpressionBlock -> String
-renderEquationBlock block =
+renderEquationBlock : List String -> ExpressionBlock -> String
+renderEquationBlock newMacroNames block =
     case block.body of
         Left str ->
-            "| equation\n" ++ convertLatexMathToScripta str
+            "| equation\n" ++ convertLatexMathToScripta newMacroNames str
 
         _ ->
             "Error: Invalid equation block"
@@ -508,8 +514,8 @@ renderEquationBlock block =
 
 {-| Render an item block
 -}
-renderItem : ExpressionBlock -> String
-renderItem block =
+renderItem : List String -> ExpressionBlock -> String
+renderItem newMacroNames block =
     let
         -- Check if we're in an enumerate context by looking at the source
         isEnumerate =
@@ -529,15 +535,15 @@ renderItem block =
                     String.trim str
 
                 Right exprs ->
-                    exprs |> List.map renderExpression |> String.join " "
+                    exprs |> List.map (renderExpression newMacroNames) |> String.join " "
     in
     prefix ++ content
 
 
 {-| Render theorem-like environments
 -}
-renderTheoremLike : String -> ExpressionBlock -> String
-renderTheoremLike envName block =
+renderTheoremLike : List String -> String -> ExpressionBlock -> String
+renderTheoremLike newMacroNames envName block =
     let
         title =
             case block.args of
@@ -553,15 +559,15 @@ renderTheoremLike envName block =
                     String.trim str
 
                 Right exprs ->
-                    exprs |> List.map renderExpression |> String.join " "
+                    exprs |> List.map (renderExpression newMacroNames) |> String.join " "
     in
     "| " ++ envName ++ title ++ "\n" ++ content
 
 
 {-| Render note-like environments
 -}
-renderNoteLike : String -> ExpressionBlock -> String
-renderNoteLike envName block =
+renderNoteLike : List String -> String -> ExpressionBlock -> String
+renderNoteLike newMacroNames envName block =
     let
         content =
             case block.body of
@@ -569,15 +575,15 @@ renderNoteLike envName block =
                     String.trim str
 
                 Right exprs ->
-                    exprs |> List.map renderExpression |> String.join " "
+                    exprs |> List.map (renderExpression newMacroNames) |> String.join " "
     in
     "| " ++ envName ++ "\n" ++ content
 
 
 {-| Render generic environments
 -}
-renderEnvironment : String -> ExpressionBlock -> String
-renderEnvironment envName block =
+renderEnvironment : List String -> String -> ExpressionBlock -> String
+renderEnvironment newMacroNames envName block =
     let
         content =
             case block.body of
@@ -585,7 +591,7 @@ renderEnvironment envName block =
                     String.trim str
 
                 Right exprs ->
-                    exprs |> List.map renderExpression |> String.join " "
+                    exprs |> List.map (renderExpression newMacroNames) |> String.join " "
     in
     "| " ++ envName ++ "\n" ++ content
 
@@ -687,8 +693,8 @@ renderFigureVerbatim block =
 
 {-| Render an aligned block
 -}
-renderAlignedBlock : ExpressionBlock -> String
-renderAlignedBlock block =
+renderAlignedBlock : List String -> ExpressionBlock -> String
+renderAlignedBlock newMacroNames block =
     -- Check multiple sources for content
     let
         content =
@@ -725,13 +731,13 @@ renderAlignedBlock block =
         "| aligned"
 
     else
-        "| aligned\n" ++ convertLatexMathToScripta content
+        "| aligned\n" ++ convertLatexMathToScripta newMacroNames content
 
 
 {-| Convert LaTeX newcommand macros to Scripta mathmacros format
 -}
-mathMacros : String -> String
-mathMacros latexMacros =
+mathMacros : List String -> String -> String
+mathMacros newMacroNames latexMacros =
     let
         lines =
             String.lines latexMacros
@@ -740,7 +746,7 @@ mathMacros latexMacros =
 
         macroDefinitions =
             lines
-                |> List.filterMap parseNewCommand
+                |> List.filterMap (parseNewCommand newMacroNames)
                 |> List.map formatMacroDefinition
     in
     if List.isEmpty macroDefinitions then
@@ -748,59 +754,6 @@ mathMacros latexMacros =
 
     else
         "| mathmacros\n" ++ String.join "\n" macroDefinitions
-
-
-
---{-| Parse a single \\newcommand line
---Returns Just (name, body) or Nothing
----}
---parseNewCommand : String -> Maybe ( String, String )
---parseNewCommand line =
---    if String.startsWith "\\newcommand{\\" line then
---        let
---            -- Extract command name (without the backslash)
---            nameStart =
---                String.dropLeft 13 line
---
---            -- Drop "\\newcommand{\\" (13 chars)
---            nameEnd =
---                String.indexes "}" nameStart
---                    |> List.head
---                    |> Maybe.withDefault -1
---
---            name =
---                String.left nameEnd nameStart
---
---            -- Extract the body (everything between the final {...})
---            remainingAfterName =
---                String.dropLeft (nameEnd + 1) nameStart
---
---            -- Find the body between the last pair of braces
---            bodyStart =
---                String.indexes "{" remainingAfterName
---                    |> List.reverse
---                    |> List.head
---                    |> Maybe.map ((+) 1)
---                    |> Maybe.withDefault 0
---
---            bodyEnd =
---                String.indexes "}" remainingAfterName
---                    |> List.reverse
---                    |> List.head
---                    |> Maybe.withDefault (String.length remainingAfterName)
---
---            body =
---                String.slice bodyStart bodyEnd remainingAfterName
---                    |> transformMacroBody
---        in
---        if String.isEmpty name then
---            Nothing
---
---        else
---            Just ( name, body )
---
---    else
---        Nothing
 
 
 {-| Transform the macro body from LaTeX to Scripta format
@@ -861,15 +814,15 @@ formatMacroDefinition ( name, body ) =
 
 {-| Parse a \\newcommand using the ETeX parser for better handling of complex expressions
 -}
-parseNewCommand : String -> Maybe ( String, String )
-parseNewCommand line =
+parseNewCommand : List String -> String -> Maybe ( String, String )
+parseNewCommand newMacroNames line =
     case E.parseNewCommand line of
         Ok (E.NewCommand (E.MacroName name) _ bodyExprs) ->
             -- Convert the body expressions to Scripta format
             let
                 body =
                     bodyExprs
-                        |> List.map mathExprToScripta
+                        |> List.map (mathExprToScripta newMacroNames)
                         |> String.join ""
                         |> String.trim
             in
@@ -882,14 +835,14 @@ parseNewCommand line =
 {-| Convert LaTeX math content to Scripta math format
 This uses the ETeX parser to parse LaTeX math and convert it to Scripta syntax
 -}
-convertLatexMathToScripta : String -> String
-convertLatexMathToScripta latexMath =
+convertLatexMathToScripta : List String -> String -> String
+convertLatexMathToScripta newMacroNames latexMath =
     -- Parse the LaTeX math expression using ETeX parser
     case E.parse latexMath of
         Ok exprs ->
             -- Convert each expression to Scripta format
             exprs
-                |> List.map mathExprToScripta
+                |> List.map (mathExprToScripta newMacroNames)
                 |> String.join ""
 
         Err _ ->
@@ -899,8 +852,8 @@ convertLatexMathToScripta latexMath =
 
 {-| Convert ETeX MathExpr to Scripta format string
 -}
-mathExprToScripta : E.MathExpr -> String
-mathExprToScripta expr =
+mathExprToScripta : List String -> E.MathExpr -> String
+mathExprToScripta newMacroNames expr =
     case expr of
         E.AlphaNum str ->
             str
@@ -919,7 +872,7 @@ mathExprToScripta expr =
         E.Arg exprs ->
             -- For top-level Arg in parseNewCommand, we don't want braces
             -- The body comes wrapped in an Arg, so we just extract the content
-            List.map mathExprToScripta exprs |> String.join ""
+            List.map (mathExprToScripta newMacroNames) exprs |> String.join ""
 
         E.Param n ->
             "#" ++ String.fromInt n
@@ -948,109 +901,62 @@ mathExprToScripta expr =
         E.Macro name args ->
             if List.isEmpty args then
                 -- No arguments - check if it's a Greek letter or other special case
-                case name of
-                    -- Greek letters without backslash
-                    "alpha" -> "alpha"
-                    "beta" -> "beta"
-                    "gamma" -> "gamma"
-                    "delta" -> "delta"
-                    "epsilon" -> "epsilon"
-                    "zeta" -> "zeta"
-                    "eta" -> "eta"
-                    "theta" -> "theta"
-                    "iota" -> "iota"
-                    "kappa" -> "kappa"
-                    "lambda" -> "lambda"
-                    "mu" -> "mu"
-                    "nu" -> "nu"
-                    "xi" -> "xi"
-                    "pi" -> "pi"
-                    "rho" -> "rho"
-                    "sigma" -> "sigma"
-                    "tau" -> "tau"
-                    "upsilon" -> "upsilon"
-                    "phi" -> "phi"
-                    "chi" -> "chi"
-                    "psi" -> "psi"
-                    "omega" -> "omega"
-                    -- Capital Greek letters
-                    "Gamma" -> "Gamma"
-                    "Delta" -> "Delta"
-                    "Theta" -> "Theta"
-                    "Lambda" -> "Lambda"
-                    "Xi" -> "Xi"
-                    "Pi" -> "Pi"
-                    "Sigma" -> "Sigma"
-                    "Upsilon" -> "Upsilon"
-                    "Phi" -> "Phi"
-                    "Psi" -> "Psi"
-                    "Omega" -> "Omega"
-                    -- Special symbols without backslash
-                    "otimes" -> "otimes"
-                    "oplus" -> "oplus"
-                    "times" -> "times"
-                    "cdot" -> "cdot"
-                    "infty" -> "infty"
-                    "partial" -> "partial"
-                    "nabla" -> "nabla"
-                    -- Default: keep backslash
-                    _ ->
-                        if ETeX.KaTeX.isKaTeX name then
-                            name
-                        else
-                            "\\" ++ name
+                if ETeX.KaTeX.isKaTeX name then
+                    name
+
+                else
+                    "\\" ++ name
 
             else
                 -- Has arguments - special handling for functions
                 case name of
                     -- \frac{num}{denom} to frac(num, denom)
-                    "frac" ->
-                        case args of
-                            [ E.Arg num, E.Arg denom ] ->
-                                "frac(" ++ (List.map mathExprToScripta num |> String.join "") ++ ", " ++ (List.map mathExprToScripta denom |> String.join "") ++ ")"
-
-                            _ ->
-                                "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
-
+                    --"frac" ->
+                    --    case args of
+                    --        [ E.Arg num, E.Arg denom ] ->
+                    --            "frac(" ++ (List.map mathExprToScripta num |> String.join "") ++ ", " ++ (List.map mathExprToScripta denom |> String.join "") ++ ")"
+                    --
+                    --        _ ->
+                    --            "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
                     -- \tfrac is like frac
                     "tfrac" ->
                         case args of
                             [ E.Arg num, E.Arg denom ] ->
-                                "frac(" ++ (List.map mathExprToScripta num |> String.join "") ++ ", " ++ (List.map mathExprToScripta denom |> String.join "") ++ ")"
+                                "frac(" ++ (List.map (mathExprToScripta newMacroNames) num |> String.join "") ++ ", " ++ (List.map (mathExprToScripta newMacroNames) denom |> String.join "") ++ ")"
 
                             _ ->
-                                "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
+                                "\\" ++ name ++ (List.map (mathExprToScriptaArg newMacroNames) args |> String.join "")
 
-                    -- \sqrt{x} to sqrt(x)
-                    "sqrt" ->
-                        case args of
-                            [ E.Arg content ] ->
-                                "sqrt(" ++ (List.map mathExprToScripta content |> String.join "") ++ ")"
-
-                            _ ->
-                                "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
-
+                    ---- \sqrt{x} to sqrt(x)
+                    --"sqrt" ->
+                    --    case args of
+                    --        [ E.Arg content ] ->
+                    --            "sqrt(" ++ (List.map mathExprToScripta content |> String.join "") ++ ")"
+                    --
+                    --        _ ->
+                    --            "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
                     -- \text{...} to "..."
                     "text" ->
                         case args of
                             [ E.Arg content ] ->
-                                "\"" ++ (List.map mathExprToScripta content |> String.join "") ++ "\""
+                                "\"" ++ (List.map (mathExprToScripta newMacroNames) content |> String.join "") ++ "\""
 
                             _ ->
-                                "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
+                                "\\" ++ name ++ (List.map (mathExprToScriptaArg newMacroNames) args |> String.join "")
 
+                    --
                     -- User-defined macros (like \ket) keep backslash (TODO: for now)
                     _ ->
-                        if ETeX.KaTeX.isKaTeX name then
-                            name ++ "(" ++ (List.map mathExprToScripta args |> String.join ", ") ++ ")"
+                        if ETeX.KaTeX.isKaTeX name || List.member name newMacroNames then
+                            name ++ "(" ++ (List.map (mathExprToScripta newMacroNames) args |> String.join ", ") ++ ")"
 
                         else
                             "\\"
                                 ++ name
-                                ++ (List.map (mathExprToScripta >> (\x -> "{" ++ x ++ "}")) args |> String.join "")
+                                ++ (List.map (mathExprToScripta newMacroNames >> (\x -> "{" ++ x ++ "}")) args |> String.join "")
 
         E.Expr exprs ->
-            List.map mathExprToScripta exprs |> String.join ""
+            List.map (mathExprToScripta newMacroNames) exprs |> String.join ""
 
         E.Comma ->
             ","
@@ -1062,32 +968,32 @@ mathExprToScripta expr =
             ")"
 
         E.Sub deco ->
-            "_" ++ decoToString deco
+            "_" ++ decoToString newMacroNames deco
 
         E.Super deco ->
-            "^" ++ decoToString deco
+            "^" ++ decoToString newMacroNames deco
 
 
 {-| Helper to convert arguments with proper bracing
 -}
-mathExprToScriptaArg : E.MathExpr -> String
-mathExprToScriptaArg expr =
+mathExprToScriptaArg : List String -> E.MathExpr -> String
+mathExprToScriptaArg newMacroNames expr =
     case expr of
         E.Arg exprs ->
             -- For arguments in macro calls, we do want braces
-            "{" ++ (List.map mathExprToScripta exprs |> String.join "") ++ "}"
+            "{" ++ (List.map (mathExprToScripta newMacroNames) exprs |> String.join "") ++ "}"
 
         _ ->
-            mathExprToScripta expr
+            mathExprToScripta newMacroNames expr
 
 
 {-| Convert Deco to string
 -}
-decoToString : E.Deco -> String
-decoToString deco =
+decoToString : List String -> E.Deco -> String
+decoToString newMacroNames deco =
     case deco of
         E.DecoM expr ->
-            mathExprToScripta expr
+            mathExprToScripta newMacroNames expr
 
         E.DecoI n ->
             String.fromInt n
