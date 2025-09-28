@@ -559,14 +559,21 @@ renderItem newMacroNames block =
             else
                 "- "
 
-        -- Extract content from \item{content} in firstLine
+        -- Extract content from \item{content} or \item {content} in firstLine
         extractFromFirstLine =
-            if String.contains "\\item{" block.firstLine then
-                block.firstLine
-                    |> String.replace "\\item{" ""
+            let
+                line = block.firstLine
+            in
+            if String.contains "\\item" line && String.contains "{" line then
+                -- Handle both \item{...} and \item {...}
+                line
+                    |> String.replace "\\item" ""
+                    |> String.trim
+                    |> (\s -> if String.startsWith "{" s then String.dropLeft 1 s else s)
                     |> String.split "}"
                     |> List.head
                     |> Maybe.withDefault ""
+                    |> String.trim
             else
                 ""
 

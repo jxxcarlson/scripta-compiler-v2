@@ -15596,14 +15596,22 @@ var $author$project$Render$Export$LaTeXToScripta2$renderItem = F2(
 	function (newMacroNames, block) {
 		var isEnumerate = A2($elm$core$String$contains, '\\begin{enumerate}', block.meta.sourceText) || A2($elm$core$String$contains, 'enumerate', block.firstLine);
 		var prefix = isEnumerate ? '. ' : '- ';
-		var extractFromFirstLine = A2($elm$core$String$contains, '\\item{', block.firstLine) ? A2(
-			$elm$core$Maybe$withDefault,
-			'',
-			$elm$core$List$head(
+		var extractFromFirstLine = function () {
+			var line = block.firstLine;
+			return (A2($elm$core$String$contains, '\\item', line) && A2($elm$core$String$contains, '{', line)) ? $elm$core$String$trim(
 				A2(
-					$elm$core$String$split,
-					'}',
-					A3($elm$core$String$replace, '\\item{', '', block.firstLine)))) : '';
+					$elm$core$Maybe$withDefault,
+					'',
+					$elm$core$List$head(
+						A2(
+							$elm$core$String$split,
+							'}',
+							function (s) {
+								return A2($elm$core$String$startsWith, '{', s) ? A2($elm$core$String$dropLeft, 1, s) : s;
+							}(
+								$elm$core$String$trim(
+									A3($elm$core$String$replace, '\\item', '', line))))))) : '';
+		}();
 		var content = function () {
 			if (!$elm$core$String$isEmpty(extractFromFirstLine)) {
 				return extractFromFirstLine;
@@ -16039,7 +16047,7 @@ var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$core$Debug$toString = _Debug_toString;
 var $author$project$Main$view = function (model) {
-	var input = '\\item{red}\n\n\\item{white}\n\n\\item{blue}';
+	var input = '\\item{It provides a natural emergence of classical behavior from quantum mechanics}\n\n\\item{The measurement problem is partially resolved - definite outcomes emerge through environmental interaction}\n\n\\item{It explains why certain observables (like position) appear classical while others remain quantum}';
 	var forest = $author$project$Render$Export$LaTeXToScripta2$parseL(input);
 	var forestStr = $elm$core$Debug$toString(forest);
 	var output = A2($author$project$Render$Export$LaTeXToScripta2$renderS, _List_Nil, forest);

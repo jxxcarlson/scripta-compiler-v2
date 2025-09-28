@@ -39,11 +39,11 @@ view : Model -> Html Msg
 view model =
     let
         input =
-            """\\item{red}
+            """\\item{It provides a natural emergence of classical behavior from quantum mechanics}
 
-\\item{white}
+\\item{The measurement problem is partially resolved - definite outcomes emerge through environmental interaction}
 
-\\item{blue}"""
+\\item{It explains why certain observables (like position) appear classical while others remain quantum}"""
 
         -- Parse to AST
         forest : Forest ExpressionBlock

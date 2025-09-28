@@ -56046,14 +56046,13 @@ var $author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta = F2
 			return latexMath;
 		}
 	});
-var $elm$core$Debug$log = _Debug_log;
 var $author$project$Render$Export$LaTeXToScripta2$renderVerbatimFunction = F3(
 	function (newMacroNames, name, content) {
 		switch (name) {
 			case 'math':
 				return '$' + (A2($author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta, newMacroNames, content) + '$');
 			case 'code':
-				return A2($elm$core$Debug$log, 'Code content', '`' + (content + '`'));
+				return '`' + (content + '`');
 			default:
 				return '[' + (name + (' ' + (content + ']')));
 		}
@@ -56203,25 +56202,70 @@ var $author$project$Render$Export$LaTeXToScripta2$renderItem = F2(
 	function (newMacroNames, block) {
 		var isEnumerate = A2($elm$core$String$contains, '\\begin{enumerate}', block.meta.sourceText) || A2($elm$core$String$contains, 'enumerate', block.firstLine);
 		var prefix = isEnumerate ? '. ' : '- ';
-		var content = function () {
-			var _v0 = block.args;
-			if (_v0.b) {
-				var arg = _v0.a;
-				return arg;
-			} else {
-				var _v1 = block.body;
-				if (_v1.$ === 'Left') {
-					var str = _v1.a;
-					return $elm$core$String$trim(str);
-				} else {
-					var exprs = _v1.a;
-					return A2(
-						$elm$core$String$join,
-						' ',
+		var extractFromFirstLine = function () {
+			var line = block.firstLine;
+			return (A2($elm$core$String$contains, '\\item', line) && A2($elm$core$String$contains, '{', line)) ? $elm$core$String$trim(
+				A2(
+					$elm$core$Maybe$withDefault,
+					'',
+					$elm$core$List$head(
 						A2(
-							$elm$core$List$map,
-							$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-							exprs));
+							$elm$core$String$split,
+							'}',
+							function (s) {
+								return A2($elm$core$String$startsWith, '{', s) ? A2($elm$core$String$dropLeft, 1, s) : s;
+							}(
+								$elm$core$String$trim(
+									A3($elm$core$String$replace, '\\item', '', line))))))) : '';
+		}();
+		var content = function () {
+			if (!$elm$core$String$isEmpty(extractFromFirstLine)) {
+				return extractFromFirstLine;
+			} else {
+				if (!$elm$core$List$isEmpty(block.args)) {
+					var _v0 = block.args;
+					if (_v0.b) {
+						var arg = _v0.a;
+						return arg;
+					} else {
+						return '';
+					}
+				} else {
+					var _v1 = block.body;
+					if (_v1.$ === 'Left') {
+						var str = _v1.a;
+						return $elm$core$String$trim(str);
+					} else {
+						var exprs = _v1.a;
+						return $elm$core$String$trim(
+							A2(
+								$elm$core$String$join,
+								' ',
+								A2(
+									$elm$core$List$map,
+									$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+									A2(
+										$elm$core$List$filter,
+										function (expr) {
+											_v2$2:
+											while (true) {
+												if (expr.$ === 'Fun') {
+													switch (expr.a) {
+														case 'errorHighlight':
+															return false;
+														case 'blue':
+															return false;
+														default:
+															break _v2$2;
+													}
+												} else {
+													break _v2$2;
+												}
+											}
+											return true;
+										},
+										exprs))));
+					}
 				}
 			}
 		}();
