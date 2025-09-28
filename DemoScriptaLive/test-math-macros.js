@@ -3929,6 +3929,136 @@ function _VirtualDom_dekey(keyedNode)
 		b: keyedNode.b
 	};
 }
+
+
+
+
+// STRINGS
+
+
+var _Parser_isSubString = F5(function(smallString, offset, row, col, bigString)
+{
+	var smallLength = smallString.length;
+	var isGood = offset + smallLength <= bigString.length;
+
+	for (var i = 0; isGood && i < smallLength; )
+	{
+		var code = bigString.charCodeAt(offset);
+		isGood =
+			smallString[i++] === bigString[offset++]
+			&& (
+				code === 0x000A /* \n */
+					? ( row++, col=1 )
+					: ( col++, (code & 0xF800) === 0xD800 ? smallString[i++] === bigString[offset++] : 1 )
+			)
+	}
+
+	return _Utils_Tuple3(isGood ? offset : -1, row, col);
+});
+
+
+
+// CHARS
+
+
+var _Parser_isSubChar = F3(function(predicate, offset, string)
+{
+	return (
+		string.length <= offset
+			? -1
+			:
+		(string.charCodeAt(offset) & 0xF800) === 0xD800
+			? (predicate(_Utils_chr(string.substr(offset, 2))) ? offset + 2 : -1)
+			:
+		(predicate(_Utils_chr(string[offset]))
+			? ((string[offset] === '\n') ? -2 : (offset + 1))
+			: -1
+		)
+	);
+});
+
+
+var _Parser_isAsciiCode = F3(function(code, offset, string)
+{
+	return string.charCodeAt(offset) === code;
+});
+
+
+
+// NUMBERS
+
+
+var _Parser_chompBase10 = F2(function(offset, string)
+{
+	for (; offset < string.length; offset++)
+	{
+		var code = string.charCodeAt(offset);
+		if (code < 0x30 || 0x39 < code)
+		{
+			return offset;
+		}
+	}
+	return offset;
+});
+
+
+var _Parser_consumeBase = F3(function(base, offset, string)
+{
+	for (var total = 0; offset < string.length; offset++)
+	{
+		var digit = string.charCodeAt(offset) - 0x30;
+		if (digit < 0 || base <= digit) break;
+		total = base * total + digit;
+	}
+	return _Utils_Tuple2(offset, total);
+});
+
+
+var _Parser_consumeBase16 = F2(function(offset, string)
+{
+	for (var total = 0; offset < string.length; offset++)
+	{
+		var code = string.charCodeAt(offset);
+		if (0x30 <= code && code <= 0x39)
+		{
+			total = 16 * total + code - 0x30;
+		}
+		else if (0x41 <= code && code <= 0x46)
+		{
+			total = 16 * total + code - 55;
+		}
+		else if (0x61 <= code && code <= 0x66)
+		{
+			total = 16 * total + code - 87;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return _Utils_Tuple2(offset, total);
+});
+
+
+
+// FIND STRING
+
+
+var _Parser_findSubString = F5(function(smallString, offset, row, col, bigString)
+{
+	var newOffset = bigString.indexOf(smallString, offset);
+	var target = newOffset < 0 ? bigString.length : newOffset + smallString.length;
+
+	while (offset < target)
+	{
+		var code = bigString.charCodeAt(offset++);
+		code === 0x000A /* \n */
+			? ( col=1, row++ )
+			: ( col++, (code & 0xF800) === 0xD800 && offset++ )
+	}
+
+	return _Utils_Tuple3(newOffset, row, col);
+});
 var $elm$core$List$cons = _List_cons;
 var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var $elm$core$Array$foldr = F3(
@@ -4554,130 +4684,1168 @@ var $elm$core$List$map = F2(
 			xs);
 	});
 var $elm$core$Basics$not = _Basics_not;
-var $elm$core$String$length = _String_length;
-var $elm$core$String$slice = _String_slice;
-var $elm$core$String$dropLeft = F2(
-	function (n, string) {
-		return (n < 1) ? string : A3(
-			$elm$core$String$slice,
-			n,
-			$elm$core$String$length(string),
-			string);
-	});
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
+var $author$project$Render$Export$LaTeXToScripta2$decoToString = function (deco) {
+	if (deco.$ === 'DecoM') {
+		var expr = deco.a;
+		return $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(expr);
 	} else {
-		return $elm$core$Maybe$Nothing;
+		var n = deco.a;
+		return $elm$core$String$fromInt(n);
 	}
 };
-var $elm$core$String$indexes = _String_indexes;
-var $elm$core$String$left = F2(
-	function (n, string) {
-		return (n < 1) ? '' : A3($elm$core$String$slice, 0, n, string);
+var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = function (expr) {
+	switch (expr.$) {
+		case 'AlphaNum':
+			var str = expr.a;
+			return str;
+		case 'MacroName':
+			var str = expr.a;
+			return '\\' + str;
+		case 'FunctionName':
+			var str = expr.a;
+			return str;
+		case 'Arg':
+			var exprs = expr.a;
+			var content = A2(
+				$elm$core$String$join,
+				'',
+				A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, exprs));
+			return '{' + (content + '}');
+		case 'Param':
+			var n = expr.a;
+			return '#' + $elm$core$String$fromInt(n);
+		case 'WS':
+			return ' ';
+		case 'MathSpace':
+			return ' ';
+		case 'MathSmallSpace':
+			return ' ';
+		case 'MathMediumSpace':
+			return ' ';
+		case 'LeftMathBrace':
+			return '\\{';
+		case 'RightMathBrace':
+			return '\\}';
+		case 'MathSymbols':
+			var str = expr.a;
+			return str;
+		case 'Macro':
+			var name = expr.a;
+			var args = expr.b;
+			switch (name) {
+				case 'frac':
+					if ((((args.b && (args.a.$ === 'Arg')) && args.b.b) && (args.b.a.$ === 'Arg')) && (!args.b.b.b)) {
+						var num = args.a.a;
+						var _v3 = args.b;
+						var denom = _v3.a.a;
+						var numStr = A2(
+							$elm$core$String$join,
+							'',
+							A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, num));
+						var denomStr = A2(
+							$elm$core$String$join,
+							'',
+							A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, denom));
+						return 'frac(' + (numStr + (', ' + (denomStr + ')')));
+					} else {
+						return '\\' + (name + A2(
+							$elm$core$String$join,
+							'',
+							A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, args)));
+					}
+				case 'langle':
+					return 'langle';
+				case 'rangle':
+					return 'rangle';
+				default:
+					return '\\' + (name + A2(
+						$elm$core$String$join,
+						'',
+						A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, args)));
+			}
+		case 'Expr':
+			var exprs = expr.a;
+			return A2(
+				$elm$core$String$join,
+				'',
+				A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, exprs));
+		case 'Comma':
+			return ',';
+		case 'LeftParen':
+			return '(';
+		case 'RightParen':
+			return ')';
+		case 'Sub':
+			var deco = expr.a;
+			return '_' + $author$project$Render$Export$LaTeXToScripta2$decoToString(deco);
+		default:
+			var deco = expr.a;
+			return '^' + $author$project$Render$Export$LaTeXToScripta2$decoToString(deco);
+	}
+};
+var $elm$parser$Parser$Advanced$Bad = F2(
+	function (a, b) {
+		return {$: 'Bad', a: a, b: b};
 	});
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
+var $elm$parser$Parser$Advanced$Good = F3(
+	function (a, b, c) {
+		return {$: 'Good', a: a, b: b, c: c};
 	});
+var $elm$core$Basics$identity = function (x) {
+	return x;
+};
+var $elm$parser$Parser$Advanced$Parser = function (a) {
+	return {$: 'Parser', a: a};
+};
+var $elm$parser$Parser$Advanced$backtrackable = function (_v0) {
+	var parse = _v0.a;
+	return $elm$parser$Parser$Advanced$Parser(
+		function (s0) {
+			var _v1 = parse(s0);
+			if (_v1.$ === 'Bad') {
+				var x = _v1.b;
+				return A2($elm$parser$Parser$Advanced$Bad, false, x);
+			} else {
+				var a = _v1.b;
+				var s1 = _v1.c;
+				return A3($elm$parser$Parser$Advanced$Good, false, a, s1);
+			}
+		});
+};
+var $author$project$ETeX$MathMacros$ExpectingLeftBrace = {$: 'ExpectingLeftBrace'};
+var $author$project$ETeX$MathMacros$ExpectingNewCommand = {$: 'ExpectingNewCommand'};
+var $author$project$ETeX$MathMacros$ExpectingRightBrace = {$: 'ExpectingRightBrace'};
+var $author$project$ETeX$MathMacros$NewCommand = F3(
+	function (a, b, c) {
+		return {$: 'NewCommand', a: a, b: b, c: c};
+	});
+var $elm$parser$Parser$Advanced$Token = F2(
+	function (a, b) {
+		return {$: 'Token', a: a, b: b};
+	});
+var $author$project$ETeX$MathMacros$ExpectingBackslash = {$: 'ExpectingBackslash'};
+var $author$project$ETeX$MathMacros$MacroName = function (a) {
+	return {$: 'MacroName', a: a};
+};
+var $author$project$ETeX$MathMacros$ExpectingAlpha = {$: 'ExpectingAlpha'};
+var $elm$parser$Parser$Advanced$AddRight = F2(
+	function (a, b) {
+		return {$: 'AddRight', a: a, b: b};
+	});
+var $elm$parser$Parser$Advanced$DeadEnd = F4(
+	function (row, col, problem, contextStack) {
+		return {col: col, contextStack: contextStack, problem: problem, row: row};
+	});
+var $elm$parser$Parser$Advanced$Empty = {$: 'Empty'};
+var $elm$parser$Parser$Advanced$fromState = F2(
+	function (s, x) {
+		return A2(
+			$elm$parser$Parser$Advanced$AddRight,
+			$elm$parser$Parser$Advanced$Empty,
+			A4($elm$parser$Parser$Advanced$DeadEnd, s.row, s.col, x, s.context));
+	});
+var $elm$parser$Parser$Advanced$isSubChar = _Parser_isSubChar;
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
-var $elm$core$String$startsWith = _String_startsWith;
-var $elm$core$String$replace = F3(
-	function (before, after, string) {
-		return A2(
-			$elm$core$String$join,
-			after,
-			A2($elm$core$String$split, before, string));
+var $elm$parser$Parser$Advanced$chompIf = F2(
+	function (isGood, expecting) {
+		return $elm$parser$Parser$Advanced$Parser(
+			function (s) {
+				var newOffset = A3($elm$parser$Parser$Advanced$isSubChar, isGood, s.offset, s.src);
+				return _Utils_eq(newOffset, -1) ? A2(
+					$elm$parser$Parser$Advanced$Bad,
+					false,
+					A2($elm$parser$Parser$Advanced$fromState, s, expecting)) : (_Utils_eq(newOffset, -2) ? A3(
+					$elm$parser$Parser$Advanced$Good,
+					true,
+					_Utils_Tuple0,
+					{col: 1, context: s.context, indent: s.indent, offset: s.offset + 1, row: s.row + 1, src: s.src}) : A3(
+					$elm$parser$Parser$Advanced$Good,
+					true,
+					_Utils_Tuple0,
+					{col: s.col + 1, context: s.context, indent: s.indent, offset: newOffset, row: s.row, src: s.src}));
+			});
 	});
-var $elm$core$String$contains = _String_contains;
-var $author$project$Render$Export$LaTeXToScripta2$transformFrac = function (str) {
-	if (A2($elm$core$String$contains, 'frac(', str)) {
-		var processPart = function (part) {
-			return (A2($elm$core$String$contains, '}', part) && A2($elm$core$String$contains, '{', part)) ? A3(
-				$elm$core$String$replace,
-				'}',
-				')',
-				A3($elm$core$String$replace, '}{', ', ', part)) : part;
-		};
-		var parts = A2($elm$core$String$split, 'frac(', str);
-		var processedParts = function () {
-			if (parts.b) {
-				var first = parts.a;
-				var rest = parts.b;
-				return A2(
-					$elm$core$List$cons,
-					first,
-					A2($elm$core$List$map, processPart, rest));
+var $elm$parser$Parser$Advanced$chompWhileHelp = F5(
+	function (isGood, offset, row, col, s0) {
+		chompWhileHelp:
+		while (true) {
+			var newOffset = A3($elm$parser$Parser$Advanced$isSubChar, isGood, offset, s0.src);
+			if (_Utils_eq(newOffset, -1)) {
+				return A3(
+					$elm$parser$Parser$Advanced$Good,
+					_Utils_cmp(s0.offset, offset) < 0,
+					_Utils_Tuple0,
+					{col: col, context: s0.context, indent: s0.indent, offset: offset, row: row, src: s0.src});
 			} else {
-				return _List_Nil;
+				if (_Utils_eq(newOffset, -2)) {
+					var $temp$isGood = isGood,
+						$temp$offset = offset + 1,
+						$temp$row = row + 1,
+						$temp$col = 1,
+						$temp$s0 = s0;
+					isGood = $temp$isGood;
+					offset = $temp$offset;
+					row = $temp$row;
+					col = $temp$col;
+					s0 = $temp$s0;
+					continue chompWhileHelp;
+				} else {
+					var $temp$isGood = isGood,
+						$temp$offset = newOffset,
+						$temp$row = row,
+						$temp$col = col + 1,
+						$temp$s0 = s0;
+					isGood = $temp$isGood;
+					offset = $temp$offset;
+					row = $temp$row;
+					col = $temp$col;
+					s0 = $temp$s0;
+					continue chompWhileHelp;
+				}
 			}
-		}();
-		return A2($elm$core$String$join, 'frac(', processedParts);
-	} else {
-		return str;
-	}
-};
-var $elm$core$String$trim = _String_trim;
-var $author$project$Render$Export$LaTeXToScripta2$transformMacroBody = function (body) {
-	return $elm$core$String$trim(
-		$author$project$Render$Export$LaTeXToScripta2$transformFrac(
-			A3(
-				$elm$core$String$replace,
-				'\\frac{',
-				'frac(',
-				A3(
-					$elm$core$String$replace,
-					'\\rangle',
-					'rangle',
-					A3($elm$core$String$replace, '\\langle', 'langle', body)))));
-};
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$parseNewCommand = function (line) {
-	if (A2($elm$core$String$startsWith, '\\newcommand{\\', line)) {
-		var nameStart = A2($elm$core$String$dropLeft, 13, line);
-		var nameEnd = A2(
-			$elm$core$Maybe$withDefault,
-			-1,
-			$elm$core$List$head(
-				A2($elm$core$String$indexes, '}', nameStart)));
-		var remainingAfterName = A2($elm$core$String$dropLeft, nameEnd + 1, nameStart);
-		var name = A2($elm$core$String$left, nameEnd, nameStart);
-		var bodyStart = A2(
-			$elm$core$Maybe$withDefault,
-			0,
+var $elm$parser$Parser$Advanced$chompWhile = function (isGood) {
+	return $elm$parser$Parser$Advanced$Parser(
+		function (s) {
+			return A5($elm$parser$Parser$Advanced$chompWhileHelp, isGood, s.offset, s.row, s.col, s);
+		});
+};
+var $elm$parser$Parser$Advanced$getOffset = $elm$parser$Parser$Advanced$Parser(
+	function (s) {
+		return A3($elm$parser$Parser$Advanced$Good, false, s.offset, s);
+	});
+var $elm$parser$Parser$Advanced$getSource = $elm$parser$Parser$Advanced$Parser(
+	function (s) {
+		return A3($elm$parser$Parser$Advanced$Good, false, s.src, s);
+	});
+var $elm$core$Basics$always = F2(
+	function (a, _v0) {
+		return a;
+	});
+var $elm$parser$Parser$Advanced$map2 = F3(
+	function (func, _v0, _v1) {
+		var parseA = _v0.a;
+		var parseB = _v1.a;
+		return $elm$parser$Parser$Advanced$Parser(
+			function (s0) {
+				var _v2 = parseA(s0);
+				if (_v2.$ === 'Bad') {
+					var p = _v2.a;
+					var x = _v2.b;
+					return A2($elm$parser$Parser$Advanced$Bad, p, x);
+				} else {
+					var p1 = _v2.a;
+					var a = _v2.b;
+					var s1 = _v2.c;
+					var _v3 = parseB(s1);
+					if (_v3.$ === 'Bad') {
+						var p2 = _v3.a;
+						var x = _v3.b;
+						return A2($elm$parser$Parser$Advanced$Bad, p1 || p2, x);
+					} else {
+						var p2 = _v3.a;
+						var b = _v3.b;
+						var s2 = _v3.c;
+						return A3(
+							$elm$parser$Parser$Advanced$Good,
+							p1 || p2,
+							A2(func, a, b),
+							s2);
+					}
+				}
+			});
+	});
+var $elm$parser$Parser$Advanced$ignorer = F2(
+	function (keepParser, ignoreParser) {
+		return A3($elm$parser$Parser$Advanced$map2, $elm$core$Basics$always, keepParser, ignoreParser);
+	});
+var $elm$parser$Parser$Advanced$keeper = F2(
+	function (parseFunc, parseArg) {
+		return A3($elm$parser$Parser$Advanced$map2, $elm$core$Basics$apL, parseFunc, parseArg);
+	});
+var $elm$core$String$slice = _String_slice;
+var $elm$parser$Parser$Advanced$succeed = function (a) {
+	return $elm$parser$Parser$Advanced$Parser(
+		function (s) {
+			return A3($elm$parser$Parser$Advanced$Good, false, a, s);
+		});
+};
+var $author$project$ETeX$MathMacros$alphaNumParser_ = A2(
+	$elm$parser$Parser$Advanced$keeper,
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			$elm$parser$Parser$Advanced$succeed($elm$core$String$slice),
 			A2(
-				$elm$core$Maybe$map,
-				$elm$core$Basics$add(1),
-				$elm$core$List$head(
-					$elm$core$List$reverse(
-						A2($elm$core$String$indexes, '{', remainingAfterName)))));
-		var bodyEnd = A2(
-			$elm$core$Maybe$withDefault,
-			$elm$core$String$length(remainingAfterName),
-			$elm$core$List$head(
-				$elm$core$List$reverse(
-					A2($elm$core$String$indexes, '}', remainingAfterName))));
-		var body = $author$project$Render$Export$LaTeXToScripta2$transformMacroBody(
-			A3($elm$core$String$slice, bodyStart, bodyEnd, remainingAfterName));
-		return $elm$core$String$isEmpty(name) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+				$elm$parser$Parser$Advanced$ignorer,
+				A2(
+					$elm$parser$Parser$Advanced$ignorer,
+					$elm$parser$Parser$Advanced$getOffset,
+					A2($elm$parser$Parser$Advanced$chompIf, $elm$core$Char$isAlpha, $author$project$ETeX$MathMacros$ExpectingAlpha)),
+				$elm$parser$Parser$Advanced$chompWhile($elm$core$Char$isAlphaNum))),
+		$elm$parser$Parser$Advanced$getOffset),
+	$elm$parser$Parser$Advanced$getSource);
+var $elm$parser$Parser$Advanced$map = F2(
+	function (func, _v0) {
+		var parse = _v0.a;
+		return $elm$parser$Parser$Advanced$Parser(
+			function (s0) {
+				var _v1 = parse(s0);
+				if (_v1.$ === 'Good') {
+					var p = _v1.a;
+					var a = _v1.b;
+					var s1 = _v1.c;
+					return A3(
+						$elm$parser$Parser$Advanced$Good,
+						p,
+						func(a),
+						s1);
+				} else {
+					var p = _v1.a;
+					var x = _v1.b;
+					return A2($elm$parser$Parser$Advanced$Bad, p, x);
+				}
+			});
+	});
+var $elm$parser$Parser$Advanced$andThen = F2(
+	function (callback, _v0) {
+		var parseA = _v0.a;
+		return $elm$parser$Parser$Advanced$Parser(
+			function (s0) {
+				var _v1 = parseA(s0);
+				if (_v1.$ === 'Bad') {
+					var p = _v1.a;
+					var x = _v1.b;
+					return A2($elm$parser$Parser$Advanced$Bad, p, x);
+				} else {
+					var p1 = _v1.a;
+					var a = _v1.b;
+					var s1 = _v1.c;
+					var _v2 = callback(a);
+					var parseB = _v2.a;
+					var _v3 = parseB(s1);
+					if (_v3.$ === 'Bad') {
+						var p2 = _v3.a;
+						var x = _v3.b;
+						return A2($elm$parser$Parser$Advanced$Bad, p1 || p2, x);
+					} else {
+						var p2 = _v3.a;
+						var b = _v3.b;
+						var s2 = _v3.c;
+						return A3($elm$parser$Parser$Advanced$Good, p1 || p2, b, s2);
+					}
+				}
+			});
+	});
+var $author$project$ETeX$MathMacros$second = F2(
+	function (p, q) {
+		return A2(
+			$elm$parser$Parser$Advanced$andThen,
+			function (_v0) {
+				return q;
+			},
+			p);
+	});
+var $elm$parser$Parser$Advanced$isSubString = _Parser_isSubString;
+var $elm$parser$Parser$Advanced$token = function (_v0) {
+	var str = _v0.a;
+	var expecting = _v0.b;
+	var progress = !$elm$core$String$isEmpty(str);
+	return $elm$parser$Parser$Advanced$Parser(
+		function (s) {
+			var _v1 = A5($elm$parser$Parser$Advanced$isSubString, str, s.offset, s.row, s.col, s.src);
+			var newOffset = _v1.a;
+			var newRow = _v1.b;
+			var newCol = _v1.c;
+			return _Utils_eq(newOffset, -1) ? A2(
+				$elm$parser$Parser$Advanced$Bad,
+				false,
+				A2($elm$parser$Parser$Advanced$fromState, s, expecting)) : A3(
+				$elm$parser$Parser$Advanced$Good,
+				progress,
+				_Utils_Tuple0,
+				{col: newCol, context: s.context, indent: s.indent, offset: newOffset, row: newRow, src: s.src});
+		});
+};
+var $elm$parser$Parser$Advanced$symbol = $elm$parser$Parser$Advanced$token;
+var $author$project$ETeX$MathMacros$f0Parser = A2(
+	$elm$parser$Parser$Advanced$map,
+	$author$project$ETeX$MathMacros$MacroName,
+	A2(
+		$author$project$ETeX$MathMacros$second,
+		$elm$parser$Parser$Advanced$symbol(
+			A2($elm$parser$Parser$Advanced$Token, '\\', $author$project$ETeX$MathMacros$ExpectingBackslash)),
+		$author$project$ETeX$MathMacros$alphaNumParser_));
+var $elm$parser$Parser$Advanced$loopHelp = F4(
+	function (p, state, callback, s0) {
+		loopHelp:
+		while (true) {
+			var _v0 = callback(state);
+			var parse = _v0.a;
+			var _v1 = parse(s0);
+			if (_v1.$ === 'Good') {
+				var p1 = _v1.a;
+				var step = _v1.b;
+				var s1 = _v1.c;
+				if (step.$ === 'Loop') {
+					var newState = step.a;
+					var $temp$p = p || p1,
+						$temp$state = newState,
+						$temp$callback = callback,
+						$temp$s0 = s1;
+					p = $temp$p;
+					state = $temp$state;
+					callback = $temp$callback;
+					s0 = $temp$s0;
+					continue loopHelp;
+				} else {
+					var result = step.a;
+					return A3($elm$parser$Parser$Advanced$Good, p || p1, result, s1);
+				}
+			} else {
+				var p1 = _v1.a;
+				var x = _v1.b;
+				return A2($elm$parser$Parser$Advanced$Bad, p || p1, x);
+			}
+		}
+	});
+var $elm$parser$Parser$Advanced$loop = F2(
+	function (state, callback) {
+		return $elm$parser$Parser$Advanced$Parser(
+			function (s) {
+				return A4($elm$parser$Parser$Advanced$loopHelp, false, state, callback, s);
+			});
+	});
+var $elm$parser$Parser$Advanced$Done = function (a) {
+	return {$: 'Done', a: a};
+};
+var $elm$parser$Parser$Advanced$Loop = function (a) {
+	return {$: 'Loop', a: a};
+};
+var $elm$parser$Parser$Advanced$Append = F2(
+	function (a, b) {
+		return {$: 'Append', a: a, b: b};
+	});
+var $elm$parser$Parser$Advanced$oneOfHelp = F3(
+	function (s0, bag, parsers) {
+		oneOfHelp:
+		while (true) {
+			if (!parsers.b) {
+				return A2($elm$parser$Parser$Advanced$Bad, false, bag);
+			} else {
+				var parse = parsers.a.a;
+				var remainingParsers = parsers.b;
+				var _v1 = parse(s0);
+				if (_v1.$ === 'Good') {
+					var step = _v1;
+					return step;
+				} else {
+					var step = _v1;
+					var p = step.a;
+					var x = step.b;
+					if (p) {
+						return step;
+					} else {
+						var $temp$s0 = s0,
+							$temp$bag = A2($elm$parser$Parser$Advanced$Append, bag, x),
+							$temp$parsers = remainingParsers;
+						s0 = $temp$s0;
+						bag = $temp$bag;
+						parsers = $temp$parsers;
+						continue oneOfHelp;
+					}
+				}
+			}
+		}
+	});
+var $elm$parser$Parser$Advanced$oneOf = function (parsers) {
+	return $elm$parser$Parser$Advanced$Parser(
+		function (s) {
+			return A3($elm$parser$Parser$Advanced$oneOfHelp, s, $elm$parser$Parser$Advanced$Empty, parsers);
+		});
+};
+var $author$project$ETeX$MathMacros$manyHelp = F2(
+	function (p, vs) {
+		return $elm$parser$Parser$Advanced$oneOf(
+			_List_fromArray(
+				[
+					A2(
+					$elm$parser$Parser$Advanced$keeper,
+					$elm$parser$Parser$Advanced$succeed(
+						function (v) {
+							return $elm$parser$Parser$Advanced$Loop(
+								A2($elm$core$List$cons, v, vs));
+						}),
+					p),
+					A2(
+					$elm$parser$Parser$Advanced$map,
+					function (_v0) {
+						return $elm$parser$Parser$Advanced$Done(
+							$elm$core$List$reverse(vs));
+					},
+					$elm$parser$Parser$Advanced$succeed(_Utils_Tuple0))
+				]));
+	});
+var $author$project$ETeX$MathMacros$many = function (p) {
+	return A2(
+		$elm$parser$Parser$Advanced$loop,
+		_List_Nil,
+		$author$project$ETeX$MathMacros$manyHelp(p));
+};
+var $author$project$ETeX$MathMacros$Arg = function (a) {
+	return {$: 'Arg', a: a};
+};
+var $author$project$ETeX$MathMacros$DecoM = function (a) {
+	return {$: 'DecoM', a: a};
+};
+var $author$project$ETeX$MathMacros$ExpectingCaret = {$: 'ExpectingCaret'};
+var $author$project$ETeX$MathMacros$ExpectingLeftParen = {$: 'ExpectingLeftParen'};
+var $author$project$ETeX$MathMacros$ExpectingRightParen = {$: 'ExpectingRightParen'};
+var $author$project$ETeX$MathMacros$ExpectingUnderscore = {$: 'ExpectingUnderscore'};
+var $author$project$ETeX$MathMacros$Macro = F2(
+	function (a, b) {
+		return {$: 'Macro', a: a, b: b};
+	});
+var $author$project$ETeX$MathMacros$Sub = function (a) {
+	return {$: 'Sub', a: a};
+};
+var $author$project$ETeX$MathMacros$Super = function (a) {
+	return {$: 'Super', a: a};
+};
+var $author$project$ETeX$MathMacros$AlphaNum = function (a) {
+	return {$: 'AlphaNum', a: a};
+};
+var $author$project$ETeX$MathMacros$alphaNumParser = A2($elm$parser$Parser$Advanced$map, $author$project$ETeX$MathMacros$AlphaNum, $author$project$ETeX$MathMacros$alphaNumParser_);
+var $author$project$ETeX$MathMacros$Comma = {$: 'Comma'};
+var $author$project$ETeX$MathMacros$ExpectingComma = {$: 'ExpectingComma'};
+var $author$project$ETeX$MathMacros$commaParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$Comma),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, ',', $author$project$ETeX$MathMacros$ExpectingComma)));
+var $elm$parser$Parser$Advanced$lazy = function (thunk) {
+	return $elm$parser$Parser$Advanced$Parser(
+		function (s) {
+			var _v0 = thunk(_Utils_Tuple0);
+			var parse = _v0.a;
+			return parse(s);
+		});
+};
+var $author$project$ETeX$MathMacros$ExpectingLeftMathBrace = {$: 'ExpectingLeftMathBrace'};
+var $author$project$ETeX$MathMacros$LeftMathBrace = {$: 'LeftMathBrace'};
+var $author$project$ETeX$MathMacros$leftBraceParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$LeftMathBrace),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '\\{', $author$project$ETeX$MathMacros$ExpectingLeftMathBrace)));
+var $author$project$ETeX$MathMacros$LeftParen = {$: 'LeftParen'};
+var $author$project$ETeX$MathMacros$leftParenParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$LeftParen),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '(', $author$project$ETeX$MathMacros$ExpectingLeftParen)));
+var $author$project$ETeX$MathMacros$ExpectingMathMediumSpace = {$: 'ExpectingMathMediumSpace'};
+var $author$project$ETeX$MathMacros$MathMediumSpace = {$: 'MathMediumSpace'};
+var $author$project$ETeX$MathMacros$mathMediumSpaceParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$MathMediumSpace),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '\\;', $author$project$ETeX$MathMacros$ExpectingMathMediumSpace)));
+var $author$project$ETeX$MathMacros$ExpectingMathSmallSpace = {$: 'ExpectingMathSmallSpace'};
+var $author$project$ETeX$MathMacros$MathSmallSpace = {$: 'MathSmallSpace'};
+var $author$project$ETeX$MathMacros$mathSmallSpaceParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$MathSmallSpace),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '\\,', $author$project$ETeX$MathMacros$ExpectingMathSmallSpace)));
+var $author$project$ETeX$MathMacros$ExpectingMathSpace = {$: 'ExpectingMathSpace'};
+var $author$project$ETeX$MathMacros$MathSpace = {$: 'MathSpace'};
+var $author$project$ETeX$MathMacros$mathSpaceParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$MathSpace),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '\\ ', $author$project$ETeX$MathMacros$ExpectingMathSpace)));
+var $author$project$ETeX$MathMacros$ExpectingNotAlpha = {$: 'ExpectingNotAlpha'};
+var $author$project$ETeX$MathMacros$MathSymbols = function (a) {
+	return {$: 'MathSymbols', a: a};
+};
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
+var $author$project$ETeX$MathMacros$mathSymbolsParser = A2(
+	$elm$parser$Parser$Advanced$map,
+	$author$project$ETeX$MathMacros$MathSymbols,
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			A2(
+				$elm$parser$Parser$Advanced$keeper,
+				$elm$parser$Parser$Advanced$succeed($elm$core$String$slice),
+				A2(
+					$elm$parser$Parser$Advanced$ignorer,
+					A2(
+						$elm$parser$Parser$Advanced$ignorer,
+						$elm$parser$Parser$Advanced$getOffset,
+						A2(
+							$elm$parser$Parser$Advanced$chompIf,
+							function (c) {
+								return (!$elm$core$Char$isAlpha(c)) && (!A2(
+									$elm$core$List$member,
+									c,
+									_List_fromArray(
+										[
+											_Utils_chr('_'),
+											_Utils_chr('^'),
+											_Utils_chr('#'),
+											_Utils_chr('\\'),
+											_Utils_chr('{'),
+											_Utils_chr('}'),
+											_Utils_chr('('),
+											_Utils_chr(')'),
+											_Utils_chr(',')
+										])));
+							},
+							$author$project$ETeX$MathMacros$ExpectingNotAlpha)),
+					$elm$parser$Parser$Advanced$chompWhile(
+						function (c) {
+							return (!$elm$core$Char$isAlpha(c)) && (!A2(
+								$elm$core$List$member,
+								c,
+								_List_fromArray(
+									[
+										_Utils_chr('_'),
+										_Utils_chr('^'),
+										_Utils_chr('#'),
+										_Utils_chr('\\'),
+										_Utils_chr('{'),
+										_Utils_chr('}'),
+										_Utils_chr('('),
+										_Utils_chr(')'),
+										_Utils_chr(',')
+									])));
+						}))),
+			$elm$parser$Parser$Advanced$getOffset),
+		$elm$parser$Parser$Advanced$getSource));
+var $author$project$ETeX$MathMacros$DecoI = function (a) {
+	return {$: 'DecoI', a: a};
+};
+var $author$project$ETeX$MathMacros$ExpectingInt = {$: 'ExpectingInt'};
+var $author$project$ETeX$MathMacros$InvalidNumber = {$: 'InvalidNumber'};
+var $elm$parser$Parser$Advanced$consumeBase = _Parser_consumeBase;
+var $elm$parser$Parser$Advanced$consumeBase16 = _Parser_consumeBase16;
+var $elm$parser$Parser$Advanced$bumpOffset = F2(
+	function (newOffset, s) {
+		return {col: s.col + (newOffset - s.offset), context: s.context, indent: s.indent, offset: newOffset, row: s.row, src: s.src};
+	});
+var $elm$parser$Parser$Advanced$chompBase10 = _Parser_chompBase10;
+var $elm$parser$Parser$Advanced$isAsciiCode = _Parser_isAsciiCode;
+var $elm$parser$Parser$Advanced$consumeExp = F2(
+	function (offset, src) {
+		if (A3($elm$parser$Parser$Advanced$isAsciiCode, 101, offset, src) || A3($elm$parser$Parser$Advanced$isAsciiCode, 69, offset, src)) {
+			var eOffset = offset + 1;
+			var expOffset = (A3($elm$parser$Parser$Advanced$isAsciiCode, 43, eOffset, src) || A3($elm$parser$Parser$Advanced$isAsciiCode, 45, eOffset, src)) ? (eOffset + 1) : eOffset;
+			var newOffset = A2($elm$parser$Parser$Advanced$chompBase10, expOffset, src);
+			return _Utils_eq(expOffset, newOffset) ? (-newOffset) : newOffset;
+		} else {
+			return offset;
+		}
+	});
+var $elm$parser$Parser$Advanced$consumeDotAndExp = F2(
+	function (offset, src) {
+		return A3($elm$parser$Parser$Advanced$isAsciiCode, 46, offset, src) ? A2(
+			$elm$parser$Parser$Advanced$consumeExp,
+			A2($elm$parser$Parser$Advanced$chompBase10, offset + 1, src),
+			src) : A2($elm$parser$Parser$Advanced$consumeExp, offset, src);
+	});
+var $elm$parser$Parser$Advanced$finalizeInt = F5(
+	function (invalid, handler, startOffset, _v0, s) {
+		var endOffset = _v0.a;
+		var n = _v0.b;
+		if (handler.$ === 'Err') {
+			var x = handler.a;
+			return A2(
+				$elm$parser$Parser$Advanced$Bad,
+				true,
+				A2($elm$parser$Parser$Advanced$fromState, s, x));
+		} else {
+			var toValue = handler.a;
+			return _Utils_eq(startOffset, endOffset) ? A2(
+				$elm$parser$Parser$Advanced$Bad,
+				_Utils_cmp(s.offset, startOffset) < 0,
+				A2($elm$parser$Parser$Advanced$fromState, s, invalid)) : A3(
+				$elm$parser$Parser$Advanced$Good,
+				true,
+				toValue(n),
+				A2($elm$parser$Parser$Advanced$bumpOffset, endOffset, s));
+		}
+	});
+var $elm$parser$Parser$Advanced$fromInfo = F4(
+	function (row, col, x, context) {
+		return A2(
+			$elm$parser$Parser$Advanced$AddRight,
+			$elm$parser$Parser$Advanced$Empty,
+			A4($elm$parser$Parser$Advanced$DeadEnd, row, col, x, context));
+	});
+var $elm$core$String$toFloat = _String_toFloat;
+var $elm$parser$Parser$Advanced$finalizeFloat = F6(
+	function (invalid, expecting, intSettings, floatSettings, intPair, s) {
+		var intOffset = intPair.a;
+		var floatOffset = A2($elm$parser$Parser$Advanced$consumeDotAndExp, intOffset, s.src);
+		if (floatOffset < 0) {
+			return A2(
+				$elm$parser$Parser$Advanced$Bad,
+				true,
+				A4($elm$parser$Parser$Advanced$fromInfo, s.row, s.col - (floatOffset + s.offset), invalid, s.context));
+		} else {
+			if (_Utils_eq(s.offset, floatOffset)) {
+				return A2(
+					$elm$parser$Parser$Advanced$Bad,
+					false,
+					A2($elm$parser$Parser$Advanced$fromState, s, expecting));
+			} else {
+				if (_Utils_eq(intOffset, floatOffset)) {
+					return A5($elm$parser$Parser$Advanced$finalizeInt, invalid, intSettings, s.offset, intPair, s);
+				} else {
+					if (floatSettings.$ === 'Err') {
+						var x = floatSettings.a;
+						return A2(
+							$elm$parser$Parser$Advanced$Bad,
+							true,
+							A2($elm$parser$Parser$Advanced$fromState, s, invalid));
+					} else {
+						var toValue = floatSettings.a;
+						var _v1 = $elm$core$String$toFloat(
+							A3($elm$core$String$slice, s.offset, floatOffset, s.src));
+						if (_v1.$ === 'Nothing') {
+							return A2(
+								$elm$parser$Parser$Advanced$Bad,
+								true,
+								A2($elm$parser$Parser$Advanced$fromState, s, invalid));
+						} else {
+							var n = _v1.a;
+							return A3(
+								$elm$parser$Parser$Advanced$Good,
+								true,
+								toValue(n),
+								A2($elm$parser$Parser$Advanced$bumpOffset, floatOffset, s));
+						}
+					}
+				}
+			}
+		}
+	});
+var $elm$parser$Parser$Advanced$number = function (c) {
+	return $elm$parser$Parser$Advanced$Parser(
+		function (s) {
+			if (A3($elm$parser$Parser$Advanced$isAsciiCode, 48, s.offset, s.src)) {
+				var zeroOffset = s.offset + 1;
+				var baseOffset = zeroOffset + 1;
+				return A3($elm$parser$Parser$Advanced$isAsciiCode, 120, zeroOffset, s.src) ? A5(
+					$elm$parser$Parser$Advanced$finalizeInt,
+					c.invalid,
+					c.hex,
+					baseOffset,
+					A2($elm$parser$Parser$Advanced$consumeBase16, baseOffset, s.src),
+					s) : (A3($elm$parser$Parser$Advanced$isAsciiCode, 111, zeroOffset, s.src) ? A5(
+					$elm$parser$Parser$Advanced$finalizeInt,
+					c.invalid,
+					c.octal,
+					baseOffset,
+					A3($elm$parser$Parser$Advanced$consumeBase, 8, baseOffset, s.src),
+					s) : (A3($elm$parser$Parser$Advanced$isAsciiCode, 98, zeroOffset, s.src) ? A5(
+					$elm$parser$Parser$Advanced$finalizeInt,
+					c.invalid,
+					c.binary,
+					baseOffset,
+					A3($elm$parser$Parser$Advanced$consumeBase, 2, baseOffset, s.src),
+					s) : A6(
+					$elm$parser$Parser$Advanced$finalizeFloat,
+					c.invalid,
+					c.expecting,
+					c._int,
+					c._float,
+					_Utils_Tuple2(zeroOffset, 0),
+					s)));
+			} else {
+				return A6(
+					$elm$parser$Parser$Advanced$finalizeFloat,
+					c.invalid,
+					c.expecting,
+					c._int,
+					c._float,
+					A3($elm$parser$Parser$Advanced$consumeBase, 10, s.offset, s.src),
+					s);
+			}
+		});
+};
+var $elm$parser$Parser$Advanced$int = F2(
+	function (expecting, invalid) {
+		return $elm$parser$Parser$Advanced$number(
+			{
+				binary: $elm$core$Result$Err(invalid),
+				expecting: expecting,
+				_float: $elm$core$Result$Err(invalid),
+				hex: $elm$core$Result$Err(invalid),
+				_int: $elm$core$Result$Ok($elm$core$Basics$identity),
+				invalid: invalid,
+				octal: $elm$core$Result$Err(invalid)
+			});
+	});
+var $author$project$ETeX$MathMacros$numericDecoParser = A2(
+	$elm$parser$Parser$Advanced$map,
+	$author$project$ETeX$MathMacros$DecoI,
+	A2($elm$parser$Parser$Advanced$int, $author$project$ETeX$MathMacros$ExpectingInt, $author$project$ETeX$MathMacros$InvalidNumber));
+var $author$project$ETeX$MathMacros$ExpectingHash = {$: 'ExpectingHash'};
+var $author$project$ETeX$MathMacros$Param = function (a) {
+	return {$: 'Param', a: a};
+};
+var $author$project$ETeX$MathMacros$paramParser = A2(
+	$elm$parser$Parser$Advanced$map,
+	$author$project$ETeX$MathMacros$Param,
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$ignorer,
+			$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+			$elm$parser$Parser$Advanced$symbol(
+				A2($elm$parser$Parser$Advanced$Token, '#', $author$project$ETeX$MathMacros$ExpectingHash))),
+		A2($elm$parser$Parser$Advanced$int, $author$project$ETeX$MathMacros$ExpectingInt, $author$project$ETeX$MathMacros$InvalidNumber)));
+var $author$project$ETeX$MathMacros$ExpectingRightMathBrace = {$: 'ExpectingRightMathBrace'};
+var $author$project$ETeX$MathMacros$RightMathBrace = {$: 'RightMathBrace'};
+var $author$project$ETeX$MathMacros$rightBraceParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$RightMathBrace),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '\\}', $author$project$ETeX$MathMacros$ExpectingRightMathBrace)));
+var $author$project$ETeX$MathMacros$RightParen = {$: 'RightParen'};
+var $author$project$ETeX$MathMacros$rightParenParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$RightParen),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, ')', $author$project$ETeX$MathMacros$ExpectingRightParen)));
+var $author$project$ETeX$MathMacros$ExpectingSpace = {$: 'ExpectingSpace'};
+var $author$project$ETeX$MathMacros$WS = {$: 'WS'};
+var $author$project$ETeX$MathMacros$whitespaceParser = A2(
+	$elm$parser$Parser$Advanced$map,
+	function (_v0) {
+		return $author$project$ETeX$MathMacros$WS;
+	},
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, ' ', $author$project$ETeX$MathMacros$ExpectingSpace)));
+function $author$project$ETeX$MathMacros$cyclic$mathExprParser() {
+	return $elm$parser$Parser$Advanced$oneOf(
+		_List_fromArray(
+			[
+				$author$project$ETeX$MathMacros$mathMediumSpaceParser,
+				$author$project$ETeX$MathMacros$mathSmallSpaceParser,
+				$author$project$ETeX$MathMacros$mathSpaceParser,
+				$author$project$ETeX$MathMacros$leftBraceParser,
+				$author$project$ETeX$MathMacros$rightBraceParser,
+				$author$project$ETeX$MathMacros$leftParenParser,
+				$author$project$ETeX$MathMacros$rightParenParser,
+				$author$project$ETeX$MathMacros$commaParser,
+				$author$project$ETeX$MathMacros$cyclic$macroParser(),
+				$author$project$ETeX$MathMacros$mathSymbolsParser,
+				$elm$parser$Parser$Advanced$lazy(
+				function (_v3) {
+					return $author$project$ETeX$MathMacros$cyclic$argParser();
+				}),
+				$elm$parser$Parser$Advanced$lazy(
+				function (_v4) {
+					return $author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser();
+				}),
+				$author$project$ETeX$MathMacros$paramParser,
+				$author$project$ETeX$MathMacros$whitespaceParser,
+				$author$project$ETeX$MathMacros$alphaNumParser,
+				$author$project$ETeX$MathMacros$f0Parser,
+				$author$project$ETeX$MathMacros$cyclic$subscriptParser(),
+				$author$project$ETeX$MathMacros$cyclic$superscriptParser()
+			]));
+}
+function $author$project$ETeX$MathMacros$cyclic$macroParser() {
+	return A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$Macro),
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '\\', $author$project$ETeX$MathMacros$ExpectingBackslash))),
+			$author$project$ETeX$MathMacros$alphaNumParser_),
+		$author$project$ETeX$MathMacros$many(
+			$author$project$ETeX$MathMacros$cyclic$argParser()));
+}
+function $author$project$ETeX$MathMacros$cyclic$argParser() {
+	return A2(
+		$elm$parser$Parser$Advanced$map,
+		$author$project$ETeX$MathMacros$Arg,
+		A2(
+			$elm$parser$Parser$Advanced$ignorer,
+			A2(
+				$elm$parser$Parser$Advanced$keeper,
+				A2(
+					$elm$parser$Parser$Advanced$ignorer,
+					$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+					$elm$parser$Parser$Advanced$symbol(
+						A2($elm$parser$Parser$Advanced$Token, '{', $author$project$ETeX$MathMacros$ExpectingLeftBrace))),
+				$elm$parser$Parser$Advanced$lazy(
+					function (_v2) {
+						return $author$project$ETeX$MathMacros$many(
+							$author$project$ETeX$MathMacros$cyclic$mathExprParser());
+					})),
+			$elm$parser$Parser$Advanced$symbol(
+				A2($elm$parser$Parser$Advanced$Token, '}', $author$project$ETeX$MathMacros$ExpectingRightBrace))));
+}
+function $author$project$ETeX$MathMacros$cyclic$superscriptParser() {
+	return A2(
+		$elm$parser$Parser$Advanced$map,
+		$author$project$ETeX$MathMacros$Super,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '^', $author$project$ETeX$MathMacros$ExpectingCaret))),
+			$author$project$ETeX$MathMacros$cyclic$decoParser()));
+}
+function $author$project$ETeX$MathMacros$cyclic$subscriptParser() {
+	return A2(
+		$elm$parser$Parser$Advanced$map,
+		$author$project$ETeX$MathMacros$Sub,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '_', $author$project$ETeX$MathMacros$ExpectingUnderscore))),
+			$author$project$ETeX$MathMacros$cyclic$decoParser()));
+}
+function $author$project$ETeX$MathMacros$cyclic$decoParser() {
+	return $elm$parser$Parser$Advanced$oneOf(
+		_List_fromArray(
+			[
+				$author$project$ETeX$MathMacros$numericDecoParser,
+				A2(
+				$elm$parser$Parser$Advanced$map,
+				$author$project$ETeX$MathMacros$DecoM,
+				$elm$parser$Parser$Advanced$lazy(
+					function (_v1) {
+						return $author$project$ETeX$MathMacros$cyclic$mathExprParser();
+					}))
+			]));
+}
+function $author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser() {
+	return A2(
+		$elm$parser$Parser$Advanced$map,
+		$author$project$ETeX$MathMacros$Arg,
+		A2(
+			$elm$parser$Parser$Advanced$ignorer,
+			A2(
+				$elm$parser$Parser$Advanced$keeper,
+				A2(
+					$elm$parser$Parser$Advanced$ignorer,
+					$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+					$elm$parser$Parser$Advanced$symbol(
+						A2($elm$parser$Parser$Advanced$Token, '(', $author$project$ETeX$MathMacros$ExpectingLeftParen))),
+				$elm$parser$Parser$Advanced$lazy(
+					function (_v0) {
+						return $author$project$ETeX$MathMacros$many(
+							$author$project$ETeX$MathMacros$cyclic$mathExprParser());
+					})),
+			$elm$parser$Parser$Advanced$symbol(
+				A2($elm$parser$Parser$Advanced$Token, ')', $author$project$ETeX$MathMacros$ExpectingRightParen))));
+}
+try {
+	var $author$project$ETeX$MathMacros$mathExprParser = $author$project$ETeX$MathMacros$cyclic$mathExprParser();
+	$author$project$ETeX$MathMacros$cyclic$mathExprParser = function () {
+		return $author$project$ETeX$MathMacros$mathExprParser;
+	};
+	var $author$project$ETeX$MathMacros$macroParser = $author$project$ETeX$MathMacros$cyclic$macroParser();
+	$author$project$ETeX$MathMacros$cyclic$macroParser = function () {
+		return $author$project$ETeX$MathMacros$macroParser;
+	};
+	var $author$project$ETeX$MathMacros$argParser = $author$project$ETeX$MathMacros$cyclic$argParser();
+	$author$project$ETeX$MathMacros$cyclic$argParser = function () {
+		return $author$project$ETeX$MathMacros$argParser;
+	};
+	var $author$project$ETeX$MathMacros$superscriptParser = $author$project$ETeX$MathMacros$cyclic$superscriptParser();
+	$author$project$ETeX$MathMacros$cyclic$superscriptParser = function () {
+		return $author$project$ETeX$MathMacros$superscriptParser;
+	};
+	var $author$project$ETeX$MathMacros$subscriptParser = $author$project$ETeX$MathMacros$cyclic$subscriptParser();
+	$author$project$ETeX$MathMacros$cyclic$subscriptParser = function () {
+		return $author$project$ETeX$MathMacros$subscriptParser;
+	};
+	var $author$project$ETeX$MathMacros$decoParser = $author$project$ETeX$MathMacros$cyclic$decoParser();
+	$author$project$ETeX$MathMacros$cyclic$decoParser = function () {
+		return $author$project$ETeX$MathMacros$decoParser;
+	};
+	var $author$project$ETeX$MathMacros$parenthesizedGroupParser = $author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser();
+	$author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser = function () {
+		return $author$project$ETeX$MathMacros$parenthesizedGroupParser;
+	};
+} catch ($) {
+	throw 'Some top-level definitions from `ETeX.MathMacros` are causing infinite recursion:\n\n  ┌─────┐\n  │    mathExprParser\n  │     ↓\n  │    macroParser\n  │     ↓\n  │    argParser\n  │     ↓\n  │    superscriptParser\n  │     ↓\n  │    subscriptParser\n  │     ↓\n  │    decoParser\n  │     ↓\n  │    parenthesizedGroupParser\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.1/bad-recursion to learn how to fix it!';}
+var $author$project$ETeX$MathMacros$ExpectingLeftBracket = {$: 'ExpectingLeftBracket'};
+var $author$project$ETeX$MathMacros$ExpectingRightBracket = {$: 'ExpectingRightBracket'};
+var $author$project$ETeX$MathMacros$optionalParamParser = A2(
+	$elm$parser$Parser$Advanced$keeper,
+	A2(
+		$elm$parser$Parser$Advanced$ignorer,
+		$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+		$elm$parser$Parser$Advanced$symbol(
+			A2($elm$parser$Parser$Advanced$Token, '[', $author$project$ETeX$MathMacros$ExpectingLeftBracket))),
+	A2(
+		$elm$parser$Parser$Advanced$ignorer,
+		A2($elm$parser$Parser$Advanced$int, $author$project$ETeX$MathMacros$ExpectingInt, $author$project$ETeX$MathMacros$InvalidNumber),
+		$elm$parser$Parser$Advanced$symbol(
+			A2($elm$parser$Parser$Advanced$Token, ']', $author$project$ETeX$MathMacros$ExpectingRightBracket))));
+var $author$project$ETeX$MathMacros$newCommandParser1 = A2(
+	$elm$parser$Parser$Advanced$keeper,
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				A2(
+					$elm$parser$Parser$Advanced$ignorer,
+					$elm$parser$Parser$Advanced$succeed(
+						F3(
+							function (name, arity, body) {
+								return A3($author$project$ETeX$MathMacros$NewCommand, name, arity, body);
+							})),
+					$elm$parser$Parser$Advanced$symbol(
+						A2($elm$parser$Parser$Advanced$Token, '\\newcommand', $author$project$ETeX$MathMacros$ExpectingNewCommand))),
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '{', $author$project$ETeX$MathMacros$ExpectingLeftBrace))),
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				$author$project$ETeX$MathMacros$f0Parser,
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '}', $author$project$ETeX$MathMacros$ExpectingRightBrace)))),
+		$author$project$ETeX$MathMacros$optionalParamParser),
+	$author$project$ETeX$MathMacros$many($author$project$ETeX$MathMacros$mathExprParser));
+var $author$project$ETeX$MathMacros$newCommandParser2 = A2(
+	$elm$parser$Parser$Advanced$keeper,
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$ignorer,
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				$elm$parser$Parser$Advanced$succeed(
+					F2(
+						function (name, body) {
+							return A3($author$project$ETeX$MathMacros$NewCommand, name, 0, body);
+						})),
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '\\newcommand', $author$project$ETeX$MathMacros$ExpectingNewCommand))),
+			$elm$parser$Parser$Advanced$symbol(
+				A2($elm$parser$Parser$Advanced$Token, '{', $author$project$ETeX$MathMacros$ExpectingLeftBrace))),
+		A2(
+			$elm$parser$Parser$Advanced$ignorer,
+			$author$project$ETeX$MathMacros$f0Parser,
+			$elm$parser$Parser$Advanced$symbol(
+				A2($elm$parser$Parser$Advanced$Token, '}', $author$project$ETeX$MathMacros$ExpectingRightBrace)))),
+	$author$project$ETeX$MathMacros$many($author$project$ETeX$MathMacros$mathExprParser));
+var $author$project$ETeX$MathMacros$newCommandParser = $elm$parser$Parser$Advanced$oneOf(
+	_List_fromArray(
+		[
+			$elm$parser$Parser$Advanced$backtrackable($author$project$ETeX$MathMacros$newCommandParser1),
+			$author$project$ETeX$MathMacros$newCommandParser2
+		]));
+var $elm$parser$Parser$Advanced$bagToList = F2(
+	function (bag, list) {
+		bagToList:
+		while (true) {
+			switch (bag.$) {
+				case 'Empty':
+					return list;
+				case 'AddRight':
+					var bag1 = bag.a;
+					var x = bag.b;
+					var $temp$bag = bag1,
+						$temp$list = A2($elm$core$List$cons, x, list);
+					bag = $temp$bag;
+					list = $temp$list;
+					continue bagToList;
+				default:
+					var bag1 = bag.a;
+					var bag2 = bag.b;
+					var $temp$bag = bag1,
+						$temp$list = A2($elm$parser$Parser$Advanced$bagToList, bag2, list);
+					bag = $temp$bag;
+					list = $temp$list;
+					continue bagToList;
+			}
+		}
+	});
+var $elm$parser$Parser$Advanced$run = F2(
+	function (_v0, src) {
+		var parse = _v0.a;
+		var _v1 = parse(
+			{col: 1, context: _List_Nil, indent: 1, offset: 0, row: 1, src: src});
+		if (_v1.$ === 'Good') {
+			var value = _v1.b;
+			return $elm$core$Result$Ok(value);
+		} else {
+			var bag = _v1.b;
+			return $elm$core$Result$Err(
+				A2($elm$parser$Parser$Advanced$bagToList, bag, _List_Nil));
+		}
+	});
+var $author$project$ETeX$MathMacros$parseNewCommand = function (str) {
+	return A2($elm$parser$Parser$Advanced$run, $author$project$ETeX$MathMacros$newCommandParser, str);
+};
+var $elm$core$String$trim = _String_trim;
+var $author$project$Render$Export$LaTeXToScripta2$parseNewCommand2 = function (line) {
+	var _v0 = $author$project$ETeX$MathMacros$parseNewCommand(line);
+	if ((_v0.$ === 'Ok') && (_v0.a.a.$ === 'MacroName')) {
+		var _v1 = _v0.a;
+		var name = _v1.a.a;
+		var bodyExprs = _v1.c;
+		var body = $elm$core$String$trim(
+			A2(
+				$elm$core$String$join,
+				'',
+				A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, bodyExprs)));
+		return $elm$core$Maybe$Just(
 			_Utils_Tuple2(name, body));
 	} else {
 		return $elm$core$Maybe$Nothing;
@@ -4694,7 +5862,7 @@ var $author$project$Render$Export$LaTeXToScripta2$mathMacros = function (latexMa
 	var macroDefinitions = A2(
 		$elm$core$List$map,
 		$author$project$Render$Export$LaTeXToScripta2$formatMacroDefinition,
-		A2($elm$core$List$filterMap, $author$project$Render$Export$LaTeXToScripta2$parseNewCommand, lines));
+		A2($elm$core$List$filterMap, $author$project$Render$Export$LaTeXToScripta2$parseNewCommand2, lines));
 	return $elm$core$List$isEmpty(macroDefinitions) ? '' : ('| mathmacros\n' + A2($elm$core$String$join, '\n', macroDefinitions));
 };
 var $elm$html$Html$pre = _VirtualDom_node('pre');

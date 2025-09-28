@@ -1,6 +1,7 @@
-module Render.Export.LaTeXToScripta2 exposing (mathMacros, parseL, renderBlock, renderExpression, renderS, renderTree, translate)
+module Render.Export.LaTeXToScripta2 exposing (mathMacros, parseL, parseNewCommand, parseNewCommand2, renderBlock, renderExpression, renderS, renderTree, translate)
 
 import Either exposing (Either(..))
+import ETeX.MathMacros as E
 import Generic.Compiler
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
@@ -377,7 +378,10 @@ renderFunction name args =
                 caption :: width :: url :: _ ->
                     -- Three args: caption, width, url (in that order from parser)
                     let
-                        _ = width  -- Acknowledge width parameter even though we don't use it
+                        _ =
+                            width
+
+                        -- Acknowledge width parameter even though we don't use it
                     in
                     "| image caption:" ++ renderExpression caption ++ "\n" ++ renderExpression url
 
@@ -580,7 +584,8 @@ renderFigureVerbatim block =
         Left str ->
             -- Parse the figure content to extract image and caption
             let
-                lines = String.lines str
+                lines =
+                    String.lines str
 
                 -- Look for \includegraphics command
                 extractImageUrl line =
@@ -594,6 +599,7 @@ renderFigureVerbatim block =
                             |> String.split "}"
                             |> List.head
                             |> Maybe.withDefault ""
+
                     else
                         ""
 
@@ -602,15 +608,16 @@ renderFigureVerbatim block =
                     lines_
                         |> List.filter (String.contains "\\caption")
                         |> List.head
-                        |> Maybe.map (\line ->
-                            line
-                                |> String.split "\\caption{"
-                                |> List.drop 1
-                                |> String.join ""
-                                |> String.split "}"
-                                |> List.head
-                                |> Maybe.withDefault ""
-                        )
+                        |> Maybe.map
+                            (\line ->
+                                line
+                                    |> String.split "\\caption{"
+                                    |> List.drop 1
+                                    |> String.join ""
+                                    |> String.split "}"
+                                    |> List.head
+                                    |> Maybe.withDefault ""
+                            )
                         |> Maybe.withDefault ""
 
                 imageUrl =
@@ -620,12 +627,15 @@ renderFigureVerbatim block =
                         |> List.head
                         |> Maybe.withDefault ""
 
-                caption = extractCaption lines
+                caption =
+                    extractCaption lines
             in
             if String.isEmpty imageUrl then
                 "| figure"
+
             else if String.isEmpty caption then
                 "| image\n" ++ imageUrl
+
             else
                 "| image caption:" ++ caption ++ "\n" ++ imageUrl
 
@@ -688,16 +698,17 @@ mathMacros latexMacros =
 
         macroDefinitions =
             lines
-                |> List.filterMap parseNewCommand
+                |> List.filterMap parseNewCommand2
                 |> List.map formatMacroDefinition
     in
     if List.isEmpty macroDefinitions then
         ""
+
     else
         "| mathmacros\n" ++ String.join "\n" macroDefinitions
 
 
-{-| Parse a single \newcommand line
+{-| Parse a single \\newcommand line
 Returns Just (name, body) or Nothing
 -}
 parseNewCommand : String -> Maybe ( String, String )
@@ -706,8 +717,9 @@ parseNewCommand line =
         let
             -- Extract command name (without the backslash)
             nameStart =
-                String.dropLeft 13 line  -- Drop "\\newcommand{\\" (13 chars)
+                String.dropLeft 13 line
 
+            -- Drop "\\newcommand{\\" (13 chars)
             nameEnd =
                 String.indexes "}" nameStart
                     |> List.head
@@ -740,8 +752,10 @@ parseNewCommand line =
         in
         if String.isEmpty name then
             Nothing
+
         else
             Just ( name, body )
+
     else
         Nothing
 
@@ -761,7 +775,7 @@ transformMacroBody body =
         |> String.trim
 
 
-{-| Transform \frac{a}{b} patterns to frac(a, b)
+{-| Transform \\frac{a}{b} patterns to frac(a, b)
 -}
 transformFrac : String -> String
 transformFrac str =
@@ -777,6 +791,7 @@ transformFrac str =
                     -- Find the first }{ pattern and replace with ,
                     String.replace "}{" ", " part
                         |> String.replace "}" ")"
+
                 else
                     part
 
@@ -789,6 +804,7 @@ transformFrac str =
                         []
         in
         String.join "frac(" processedParts
+
     else
         str
 
@@ -798,3 +814,125 @@ transformFrac str =
 formatMacroDefinition : ( String, String ) -> String
 formatMacroDefinition ( name, body ) =
     name ++ ": " ++ body
+
+
+{-| Parse a \newcommand using the ETeX parser for better handling of complex expressions
+-}
+parseNewCommand2 : String -> Maybe ( String, String )
+parseNewCommand2 line =
+    case E.parseNewCommand line of
+        Ok (E.NewCommand (E.MacroName name) _ bodyExprs) ->
+            -- Convert the body expressions to Scripta format
+            let
+                body =
+                    bodyExprs
+                        |> List.map mathExprToScripta
+                        |> String.join ""
+                        |> String.trim
+            in
+            Just ( name, body )
+
+        _ ->
+            Nothing
+
+
+{-| Convert ETeX MathExpr to Scripta format string
+-}
+mathExprToScripta : E.MathExpr -> String
+mathExprToScripta expr =
+    case expr of
+        E.AlphaNum str ->
+            str
+
+        E.MacroName str ->
+            "\\" ++ str
+
+        E.FunctionName str ->
+            str
+
+        E.Arg exprs ->
+            let
+                content = List.map mathExprToScripta exprs |> String.join ""
+            in
+            "{" ++ content ++ "}"
+
+        E.Param n ->
+            "#" ++ String.fromInt n
+
+        E.WS ->
+            " "
+
+        E.MathSpace ->
+            " "
+
+        E.MathSmallSpace ->
+            " "
+
+        E.MathMediumSpace ->
+            " "
+
+        E.LeftMathBrace ->
+            "\\{"
+
+        E.RightMathBrace ->
+            "\\}"
+
+        E.MathSymbols str ->
+            str
+
+        E.Macro name args ->
+            -- Special handling for common macros
+            case name of
+                "frac" ->
+                    -- Convert \frac{a}{b} to frac(a, b)
+                    case args of
+                        [ E.Arg num, E.Arg denom ] ->
+                            let
+                                numStr = List.map mathExprToScripta num |> String.join ""
+                                denomStr = List.map mathExprToScripta denom |> String.join ""
+                            in
+                            "frac(" ++ numStr ++ ", " ++ denomStr ++ ")"
+
+                        _ ->
+                            -- Fallback for malformed frac
+                            "\\" ++ name ++ (List.map mathExprToScripta args |> String.join "")
+
+                "langle" ->
+                    "langle"
+
+                "rangle" ->
+                    "rangle"
+
+                _ ->
+                    -- Default macro rendering
+                    "\\" ++ name ++ (List.map mathExprToScripta args |> String.join "")
+
+        E.Expr exprs ->
+            List.map mathExprToScripta exprs |> String.join ""
+
+        E.Comma ->
+            ","
+
+        E.LeftParen ->
+            "("
+
+        E.RightParen ->
+            ")"
+
+        E.Sub deco ->
+            "_" ++ decoToString deco
+
+        E.Super deco ->
+            "^" ++ decoToString deco
+
+
+{-| Convert Deco to string
+-}
+decoToString : E.Deco -> String
+decoToString deco =
+    case deco of
+        E.DecoM expr ->
+            mathExprToScripta expr
+
+        E.DecoI n ->
+            String.fromInt n
