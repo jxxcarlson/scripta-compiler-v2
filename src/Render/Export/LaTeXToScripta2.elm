@@ -46,6 +46,7 @@ translate latexSource =
                         case E.parseNewCommand line of
                             Ok (E.NewCommand (E.MacroName name) _ _) ->
                                 Just name
+
                             _ ->
                                 Nothing
                     )
@@ -193,13 +194,13 @@ renderOrdinary newMacroNames name block =
     case name of
         "section" ->
             -- Need to check if it's actually a subsection or subsubsection
-            renderSectionWithLevel block ++ "\n"
+            renderSectionWithLevel block
 
         "subsection" ->
-            renderSection 2 block ++ "\n"
+            renderSection 2 block
 
         "subsubsection" ->
-            renderSection 3 block ++ "\n"
+            renderSection 3 block
 
         "itemize" ->
             ""
@@ -845,6 +846,46 @@ parseNewCommand newMacroNames line =
             Nothing
 
 
+{-| Intelligently join math tokens with spaces where needed
+Adds spaces between alphanumeric tokens that would otherwise run together
+-}
+intelligentJoin : List String -> String
+intelligentJoin tokens =
+    case tokens of
+        [] ->
+            ""
+
+        [ single ] ->
+            single
+
+        first :: second :: rest ->
+            let
+                needsSpace =
+                    -- Add space if first ends with alphanumeric and second starts with alphanumeric
+                    (String.right 1 first |> isAlphaNum) && (String.left 1 second |> isAlphaNum)
+
+                separator =
+                    if needsSpace then
+                        " "
+
+                    else
+                        ""
+            in
+            first ++ separator ++ intelligentJoin (second :: rest)
+
+
+{-| Check if a string is alphanumeric
+-}
+isAlphaNum : String -> Bool
+isAlphaNum str =
+    case String.uncons str of
+        Just ( char, _ ) ->
+            Char.isAlphaNum char
+
+        Nothing ->
+            False
+
+
 {-| Convert LaTeX math content to Scripta math format
 This uses the ETeX parser to parse LaTeX math and convert it to Scripta syntax
 -}
@@ -856,7 +897,8 @@ convertLatexMathToScripta newMacroNames latexMath =
             -- Convert each expression to Scripta format
             exprs
                 |> List.map (mathExprToScripta newMacroNames)
-                |> String.join ""
+                |> Debug.log "@@Math_tokens"
+                |> intelligentJoin
 
         Err _ ->
             -- If parsing fails, return original LaTeX
@@ -885,7 +927,9 @@ mathExprToScripta newMacroNames expr =
         E.Arg exprs ->
             -- For top-level Arg in parseNewCommand, we don't want braces
             -- The body comes wrapped in an Arg, so we just extract the content
-            List.map (mathExprToScripta newMacroNames) exprs |> String.join ""
+            exprs
+                |> List.map (mathExprToScripta newMacroNames)
+                |> intelligentJoin
 
         E.Param n ->
             "#" ++ String.fromInt n
@@ -923,32 +967,6 @@ mathExprToScripta newMacroNames expr =
             else
                 -- Has arguments - special handling for functions
                 case name of
-                    -- \frac{num}{denom} to frac(num, denom)
-                    --"frac" ->
-                    --    case args of
-                    --        [ E.Arg num, E.Arg denom ] ->
-                    --            "frac(" ++ (List.map mathExprToScripta num |> String.join "") ++ ", " ++ (List.map mathExprToScripta denom |> String.join "") ++ ")"
-                    --
-                    --        _ ->
-                    --            "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
-                    -- \tfrac is like frac
-                    "tfrac" ->
-                        case args of
-                            [ E.Arg num, E.Arg denom ] ->
-                                "frac(" ++ (List.map (mathExprToScripta newMacroNames) num |> String.join "") ++ ", " ++ (List.map (mathExprToScripta newMacroNames) denom |> String.join "") ++ ")"
-
-                            _ ->
-                                "\\" ++ name ++ (List.map (mathExprToScriptaArg newMacroNames) args |> String.join "")
-
-                    ---- \sqrt{x} to sqrt(x)
-                    --"sqrt" ->
-                    --    case args of
-                    --        [ E.Arg content ] ->
-                    --            "sqrt(" ++ (List.map mathExprToScripta content |> String.join "") ++ ")"
-                    --
-                    --        _ ->
-                    --            "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
-                    -- \text{...} to "..."
                     "text" ->
                         case args of
                             [ E.Arg content ] ->
@@ -957,8 +975,6 @@ mathExprToScripta newMacroNames expr =
                             _ ->
                                 "\\" ++ name ++ (List.map (mathExprToScriptaArg newMacroNames) args |> String.join "")
 
-                    --
-                    -- User-defined macros (like \ket) keep backslash (TODO: for now)
                     _ ->
                         if ETeX.KaTeX.isKaTeX name || List.member name newMacroNames then
                             name ++ "(" ++ (List.map (mathExprToScripta newMacroNames) args |> String.join ", ") ++ ")"
