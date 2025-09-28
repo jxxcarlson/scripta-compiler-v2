@@ -143,7 +143,7 @@ See [link this link https://example.com] for more."""
 testCase : String -> String -> String -> Html msg
 testCase title input expected =
     let
-        output = L2S.translate input |> Debug.log ("Output for " ++ title)
+        output = L2S.translate input
         passed = output == expected
         -- Check if the difference is only whitespace
         normalizeWhitespace s =

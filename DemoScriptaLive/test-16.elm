@@ -8,7 +8,7 @@ main =
     let
         input = "\\begin{equation}\nM  = \\frac{R\\sigma^2}{ G}\n\\end{equation}\n"
         expected = "| equation\nM  = frac(R sigma^2, G)"
-        output = L2S.translate input |> Debug.log "Output for Test 16"
+        output = L2S.translate input
         passed = output == expected
         -- Check if the difference is only whitespace
         normalizeWhitespace s =

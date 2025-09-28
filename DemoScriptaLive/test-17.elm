@@ -8,7 +8,7 @@ main =
     let
         input = "\\begin{equation}\nM_\\text{cluster} \\sim 10^{14}-10^{15} M_\\odot.\n\\end{equation}\n"
         expected = "| equation\nM_\"cluster\" sim 10^{14}-10^{15} M_{odot}."
-        output = L2S.translate input |> Debug.log "Output for Test 17"
+        output = L2S.translate input
         passed = output == expected
         -- Check if the difference is only whitespace
         normalizeWhitespace s =
