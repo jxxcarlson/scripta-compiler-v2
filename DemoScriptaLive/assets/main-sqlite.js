@@ -55360,6 +55360,596 @@ var $elm$file$File$Download$string = F3(
 			A3(_File_download, name, mime, content));
 	});
 var $elm$file$File$toString = _File_toString;
+var $author$project$Render$Export$LaTeXToScripta2$formatMacroDefinition = function (_v0) {
+	var name = _v0.a;
+	var body = _v0.b;
+	return name + (': ' + body);
+};
+var $author$project$Render$Export$LaTeXToScripta2$decoToString = function (deco) {
+	if (deco.$ === 'DecoM') {
+		var expr = deco.a;
+		return $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(expr);
+	} else {
+		var n = deco.a;
+		return $elm$core$String$fromInt(n);
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = function (expr) {
+	switch (expr.$) {
+		case 'AlphaNum':
+			var str = expr.a;
+			return str;
+		case 'MacroName':
+			var str = expr.a;
+			return str;
+		case 'FunctionName':
+			var str = expr.a;
+			return str;
+		case 'Arg':
+			var exprs = expr.a;
+			return A2(
+				$elm$core$String$join,
+				'',
+				A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, exprs));
+		case 'Param':
+			var n = expr.a;
+			return '#' + $elm$core$String$fromInt(n);
+		case 'WS':
+			return ' ';
+		case 'MathSpace':
+			return ' ';
+		case 'MathSmallSpace':
+			return ' ';
+		case 'MathMediumSpace':
+			return ' ';
+		case 'LeftMathBrace':
+			return '\\{';
+		case 'RightMathBrace':
+			return '\\}';
+		case 'MathSymbols':
+			var str = expr.a;
+			return str;
+		case 'Macro':
+			var name = expr.a;
+			var args = expr.b;
+			switch (name) {
+				case 'frac':
+					if ((((args.b && (args.a.$ === 'Arg')) && args.b.b) && (args.b.a.$ === 'Arg')) && (!args.b.b.b)) {
+						var num = args.a.a;
+						var _v4 = args.b;
+						var denom = _v4.a.a;
+						var numStr = A2(
+							$elm$core$String$join,
+							'',
+							A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, num));
+						var denomStr = A2(
+							$elm$core$String$join,
+							'',
+							A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, denom));
+						return 'frac(' + (numStr + (', ' + (denomStr + ')')));
+					} else {
+						return '\\' + (name + A2(
+							$elm$core$String$join,
+							'',
+							A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg, args)));
+					}
+				case 'langle':
+					return 'langle';
+				case 'rangle':
+					return 'rangle';
+				case 'text':
+					if ((args.b && (args.a.$ === 'Arg')) && (!args.b.b)) {
+						var content = args.a.a;
+						return '\"' + (A2(
+							$elm$core$String$join,
+							'',
+							A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, content)) + '\"');
+					} else {
+						return '\\' + (name + A2(
+							$elm$core$String$join,
+							'',
+							A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg, args)));
+					}
+				default:
+					return A2(
+						$elm$core$List$member,
+						name,
+						_List_fromArray(
+							['alpha', 'beta', 'gamma', 'delta', 'epsilon'])) ? name : ('\\' + (name + A2(
+						$elm$core$String$join,
+						'',
+						A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg, args))));
+			}
+		case 'Expr':
+			var exprs = expr.a;
+			return A2(
+				$elm$core$String$join,
+				'',
+				A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, exprs));
+		case 'Comma':
+			return ',';
+		case 'LeftParen':
+			return '(';
+		case 'RightParen':
+			return ')';
+		case 'Sub':
+			var deco = expr.a;
+			return '_' + $author$project$Render$Export$LaTeXToScripta2$decoToString(deco);
+		default:
+			var deco = expr.a;
+			return '^' + $author$project$Render$Export$LaTeXToScripta2$decoToString(deco);
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg = function (expr) {
+	if (expr.$ === 'Arg') {
+		var exprs = expr.a;
+		return '{' + (A2(
+			$elm$core$String$join,
+			'',
+			A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, exprs)) + '}');
+	} else {
+		return $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(expr);
+	}
+};
+var $author$project$ETeX$MathMacros$ExpectingLeftBrace = {$: 'ExpectingLeftBrace'};
+var $author$project$ETeX$MathMacros$ExpectingNewCommand = {$: 'ExpectingNewCommand'};
+var $author$project$ETeX$MathMacros$ExpectingRightBrace = {$: 'ExpectingRightBrace'};
+var $author$project$ETeX$MathMacros$ExpectingBackslash = {$: 'ExpectingBackslash'};
+var $author$project$ETeX$MathMacros$ExpectingAlpha = {$: 'ExpectingAlpha'};
+var $author$project$ETeX$MathMacros$alphaNumParser_ = A2(
+	$elm$parser$Parser$Advanced$keeper,
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			$elm$parser$Parser$Advanced$succeed($elm$core$String$slice),
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				A2(
+					$elm$parser$Parser$Advanced$ignorer,
+					$elm$parser$Parser$Advanced$getOffset,
+					A2($elm$parser$Parser$Advanced$chompIf, $elm$core$Char$isAlpha, $author$project$ETeX$MathMacros$ExpectingAlpha)),
+				$elm$parser$Parser$Advanced$chompWhile($elm$core$Char$isAlphaNum))),
+		$elm$parser$Parser$Advanced$getOffset),
+	$elm$parser$Parser$Advanced$getSource);
+var $author$project$ETeX$MathMacros$second = F2(
+	function (p, q) {
+		return A2(
+			$elm$parser$Parser$Advanced$andThen,
+			function (_v0) {
+				return q;
+			},
+			p);
+	});
+var $author$project$ETeX$MathMacros$f0Parser = A2(
+	$elm$parser$Parser$Advanced$map,
+	$author$project$ETeX$MathMacros$MacroName,
+	A2(
+		$author$project$ETeX$MathMacros$second,
+		$elm$parser$Parser$Advanced$symbol(
+			A2($elm$parser$Parser$Advanced$Token, '\\', $author$project$ETeX$MathMacros$ExpectingBackslash)),
+		$author$project$ETeX$MathMacros$alphaNumParser_));
+var $author$project$ETeX$MathMacros$manyHelp = F2(
+	function (p, vs) {
+		return $elm$parser$Parser$Advanced$oneOf(
+			_List_fromArray(
+				[
+					A2(
+					$elm$parser$Parser$Advanced$keeper,
+					$elm$parser$Parser$Advanced$succeed(
+						function (v) {
+							return $elm$parser$Parser$Advanced$Loop(
+								A2($elm$core$List$cons, v, vs));
+						}),
+					p),
+					A2(
+					$elm$parser$Parser$Advanced$map,
+					function (_v0) {
+						return $elm$parser$Parser$Advanced$Done(
+							$elm$core$List$reverse(vs));
+					},
+					$elm$parser$Parser$Advanced$succeed(_Utils_Tuple0))
+				]));
+	});
+var $author$project$ETeX$MathMacros$many = function (p) {
+	return A2(
+		$elm$parser$Parser$Advanced$loop,
+		_List_Nil,
+		$author$project$ETeX$MathMacros$manyHelp(p));
+};
+var $author$project$ETeX$MathMacros$ExpectingCaret = {$: 'ExpectingCaret'};
+var $author$project$ETeX$MathMacros$ExpectingLeftParen = {$: 'ExpectingLeftParen'};
+var $author$project$ETeX$MathMacros$ExpectingRightParen = {$: 'ExpectingRightParen'};
+var $author$project$ETeX$MathMacros$ExpectingUnderscore = {$: 'ExpectingUnderscore'};
+var $author$project$ETeX$MathMacros$alphaNumParser = A2($elm$parser$Parser$Advanced$map, $author$project$ETeX$MathMacros$AlphaNum, $author$project$ETeX$MathMacros$alphaNumParser_);
+var $author$project$ETeX$MathMacros$ExpectingComma = {$: 'ExpectingComma'};
+var $author$project$ETeX$MathMacros$commaParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$Comma),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, ',', $author$project$ETeX$MathMacros$ExpectingComma)));
+var $author$project$ETeX$MathMacros$ExpectingLeftMathBrace = {$: 'ExpectingLeftMathBrace'};
+var $author$project$ETeX$MathMacros$leftBraceParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$LeftMathBrace),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '\\{', $author$project$ETeX$MathMacros$ExpectingLeftMathBrace)));
+var $author$project$ETeX$MathMacros$leftParenParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$LeftParen),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '(', $author$project$ETeX$MathMacros$ExpectingLeftParen)));
+var $author$project$ETeX$MathMacros$ExpectingMathMediumSpace = {$: 'ExpectingMathMediumSpace'};
+var $author$project$ETeX$MathMacros$mathMediumSpaceParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$MathMediumSpace),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '\\;', $author$project$ETeX$MathMacros$ExpectingMathMediumSpace)));
+var $author$project$ETeX$MathMacros$ExpectingMathSmallSpace = {$: 'ExpectingMathSmallSpace'};
+var $author$project$ETeX$MathMacros$mathSmallSpaceParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$MathSmallSpace),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '\\,', $author$project$ETeX$MathMacros$ExpectingMathSmallSpace)));
+var $author$project$ETeX$MathMacros$ExpectingMathSpace = {$: 'ExpectingMathSpace'};
+var $author$project$ETeX$MathMacros$mathSpaceParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$MathSpace),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '\\ ', $author$project$ETeX$MathMacros$ExpectingMathSpace)));
+var $author$project$ETeX$MathMacros$ExpectingNotAlpha = {$: 'ExpectingNotAlpha'};
+var $author$project$ETeX$MathMacros$mathSymbolsParser = A2(
+	$elm$parser$Parser$Advanced$map,
+	$author$project$ETeX$MathMacros$MathSymbols,
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			A2(
+				$elm$parser$Parser$Advanced$keeper,
+				$elm$parser$Parser$Advanced$succeed($elm$core$String$slice),
+				A2(
+					$elm$parser$Parser$Advanced$ignorer,
+					A2(
+						$elm$parser$Parser$Advanced$ignorer,
+						$elm$parser$Parser$Advanced$getOffset,
+						A2(
+							$elm$parser$Parser$Advanced$chompIf,
+							function (c) {
+								return (!$elm$core$Char$isAlpha(c)) && (!A2(
+									$elm$core$List$member,
+									c,
+									_List_fromArray(
+										[
+											_Utils_chr('_'),
+											_Utils_chr('^'),
+											_Utils_chr('#'),
+											_Utils_chr('\\'),
+											_Utils_chr('{'),
+											_Utils_chr('}'),
+											_Utils_chr('('),
+											_Utils_chr(')'),
+											_Utils_chr(',')
+										])));
+							},
+							$author$project$ETeX$MathMacros$ExpectingNotAlpha)),
+					$elm$parser$Parser$Advanced$chompWhile(
+						function (c) {
+							return (!$elm$core$Char$isAlpha(c)) && (!A2(
+								$elm$core$List$member,
+								c,
+								_List_fromArray(
+									[
+										_Utils_chr('_'),
+										_Utils_chr('^'),
+										_Utils_chr('#'),
+										_Utils_chr('\\'),
+										_Utils_chr('{'),
+										_Utils_chr('}'),
+										_Utils_chr('('),
+										_Utils_chr(')'),
+										_Utils_chr(',')
+									])));
+						}))),
+			$elm$parser$Parser$Advanced$getOffset),
+		$elm$parser$Parser$Advanced$getSource));
+var $author$project$ETeX$MathMacros$ExpectingInt = {$: 'ExpectingInt'};
+var $author$project$ETeX$MathMacros$InvalidNumber = {$: 'InvalidNumber'};
+var $author$project$ETeX$MathMacros$numericDecoParser = A2(
+	$elm$parser$Parser$Advanced$map,
+	$author$project$ETeX$MathMacros$DecoI,
+	A2($elm$parser$Parser$Advanced$int, $author$project$ETeX$MathMacros$ExpectingInt, $author$project$ETeX$MathMacros$InvalidNumber));
+var $author$project$ETeX$MathMacros$ExpectingHash = {$: 'ExpectingHash'};
+var $author$project$ETeX$MathMacros$paramParser = A2(
+	$elm$parser$Parser$Advanced$map,
+	$author$project$ETeX$MathMacros$Param,
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$ignorer,
+			$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+			$elm$parser$Parser$Advanced$symbol(
+				A2($elm$parser$Parser$Advanced$Token, '#', $author$project$ETeX$MathMacros$ExpectingHash))),
+		A2($elm$parser$Parser$Advanced$int, $author$project$ETeX$MathMacros$ExpectingInt, $author$project$ETeX$MathMacros$InvalidNumber)));
+var $author$project$ETeX$MathMacros$ExpectingRightMathBrace = {$: 'ExpectingRightMathBrace'};
+var $author$project$ETeX$MathMacros$rightBraceParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$RightMathBrace),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, '\\}', $author$project$ETeX$MathMacros$ExpectingRightMathBrace)));
+var $author$project$ETeX$MathMacros$rightParenParser = A2(
+	$elm$parser$Parser$Advanced$ignorer,
+	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$RightParen),
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, ')', $author$project$ETeX$MathMacros$ExpectingRightParen)));
+var $author$project$ETeX$MathMacros$ExpectingSpace = {$: 'ExpectingSpace'};
+var $author$project$ETeX$MathMacros$whitespaceParser = A2(
+	$elm$parser$Parser$Advanced$map,
+	function (_v0) {
+		return $author$project$ETeX$MathMacros$WS;
+	},
+	$elm$parser$Parser$Advanced$symbol(
+		A2($elm$parser$Parser$Advanced$Token, ' ', $author$project$ETeX$MathMacros$ExpectingSpace)));
+function $author$project$ETeX$MathMacros$cyclic$mathExprParser() {
+	return $elm$parser$Parser$Advanced$oneOf(
+		_List_fromArray(
+			[
+				$author$project$ETeX$MathMacros$mathMediumSpaceParser,
+				$author$project$ETeX$MathMacros$mathSmallSpaceParser,
+				$author$project$ETeX$MathMacros$mathSpaceParser,
+				$author$project$ETeX$MathMacros$leftBraceParser,
+				$author$project$ETeX$MathMacros$rightBraceParser,
+				$author$project$ETeX$MathMacros$leftParenParser,
+				$author$project$ETeX$MathMacros$rightParenParser,
+				$author$project$ETeX$MathMacros$commaParser,
+				$author$project$ETeX$MathMacros$cyclic$macroParser(),
+				$author$project$ETeX$MathMacros$mathSymbolsParser,
+				$elm$parser$Parser$Advanced$lazy(
+				function (_v3) {
+					return $author$project$ETeX$MathMacros$cyclic$argParser();
+				}),
+				$elm$parser$Parser$Advanced$lazy(
+				function (_v4) {
+					return $author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser();
+				}),
+				$author$project$ETeX$MathMacros$paramParser,
+				$author$project$ETeX$MathMacros$whitespaceParser,
+				$author$project$ETeX$MathMacros$alphaNumParser,
+				$author$project$ETeX$MathMacros$f0Parser,
+				$author$project$ETeX$MathMacros$cyclic$subscriptParser(),
+				$author$project$ETeX$MathMacros$cyclic$superscriptParser()
+			]));
+}
+function $author$project$ETeX$MathMacros$cyclic$macroParser() {
+	return A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$Macro),
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '\\', $author$project$ETeX$MathMacros$ExpectingBackslash))),
+			$author$project$ETeX$MathMacros$alphaNumParser_),
+		$author$project$ETeX$MathMacros$many(
+			$author$project$ETeX$MathMacros$cyclic$argParser()));
+}
+function $author$project$ETeX$MathMacros$cyclic$argParser() {
+	return A2(
+		$elm$parser$Parser$Advanced$map,
+		$author$project$ETeX$MathMacros$Arg,
+		A2(
+			$elm$parser$Parser$Advanced$ignorer,
+			A2(
+				$elm$parser$Parser$Advanced$keeper,
+				A2(
+					$elm$parser$Parser$Advanced$ignorer,
+					$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+					$elm$parser$Parser$Advanced$symbol(
+						A2($elm$parser$Parser$Advanced$Token, '{', $author$project$ETeX$MathMacros$ExpectingLeftBrace))),
+				$elm$parser$Parser$Advanced$lazy(
+					function (_v2) {
+						return $author$project$ETeX$MathMacros$many(
+							$author$project$ETeX$MathMacros$cyclic$mathExprParser());
+					})),
+			$elm$parser$Parser$Advanced$symbol(
+				A2($elm$parser$Parser$Advanced$Token, '}', $author$project$ETeX$MathMacros$ExpectingRightBrace))));
+}
+function $author$project$ETeX$MathMacros$cyclic$superscriptParser() {
+	return A2(
+		$elm$parser$Parser$Advanced$map,
+		$author$project$ETeX$MathMacros$Super,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '^', $author$project$ETeX$MathMacros$ExpectingCaret))),
+			$author$project$ETeX$MathMacros$cyclic$decoParser()));
+}
+function $author$project$ETeX$MathMacros$cyclic$subscriptParser() {
+	return A2(
+		$elm$parser$Parser$Advanced$map,
+		$author$project$ETeX$MathMacros$Sub,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '_', $author$project$ETeX$MathMacros$ExpectingUnderscore))),
+			$author$project$ETeX$MathMacros$cyclic$decoParser()));
+}
+function $author$project$ETeX$MathMacros$cyclic$decoParser() {
+	return $elm$parser$Parser$Advanced$oneOf(
+		_List_fromArray(
+			[
+				$author$project$ETeX$MathMacros$numericDecoParser,
+				A2(
+				$elm$parser$Parser$Advanced$map,
+				$author$project$ETeX$MathMacros$DecoM,
+				$elm$parser$Parser$Advanced$lazy(
+					function (_v1) {
+						return $author$project$ETeX$MathMacros$cyclic$mathExprParser();
+					}))
+			]));
+}
+function $author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser() {
+	return A2(
+		$elm$parser$Parser$Advanced$map,
+		$author$project$ETeX$MathMacros$Arg,
+		A2(
+			$elm$parser$Parser$Advanced$ignorer,
+			A2(
+				$elm$parser$Parser$Advanced$keeper,
+				A2(
+					$elm$parser$Parser$Advanced$ignorer,
+					$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+					$elm$parser$Parser$Advanced$symbol(
+						A2($elm$parser$Parser$Advanced$Token, '(', $author$project$ETeX$MathMacros$ExpectingLeftParen))),
+				$elm$parser$Parser$Advanced$lazy(
+					function (_v0) {
+						return $author$project$ETeX$MathMacros$many(
+							$author$project$ETeX$MathMacros$cyclic$mathExprParser());
+					})),
+			$elm$parser$Parser$Advanced$symbol(
+				A2($elm$parser$Parser$Advanced$Token, ')', $author$project$ETeX$MathMacros$ExpectingRightParen))));
+}
+try {
+	var $author$project$ETeX$MathMacros$mathExprParser = $author$project$ETeX$MathMacros$cyclic$mathExprParser();
+	$author$project$ETeX$MathMacros$cyclic$mathExprParser = function () {
+		return $author$project$ETeX$MathMacros$mathExprParser;
+	};
+	var $author$project$ETeX$MathMacros$macroParser = $author$project$ETeX$MathMacros$cyclic$macroParser();
+	$author$project$ETeX$MathMacros$cyclic$macroParser = function () {
+		return $author$project$ETeX$MathMacros$macroParser;
+	};
+	var $author$project$ETeX$MathMacros$argParser = $author$project$ETeX$MathMacros$cyclic$argParser();
+	$author$project$ETeX$MathMacros$cyclic$argParser = function () {
+		return $author$project$ETeX$MathMacros$argParser;
+	};
+	var $author$project$ETeX$MathMacros$superscriptParser = $author$project$ETeX$MathMacros$cyclic$superscriptParser();
+	$author$project$ETeX$MathMacros$cyclic$superscriptParser = function () {
+		return $author$project$ETeX$MathMacros$superscriptParser;
+	};
+	var $author$project$ETeX$MathMacros$subscriptParser = $author$project$ETeX$MathMacros$cyclic$subscriptParser();
+	$author$project$ETeX$MathMacros$cyclic$subscriptParser = function () {
+		return $author$project$ETeX$MathMacros$subscriptParser;
+	};
+	var $author$project$ETeX$MathMacros$decoParser = $author$project$ETeX$MathMacros$cyclic$decoParser();
+	$author$project$ETeX$MathMacros$cyclic$decoParser = function () {
+		return $author$project$ETeX$MathMacros$decoParser;
+	};
+	var $author$project$ETeX$MathMacros$parenthesizedGroupParser = $author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser();
+	$author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser = function () {
+		return $author$project$ETeX$MathMacros$parenthesizedGroupParser;
+	};
+} catch ($) {
+	throw 'Some top-level definitions from `ETeX.MathMacros` are causing infinite recursion:\n\n  ┌─────┐\n  │    mathExprParser\n  │     ↓\n  │    macroParser\n  │     ↓\n  │    argParser\n  │     ↓\n  │    superscriptParser\n  │     ↓\n  │    subscriptParser\n  │     ↓\n  │    decoParser\n  │     ↓\n  │    parenthesizedGroupParser\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.1/bad-recursion to learn how to fix it!';}
+var $author$project$ETeX$MathMacros$ExpectingLeftBracket = {$: 'ExpectingLeftBracket'};
+var $author$project$ETeX$MathMacros$ExpectingRightBracket = {$: 'ExpectingRightBracket'};
+var $author$project$ETeX$MathMacros$optionalParamParser = A2(
+	$elm$parser$Parser$Advanced$keeper,
+	A2(
+		$elm$parser$Parser$Advanced$ignorer,
+		$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+		$elm$parser$Parser$Advanced$symbol(
+			A2($elm$parser$Parser$Advanced$Token, '[', $author$project$ETeX$MathMacros$ExpectingLeftBracket))),
+	A2(
+		$elm$parser$Parser$Advanced$ignorer,
+		A2($elm$parser$Parser$Advanced$int, $author$project$ETeX$MathMacros$ExpectingInt, $author$project$ETeX$MathMacros$InvalidNumber),
+		$elm$parser$Parser$Advanced$symbol(
+			A2($elm$parser$Parser$Advanced$Token, ']', $author$project$ETeX$MathMacros$ExpectingRightBracket))));
+var $author$project$ETeX$MathMacros$newCommandParser1 = A2(
+	$elm$parser$Parser$Advanced$keeper,
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$keeper,
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				A2(
+					$elm$parser$Parser$Advanced$ignorer,
+					$elm$parser$Parser$Advanced$succeed(
+						F3(
+							function (name, arity, body) {
+								return A3($author$project$ETeX$MathMacros$NewCommand, name, arity, body);
+							})),
+					$elm$parser$Parser$Advanced$symbol(
+						A2($elm$parser$Parser$Advanced$Token, '\\newcommand', $author$project$ETeX$MathMacros$ExpectingNewCommand))),
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '{', $author$project$ETeX$MathMacros$ExpectingLeftBrace))),
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				$author$project$ETeX$MathMacros$f0Parser,
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '}', $author$project$ETeX$MathMacros$ExpectingRightBrace)))),
+		$author$project$ETeX$MathMacros$optionalParamParser),
+	$author$project$ETeX$MathMacros$many($author$project$ETeX$MathMacros$mathExprParser));
+var $author$project$ETeX$MathMacros$newCommandParser2 = A2(
+	$elm$parser$Parser$Advanced$keeper,
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		A2(
+			$elm$parser$Parser$Advanced$ignorer,
+			A2(
+				$elm$parser$Parser$Advanced$ignorer,
+				$elm$parser$Parser$Advanced$succeed(
+					F2(
+						function (name, body) {
+							return A3($author$project$ETeX$MathMacros$NewCommand, name, 0, body);
+						})),
+				$elm$parser$Parser$Advanced$symbol(
+					A2($elm$parser$Parser$Advanced$Token, '\\newcommand', $author$project$ETeX$MathMacros$ExpectingNewCommand))),
+			$elm$parser$Parser$Advanced$symbol(
+				A2($elm$parser$Parser$Advanced$Token, '{', $author$project$ETeX$MathMacros$ExpectingLeftBrace))),
+		A2(
+			$elm$parser$Parser$Advanced$ignorer,
+			$author$project$ETeX$MathMacros$f0Parser,
+			$elm$parser$Parser$Advanced$symbol(
+				A2($elm$parser$Parser$Advanced$Token, '}', $author$project$ETeX$MathMacros$ExpectingRightBrace)))),
+	$author$project$ETeX$MathMacros$many($author$project$ETeX$MathMacros$mathExprParser));
+var $author$project$ETeX$MathMacros$newCommandParser = $elm$parser$Parser$Advanced$oneOf(
+	_List_fromArray(
+		[
+			$elm$parser$Parser$Advanced$backtrackable($author$project$ETeX$MathMacros$newCommandParser1),
+			$author$project$ETeX$MathMacros$newCommandParser2
+		]));
+var $author$project$ETeX$MathMacros$parseNewCommand = function (str) {
+	return A2($elm$parser$Parser$Advanced$run, $author$project$ETeX$MathMacros$newCommandParser, str);
+};
+var $author$project$Render$Export$LaTeXToScripta2$parseNewCommand = function (line) {
+	var _v0 = $author$project$ETeX$MathMacros$parseNewCommand(line);
+	if ((_v0.$ === 'Ok') && (_v0.a.a.$ === 'MacroName')) {
+		var _v1 = _v0.a;
+		var name = _v1.a.a;
+		var bodyExprs = _v1.c;
+		var body = $elm$core$String$trim(
+			A2(
+				$elm$core$String$join,
+				'',
+				A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, bodyExprs)));
+		return $elm$core$Maybe$Just(
+			_Utils_Tuple2(name, body));
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$mathMacros = function (latexMacros) {
+	var lines = A2(
+		$elm$core$List$filter,
+		A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
+		A2(
+			$elm$core$List$map,
+			$elm$core$String$trim,
+			$elm$core$String$lines(latexMacros)));
+	var macroDefinitions = A2(
+		$elm$core$List$map,
+		$author$project$Render$Export$LaTeXToScripta2$formatMacroDefinition,
+		A2($elm$core$List$filterMap, $author$project$Render$Export$LaTeXToScripta2$parseNewCommand, lines));
+	return $elm$core$List$isEmpty(macroDefinitions) ? '' : ('| mathmacros\n' + A2($elm$core$String$join, '\n', macroDefinitions));
+};
 var $author$project$Render$Export$LaTeXToScripta2$parseL = function (latexSource) {
 	var outerCount = 0;
 	var lines = $elm$core$String$lines(latexSource);
@@ -55407,6 +55997,8 @@ var $author$project$Render$Export$LaTeXToScripta2$renderExpression = function (e
 var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F2(
 	function (name, args) {
 		switch (name) {
+			case 'text':
+				return '\"' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + '\"');
 			case 'bold':
 				return '[b ' + ($author$project$Render$Export$LaTeXToScripta2$renderArgs(args) + ']');
 			case 'textbf':
@@ -55868,9 +56460,23 @@ var $author$project$Render$Export$LaTeXToScripta2$renderS = function (forest) {
 			forest));
 };
 var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSource) {
-	var forest = $author$project$Render$Export$LaTeXToScripta2$parseL(latexSource);
-	return ($elm$core$List$isEmpty(forest) && (!$elm$core$String$isEmpty(
-		$elm$core$String$trim(latexSource)))) ? latexSource : $author$project$Render$Export$LaTeXToScripta2$renderS(forest);
+	var lines = $elm$core$String$lines(latexSource);
+	var isNewCommand = function (line) {
+		return A2(
+			$elm$core$String$startsWith,
+			'\\newcommand',
+			$elm$core$String$trim(line));
+	};
+	var _v0 = A2($elm$core$List$partition, isNewCommand, lines);
+	var newCommandLines = _v0.a;
+	var contentLines = _v0.b;
+	var contentSource = A2($elm$core$String$join, '\n', contentLines);
+	var forest = $author$project$Render$Export$LaTeXToScripta2$parseL(contentSource);
+	var renderedContent = ($elm$core$List$isEmpty(forest) && (!$elm$core$String$isEmpty(
+		$elm$core$String$trim(contentSource)))) ? contentSource : $author$project$Render$Export$LaTeXToScripta2$renderS(forest);
+	var macroBlock = $elm$core$List$isEmpty(newCommandLines) ? '' : ($author$project$Render$Export$LaTeXToScripta2$mathMacros(
+		A2($elm$core$String$join, '\n', newCommandLines)) + '\n\n');
+	return _Utils_ap(macroBlock, renderedContent);
 };
 var $ohanhi$keyboard$Keyboard$Backspace = {$: 'Backspace'};
 var $ohanhi$keyboard$Keyboard$Clear = {$: 'Clear'};

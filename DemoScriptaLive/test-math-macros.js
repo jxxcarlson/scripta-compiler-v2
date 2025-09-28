@@ -4558,11 +4558,11 @@ var $author$project$TestMathMacros$test2Input = '\\newcommand{\\od}[2]{\\frac{d 
 var $author$project$TestMathMacros$test3Input = '\\newcommand{\\ket}[1]{| #1 \\rangle}\n\\newcommand{\\bra}[1]{\\langle #1 |}\n\\newcommand{\\bracket}[2]{\\langle #1 | #2 \\rangle}\n\\newcommand{\\ketbra}[2]{| #1 \\rangle \\langle #2 |}\n\\newcommand{\\diag}[1]{| #1 \\rangle \\langle #1 |}\n\\newcommand{\\od}[2]{\\frac{d #1}{d #2}}';
 var $author$project$TestMathMacros$test4Input = '';
 var $author$project$TestMathMacros$test5Input = 'Some random text\n\\newcommand{\\ket}[1]{| #1 \\rangle}\nThis should be ignored\n\\newcommand{\\bra}[1]{\\langle #1 |}\nMore text';
-var $author$project$TestMathMacros$expectedOutput1 = '| mathmacros\nket: {| #1 rangle}\nbra: {langle #1 |}';
-var $author$project$TestMathMacros$expectedOutput2 = '| mathmacros\nod: {frac(d #1, d #2)}';
-var $author$project$TestMathMacros$expectedOutput3 = '| mathmacros\nket: {| #1 rangle}\nbra: {langle #1 |}\nbracket: {langle #1 | #2 rangle}\nketbra: {| #1 rangle langle #2 |}\ndiag: {| #1 rangle langle #1 |}\nod: {frac(d #1, d #2)}';
+var $author$project$TestMathMacros$expectedOutput1 = '| mathmacros\nket: | #1 rangle\nbra: langle #1 |';
+var $author$project$TestMathMacros$expectedOutput2 = '| mathmacros\nod: frac(d #1, d #2)';
+var $author$project$TestMathMacros$expectedOutput3 = '| mathmacros\nket: | #1 rangle\nbra: langle #1 |\nbracket: langle #1 | #2 rangle\nketbra: | #1 rangle langle #2 |\ndiag: | #1 rangle langle #1 |\nod: frac(d #1, d #2)';
 var $author$project$TestMathMacros$expectedOutput4 = '';
-var $author$project$TestMathMacros$expectedOutput5 = '| mathmacros\nket: {| #1 rangle}\nbra: {langle #1 |}';
+var $author$project$TestMathMacros$expectedOutput5 = '| mathmacros\nket: | #1 rangle\nbra: langle #1 |';
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $elm$core$Basics$composeL = F3(
 	function (g, f, x) {
@@ -4684,6 +4684,36 @@ var $elm$core$List$map = F2(
 			xs);
 	});
 var $elm$core$Basics$not = _Basics_not;
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
 var $author$project$Render$Export$LaTeXToScripta2$decoToString = function (deco) {
 	if (deco.$ === 'DecoM') {
 		var expr = deco.a;
@@ -4706,11 +4736,10 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = function (
 			return str;
 		case 'Arg':
 			var exprs = expr.a;
-			var content = A2(
+			return A2(
 				$elm$core$String$join,
 				'',
 				A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, exprs));
-			return '{' + (content + '}');
 		case 'Param':
 			var n = expr.a;
 			return '#' + $elm$core$String$fromInt(n);
@@ -4736,8 +4765,8 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = function (
 				case 'frac':
 					if ((((args.b && (args.a.$ === 'Arg')) && args.b.b) && (args.b.a.$ === 'Arg')) && (!args.b.b.b)) {
 						var num = args.a.a;
-						var _v3 = args.b;
-						var denom = _v3.a.a;
+						var _v4 = args.b;
+						var denom = _v4.a.a;
 						var numStr = A2(
 							$elm$core$String$join,
 							'',
@@ -4751,17 +4780,21 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = function (
 						return '\\' + (name + A2(
 							$elm$core$String$join,
 							'',
-							A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, args)));
+							A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg, args)));
 					}
 				case 'langle':
 					return 'langle';
 				case 'rangle':
 					return 'rangle';
 				default:
-					return '\\' + (name + A2(
+					return A2(
+						$elm$core$List$member,
+						name,
+						_List_fromArray(
+							['alpha', 'beta', 'gamma', 'delta', 'epsilon'])) ? name : ('\\' + (name + A2(
 						$elm$core$String$join,
 						'',
-						A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, args)));
+						A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg, args))));
 			}
 		case 'Expr':
 			var exprs = expr.a;
@@ -4781,6 +4814,17 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = function (
 		default:
 			var deco = expr.a;
 			return '^' + $author$project$Render$Export$LaTeXToScripta2$decoToString(deco);
+	}
+};
+var $author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg = function (expr) {
+	if (expr.$ === 'Arg') {
+		var exprs = expr.a;
+		return '{' + (A2(
+			$elm$core$String$join,
+			'',
+			A2($elm$core$List$map, $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, exprs)) + '}');
+	} else {
+		return $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(expr);
 	}
 };
 var $elm$parser$Parser$Advanced$Bad = F2(
@@ -5273,36 +5317,6 @@ var $author$project$ETeX$MathMacros$ExpectingNotAlpha = {$: 'ExpectingNotAlpha'}
 var $author$project$ETeX$MathMacros$MathSymbols = function (a) {
 	return {$: 'MathSymbols', a: a};
 };
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
-var $elm$core$List$member = F2(
-	function (x, xs) {
-		return A2(
-			$elm$core$List$any,
-			function (a) {
-				return _Utils_eq(a, x);
-			},
-			xs);
-	});
 var $author$project$ETeX$MathMacros$mathSymbolsParser = A2(
 	$elm$parser$Parser$Advanced$map,
 	$author$project$ETeX$MathMacros$MathSymbols,
@@ -5834,7 +5848,7 @@ var $author$project$ETeX$MathMacros$parseNewCommand = function (str) {
 	return A2($elm$parser$Parser$Advanced$run, $author$project$ETeX$MathMacros$newCommandParser, str);
 };
 var $elm$core$String$trim = _String_trim;
-var $author$project$Render$Export$LaTeXToScripta2$parseNewCommand2 = function (line) {
+var $author$project$Render$Export$LaTeXToScripta2$parseNewCommand = function (line) {
 	var _v0 = $author$project$ETeX$MathMacros$parseNewCommand(line);
 	if ((_v0.$ === 'Ok') && (_v0.a.a.$ === 'MacroName')) {
 		var _v1 = _v0.a;
@@ -5862,7 +5876,7 @@ var $author$project$Render$Export$LaTeXToScripta2$mathMacros = function (latexMa
 	var macroDefinitions = A2(
 		$elm$core$List$map,
 		$author$project$Render$Export$LaTeXToScripta2$formatMacroDefinition,
-		A2($elm$core$List$filterMap, $author$project$Render$Export$LaTeXToScripta2$parseNewCommand2, lines));
+		A2($elm$core$List$filterMap, $author$project$Render$Export$LaTeXToScripta2$parseNewCommand, lines));
 	return $elm$core$List$isEmpty(macroDefinitions) ? '' : ('| mathmacros\n' + A2($elm$core$String$join, '\n', macroDefinitions));
 };
 var $elm$html$Html$pre = _VirtualDom_node('pre');

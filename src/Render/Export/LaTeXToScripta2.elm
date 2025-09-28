@@ -1,7 +1,7 @@
-module Render.Export.LaTeXToScripta2 exposing (mathMacros, parseL, parseNewCommand, parseNewCommand2, renderBlock, renderExpression, renderS, renderTree, translate)
+module Render.Export.LaTeXToScripta2 exposing (mathMacros, parseL, parseNewCommand, renderBlock, renderExpression, renderS, renderTree, translate)
 
-import Either exposing (Either(..))
 import ETeX.MathMacros as E
+import Either exposing (Either(..))
 import Generic.Compiler
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
@@ -17,16 +17,43 @@ import ScriptaV2.Language exposing (Language(..))
 translate : String -> String
 translate latexSource =
     let
-        forest =
-            parseL latexSource
-    in
-    if List.isEmpty forest && not (String.isEmpty (String.trim latexSource)) then
-        -- If parsing produces an empty forest but we have non-empty input,
-        -- treat it as plain text
-        latexSource
+        lines =
+            String.lines latexSource
 
-    else
-        renderS forest
+        -- Separate \newcommand lines from other content
+        isNewCommand line =
+            String.trim line |> String.startsWith "\\newcommand"
+
+        ( newCommandLines, contentLines ) =
+            lines
+                |> List.partition isNewCommand
+
+        -- Convert \newcommand lines to mathmacros
+        macroBlock =
+            if List.isEmpty newCommandLines then
+                ""
+
+            else
+                mathMacros (String.join "\n" newCommandLines) ++ "\n\n"
+
+        -- Parse and render the remaining content
+        contentSource =
+            String.join "\n" contentLines
+
+        forest =
+            parseL contentSource
+
+        renderedContent =
+            if List.isEmpty forest && not (String.isEmpty (String.trim contentSource)) then
+                -- If parsing produces an empty forest but we have non-empty input,
+                -- treat it as plain text
+                contentSource
+
+            else
+                renderS forest
+    in
+    -- Combine macros and content
+    macroBlock ++ renderedContent
 
 
 {-| Parse LaTeX source code to AST (List of Tree ExpressionBlock)
@@ -320,6 +347,10 @@ renderExpression expr =
 renderFunction : String -> List Expression -> String
 renderFunction name args =
     case name of
+        "text" ->
+            -- Convert \text{...} to quoted text "..." in Scripta math
+            "\"" ++ renderArgs args ++ "\""
+
         "bold" ->
             "[b " ++ renderArgs args ++ "]"
 
@@ -698,7 +729,7 @@ mathMacros latexMacros =
 
         macroDefinitions =
             lines
-                |> List.filterMap parseNewCommand2
+                |> List.filterMap parseNewCommand
                 |> List.map formatMacroDefinition
     in
     if List.isEmpty macroDefinitions then
@@ -708,56 +739,57 @@ mathMacros latexMacros =
         "| mathmacros\n" ++ String.join "\n" macroDefinitions
 
 
-{-| Parse a single \\newcommand line
-Returns Just (name, body) or Nothing
--}
-parseNewCommand : String -> Maybe ( String, String )
-parseNewCommand line =
-    if String.startsWith "\\newcommand{\\" line then
-        let
-            -- Extract command name (without the backslash)
-            nameStart =
-                String.dropLeft 13 line
 
-            -- Drop "\\newcommand{\\" (13 chars)
-            nameEnd =
-                String.indexes "}" nameStart
-                    |> List.head
-                    |> Maybe.withDefault -1
-
-            name =
-                String.left nameEnd nameStart
-
-            -- Extract the body (everything between the final {...})
-            remainingAfterName =
-                String.dropLeft (nameEnd + 1) nameStart
-
-            -- Find the body between the last pair of braces
-            bodyStart =
-                String.indexes "{" remainingAfterName
-                    |> List.reverse
-                    |> List.head
-                    |> Maybe.map ((+) 1)
-                    |> Maybe.withDefault 0
-
-            bodyEnd =
-                String.indexes "}" remainingAfterName
-                    |> List.reverse
-                    |> List.head
-                    |> Maybe.withDefault (String.length remainingAfterName)
-
-            body =
-                String.slice bodyStart bodyEnd remainingAfterName
-                    |> transformMacroBody
-        in
-        if String.isEmpty name then
-            Nothing
-
-        else
-            Just ( name, body )
-
-    else
-        Nothing
+--{-| Parse a single \\newcommand line
+--Returns Just (name, body) or Nothing
+---}
+--parseNewCommand : String -> Maybe ( String, String )
+--parseNewCommand line =
+--    if String.startsWith "\\newcommand{\\" line then
+--        let
+--            -- Extract command name (without the backslash)
+--            nameStart =
+--                String.dropLeft 13 line
+--
+--            -- Drop "\\newcommand{\\" (13 chars)
+--            nameEnd =
+--                String.indexes "}" nameStart
+--                    |> List.head
+--                    |> Maybe.withDefault -1
+--
+--            name =
+--                String.left nameEnd nameStart
+--
+--            -- Extract the body (everything between the final {...})
+--            remainingAfterName =
+--                String.dropLeft (nameEnd + 1) nameStart
+--
+--            -- Find the body between the last pair of braces
+--            bodyStart =
+--                String.indexes "{" remainingAfterName
+--                    |> List.reverse
+--                    |> List.head
+--                    |> Maybe.map ((+) 1)
+--                    |> Maybe.withDefault 0
+--
+--            bodyEnd =
+--                String.indexes "}" remainingAfterName
+--                    |> List.reverse
+--                    |> List.head
+--                    |> Maybe.withDefault (String.length remainingAfterName)
+--
+--            body =
+--                String.slice bodyStart bodyEnd remainingAfterName
+--                    |> transformMacroBody
+--        in
+--        if String.isEmpty name then
+--            Nothing
+--
+--        else
+--            Just ( name, body )
+--
+--    else
+--        Nothing
 
 
 {-| Transform the macro body from LaTeX to Scripta format
@@ -816,10 +848,10 @@ formatMacroDefinition ( name, body ) =
     name ++ ": " ++ body
 
 
-{-| Parse a \newcommand using the ETeX parser for better handling of complex expressions
+{-| Parse a \\newcommand using the ETeX parser for better handling of complex expressions
 -}
-parseNewCommand2 : String -> Maybe ( String, String )
-parseNewCommand2 line =
+parseNewCommand : String -> Maybe ( String, String )
+parseNewCommand line =
     case E.parseNewCommand line of
         Ok (E.NewCommand (E.MacroName name) _ bodyExprs) ->
             -- Convert the body expressions to Scripta format
@@ -845,16 +877,16 @@ mathExprToScripta expr =
             str
 
         E.MacroName str ->
+            -- Don't add backslash for macro names in Scripta format
             "\\" ++ str
 
         E.FunctionName str ->
             str
 
         E.Arg exprs ->
-            let
-                content = List.map mathExprToScripta exprs |> String.join ""
-            in
-            "{" ++ content ++ "}"
+            -- For top-level Arg in parseNewCommand, we don't want braces
+            -- The body comes wrapped in an Arg, so we just extract the content
+            List.map mathExprToScripta exprs |> String.join ""
 
         E.Param n ->
             "#" ++ String.fromInt n
@@ -881,31 +913,51 @@ mathExprToScripta expr =
             str
 
         E.Macro name args ->
-            -- Special handling for common macros
+            -- Special handling for common macros in Scripta format
             case name of
                 "frac" ->
                     -- Convert \frac{a}{b} to frac(a, b)
                     case args of
                         [ E.Arg num, E.Arg denom ] ->
                             let
-                                numStr = List.map mathExprToScripta num |> String.join ""
-                                denomStr = List.map mathExprToScripta denom |> String.join ""
+                                numStr =
+                                    List.map mathExprToScripta num |> String.join ""
+
+                                denomStr =
+                                    List.map mathExprToScripta denom |> String.join ""
                             in
                             "frac(" ++ numStr ++ ", " ++ denomStr ++ ")"
 
                         _ ->
                             -- Fallback for malformed frac
-                            "\\" ++ name ++ (List.map mathExprToScripta args |> String.join "")
+                            "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
 
                 "langle" ->
+                    -- In Scripta format, we don't use backslash for langle
                     "langle"
 
                 "rangle" ->
+                    -- In Scripta format, we don't use backslash for rangle
                     "rangle"
 
+                "text" ->
+                    -- Convert \text{...} to "..." in Scripta
+                    case args of
+                        [ E.Arg content ] ->
+                            "\"" ++ (List.map mathExprToScripta content |> String.join "") ++ "\""
+
+                        _ ->
+                            -- Fallback if malformed
+                            "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
+
                 _ ->
-                    -- Default macro rendering
-                    "\\" ++ name ++ (List.map mathExprToScripta args |> String.join "")
+                    -- For other macros, check if we need the backslash
+                    -- Common LaTeX symbols that should not have backslash in Scripta
+                    if List.member name [ "alpha", "beta", "gamma", "delta", "epsilon" ] then
+                        name
+
+                    else
+                        "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
 
         E.Expr exprs ->
             List.map mathExprToScripta exprs |> String.join ""
@@ -924,6 +976,19 @@ mathExprToScripta expr =
 
         E.Super deco ->
             "^" ++ decoToString deco
+
+
+{-| Helper to convert arguments with proper bracing
+-}
+mathExprToScriptaArg : E.MathExpr -> String
+mathExprToScriptaArg expr =
+    case expr of
+        E.Arg exprs ->
+            -- For arguments in macro calls, we do want braces
+            "{" ++ (List.map mathExprToScripta exprs |> String.join "") ++ "}"
+
+        _ ->
+            mathExprToScripta expr
 
 
 {-| Convert Deco to string

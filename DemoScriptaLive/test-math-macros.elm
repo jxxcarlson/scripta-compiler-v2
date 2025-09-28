@@ -83,26 +83,26 @@ More text"""
 -- Expected outputs
 expectedOutput1 =
     """| mathmacros
-ket: {| #1 rangle}
-bra: {langle #1 |}"""
+ket: | #1 rangle
+bra: langle #1 |"""
 
 expectedOutput2 =
     """| mathmacros
-od: {frac(d #1, d #2)}"""
+od: frac(d #1, d #2)"""
 
 expectedOutput3 =
     """| mathmacros
-ket: {| #1 rangle}
-bra: {langle #1 |}
-bracket: {langle #1 | #2 rangle}
-ketbra: {| #1 rangle langle #2 |}
-diag: {| #1 rangle langle #1 |}
-od: {frac(d #1, d #2)}"""
+ket: | #1 rangle
+bra: langle #1 |
+bracket: langle #1 | #2 rangle
+ketbra: | #1 rangle langle #2 |
+diag: | #1 rangle langle #1 |
+od: frac(d #1, d #2)"""
 
 expectedOutput4 =
     ""
 
 expectedOutput5 =
     """| mathmacros
-ket: {| #1 rangle}
-bra: {langle #1 |}"""
+ket: | #1 rangle
+bra: langle #1 |"""
