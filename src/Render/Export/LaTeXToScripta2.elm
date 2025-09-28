@@ -66,15 +66,18 @@ translate latexSource =
 
         forest =
             parseL contentSource
+                |> Debug.log "@@Forest"
 
         renderedContent =
             if List.isEmpty forest && not (String.isEmpty (String.trim contentSource)) then
                 -- If parsing produces an empty forest but we have non-empty input,
                 -- treat it as plain text
                 contentSource
+                    |> Debug.log "@@Using_plain_text"
 
             else
                 renderS newMacroNames forest
+                    |> Debug.log "@@Rendered_forest"
     in
     -- Combine macros and content
     macroBlock ++ renderedContent
@@ -172,6 +175,7 @@ renderParagraph newMacroNames block =
         Left str ->
             -- Simple string content (trim to remove extra whitespace)
             String.trim str
+                |> Debug.log "@@Paragraph_Left"
 
         Right exprs ->
             -- Expression list
@@ -179,6 +183,7 @@ renderParagraph newMacroNames block =
                 |> List.map (renderExpression newMacroNames)
                 |> String.join " "
                 |> String.trim
+                |> Debug.log "@@Paragraph_Right"
 
 
 {-| Render an ordinary block (sections, environments, etc.)
