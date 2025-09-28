@@ -138,6 +138,13 @@ This is [b important].
 - Point 2
 
 See [link this link https://example.com] for more."""
+        , testCase "Test 18: Centered image"
+            """\\begin{center}
+\\includegraphics[width=0.51\\textwidth]{https://imagedelivery.net/9U-0Y4sEzXlO6BXzTnQnYQ/83fdbf6c-79d5-44e7-6ac6-00cdc7785000/public-b515cb4f06a34e66b084ba617995f00a.jpg}
+\\end{center}
+"""
+            """| image
+https://imagedelivery.net/9U-0Y4sEzXlO6BXzTnQnYQ/83fdbf6c-79d5-44e7-6ac6-00cdc7785000/public-b515cb4f06a34e66b084ba617995f00a.jpg"""
         ]
 
 testCase : String -> String -> String -> Html msg

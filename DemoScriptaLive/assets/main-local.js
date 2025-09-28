@@ -5828,11 +5828,11 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$element = _Browser_element;
 var $elm$json$Json$Decode$field = _Json_decodeField;
-var $author$project$MainSQLite$CommonMsg = function (a) {
+var $author$project$MainLocal$CommonMsg = function (a) {
 	return {$: 'CommonMsg', a: a};
 };
 var $author$project$Common$Model$LoadUserNameDelayed = {$: 'LoadUserNameDelayed'};
-var $author$project$MainSQLite$StorageMsg = function (a) {
+var $author$project$MainLocal$StorageMsg = function (a) {
 	return {$: 'StorageMsg', a: a};
 };
 var $author$project$Common$Model$Tick = function (a) {
@@ -5848,7 +5848,7 @@ var $elm$core$Basics$composeL = F3(
 		return g(
 			f(x));
 	});
-var $author$project$Storage$SQLite$init = {dbReady: false, initialized: false};
+var $author$project$Storage$Local$init = {initialized: false};
 var $author$project$Common$Model$Alphabetical = {$: 'Alphabetical'};
 var $author$project$Theme$Dark = {$: 'Dark'};
 var $author$project$ScriptaV2$Language$EnclosureLang = {$: 'EnclosureLang'};
@@ -22915,6 +22915,18 @@ var $elm$time$Time$Zone = F2(
 var $elm$time$Time$customZone = $elm$time$Time$Zone;
 var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
 var $elm$core$Process$sleep = _Process_sleep;
+var $author$project$Ports$DeleteDocument = function (a) {
+	return {$: 'DeleteDocument', a: a};
+};
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Document$encodeTheme = function (theme) {
+	if (theme.$ === 'Light') {
+		return $elm$json$Json$Encode$string('light');
+	} else {
+		return $elm$json$Json$Encode$string('dark');
+	}
+};
+var $elm$json$Json$Encode$int = _Json_wrap;
 var $elm$json$Json$Encode$object = function (pairs) {
 	return _Json_wrap(
 		A3(
@@ -22928,84 +22940,6 @@ var $elm$json$Json$Encode$object = function (pairs) {
 			_Json_emptyObject(_Utils_Tuple0),
 			pairs));
 };
-var $author$project$Ports$sqliteExecute = _Platform_outgoingPort('sqliteExecute', $elm$core$Basics$identity);
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Storage$SQLite$deleteDocument = F2(
-	function (toMsg, id) {
-		return $author$project$Ports$sqliteExecute(
-			$elm$json$Json$Encode$object(
-				_List_fromArray(
-					[
-						_Utils_Tuple2(
-						'type',
-						$elm$json$Json$Encode$string('deleteDocument')),
-						_Utils_Tuple2(
-						'id',
-						$elm$json$Json$Encode$string(id))
-					])));
-	});
-var $author$project$Storage$SQLite$initStorage = function (toMsg) {
-	return $author$project$Ports$sqliteExecute(
-		$elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'type',
-					$elm$json$Json$Encode$string('init'))
-				])));
-};
-var $author$project$Storage$SQLite$listDocuments = function (toMsg) {
-	return $author$project$Ports$sqliteExecute(
-		$elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'type',
-					$elm$json$Json$Encode$string('listDocuments'))
-				])));
-};
-var $author$project$Storage$SQLite$loadDocument = F2(
-	function (toMsg, id) {
-		return $author$project$Ports$sqliteExecute(
-			$elm$json$Json$Encode$object(
-				_List_fromArray(
-					[
-						_Utils_Tuple2(
-						'type',
-						$elm$json$Json$Encode$string('loadDocument')),
-						_Utils_Tuple2(
-						'id',
-						$elm$json$Json$Encode$string(id))
-					])));
-	});
-var $author$project$Storage$SQLite$loadLastDocumentId = function (toMsg) {
-	return $author$project$Ports$sqliteExecute(
-		$elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'type',
-					$elm$json$Json$Encode$string('loadLastDocumentId'))
-				])));
-};
-var $author$project$Storage$SQLite$loadUserName = function (toMsg) {
-	return $author$project$Ports$sqliteExecute(
-		$elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'type',
-					$elm$json$Json$Encode$string('loadUserName'))
-				])));
-};
-var $author$project$Document$encodeTheme = function (theme) {
-	if (theme.$ === 'Light') {
-		return $elm$json$Json$Encode$string('light');
-	} else {
-		return $elm$json$Json$Encode$string('dark');
-	}
-};
-var $elm$json$Json$Encode$int = _Json_wrap;
 var $elm$time$Time$posixToMillis = function (_v0) {
 	var millis = _v0.a;
 	return millis;
@@ -23039,81 +22973,229 @@ var $author$project$Document$encodeDocument = function (doc) {
 					$elm$time$Time$posixToMillis(doc.modifiedAt)))
 			]));
 };
-var $author$project$Storage$SQLite$saveDocument = F2(
-	function (toMsg, doc) {
-		return $author$project$Ports$sqliteExecute(
-			$elm$json$Json$Encode$object(
+var $author$project$Ports$encodeOutgoing = function (msg) {
+	switch (msg.$) {
+		case 'SaveDocument':
+			var doc = msg.a;
+			return $elm$json$Json$Encode$object(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
-						'type',
-						$elm$json$Json$Encode$string('saveDocument')),
+						'tag',
+						$elm$json$Json$Encode$string('SaveDocument')),
 						_Utils_Tuple2(
-						'document',
+						'data',
 						$author$project$Document$encodeDocument(doc))
-					])));
-	});
-var $author$project$Storage$SQLite$saveLastDocumentId = F2(
-	function (toMsg, id) {
-		return $author$project$Ports$sqliteExecute(
-			$elm$json$Json$Encode$object(
+					]));
+		case 'LoadDocuments':
+			return $elm$json$Json$Encode$object(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
-						'type',
-						$elm$json$Json$Encode$string('saveLastDocumentId')),
+						'tag',
+						$elm$json$Json$Encode$string('LoadDocuments'))
+					]));
+		case 'LoadDocument':
+			var id = msg.a;
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
 						_Utils_Tuple2(
-						'id',
+						'tag',
+						$elm$json$Json$Encode$string('LoadDocument')),
+						_Utils_Tuple2(
+						'data',
 						$elm$json$Json$Encode$string(id))
-					])));
-	});
-var $author$project$Storage$SQLite$saveUserName = F2(
-	function (toMsg, name) {
-		return $author$project$Ports$sqliteExecute(
-			$elm$json$Json$Encode$object(
+					]));
+		case 'DeleteDocument':
+			var id = msg.a;
+			return $elm$json$Json$Encode$object(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
-						'type',
-						$elm$json$Json$Encode$string('saveUserName')),
+						'tag',
+						$elm$json$Json$Encode$string('DeleteDocument')),
 						_Utils_Tuple2(
-						'name',
+						'data',
+						$elm$json$Json$Encode$string(id))
+					]));
+		case 'SaveTheme':
+			var theme = msg.a;
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'tag',
+						$elm$json$Json$Encode$string('SaveTheme')),
+						_Utils_Tuple2(
+						'data',
+						$elm$json$Json$Encode$string(theme))
+					]));
+		case 'LoadTheme':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'tag',
+						$elm$json$Json$Encode$string('LoadTheme'))
+					]));
+		case 'SaveUserName':
+			var name = msg.a;
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'tag',
+						$elm$json$Json$Encode$string('SaveUserName')),
+						_Utils_Tuple2(
+						'data',
 						$elm$json$Json$Encode$string(name))
-					])));
+					]));
+		case 'LoadUserName':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'tag',
+						$elm$json$Json$Encode$string('LoadUserName'))
+					]));
+		case 'SaveLastDocumentId':
+			var id = msg.a;
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'tag',
+						$elm$json$Json$Encode$string('SaveLastDocumentId')),
+						_Utils_Tuple2(
+						'data',
+						$elm$json$Json$Encode$string(id))
+					]));
+		case 'LoadLastDocumentId':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'tag',
+						$elm$json$Json$Encode$string('LoadLastDocumentId'))
+					]));
+		default:
+			var data = msg.a;
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'tag',
+						$elm$json$Json$Encode$string('SaveFile')),
+						_Utils_Tuple2(
+						'fileName',
+						$elm$json$Json$Encode$string(data.fileName)),
+						_Utils_Tuple2(
+						'content',
+						$elm$json$Json$Encode$string(data.content)),
+						_Utils_Tuple2(
+						'mimeType',
+						$elm$json$Json$Encode$string(data.mimeType))
+					]));
+	}
+};
+var $author$project$Ports$outgoing = _Platform_outgoingPort('outgoing', $elm$core$Basics$identity);
+var $author$project$Ports$send = function (msg) {
+	return $author$project$Ports$outgoing(
+		$author$project$Ports$encodeOutgoing(msg));
+};
+var $author$project$Ports$sendMsg = $author$project$Ports$send;
+var $author$project$Storage$Local$deleteDocument = F2(
+	function (toMsg, id) {
+		return $author$project$Ports$sendMsg(
+			$author$project$Ports$DeleteDocument(id));
 	});
-var $author$project$Storage$SQLite$storage = function (toMsg) {
+var $author$project$Ports$LoadDocuments = {$: 'LoadDocuments'};
+var $author$project$Storage$Local$listDocuments = function (toMsg) {
+	return $author$project$Ports$sendMsg($author$project$Ports$LoadDocuments);
+};
+var $author$project$Ports$LoadLastDocumentId = {$: 'LoadLastDocumentId'};
+var $author$project$Storage$Local$loadLastDocumentId = function (toMsg) {
+	return $author$project$Ports$sendMsg($author$project$Ports$LoadLastDocumentId);
+};
+var $author$project$Ports$LoadUserName = {$: 'LoadUserName'};
+var $author$project$Storage$Local$loadUserName = function (toMsg) {
+	return $author$project$Ports$sendMsg($author$project$Ports$LoadUserName);
+};
+var $author$project$Storage$Local$initStorage = function (toMsg) {
+	return $elm$core$Platform$Cmd$batch(
+		_List_fromArray(
+			[
+				$author$project$Storage$Local$listDocuments(toMsg),
+				$author$project$Storage$Local$loadUserName(toMsg),
+				$author$project$Storage$Local$loadLastDocumentId(toMsg)
+			]));
+};
+var $author$project$Ports$LoadDocument = function (a) {
+	return {$: 'LoadDocument', a: a};
+};
+var $author$project$Storage$Local$loadDocument = F2(
+	function (toMsg, id) {
+		return $author$project$Ports$sendMsg(
+			$author$project$Ports$LoadDocument(id));
+	});
+var $author$project$Ports$SaveDocument = function (a) {
+	return {$: 'SaveDocument', a: a};
+};
+var $author$project$Storage$Local$saveDocument = F2(
+	function (toMsg, doc) {
+		return $author$project$Ports$sendMsg(
+			$author$project$Ports$SaveDocument(doc));
+	});
+var $author$project$Ports$SaveLastDocumentId = function (a) {
+	return {$: 'SaveLastDocumentId', a: a};
+};
+var $author$project$Storage$Local$saveLastDocumentId = F2(
+	function (toMsg, id) {
+		return $author$project$Ports$sendMsg(
+			$author$project$Ports$SaveLastDocumentId(id));
+	});
+var $author$project$Ports$SaveUserName = function (a) {
+	return {$: 'SaveUserName', a: a};
+};
+var $author$project$Storage$Local$saveUserName = F2(
+	function (toMsg, name) {
+		return $author$project$Ports$sendMsg(
+			$author$project$Ports$SaveUserName(name));
+	});
+var $author$project$Storage$Local$storage = function (toMsg) {
 	return {
-		deleteDocument: $author$project$Storage$SQLite$deleteDocument(toMsg),
-		init: $author$project$Storage$SQLite$initStorage(toMsg),
-		listDocuments: $author$project$Storage$SQLite$listDocuments(toMsg),
-		loadDocument: $author$project$Storage$SQLite$loadDocument(toMsg),
-		loadLastDocumentId: $author$project$Storage$SQLite$loadLastDocumentId(toMsg),
-		loadUserName: $author$project$Storage$SQLite$loadUserName(toMsg),
-		saveDocument: $author$project$Storage$SQLite$saveDocument(toMsg),
-		saveLastDocumentId: $author$project$Storage$SQLite$saveLastDocumentId(toMsg),
-		saveUserName: $author$project$Storage$SQLite$saveUserName(toMsg)
+		deleteDocument: $author$project$Storage$Local$deleteDocument(toMsg),
+		init: $author$project$Storage$Local$initStorage(toMsg),
+		listDocuments: $author$project$Storage$Local$listDocuments(toMsg),
+		loadDocument: $author$project$Storage$Local$loadDocument(toMsg),
+		loadLastDocumentId: $author$project$Storage$Local$loadLastDocumentId(toMsg),
+		loadUserName: $author$project$Storage$Local$loadUserName(toMsg),
+		saveDocument: $author$project$Storage$Local$saveDocument(toMsg),
+		saveLastDocumentId: $author$project$Storage$Local$saveLastDocumentId(toMsg),
+		saveUserName: $author$project$Storage$Local$saveUserName(toMsg)
 	};
 };
-var $author$project$MainSQLite$init = function (flags) {
-	var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
+var $author$project$MainLocal$init = function (flags) {
+	var storage = $author$project$Storage$Local$storage($author$project$MainLocal$StorageMsg);
 	var common = $author$project$Common$Model$initCommon(flags);
 	var updatedCommon = _Utils_update(
 		common,
 		{showDocumentList: true});
 	return _Utils_Tuple2(
-		{common: updatedCommon, storageState: $author$project$Storage$SQLite$init},
+		{common: updatedCommon, storageState: $author$project$Storage$Local$init},
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
 					storage.init,
 					A2(
 					$elm$core$Task$perform,
-					A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$Tick),
+					A2($elm$core$Basics$composeL, $author$project$MainLocal$CommonMsg, $author$project$Common$Model$Tick),
 					$elm$time$Time$now),
 					A2(
 					$elm$core$Task$perform,
 					$elm$core$Basics$always(
-						$author$project$MainSQLite$CommonMsg($author$project$Common$Model$LoadUserNameDelayed)),
+						$author$project$MainLocal$CommonMsg($author$project$Common$Model$LoadUserNameDelayed)),
 					$elm$core$Process$sleep(100))
 				])));
 };
@@ -23130,6 +23212,9 @@ var $author$project$Common$Model$GotNewWindowDimensions = F2(
 	});
 var $author$project$Common$Model$KeyMsg = function (a) {
 	return {$: 'KeyMsg', a: a};
+};
+var $author$project$Common$Model$PortMsgReceived = function (a) {
+	return {$: 'PortMsgReceived', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $author$project$Constants$constants = {autoSaveCheckInterval: 1000, maxUnsavedDuration: 5};
@@ -23571,63 +23656,21 @@ var $elm$browser$Browser$Events$onResize = function (func) {
 				A2($elm$json$Json$Decode$field, 'innerWidth', $elm$json$Json$Decode$int),
 				A2($elm$json$Json$Decode$field, 'innerHeight', $elm$json$Json$Decode$int))));
 };
-var $ohanhi$keyboard$Keyboard$Down = function (a) {
-	return {$: 'Down', a: a};
-};
-var $ohanhi$keyboard$Keyboard$Up = function (a) {
-	return {$: 'Up', a: a};
-};
-var $ohanhi$keyboard$Keyboard$RawKey = function (a) {
-	return {$: 'RawKey', a: a};
-};
-var $ohanhi$keyboard$Keyboard$eventKeyDecoder = A2(
-	$elm$json$Json$Decode$field,
-	'key',
-	A2($elm$json$Json$Decode$map, $ohanhi$keyboard$Keyboard$RawKey, $elm$json$Json$Decode$string));
-var $elm$browser$Browser$Events$Document = {$: 'Document'};
-var $elm$browser$Browser$Events$onKeyDown = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'keydown');
-var $ohanhi$keyboard$Keyboard$downs = function (toMsg) {
-	return $elm$browser$Browser$Events$onKeyDown(
-		A2($elm$json$Json$Decode$map, toMsg, $ohanhi$keyboard$Keyboard$eventKeyDecoder));
-};
-var $elm$browser$Browser$Events$onKeyUp = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'keyup');
-var $ohanhi$keyboard$Keyboard$ups = function (toMsg) {
-	return $elm$browser$Browser$Events$onKeyUp(
-		A2($elm$json$Json$Decode$map, toMsg, $ohanhi$keyboard$Keyboard$eventKeyDecoder));
-};
-var $ohanhi$keyboard$Keyboard$subscriptions = $elm$core$Platform$Sub$batch(
-	_List_fromArray(
-		[
-			$ohanhi$keyboard$Keyboard$downs($ohanhi$keyboard$Keyboard$Down),
-			$ohanhi$keyboard$Keyboard$ups($ohanhi$keyboard$Keyboard$Up)
-		]));
-var $author$project$Storage$Interface$DocumentsListed = function (a) {
-	return {$: 'DocumentsListed', a: a};
-};
 var $elm$json$Json$Decode$decodeValue = _Json_run;
-var $author$project$Storage$Interface$DocumentDeleted = function (a) {
-	return {$: 'DocumentDeleted', a: a};
-};
-var $author$project$Storage$Interface$DocumentLoaded = function (a) {
+var $author$project$Ports$DocumentLoaded = function (a) {
 	return {$: 'DocumentLoaded', a: a};
 };
-var $author$project$Storage$Interface$DocumentSaved = function (a) {
-	return {$: 'DocumentSaved', a: a};
+var $author$project$Ports$DocumentsLoaded = function (a) {
+	return {$: 'DocumentsLoaded', a: a};
 };
-var $author$project$Storage$Interface$LastDocumentIdLoaded = function (a) {
+var $author$project$Ports$LastDocumentIdLoaded = function (a) {
 	return {$: 'LastDocumentIdLoaded', a: a};
 };
-var $author$project$Storage$Interface$LastDocumentIdSaved = function (a) {
-	return {$: 'LastDocumentIdSaved', a: a};
+var $author$project$Ports$ThemeLoaded = function (a) {
+	return {$: 'ThemeLoaded', a: a};
 };
-var $author$project$Storage$Interface$StorageInitialized = function (a) {
-	return {$: 'StorageInitialized', a: a};
-};
-var $author$project$Storage$Interface$UserNameLoaded = function (a) {
+var $author$project$Ports$UserNameLoaded = function (a) {
 	return {$: 'UserNameLoaded', a: a};
-};
-var $author$project$Storage$Interface$UserNameSaved = function (a) {
-	return {$: 'UserNameSaved', a: a};
 };
 var $author$project$Document$Document = F7(
 	function (id, title, author, content, theme, createdAt, modifiedAt) {
@@ -23665,222 +23708,117 @@ var $author$project$Document$documentDecoder = A8(
 		'modifiedAt',
 		A2($elm$json$Json$Decode$map, $elm$time$Time$millisToPosix, $elm$json$Json$Decode$int)));
 var $elm$json$Json$Decode$list = _Json_decodeList;
-var $elm$json$Json$Decode$nullable = function (decoder) {
-	return $elm$json$Json$Decode$oneOf(
-		_List_fromArray(
-			[
-				$elm$json$Json$Decode$null($elm$core$Maybe$Nothing),
-				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, decoder)
-			]));
-};
-var $author$project$Storage$SQLite$sqliteResultDecoder = A2(
-	$elm$json$Json$Decode$andThen,
-	function (msgType) {
-		switch (msgType) {
-			case 'documentSaved':
-				return A2(
-					$elm$json$Json$Decode$map,
-					$author$project$Storage$Interface$DocumentSaved,
-					$elm$json$Json$Decode$oneOf(
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Err,
-								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Ok,
-								A2($elm$json$Json$Decode$field, 'document', $author$project$Document$documentDecoder))
-							])));
-			case 'documentLoaded':
-				return A2(
-					$elm$json$Json$Decode$map,
-					$author$project$Storage$Interface$DocumentLoaded,
-					$elm$json$Json$Decode$oneOf(
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Err,
-								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Ok,
-								A2($elm$json$Json$Decode$field, 'document', $author$project$Document$documentDecoder))
-							])));
-			case 'documentDeleted':
-				return A2(
-					$elm$json$Json$Decode$map,
-					$author$project$Storage$Interface$DocumentDeleted,
-					$elm$json$Json$Decode$oneOf(
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Err,
-								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Ok,
-								A2($elm$json$Json$Decode$field, 'id', $elm$json$Json$Decode$string))
-							])));
-			case 'documentsListed':
-				return A2(
-					$elm$json$Json$Decode$map,
-					$author$project$Storage$Interface$DocumentsListed,
-					$elm$json$Json$Decode$oneOf(
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Err,
-								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Ok,
-								A2(
-									$elm$json$Json$Decode$field,
-									'documents',
-									$elm$json$Json$Decode$list($author$project$Document$documentDecoder)))
-							])));
-			case 'userNameLoaded':
-				return A2(
-					$elm$json$Json$Decode$map,
-					$author$project$Storage$Interface$UserNameLoaded,
-					$elm$json$Json$Decode$oneOf(
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Err,
-								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Ok,
-								A2(
-									$elm$json$Json$Decode$field,
-									'userName',
-									$elm$json$Json$Decode$nullable($elm$json$Json$Decode$string)))
-							])));
-			case 'userNameSaved':
-				return A2(
-					$elm$json$Json$Decode$map,
-					$author$project$Storage$Interface$UserNameSaved,
-					$elm$json$Json$Decode$oneOf(
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Err,
-								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Ok,
-								A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string))
-							])));
-			case 'initialized':
-				return A2(
-					$elm$json$Json$Decode$map,
-					$author$project$Storage$Interface$StorageInitialized,
-					$elm$json$Json$Decode$oneOf(
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Err,
-								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
-								$elm$json$Json$Decode$succeed(
-								$elm$core$Result$Ok(_Utils_Tuple0))
-							])));
-			case 'lastDocumentIdLoaded':
-				return A2(
-					$elm$json$Json$Decode$map,
-					$author$project$Storage$Interface$LastDocumentIdLoaded,
-					$elm$json$Json$Decode$oneOf(
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Err,
-								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Ok,
-								A2(
-									$elm$json$Json$Decode$field,
-									'lastDocumentId',
-									$elm$json$Json$Decode$nullable($elm$json$Json$Decode$string)))
-							])));
-			case 'lastDocumentIdSaved':
-				return A2(
-					$elm$json$Json$Decode$map,
-					$author$project$Storage$Interface$LastDocumentIdSaved,
-					$elm$json$Json$Decode$oneOf(
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Err,
-								A2($elm$json$Json$Decode$field, 'error', $elm$json$Json$Decode$string)),
-								A2(
-								$elm$json$Json$Decode$map,
-								$elm$core$Result$Ok,
-								A2($elm$json$Json$Decode$field, 'id', $elm$json$Json$Decode$string))
-							])));
-			default:
-				return $elm$json$Json$Decode$fail('Unknown message type: ' + msgType);
-		}
-	},
-	A2($elm$json$Json$Decode$field, 'type', $elm$json$Json$Decode$string));
-var $author$project$Storage$SQLite$decodeSQLiteResult = function (value) {
-	var _v0 = A2($elm$json$Json$Decode$decodeValue, $author$project$Storage$SQLite$sqliteResultDecoder, value);
-	if (_v0.$ === 'Ok') {
-		var msg = _v0.a;
-		return msg;
-	} else {
-		var err = _v0.a;
-		return $author$project$Storage$Interface$DocumentsListed(
-			$elm$core$Result$Err(
-				$elm$json$Json$Decode$errorToString(err)));
+var $author$project$Ports$decodeByTag = function (tag) {
+	switch (tag) {
+		case 'DocumentsLoaded':
+			return A2(
+				$elm$json$Json$Decode$map,
+				$author$project$Ports$DocumentsLoaded,
+				A2(
+					$elm$json$Json$Decode$field,
+					'data',
+					$elm$json$Json$Decode$list($author$project$Document$documentDecoder)));
+		case 'DocumentLoaded':
+			return A2(
+				$elm$json$Json$Decode$map,
+				$author$project$Ports$DocumentLoaded,
+				A2($elm$json$Json$Decode$field, 'data', $author$project$Document$documentDecoder));
+		case 'ThemeLoaded':
+			return A2(
+				$elm$json$Json$Decode$map,
+				$author$project$Ports$ThemeLoaded,
+				A2($elm$json$Json$Decode$field, 'data', $elm$json$Json$Decode$string));
+		case 'UserNameLoaded':
+			return A2(
+				$elm$json$Json$Decode$map,
+				$author$project$Ports$UserNameLoaded,
+				A2($elm$json$Json$Decode$field, 'data', $elm$json$Json$Decode$string));
+		case 'LastDocumentIdLoaded':
+			return A2(
+				$elm$json$Json$Decode$map,
+				$author$project$Ports$LastDocumentIdLoaded,
+				A2($elm$json$Json$Decode$field, 'data', $elm$json$Json$Decode$string));
+		default:
+			return $elm$json$Json$Decode$fail('Unknown tag: ' + tag);
 	}
 };
-var $elm$json$Json$Decode$value = _Json_decodeValue;
-var $author$project$Ports$sqliteResult = _Platform_incomingPort('sqliteResult', $elm$json$Json$Decode$value);
-var $author$project$Storage$SQLite$subscriptions = function (toMsg) {
-	return $author$project$Ports$sqliteResult(
-		A2($elm$core$Basics$composeR, $author$project$Storage$SQLite$decodeSQLiteResult, toMsg));
+var $author$project$Ports$incomingDecoder = A2(
+	$elm$json$Json$Decode$andThen,
+	$author$project$Ports$decodeByTag,
+	A2($elm$json$Json$Decode$field, 'tag', $elm$json$Json$Decode$string));
+var $author$project$Ports$decodeIncoming = function (value) {
+	return A2($elm$json$Json$Decode$decodeValue, $author$project$Ports$incomingDecoder, value);
 };
-var $author$project$MainSQLite$subscriptions = function (model) {
+var $elm$json$Json$Decode$value = _Json_decodeValue;
+var $author$project$Ports$incoming = _Platform_incomingPort('incoming', $elm$json$Json$Decode$value);
+var $author$project$Ports$receive = function (toMsg) {
+	return $author$project$Ports$incoming(
+		function (value) {
+			return toMsg(
+				$author$project$Ports$decodeIncoming(value));
+		});
+};
+var $ohanhi$keyboard$Keyboard$Down = function (a) {
+	return {$: 'Down', a: a};
+};
+var $ohanhi$keyboard$Keyboard$Up = function (a) {
+	return {$: 'Up', a: a};
+};
+var $ohanhi$keyboard$Keyboard$RawKey = function (a) {
+	return {$: 'RawKey', a: a};
+};
+var $ohanhi$keyboard$Keyboard$eventKeyDecoder = A2(
+	$elm$json$Json$Decode$field,
+	'key',
+	A2($elm$json$Json$Decode$map, $ohanhi$keyboard$Keyboard$RawKey, $elm$json$Json$Decode$string));
+var $elm$browser$Browser$Events$Document = {$: 'Document'};
+var $elm$browser$Browser$Events$onKeyDown = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'keydown');
+var $ohanhi$keyboard$Keyboard$downs = function (toMsg) {
+	return $elm$browser$Browser$Events$onKeyDown(
+		A2($elm$json$Json$Decode$map, toMsg, $ohanhi$keyboard$Keyboard$eventKeyDecoder));
+};
+var $elm$browser$Browser$Events$onKeyUp = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'keyup');
+var $ohanhi$keyboard$Keyboard$ups = function (toMsg) {
+	return $elm$browser$Browser$Events$onKeyUp(
+		A2($elm$json$Json$Decode$map, toMsg, $ohanhi$keyboard$Keyboard$eventKeyDecoder));
+};
+var $ohanhi$keyboard$Keyboard$subscriptions = $elm$core$Platform$Sub$batch(
+	_List_fromArray(
+		[
+			$ohanhi$keyboard$Keyboard$downs($ohanhi$keyboard$Keyboard$Down),
+			$ohanhi$keyboard$Keyboard$ups($ohanhi$keyboard$Keyboard$Up)
+		]));
+var $author$project$MainLocal$subscriptions = function (model) {
 	return $elm$core$Platform$Sub$batch(
 		_List_fromArray(
 			[
 				$elm$browser$Browser$Events$onResize(
 				F2(
 					function (w, h) {
-						return $author$project$MainSQLite$CommonMsg(
+						return $author$project$MainLocal$CommonMsg(
 							A2($author$project$Common$Model$GotNewWindowDimensions, w, h));
 					})),
 				A2(
 				$elm$core$Platform$Sub$map,
-				A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$KeyMsg),
+				A2($elm$core$Basics$composeL, $author$project$MainLocal$CommonMsg, $author$project$Common$Model$KeyMsg),
 				$ohanhi$keyboard$Keyboard$subscriptions),
 				A2(
 				$elm$time$Time$every,
 				30 * 1000,
-				A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$AutoSave)),
+				A2($elm$core$Basics$composeL, $author$project$MainLocal$CommonMsg, $author$project$Common$Model$AutoSave)),
 				A2(
 				$elm$time$Time$every,
 				$author$project$Constants$constants.autoSaveCheckInterval,
-				A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$Tick)),
-				$author$project$Storage$SQLite$subscriptions($author$project$MainSQLite$StorageMsg)
+				A2($elm$core$Basics$composeL, $author$project$MainLocal$CommonMsg, $author$project$Common$Model$Tick)),
+				$author$project$Ports$receive(
+				A2($elm$core$Basics$composeL, $author$project$MainLocal$CommonMsg, $author$project$Common$Model$PortMsgReceived))
 			]));
 };
 var $author$project$Common$Model$CreateNewDocument = {$: 'CreateNewDocument'};
-var $author$project$MainSQLite$FileLoaded = function (a) {
+var $author$project$MainLocal$FileLoaded = function (a) {
 	return {$: 'FileLoaded', a: a};
 };
-var $author$project$MainSQLite$FileSelected = function (a) {
+var $author$project$MainLocal$FileSelected = function (a) {
 	return {$: 'FileSelected', a: a};
 };
 var $author$project$Common$Model$GeneratedId = function (a) {
@@ -23889,20 +23827,13 @@ var $author$project$Common$Model$GeneratedId = function (a) {
 var $author$project$Common$Model$InputText = function (a) {
 	return {$: 'InputText', a: a};
 };
-var $author$project$MainSQLite$LaTeXFileLoaded = function (a) {
-	return {$: 'LaTeXFileLoaded', a: a};
-};
-var $author$project$MainSQLite$LaTeXFileSelected = function (a) {
-	return {$: 'LaTeXFileSelected', a: a};
-};
-var $author$project$Common$Model$LoadContentIntoEditorDelayed = {$: 'LoadContentIntoEditorDelayed'};
 var $author$project$Common$Model$PrintProcessing = {$: 'PrintProcessing'};
 var $author$project$Common$Model$PrintReady = {$: 'PrintReady'};
 var $author$project$Common$Model$Recent = {$: 'Recent'};
 var $author$project$Common$Model$ResetLoadFlag = {$: 'ResetLoadFlag'};
 var $author$project$Common$Model$SaveDocument = {$: 'SaveDocument'};
-var $author$project$Common$Model$SelectId = function (a) {
-	return {$: 'SelectId', a: a};
+var $author$project$Ports$SaveTheme = function (a) {
+	return {$: 'SaveTheme', a: a};
 };
 var $author$project$ScriptaV2$Compiler$SuppressDocumentBlocks = {$: 'SuppressDocumentBlocks'};
 var $author$project$Generic$ASTTools$changeName = F3(
@@ -51639,7 +51570,6 @@ var $author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput = 
 			toc: toc
 		};
 	});
-var $elm$core$String$endsWith = _String_endsWith;
 var $author$project$Generic$ASTTools$expressionNames = function (forest) {
 	return $elm$core$List$sort(
 		$elm_community$list_extra$List$Extra$unique(
@@ -54512,7 +54442,7 @@ var $elm$random$Random$int = F2(
 				}
 			});
 	});
-var $author$project$MainSQLite$generateId = A2(
+var $author$project$MainLocal$generateId = A2(
 	$elm$random$Random$map,
 	function (n) {
 		return 'doc-' + $elm$core$String$fromInt(n);
@@ -54572,206 +54502,123 @@ var $author$project$Theme$mapTheme = function (theme) {
 	}
 };
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$MainSQLite$handleStorageMsg = F2(
+var $author$project$MainLocal$handleIncomingPortMsg = F2(
 	function (msg, model) {
 		var common = model.common;
 		switch (msg.$) {
-			case 'DocumentsListed':
-				if (msg.a.$ === 'Ok') {
-					var docs = msg.a.a;
-					return $elm$core$List$isEmpty(docs) ? _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								common: _Utils_update(
-									common,
-									{documents: docs})
-							}),
-						A2(
-							$elm$random$Random$generate,
-							A2(
-								$elm$core$Basics$composeL,
-								$author$project$MainSQLite$CommonMsg,
-								A4(
-									$author$project$Common$Model$InitialDocumentId,
-									$elm$core$String$trim($author$project$AppData$defaultDocumentText),
-									'Announcement',
-									common.currentTime,
-									common.theme)),
-							$author$project$MainSQLite$generateId)) : _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								common: _Utils_update(
-									common,
-									{documents: docs})
-							}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var error = msg.a.a;
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'DocumentLoaded':
-				if (msg.a.$ === 'Ok') {
-					var doc = msg.a.a;
-					var editRecord = A3($author$project$ScriptaV2$DifferentialCompiler$init, $elm$core$Dict$empty, common.currentLanguage, doc.content);
-					var compilerOutput = A4(
-						$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
-						$author$project$Theme$mapTheme(common.theme),
-						$author$project$ScriptaV2$Compiler$SuppressDocumentBlocks,
-						common.displaySettings,
-						editRecord);
-					var newCommon = _Utils_update(
-						common,
+			case 'DocumentsLoaded':
+				var docs = msg.a;
+				return $elm$core$List$isEmpty(docs) ? _Utils_Tuple2(
+					_Utils_update(
+						model,
 						{
-							compilerOutput: compilerOutput,
-							currentDocument: $elm$core$Maybe$Just(doc),
-							editRecord: editRecord,
-							initialText: doc.content,
-							lastLoadedDocumentId: $elm$core$Maybe$Just(doc.id),
-							loadDocumentIntoEditor: true,
-							pdfLink: '',
-							printingState: $author$project$Common$Model$PrintWaiting,
-							sourceText: doc.content,
-							title: doc.title
-						});
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{common: newCommon}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var error = msg.a.a;
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'DocumentSaved':
-				if (msg.a.$ === 'Ok') {
-					var doc = msg.a.a;
-					var updatedDocs = A2(
-						$elm$core$List$cons,
-						doc,
+							common: _Utils_update(
+								common,
+								{documents: docs})
+						}),
+					A2(
+						$elm$random$Random$generate,
 						A2(
-							$elm$core$List$filter,
-							function (d) {
-								return !_Utils_eq(d.id, doc.id);
-							},
-							common.documents));
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								common: _Utils_update(
-									common,
-									{documents: updatedDocs})
-							}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var error = msg.a.a;
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'DocumentDeleted':
-				if (msg.a.$ === 'Ok') {
-					var id = msg.a.a;
-					var updatedDocs = A2(
-						$elm$core$List$filter,
-						function (d) {
-							return !_Utils_eq(d.id, id);
-						},
-						common.documents);
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								common: _Utils_update(
-									common,
-									{documents: updatedDocs})
-							}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var error = msg.a.a;
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'UserNameLoaded':
-				if (msg.a.$ === 'Ok') {
-					var maybeName = msg.a.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								common: _Utils_update(
-									common,
-									{userName: maybeName})
-							}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var error = msg.a.a;
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'UserNameSaved':
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-			case 'LastDocumentIdLoaded':
-				if (msg.a.$ === 'Ok') {
-					var maybeId = msg.a.a;
-					var newCommon = _Utils_update(
-						common,
-						{lastSavedDocumentId: maybeId});
-					if (maybeId.$ === 'Just') {
-						var id = maybeId.a;
-						return _Utils_Tuple2(
-							_Utils_update(
-								model,
-								{common: newCommon}),
-							A2(
-								$elm$core$Task$perform,
-								$elm$core$Basics$always(
-									$author$project$MainSQLite$CommonMsg(
-										$author$project$Common$Model$LoadDocument(id))),
-								$elm$core$Process$sleep(1000)));
-					} else {
-						return _Utils_Tuple2(
-							_Utils_update(
-								model,
-								{common: newCommon}),
-							$elm$core$Platform$Cmd$none);
-					}
-				} else {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'LastDocumentIdSaved':
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-			case 'StorageInitialized':
-				if (msg.a.$ === 'Ok') {
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								storageState: {dbReady: true, initialized: true}
-							}),
-						$elm$core$Platform$Cmd$batch(
-							_List_fromArray(
-								[
-									$author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg).listDocuments,
-									$author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg).loadLastDocumentId
-								])));
-				} else {
-					var error = msg.a.a;
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'FileOpened':
-				var content = msg.a;
+							$elm$core$Basics$composeL,
+							$author$project$MainLocal$CommonMsg,
+							A4($author$project$Common$Model$InitialDocumentId, $author$project$AppData$defaultDocumentText, 'Announcement', common.currentTime, common.theme)),
+						$author$project$MainLocal$generateId)) : _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							common: _Utils_update(
+								common,
+								{documents: docs})
+						}),
+					$elm$core$Platform$Cmd$none);
+			case 'DocumentLoaded':
+				var doc = msg.a;
+				var editRecord = A3($author$project$ScriptaV2$DifferentialCompiler$init, $elm$core$Dict$empty, common.currentLanguage, doc.content);
+				var compilerOutput = A4(
+					$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
+					$author$project$Theme$mapTheme(common.theme),
+					$author$project$ScriptaV2$Compiler$SuppressDocumentBlocks,
+					common.displaySettings,
+					editRecord);
 				var newCommon = _Utils_update(
 					common,
-					{sourceText: content});
+					{
+						compilerOutput: compilerOutput,
+						currentDocument: $elm$core$Maybe$Just(doc),
+						editRecord: editRecord,
+						initialText: doc.content,
+						lastLoadedDocumentId: $elm$core$Maybe$Just(doc.id),
+						loadDocumentIntoEditor: true,
+						pdfLink: '',
+						printingState: $author$project$Common$Model$PrintWaiting,
+						sourceText: doc.content,
+						title: doc.title
+					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{common: newCommon}),
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$always(
+							$author$project$MainLocal$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
+						$elm$core$Process$sleep(500)));
+			case 'ThemeLoaded':
+				var themeStr = msg.a;
+				var theme = function () {
+					if (themeStr === 'dark') {
+						return $author$project$Theme$Dark;
+					} else {
+						return $author$project$Theme$Light;
+					}
+				}();
+				var newCommon = _Utils_update(
+					common,
+					{theme: theme});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{common: newCommon}),
 					$elm$core$Platform$Cmd$none);
-			case 'FileSaved':
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+			case 'UserNameLoaded':
+				var name = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							common: _Utils_update(
+								common,
+								{
+									userName: $elm$core$Maybe$Just(name)
+								})
+						}),
+					$elm$core$Platform$Cmd$none);
 			default:
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				var id = msg.a;
+				var newCommon = _Utils_update(
+					common,
+					{
+						lastSavedDocumentId: $elm$core$Maybe$Just(id)
+					});
+				return (id !== '') ? _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{common: newCommon}),
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$always(
+							$author$project$MainLocal$CommonMsg(
+								$author$project$Common$Model$LoadDocument(id))),
+						$elm$core$Process$sleep(1000))) : _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{common: newCommon}),
+					$elm$core$Platform$Cmd$none);
 		}
+	});
+var $author$project$MainLocal$handleStorageMsg = F2(
+	function (msg, model) {
+		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
 var $author$project$Common$Model$NoOp = {$: 'NoOp'};
 var $elm$core$Task$onError = _Scheduler_onError;
@@ -54816,11 +54663,11 @@ var $elm$core$Task$map3 = F4(
 			taskA);
 	});
 var $elm$browser$Browser$Dom$setViewportOf = _Browser_setViewportOf;
-var $author$project$MainSQLite$jumpToId = function (id) {
-	return $elm$core$String$isEmpty(id) ? $elm$core$Platform$Cmd$none : A2(
+var $author$project$MainLocal$jumpToId = function (id) {
+	return A2(
 		$elm$core$Task$attempt,
 		function (_v1) {
-			return $author$project$MainSQLite$CommonMsg($author$project$Common$Model$NoOp);
+			return $author$project$MainLocal$CommonMsg($author$project$Common$Model$NoOp);
 		},
 		A2(
 			$elm$core$Task$andThen,
@@ -54829,14 +54676,11 @@ var $author$project$MainSQLite$jumpToId = function (id) {
 				var containerEl = _v0.b;
 				var viewport = _v0.c;
 				var viewportHeight = viewport.viewport.height;
-				var targetPageY = targetEl.element.y;
-				var elementHeight = targetEl.element.height;
-				var containerPageY = containerEl.element.y;
-				var relativeY = targetPageY - containerPageY;
-				var absoluteY = relativeY + viewport.viewport.y;
-				var scrollY = (absoluteY - (viewportHeight / 2)) + (elementHeight / 2);
-				var finalScrollY = A2($elm$core$Basics$max, 0, scrollY);
-				return A3($elm$browser$Browser$Dom$setViewportOf, 'rendered-text-container', 0, finalScrollY);
+				var targetRelativeY = targetEl.element.y - containerEl.element.y;
+				var targetHeight = targetEl.element.height;
+				var centeredY = (targetRelativeY - (viewportHeight / 2)) + (targetHeight / 2);
+				var scrollY = A2($elm$core$Basics$max, 0, centeredY);
+				return A3($elm$browser$Browser$Dom$setViewportOf, 'rendered-text-container', 0, scrollY);
 			},
 			A4(
 				$elm$core$Task$map3,
@@ -54862,7 +54706,6 @@ var $author$project$Generic$ASTTools$matchingIdsInAST = F2(
 				A2($elm$core$List$map, $author$project$Library$Tree$flatten, ast)));
 	});
 var $author$project$ScriptaV2$Helper$matchingIdsInAST = $author$project$Generic$ASTTools$matchingIdsInAST;
-var $elm$file$File$name = _File_name;
 var $author$project$Document$newDocument = F6(
 	function (id, title, author, content, theme, now) {
 		return {author: author, content: content, createdAt: now, id: id, modifiedAt: now, theme: theme, title: title};
@@ -55364,1412 +55207,6 @@ var $elm$file$File$Download$string = F3(
 			A3(_File_download, name, mime, content));
 	});
 var $elm$file$File$toString = _File_toString;
-var $author$project$Render$Export$LaTeXToScripta2$convertVerbatimBacktick = function (input) {
-	var verbPattern = A2(
-		$elm$core$Maybe$withDefault,
-		$elm$regex$Regex$never,
-		$elm$regex$Regex$fromString('verb`([^`]*)`'));
-	var replacer = function (match) {
-		var _v0 = match.submatches;
-		if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
-			var content = _v0.a.a;
-			return '`' + (content + '`');
-		} else {
-			return match.match;
-		}
-	};
-	return A3($elm$regex$Regex$replace, verbPattern, replacer, input);
-};
-var $author$project$Render$Export$LaTeXToScripta2$formatMacroDefinition = function (_v0) {
-	var name = _v0.a;
-	var body = _v0.b;
-	return name + (': ' + body);
-};
-var $author$project$Render$Export$LaTeXToScripta2$isAlphaNum = function (str) {
-	var _v0 = $elm$core$String$uncons(str);
-	if (_v0.$ === 'Just') {
-		var _v1 = _v0.a;
-		var _char = _v1.a;
-		return $elm$core$Char$isAlphaNum(_char);
-	} else {
-		return false;
-	}
-};
-var $author$project$Render$Export$LaTeXToScripta2$intelligentJoin = function (tokens) {
-	if (!tokens.b) {
-		return '';
-	} else {
-		if (!tokens.b.b) {
-			var single = tokens.a;
-			return single;
-		} else {
-			var first = tokens.a;
-			var _v1 = tokens.b;
-			var second = _v1.a;
-			var rest = _v1.b;
-			var needsSpace = $author$project$Render$Export$LaTeXToScripta2$isAlphaNum(
-				A2($elm$core$String$right, 1, first)) && $author$project$Render$Export$LaTeXToScripta2$isAlphaNum(
-				A2($elm$core$String$left, 1, second));
-			var separator = needsSpace ? ' ' : '';
-			return _Utils_ap(
-				first,
-				_Utils_ap(
-					separator,
-					$author$project$Render$Export$LaTeXToScripta2$intelligentJoin(
-						A2($elm$core$List$cons, second, rest))));
-		}
-	}
-};
-var $author$project$Render$Export$LaTeXToScripta2$decoToString = F2(
-	function (newMacroNames, deco) {
-		if (deco.$ === 'DecoM') {
-			var expr = deco.a;
-			var content = A2($author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, newMacroNames, expr);
-			return A2($elm$core$String$startsWith, '\"', content) ? content : ((($elm$core$String$length(content) > 1) || A2($elm$core$String$contains, ' ', content)) ? ('{' + (content + '}')) : content);
-		} else {
-			var n = deco.a;
-			var nStr = $elm$core$String$fromInt(n);
-			return ($elm$core$String$length(nStr) > 1) ? ('{' + (nStr + '}')) : nStr;
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = F2(
-	function (newMacroNames, expr) {
-		switch (expr.$) {
-			case 'AlphaNum':
-				var str = expr.a;
-				return str;
-			case 'MacroName':
-				var str = expr.a;
-				return $author$project$ETeX$KaTeX$isKaTeX(str) ? str : ('\\' + str);
-			case 'FunctionName':
-				var str = expr.a;
-				return str;
-			case 'Arg':
-				var exprs = expr.a;
-				return $author$project$Render$Export$LaTeXToScripta2$intelligentJoin(
-					A2(
-						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
-						exprs));
-			case 'Param':
-				var n = expr.a;
-				return '#' + $elm$core$String$fromInt(n);
-			case 'WS':
-				return ' ';
-			case 'MathSpace':
-				return ' ';
-			case 'MathSmallSpace':
-				return ' ';
-			case 'MathMediumSpace':
-				return ' ';
-			case 'LeftMathBrace':
-				return '\\{';
-			case 'RightMathBrace':
-				return '\\}';
-			case 'MathSymbols':
-				var str = expr.a;
-				return str;
-			case 'Macro':
-				var name = expr.a;
-				var args = expr.b;
-				if ($elm$core$List$isEmpty(args)) {
-					return $author$project$ETeX$KaTeX$isKaTeX(name) ? name : ('\\' + name);
-				} else {
-					if (name === 'text') {
-						if ((args.b && (args.a.$ === 'Arg')) && (!args.b.b)) {
-							var content = args.a.a;
-							return '\"' + (A2(
-								$elm$core$String$join,
-								'',
-								A2(
-									$elm$core$List$map,
-									$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
-									content)) + '\"');
-						} else {
-							return '\\' + (name + A2(
-								$elm$core$String$join,
-								'',
-								A2(
-									$elm$core$List$map,
-									$author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg(newMacroNames),
-									args)));
-						}
-					} else {
-						return ($author$project$ETeX$KaTeX$isKaTeX(name) || A2($elm$core$List$member, name, newMacroNames)) ? (name + ('(' + (A2(
-							$elm$core$String$join,
-							', ',
-							A2(
-								$elm$core$List$map,
-								$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
-								args)) + ')'))) : ('\\' + (name + A2(
-							$elm$core$String$join,
-							'',
-							A2(
-								$elm$core$List$map,
-								A2(
-									$elm$core$Basics$composeR,
-									$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
-									function (x) {
-										return '{' + (x + '}');
-									}),
-								args))));
-					}
-				}
-			case 'Expr':
-				var exprs = expr.a;
-				return A2(
-					$elm$core$String$join,
-					'',
-					A2(
-						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
-						exprs));
-			case 'Comma':
-				return ',';
-			case 'LeftParen':
-				return '(';
-			case 'RightParen':
-				return ')';
-			case 'Sub':
-				var deco = expr.a;
-				return '_' + A2($author$project$Render$Export$LaTeXToScripta2$decoToString, newMacroNames, deco);
-			default:
-				var deco = expr.a;
-				return '^' + A2($author$project$Render$Export$LaTeXToScripta2$decoToString, newMacroNames, deco);
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg = F2(
-	function (newMacroNames, expr) {
-		if (expr.$ === 'Arg') {
-			var exprs = expr.a;
-			return '{' + (A2(
-				$elm$core$String$join,
-				'',
-				A2(
-					$elm$core$List$map,
-					$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
-					exprs)) + '}');
-		} else {
-			return A2($author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, newMacroNames, expr);
-		}
-	});
-var $author$project$ETeX$MathMacros$ExpectingLeftBrace = {$: 'ExpectingLeftBrace'};
-var $author$project$ETeX$MathMacros$ExpectingNewCommand = {$: 'ExpectingNewCommand'};
-var $author$project$ETeX$MathMacros$ExpectingRightBrace = {$: 'ExpectingRightBrace'};
-var $author$project$ETeX$MathMacros$ExpectingBackslash = {$: 'ExpectingBackslash'};
-var $author$project$ETeX$MathMacros$ExpectingAlpha = {$: 'ExpectingAlpha'};
-var $author$project$ETeX$MathMacros$alphaNumParser_ = A2(
-	$elm$parser$Parser$Advanced$keeper,
-	A2(
-		$elm$parser$Parser$Advanced$keeper,
-		A2(
-			$elm$parser$Parser$Advanced$keeper,
-			$elm$parser$Parser$Advanced$succeed($elm$core$String$slice),
-			A2(
-				$elm$parser$Parser$Advanced$ignorer,
-				A2(
-					$elm$parser$Parser$Advanced$ignorer,
-					$elm$parser$Parser$Advanced$getOffset,
-					A2($elm$parser$Parser$Advanced$chompIf, $elm$core$Char$isAlpha, $author$project$ETeX$MathMacros$ExpectingAlpha)),
-				$elm$parser$Parser$Advanced$chompWhile($elm$core$Char$isAlphaNum))),
-		$elm$parser$Parser$Advanced$getOffset),
-	$elm$parser$Parser$Advanced$getSource);
-var $author$project$ETeX$MathMacros$second = F2(
-	function (p, q) {
-		return A2(
-			$elm$parser$Parser$Advanced$andThen,
-			function (_v0) {
-				return q;
-			},
-			p);
-	});
-var $author$project$ETeX$MathMacros$f0Parser = A2(
-	$elm$parser$Parser$Advanced$map,
-	$author$project$ETeX$MathMacros$MacroName,
-	A2(
-		$author$project$ETeX$MathMacros$second,
-		$elm$parser$Parser$Advanced$symbol(
-			A2($elm$parser$Parser$Advanced$Token, '\\', $author$project$ETeX$MathMacros$ExpectingBackslash)),
-		$author$project$ETeX$MathMacros$alphaNumParser_));
-var $author$project$ETeX$MathMacros$manyHelp = F2(
-	function (p, vs) {
-		return $elm$parser$Parser$Advanced$oneOf(
-			_List_fromArray(
-				[
-					A2(
-					$elm$parser$Parser$Advanced$keeper,
-					$elm$parser$Parser$Advanced$succeed(
-						function (v) {
-							return $elm$parser$Parser$Advanced$Loop(
-								A2($elm$core$List$cons, v, vs));
-						}),
-					p),
-					A2(
-					$elm$parser$Parser$Advanced$map,
-					function (_v0) {
-						return $elm$parser$Parser$Advanced$Done(
-							$elm$core$List$reverse(vs));
-					},
-					$elm$parser$Parser$Advanced$succeed(_Utils_Tuple0))
-				]));
-	});
-var $author$project$ETeX$MathMacros$many = function (p) {
-	return A2(
-		$elm$parser$Parser$Advanced$loop,
-		_List_Nil,
-		$author$project$ETeX$MathMacros$manyHelp(p));
-};
-var $author$project$ETeX$MathMacros$ExpectingCaret = {$: 'ExpectingCaret'};
-var $author$project$ETeX$MathMacros$ExpectingLeftParen = {$: 'ExpectingLeftParen'};
-var $author$project$ETeX$MathMacros$ExpectingRightParen = {$: 'ExpectingRightParen'};
-var $author$project$ETeX$MathMacros$ExpectingUnderscore = {$: 'ExpectingUnderscore'};
-var $author$project$ETeX$MathMacros$alphaNumParser = A2($elm$parser$Parser$Advanced$map, $author$project$ETeX$MathMacros$AlphaNum, $author$project$ETeX$MathMacros$alphaNumParser_);
-var $author$project$ETeX$MathMacros$ExpectingComma = {$: 'ExpectingComma'};
-var $author$project$ETeX$MathMacros$commaParser = A2(
-	$elm$parser$Parser$Advanced$ignorer,
-	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$Comma),
-	$elm$parser$Parser$Advanced$symbol(
-		A2($elm$parser$Parser$Advanced$Token, ',', $author$project$ETeX$MathMacros$ExpectingComma)));
-var $author$project$ETeX$MathMacros$ExpectingLeftMathBrace = {$: 'ExpectingLeftMathBrace'};
-var $author$project$ETeX$MathMacros$leftBraceParser = A2(
-	$elm$parser$Parser$Advanced$ignorer,
-	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$LeftMathBrace),
-	$elm$parser$Parser$Advanced$symbol(
-		A2($elm$parser$Parser$Advanced$Token, '\\{', $author$project$ETeX$MathMacros$ExpectingLeftMathBrace)));
-var $author$project$ETeX$MathMacros$leftParenParser = A2(
-	$elm$parser$Parser$Advanced$ignorer,
-	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$LeftParen),
-	$elm$parser$Parser$Advanced$symbol(
-		A2($elm$parser$Parser$Advanced$Token, '(', $author$project$ETeX$MathMacros$ExpectingLeftParen)));
-var $author$project$ETeX$MathMacros$ExpectingMathMediumSpace = {$: 'ExpectingMathMediumSpace'};
-var $author$project$ETeX$MathMacros$mathMediumSpaceParser = A2(
-	$elm$parser$Parser$Advanced$ignorer,
-	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$MathMediumSpace),
-	$elm$parser$Parser$Advanced$symbol(
-		A2($elm$parser$Parser$Advanced$Token, '\\;', $author$project$ETeX$MathMacros$ExpectingMathMediumSpace)));
-var $author$project$ETeX$MathMacros$ExpectingMathSmallSpace = {$: 'ExpectingMathSmallSpace'};
-var $author$project$ETeX$MathMacros$mathSmallSpaceParser = A2(
-	$elm$parser$Parser$Advanced$ignorer,
-	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$MathSmallSpace),
-	$elm$parser$Parser$Advanced$symbol(
-		A2($elm$parser$Parser$Advanced$Token, '\\,', $author$project$ETeX$MathMacros$ExpectingMathSmallSpace)));
-var $author$project$ETeX$MathMacros$ExpectingMathSpace = {$: 'ExpectingMathSpace'};
-var $author$project$ETeX$MathMacros$mathSpaceParser = A2(
-	$elm$parser$Parser$Advanced$ignorer,
-	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$MathSpace),
-	$elm$parser$Parser$Advanced$symbol(
-		A2($elm$parser$Parser$Advanced$Token, '\\ ', $author$project$ETeX$MathMacros$ExpectingMathSpace)));
-var $author$project$ETeX$MathMacros$ExpectingNotAlpha = {$: 'ExpectingNotAlpha'};
-var $author$project$ETeX$MathMacros$mathSymbolsParser = A2(
-	$elm$parser$Parser$Advanced$map,
-	$author$project$ETeX$MathMacros$MathSymbols,
-	A2(
-		$elm$parser$Parser$Advanced$keeper,
-		A2(
-			$elm$parser$Parser$Advanced$keeper,
-			A2(
-				$elm$parser$Parser$Advanced$keeper,
-				$elm$parser$Parser$Advanced$succeed($elm$core$String$slice),
-				A2(
-					$elm$parser$Parser$Advanced$ignorer,
-					A2(
-						$elm$parser$Parser$Advanced$ignorer,
-						$elm$parser$Parser$Advanced$getOffset,
-						A2(
-							$elm$parser$Parser$Advanced$chompIf,
-							function (c) {
-								return (!$elm$core$Char$isAlpha(c)) && (!A2(
-									$elm$core$List$member,
-									c,
-									_List_fromArray(
-										[
-											_Utils_chr('_'),
-											_Utils_chr('^'),
-											_Utils_chr('#'),
-											_Utils_chr('\\'),
-											_Utils_chr('{'),
-											_Utils_chr('}'),
-											_Utils_chr('('),
-											_Utils_chr(')'),
-											_Utils_chr(',')
-										])));
-							},
-							$author$project$ETeX$MathMacros$ExpectingNotAlpha)),
-					$elm$parser$Parser$Advanced$chompWhile(
-						function (c) {
-							return (!$elm$core$Char$isAlpha(c)) && (!A2(
-								$elm$core$List$member,
-								c,
-								_List_fromArray(
-									[
-										_Utils_chr('_'),
-										_Utils_chr('^'),
-										_Utils_chr('#'),
-										_Utils_chr('\\'),
-										_Utils_chr('{'),
-										_Utils_chr('}'),
-										_Utils_chr('('),
-										_Utils_chr(')'),
-										_Utils_chr(',')
-									])));
-						}))),
-			$elm$parser$Parser$Advanced$getOffset),
-		$elm$parser$Parser$Advanced$getSource));
-var $author$project$ETeX$MathMacros$ExpectingInt = {$: 'ExpectingInt'};
-var $author$project$ETeX$MathMacros$InvalidNumber = {$: 'InvalidNumber'};
-var $author$project$ETeX$MathMacros$numericDecoParser = A2(
-	$elm$parser$Parser$Advanced$map,
-	$author$project$ETeX$MathMacros$DecoI,
-	A2($elm$parser$Parser$Advanced$int, $author$project$ETeX$MathMacros$ExpectingInt, $author$project$ETeX$MathMacros$InvalidNumber));
-var $author$project$ETeX$MathMacros$ExpectingHash = {$: 'ExpectingHash'};
-var $author$project$ETeX$MathMacros$paramParser = A2(
-	$elm$parser$Parser$Advanced$map,
-	$author$project$ETeX$MathMacros$Param,
-	A2(
-		$elm$parser$Parser$Advanced$keeper,
-		A2(
-			$elm$parser$Parser$Advanced$ignorer,
-			$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
-			$elm$parser$Parser$Advanced$symbol(
-				A2($elm$parser$Parser$Advanced$Token, '#', $author$project$ETeX$MathMacros$ExpectingHash))),
-		A2($elm$parser$Parser$Advanced$int, $author$project$ETeX$MathMacros$ExpectingInt, $author$project$ETeX$MathMacros$InvalidNumber)));
-var $author$project$ETeX$MathMacros$ExpectingRightMathBrace = {$: 'ExpectingRightMathBrace'};
-var $author$project$ETeX$MathMacros$rightBraceParser = A2(
-	$elm$parser$Parser$Advanced$ignorer,
-	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$RightMathBrace),
-	$elm$parser$Parser$Advanced$symbol(
-		A2($elm$parser$Parser$Advanced$Token, '\\}', $author$project$ETeX$MathMacros$ExpectingRightMathBrace)));
-var $author$project$ETeX$MathMacros$rightParenParser = A2(
-	$elm$parser$Parser$Advanced$ignorer,
-	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$RightParen),
-	$elm$parser$Parser$Advanced$symbol(
-		A2($elm$parser$Parser$Advanced$Token, ')', $author$project$ETeX$MathMacros$ExpectingRightParen)));
-var $author$project$ETeX$MathMacros$ExpectingSpace = {$: 'ExpectingSpace'};
-var $author$project$ETeX$MathMacros$whitespaceParser = A2(
-	$elm$parser$Parser$Advanced$map,
-	function (_v0) {
-		return $author$project$ETeX$MathMacros$WS;
-	},
-	$elm$parser$Parser$Advanced$symbol(
-		A2($elm$parser$Parser$Advanced$Token, ' ', $author$project$ETeX$MathMacros$ExpectingSpace)));
-function $author$project$ETeX$MathMacros$cyclic$mathExprParser() {
-	return $elm$parser$Parser$Advanced$oneOf(
-		_List_fromArray(
-			[
-				$author$project$ETeX$MathMacros$mathMediumSpaceParser,
-				$author$project$ETeX$MathMacros$mathSmallSpaceParser,
-				$author$project$ETeX$MathMacros$mathSpaceParser,
-				$author$project$ETeX$MathMacros$leftBraceParser,
-				$author$project$ETeX$MathMacros$rightBraceParser,
-				$author$project$ETeX$MathMacros$leftParenParser,
-				$author$project$ETeX$MathMacros$rightParenParser,
-				$author$project$ETeX$MathMacros$commaParser,
-				$author$project$ETeX$MathMacros$cyclic$macroParser(),
-				$author$project$ETeX$MathMacros$mathSymbolsParser,
-				$elm$parser$Parser$Advanced$lazy(
-				function (_v3) {
-					return $author$project$ETeX$MathMacros$cyclic$argParser();
-				}),
-				$elm$parser$Parser$Advanced$lazy(
-				function (_v4) {
-					return $author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser();
-				}),
-				$author$project$ETeX$MathMacros$paramParser,
-				$author$project$ETeX$MathMacros$whitespaceParser,
-				$author$project$ETeX$MathMacros$alphaNumParser,
-				$author$project$ETeX$MathMacros$f0Parser,
-				$author$project$ETeX$MathMacros$cyclic$subscriptParser(),
-				$author$project$ETeX$MathMacros$cyclic$superscriptParser()
-			]));
-}
-function $author$project$ETeX$MathMacros$cyclic$macroParser() {
-	return A2(
-		$elm$parser$Parser$Advanced$keeper,
-		A2(
-			$elm$parser$Parser$Advanced$keeper,
-			A2(
-				$elm$parser$Parser$Advanced$ignorer,
-				$elm$parser$Parser$Advanced$succeed($author$project$ETeX$MathMacros$Macro),
-				$elm$parser$Parser$Advanced$symbol(
-					A2($elm$parser$Parser$Advanced$Token, '\\', $author$project$ETeX$MathMacros$ExpectingBackslash))),
-			$author$project$ETeX$MathMacros$alphaNumParser_),
-		$author$project$ETeX$MathMacros$many(
-			$author$project$ETeX$MathMacros$cyclic$argParser()));
-}
-function $author$project$ETeX$MathMacros$cyclic$argParser() {
-	return A2(
-		$elm$parser$Parser$Advanced$map,
-		$author$project$ETeX$MathMacros$Arg,
-		A2(
-			$elm$parser$Parser$Advanced$ignorer,
-			A2(
-				$elm$parser$Parser$Advanced$keeper,
-				A2(
-					$elm$parser$Parser$Advanced$ignorer,
-					$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
-					$elm$parser$Parser$Advanced$symbol(
-						A2($elm$parser$Parser$Advanced$Token, '{', $author$project$ETeX$MathMacros$ExpectingLeftBrace))),
-				$elm$parser$Parser$Advanced$lazy(
-					function (_v2) {
-						return $author$project$ETeX$MathMacros$many(
-							$author$project$ETeX$MathMacros$cyclic$mathExprParser());
-					})),
-			$elm$parser$Parser$Advanced$symbol(
-				A2($elm$parser$Parser$Advanced$Token, '}', $author$project$ETeX$MathMacros$ExpectingRightBrace))));
-}
-function $author$project$ETeX$MathMacros$cyclic$superscriptParser() {
-	return A2(
-		$elm$parser$Parser$Advanced$map,
-		$author$project$ETeX$MathMacros$Super,
-		A2(
-			$elm$parser$Parser$Advanced$keeper,
-			A2(
-				$elm$parser$Parser$Advanced$ignorer,
-				$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
-				$elm$parser$Parser$Advanced$symbol(
-					A2($elm$parser$Parser$Advanced$Token, '^', $author$project$ETeX$MathMacros$ExpectingCaret))),
-			$author$project$ETeX$MathMacros$cyclic$decoParser()));
-}
-function $author$project$ETeX$MathMacros$cyclic$subscriptParser() {
-	return A2(
-		$elm$parser$Parser$Advanced$map,
-		$author$project$ETeX$MathMacros$Sub,
-		A2(
-			$elm$parser$Parser$Advanced$keeper,
-			A2(
-				$elm$parser$Parser$Advanced$ignorer,
-				$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
-				$elm$parser$Parser$Advanced$symbol(
-					A2($elm$parser$Parser$Advanced$Token, '_', $author$project$ETeX$MathMacros$ExpectingUnderscore))),
-			$author$project$ETeX$MathMacros$cyclic$decoParser()));
-}
-function $author$project$ETeX$MathMacros$cyclic$decoParser() {
-	return $elm$parser$Parser$Advanced$oneOf(
-		_List_fromArray(
-			[
-				$author$project$ETeX$MathMacros$numericDecoParser,
-				A2(
-				$elm$parser$Parser$Advanced$map,
-				$author$project$ETeX$MathMacros$DecoM,
-				$elm$parser$Parser$Advanced$lazy(
-					function (_v1) {
-						return $author$project$ETeX$MathMacros$cyclic$mathExprParser();
-					}))
-			]));
-}
-function $author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser() {
-	return A2(
-		$elm$parser$Parser$Advanced$map,
-		$author$project$ETeX$MathMacros$Arg,
-		A2(
-			$elm$parser$Parser$Advanced$ignorer,
-			A2(
-				$elm$parser$Parser$Advanced$keeper,
-				A2(
-					$elm$parser$Parser$Advanced$ignorer,
-					$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
-					$elm$parser$Parser$Advanced$symbol(
-						A2($elm$parser$Parser$Advanced$Token, '(', $author$project$ETeX$MathMacros$ExpectingLeftParen))),
-				$elm$parser$Parser$Advanced$lazy(
-					function (_v0) {
-						return $author$project$ETeX$MathMacros$many(
-							$author$project$ETeX$MathMacros$cyclic$mathExprParser());
-					})),
-			$elm$parser$Parser$Advanced$symbol(
-				A2($elm$parser$Parser$Advanced$Token, ')', $author$project$ETeX$MathMacros$ExpectingRightParen))));
-}
-try {
-	var $author$project$ETeX$MathMacros$mathExprParser = $author$project$ETeX$MathMacros$cyclic$mathExprParser();
-	$author$project$ETeX$MathMacros$cyclic$mathExprParser = function () {
-		return $author$project$ETeX$MathMacros$mathExprParser;
-	};
-	var $author$project$ETeX$MathMacros$macroParser = $author$project$ETeX$MathMacros$cyclic$macroParser();
-	$author$project$ETeX$MathMacros$cyclic$macroParser = function () {
-		return $author$project$ETeX$MathMacros$macroParser;
-	};
-	var $author$project$ETeX$MathMacros$argParser = $author$project$ETeX$MathMacros$cyclic$argParser();
-	$author$project$ETeX$MathMacros$cyclic$argParser = function () {
-		return $author$project$ETeX$MathMacros$argParser;
-	};
-	var $author$project$ETeX$MathMacros$superscriptParser = $author$project$ETeX$MathMacros$cyclic$superscriptParser();
-	$author$project$ETeX$MathMacros$cyclic$superscriptParser = function () {
-		return $author$project$ETeX$MathMacros$superscriptParser;
-	};
-	var $author$project$ETeX$MathMacros$subscriptParser = $author$project$ETeX$MathMacros$cyclic$subscriptParser();
-	$author$project$ETeX$MathMacros$cyclic$subscriptParser = function () {
-		return $author$project$ETeX$MathMacros$subscriptParser;
-	};
-	var $author$project$ETeX$MathMacros$decoParser = $author$project$ETeX$MathMacros$cyclic$decoParser();
-	$author$project$ETeX$MathMacros$cyclic$decoParser = function () {
-		return $author$project$ETeX$MathMacros$decoParser;
-	};
-	var $author$project$ETeX$MathMacros$parenthesizedGroupParser = $author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser();
-	$author$project$ETeX$MathMacros$cyclic$parenthesizedGroupParser = function () {
-		return $author$project$ETeX$MathMacros$parenthesizedGroupParser;
-	};
-} catch ($) {
-	throw 'Some top-level definitions from `ETeX.MathMacros` are causing infinite recursion:\n\n  ┌─────┐\n  │    mathExprParser\n  │     ↓\n  │    macroParser\n  │     ↓\n  │    argParser\n  │     ↓\n  │    superscriptParser\n  │     ↓\n  │    subscriptParser\n  │     ↓\n  │    decoParser\n  │     ↓\n  │    parenthesizedGroupParser\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.1/bad-recursion to learn how to fix it!';}
-var $author$project$ETeX$MathMacros$ExpectingLeftBracket = {$: 'ExpectingLeftBracket'};
-var $author$project$ETeX$MathMacros$ExpectingRightBracket = {$: 'ExpectingRightBracket'};
-var $author$project$ETeX$MathMacros$optionalParamParser = A2(
-	$elm$parser$Parser$Advanced$keeper,
-	A2(
-		$elm$parser$Parser$Advanced$ignorer,
-		$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
-		$elm$parser$Parser$Advanced$symbol(
-			A2($elm$parser$Parser$Advanced$Token, '[', $author$project$ETeX$MathMacros$ExpectingLeftBracket))),
-	A2(
-		$elm$parser$Parser$Advanced$ignorer,
-		A2($elm$parser$Parser$Advanced$int, $author$project$ETeX$MathMacros$ExpectingInt, $author$project$ETeX$MathMacros$InvalidNumber),
-		$elm$parser$Parser$Advanced$symbol(
-			A2($elm$parser$Parser$Advanced$Token, ']', $author$project$ETeX$MathMacros$ExpectingRightBracket))));
-var $author$project$ETeX$MathMacros$newCommandParser1 = A2(
-	$elm$parser$Parser$Advanced$keeper,
-	A2(
-		$elm$parser$Parser$Advanced$keeper,
-		A2(
-			$elm$parser$Parser$Advanced$keeper,
-			A2(
-				$elm$parser$Parser$Advanced$ignorer,
-				A2(
-					$elm$parser$Parser$Advanced$ignorer,
-					$elm$parser$Parser$Advanced$succeed(
-						F3(
-							function (name, arity, body) {
-								return A3($author$project$ETeX$MathMacros$NewCommand, name, arity, body);
-							})),
-					$elm$parser$Parser$Advanced$symbol(
-						A2($elm$parser$Parser$Advanced$Token, '\\newcommand', $author$project$ETeX$MathMacros$ExpectingNewCommand))),
-				$elm$parser$Parser$Advanced$symbol(
-					A2($elm$parser$Parser$Advanced$Token, '{', $author$project$ETeX$MathMacros$ExpectingLeftBrace))),
-			A2(
-				$elm$parser$Parser$Advanced$ignorer,
-				$author$project$ETeX$MathMacros$f0Parser,
-				$elm$parser$Parser$Advanced$symbol(
-					A2($elm$parser$Parser$Advanced$Token, '}', $author$project$ETeX$MathMacros$ExpectingRightBrace)))),
-		$author$project$ETeX$MathMacros$optionalParamParser),
-	$author$project$ETeX$MathMacros$many($author$project$ETeX$MathMacros$mathExprParser));
-var $author$project$ETeX$MathMacros$newCommandParser2 = A2(
-	$elm$parser$Parser$Advanced$keeper,
-	A2(
-		$elm$parser$Parser$Advanced$keeper,
-		A2(
-			$elm$parser$Parser$Advanced$ignorer,
-			A2(
-				$elm$parser$Parser$Advanced$ignorer,
-				$elm$parser$Parser$Advanced$succeed(
-					F2(
-						function (name, body) {
-							return A3($author$project$ETeX$MathMacros$NewCommand, name, 0, body);
-						})),
-				$elm$parser$Parser$Advanced$symbol(
-					A2($elm$parser$Parser$Advanced$Token, '\\newcommand', $author$project$ETeX$MathMacros$ExpectingNewCommand))),
-			$elm$parser$Parser$Advanced$symbol(
-				A2($elm$parser$Parser$Advanced$Token, '{', $author$project$ETeX$MathMacros$ExpectingLeftBrace))),
-		A2(
-			$elm$parser$Parser$Advanced$ignorer,
-			$author$project$ETeX$MathMacros$f0Parser,
-			$elm$parser$Parser$Advanced$symbol(
-				A2($elm$parser$Parser$Advanced$Token, '}', $author$project$ETeX$MathMacros$ExpectingRightBrace)))),
-	$author$project$ETeX$MathMacros$many($author$project$ETeX$MathMacros$mathExprParser));
-var $author$project$ETeX$MathMacros$newCommandParser = $elm$parser$Parser$Advanced$oneOf(
-	_List_fromArray(
-		[
-			$elm$parser$Parser$Advanced$backtrackable($author$project$ETeX$MathMacros$newCommandParser1),
-			$author$project$ETeX$MathMacros$newCommandParser2
-		]));
-var $author$project$ETeX$MathMacros$parseNewCommand = function (str) {
-	return A2($elm$parser$Parser$Advanced$run, $author$project$ETeX$MathMacros$newCommandParser, str);
-};
-var $author$project$Render$Export$LaTeXToScripta2$parseNewCommand = F2(
-	function (newMacroNames, line) {
-		var _v0 = $author$project$ETeX$MathMacros$parseNewCommand(line);
-		if ((_v0.$ === 'Ok') && (_v0.a.a.$ === 'MacroName')) {
-			var _v1 = _v0.a;
-			var name = _v1.a.a;
-			var bodyExprs = _v1.c;
-			var body = $elm$core$String$trim(
-				A2(
-					$elm$core$String$join,
-					'',
-					A2(
-						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
-						bodyExprs)));
-			return $elm$core$Maybe$Just(
-				_Utils_Tuple2(name, body));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$mathMacros = F2(
-	function (newMacroNames, latexMacros) {
-		var lines = A2(
-			$elm$core$List$filter,
-			A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
-			A2(
-				$elm$core$List$map,
-				$elm$core$String$trim,
-				$elm$core$String$lines(latexMacros)));
-		var macroDefinitions = A2(
-			$elm$core$List$map,
-			$author$project$Render$Export$LaTeXToScripta2$formatMacroDefinition,
-			A2(
-				$elm$core$List$filterMap,
-				$author$project$Render$Export$LaTeXToScripta2$parseNewCommand(newMacroNames),
-				lines));
-		return $elm$core$List$isEmpty(macroDefinitions) ? '' : ('| mathmacros\n' + A2($elm$core$String$join, '\n', macroDefinitions));
-	});
-var $author$project$Render$Export$LaTeXToScripta2$parseL = function (latexSource) {
-	var outerCount = 0;
-	var lines = $elm$core$String$lines(latexSource);
-	var idPrefix = $author$project$ScriptaV2$Config$idPrefix;
-	return A6($author$project$Generic$Compiler$parse_, $author$project$ScriptaV2$Language$MicroLaTeXLang, $author$project$MicroLaTeX$PrimitiveBlock$parse, $author$project$MicroLaTeX$Expression$parse, idPrefix, outerCount, lines);
-};
-var $author$project$ETeX$MathMacros$parse = function (str) {
-	return A2(
-		$elm$parser$Parser$Advanced$run,
-		$author$project$ETeX$MathMacros$many($author$project$ETeX$MathMacros$mathExprParser),
-		str);
-};
-var $author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta = F2(
-	function (newMacroNames, latexMath) {
-		var _v0 = $author$project$ETeX$MathMacros$parse(latexMath);
-		if (_v0.$ === 'Ok') {
-			var exprs = _v0.a;
-			return $author$project$Render$Export$LaTeXToScripta2$intelligentJoin(
-				A2(
-					$elm$core$List$map,
-					$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
-					exprs));
-		} else {
-			return latexMath;
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderVerbatimFunction = F3(
-	function (newMacroNames, name, content) {
-		switch (name) {
-			case 'math':
-				return '$' + (A2($author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta, newMacroNames, content) + '$');
-			case 'code':
-				return '`' + (content + '`');
-			default:
-				return '[' + (name + (' ' + (content + ']')));
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderArgs = F2(
-	function (newMacroNames, args) {
-		return A2(
-			$elm$core$String$join,
-			' ',
-			A2(
-				$elm$core$List$map,
-				$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-				args));
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderExpression = F2(
-	function (newMacroNames, expr) {
-		switch (expr.$) {
-			case 'Text':
-				var str = expr.a;
-				return str;
-			case 'Fun':
-				var name = expr.a;
-				var args = expr.b;
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderFunction, newMacroNames, name, args);
-			case 'VFun':
-				var name = expr.a;
-				var arg = expr.b;
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderVerbatimFunction, newMacroNames, name, arg);
-			default:
-				var exprs = expr.a;
-				return A2(
-					$elm$core$String$join,
-					' ',
-					A2(
-						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-						exprs));
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F3(
-	function (newMacroNames, name, args) {
-		switch (name) {
-			case 'text':
-				return '\"' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + '\"');
-			case 'bold':
-				return '[b ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
-			case 'textbf':
-				return '[b ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
-			case 'italic':
-				return '[i ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
-			case 'emph':
-				return '[i ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
-			case 'underline':
-				return '[u ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
-			case 'footnote':
-				return '[footnote ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
-			case 'cite':
-				return '[cite ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
-			case 'compactItem':
-				return '- ' + A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args);
-			case 'ref':
-				return '[ref ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
-			case 'label':
-				return '[label ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
-			case 'href':
-				if (args.b) {
-					if (args.b.b) {
-						var first = args.a;
-						var _v2 = args.b;
-						var second = _v2.a;
-						return '[link ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, second) + (' ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, first) + ']')));
-					} else {
-						var single = args.a;
-						return '[link ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, single) + ']');
-					}
-				} else {
-					return '[link]';
-				}
-			case 'includegraphics':
-				if (args.b) {
-					var path = args.a;
-					return '[image ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, path) + ']');
-				} else {
-					return '[image]';
-				}
-			case 'imagecentercaptioned':
-				if (args.b) {
-					if (args.b.b) {
-						if (args.b.b.b) {
-							var caption = args.a;
-							var _v5 = args.b;
-							var width = _v5.a;
-							var _v6 = _v5.b;
-							var url = _v6.a;
-							var _v7 = width;
-							return '| image caption:' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, caption) + ('\n' + A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, url)));
-						} else {
-							var caption = args.a;
-							var _v8 = args.b;
-							var url = _v8.a;
-							return '| image caption:' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, caption) + ('\n' + A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, url)));
-						}
-					} else {
-						var url = args.a;
-						return '| image\n' + A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, url);
-					}
-				} else {
-					return '| image';
-				}
-			default:
-				return '[' + (name + (' ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']')));
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderCenterEnvironment = F2(
-	function (newMacroNames, block) {
-		var _v0 = block.heading;
-		if ((_v0.$ === 'Verbatim') && (_v0.a === 'center')) {
-			var _v1 = block.body;
-			if (_v1.$ === 'Left') {
-				var str = _v1.a;
-				if (A2($elm$core$String$contains, '\\includegraphics', str)) {
-					var extractUrl = function (s) {
-						return function (line) {
-							var _v2 = A2($elm$core$String$split, '{', line);
-							if (_v2.b) {
-								var rest = _v2.b;
-								return $elm$core$String$trim(
-									A2(
-										$elm$core$Maybe$withDefault,
-										'',
-										$elm$core$List$head(
-											A2(
-												$elm$core$String$split,
-												'}',
-												A2($elm$core$String$join, '{', rest)))));
-							} else {
-								return '';
-							}
-						}(
-							A2(
-								$elm$core$Maybe$withDefault,
-								'',
-								$elm$core$List$head(
-									A2(
-										$elm$core$List$filter,
-										$elm$core$String$contains('\\includegraphics'),
-										$elm$core$String$lines(s)))));
-					};
-					var url = extractUrl(str);
-					return $elm$core$String$isEmpty(url) ? '| image' : ('| image\n' + url);
-				} else {
-					return '| center\n' + $elm$core$String$trim(str);
-				}
-			} else {
-				return '| center';
-			}
-		} else {
-			var _v3 = block.body;
-			if (_v3.$ === 'Right') {
-				var exprs = _v3.a;
-				var hasIncludeGraphics = A2(
-					$elm$core$List$any,
-					function (expr) {
-						if ((expr.$ === 'Fun') && (expr.a === 'includegraphics')) {
-							return true;
-						} else {
-							return false;
-						}
-					},
-					exprs);
-				if (hasIncludeGraphics) {
-					return A2(
-						$elm$core$Maybe$withDefault,
-						'| image',
-						A2(
-							$elm$core$Maybe$map,
-							function (url) {
-								return '| image\n' + url;
-							},
-							$elm$core$List$head(
-								A2(
-									$elm$core$List$filterMap,
-									function (expr) {
-										if ((expr.$ === 'Fun') && (expr.a === 'includegraphics')) {
-											var args = expr.b;
-											return $elm$core$List$head(
-												A2(
-													$elm$core$List$filterMap,
-													function (arg) {
-														if (arg.$ === 'Text') {
-															var url = arg.a;
-															return A2($elm$core$String$contains, 'http', url) ? $elm$core$Maybe$Just(url) : $elm$core$Maybe$Nothing;
-														} else {
-															return $elm$core$Maybe$Nothing;
-														}
-													},
-													args));
-										} else {
-											return $elm$core$Maybe$Nothing;
-										}
-									},
-									exprs))));
-				} else {
-					var content = A2(
-						$elm$core$String$join,
-						' ',
-						A2(
-							$elm$core$List$map,
-							$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-							exprs));
-					return '| center\n' + content;
-				}
-			} else {
-				var str = _v3.a;
-				return '| center\n' + $elm$core$String$trim(str);
-			}
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderEnvironment = F3(
-	function (newMacroNames, envName, block) {
-		var content = function () {
-			var _v0 = block.body;
-			if (_v0.$ === 'Left') {
-				var str = _v0.a;
-				return $elm$core$String$trim(str);
-			} else {
-				var exprs = _v0.a;
-				return A2(
-					$elm$core$String$join,
-					' ',
-					A2(
-						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-						exprs));
-			}
-		}();
-		return '| ' + (envName + ('\n' + content));
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderFigure = function (block) {
-	var caption = function () {
-		var _v0 = block.args;
-		if (!_v0.b) {
-			return '';
-		} else {
-			var arg = _v0.a;
-			return '\nCaption: ' + arg;
-		}
-	}();
-	return '| figure' + caption;
-};
-var $author$project$Render$Export$LaTeXToScripta2$renderItem = F2(
-	function (newMacroNames, block) {
-		var isEnumerate = A2($elm$core$String$contains, '\\begin{enumerate}', block.meta.sourceText) || A2($elm$core$String$contains, 'enumerate', block.firstLine);
-		var prefix = isEnumerate ? '. ' : '- ';
-		var extractFromFirstLine = function () {
-			var line = block.firstLine;
-			return (A2($elm$core$String$contains, '\\item', line) && A2($elm$core$String$contains, '{', line)) ? $elm$core$String$trim(
-				A2(
-					$elm$core$Maybe$withDefault,
-					'',
-					$elm$core$List$head(
-						A2(
-							$elm$core$String$split,
-							'}',
-							function (s) {
-								return A2($elm$core$String$startsWith, '{', s) ? A2($elm$core$String$dropLeft, 1, s) : s;
-							}(
-								$elm$core$String$trim(
-									A3($elm$core$String$replace, '\\item', '', line))))))) : '';
-		}();
-		var content = function () {
-			if (!$elm$core$String$isEmpty(extractFromFirstLine)) {
-				return extractFromFirstLine;
-			} else {
-				if (!$elm$core$List$isEmpty(block.args)) {
-					var _v0 = block.args;
-					if (_v0.b) {
-						var arg = _v0.a;
-						return arg;
-					} else {
-						return '';
-					}
-				} else {
-					var _v1 = block.body;
-					if (_v1.$ === 'Left') {
-						var str = _v1.a;
-						return $elm$core$String$trim(str);
-					} else {
-						var exprs = _v1.a;
-						return $elm$core$String$trim(
-							A2(
-								$elm$core$String$join,
-								' ',
-								A2(
-									$elm$core$List$map,
-									$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-									A2(
-										$elm$core$List$filter,
-										function (expr) {
-											_v2$2:
-											while (true) {
-												if (expr.$ === 'Fun') {
-													switch (expr.a) {
-														case 'errorHighlight':
-															return false;
-														case 'blue':
-															return false;
-														default:
-															break _v2$2;
-													}
-												} else {
-													break _v2$2;
-												}
-											}
-											return true;
-										},
-										exprs))));
-					}
-				}
-			}
-		}();
-		return _Utils_ap(prefix, content);
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderNoteLike = F3(
-	function (newMacroNames, envName, block) {
-		var content = function () {
-			var _v0 = block.body;
-			if (_v0.$ === 'Left') {
-				var str = _v0.a;
-				return $elm$core$String$trim(str);
-			} else {
-				var exprs = _v0.a;
-				return A2(
-					$elm$core$String$join,
-					' ',
-					A2(
-						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-						exprs));
-			}
-		}();
-		return '| ' + (envName + ('\n' + content));
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderSection = F2(
-	function (level, block) {
-		var title = function () {
-			var _v0 = block.body;
-			if (_v0.$ === 'Right') {
-				var exprs = _v0.a;
-				if (exprs.b && (exprs.a.$ === 'Text')) {
-					var _v2 = exprs.a;
-					var titleText = _v2.a;
-					return titleText;
-				} else {
-					var _v3 = block.args;
-					if (_v3.b) {
-						var arg = _v3.a;
-						return arg;
-					} else {
-						return 'Section';
-					}
-				}
-			} else {
-				var str = _v0.a;
-				return str;
-			}
-		}();
-		var marker = A2($elm$core$String$repeat, level, '#');
-		return marker + (' ' + title);
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderSectionWithLevel = function (block) {
-	var level = A2($elm$core$String$contains, '\\subsection', block.firstLine) ? 2 : (A2($elm$core$String$contains, '\\subsubsection', block.firstLine) ? 3 : 1);
-	return A2($author$project$Render$Export$LaTeXToScripta2$renderSection, level, block);
-};
-var $author$project$Render$Export$LaTeXToScripta2$renderTable = function (block) {
-	var _v0 = block.body;
-	if (_v0.$ === 'Left') {
-		var str = _v0.a;
-		return '| table\n' + $elm$core$String$trim(str);
-	} else {
-		return '| table';
-	}
-};
-var $author$project$Render$Export$LaTeXToScripta2$renderTheoremLike = F3(
-	function (newMacroNames, envName, block) {
-		var title = function () {
-			var _v1 = block.args;
-			if (!_v1.b) {
-				return '';
-			} else {
-				var arg = _v1.a;
-				return ' ' + arg;
-			}
-		}();
-		var content = function () {
-			var _v0 = block.body;
-			if (_v0.$ === 'Left') {
-				var str = _v0.a;
-				return $elm$core$String$trim(str);
-			} else {
-				var exprs = _v0.a;
-				return A2(
-					$elm$core$String$join,
-					' ',
-					A2(
-						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-						exprs));
-			}
-		}();
-		return '| ' + (envName + (title + ('\n' + content)));
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderOrdinary = F3(
-	function (newMacroNames, name, block) {
-		switch (name) {
-			case 'section':
-				return $author$project$Render$Export$LaTeXToScripta2$renderSectionWithLevel(block);
-			case 'subsection':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderSection, 2, block);
-			case 'subsubsection':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderSection, 3, block);
-			case 'itemize':
-				return '';
-			case 'enumerate':
-				return '';
-			case 'item':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderItem, newMacroNames, block);
-			case 'theorem':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, newMacroNames, 'theorem', block);
-			case 'lemma':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, newMacroNames, 'lemma', block);
-			case 'proposition':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, newMacroNames, 'proposition', block);
-			case 'corollary':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, newMacroNames, 'corollary', block);
-			case 'definition':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, newMacroNames, 'definition', block);
-			case 'example':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderNoteLike, newMacroNames, 'example', block);
-			case 'remark':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderNoteLike, newMacroNames, 'remark', block);
-			case 'note':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderNoteLike, newMacroNames, 'note', block);
-			case 'abstract':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderEnvironment, newMacroNames, 'abstract', block);
-			case 'quote':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderEnvironment, newMacroNames, 'quote', block);
-			case 'center':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderCenterEnvironment, newMacroNames, block);
-			case 'figure':
-				return $author$project$Render$Export$LaTeXToScripta2$renderFigure(block);
-			case 'table':
-				return $author$project$Render$Export$LaTeXToScripta2$renderTable(block);
-			default:
-				return '| ' + name;
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderParagraph = F2(
-	function (newMacroNames, block) {
-		var _v0 = block.body;
-		if (_v0.$ === 'Left') {
-			var str = _v0.a;
-			return $elm$core$String$trim(str);
-		} else {
-			var exprs = _v0.a;
-			return $elm$core$String$trim(
-				A2(
-					$elm$core$String$join,
-					' ',
-					A2(
-						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-						exprs)));
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderAlignedBlock = F2(
-	function (newMacroNames, block) {
-		var content = function () {
-			var _v0 = block.body;
-			if (_v0.$ === 'Left') {
-				var str = _v0.a;
-				return $elm$core$String$trim(str);
-			} else {
-				var _v1 = block.args;
-				if (!_v1.b) {
-					var sourceLines = $elm$core$String$lines(block.meta.sourceText);
-					var extractContent = function (lines) {
-						return $elm$core$String$trim(
-							A2(
-								$elm$core$String$join,
-								'\n',
-								A2(
-									$elm$core$List$filter,
-									function (line) {
-										return (!A2($elm$core$String$contains, '\\begin{align}', line)) && (!A2($elm$core$String$contains, '\\end{align}', line));
-									},
-									lines)));
-					};
-					return extractContent(sourceLines);
-				} else {
-					var args = _v1;
-					return A2($elm$core$String$join, '\n', args);
-				}
-			}
-		}();
-		return $elm$core$String$isEmpty(content) ? '| aligned' : ('| aligned\n' + A2($author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta, newMacroNames, content));
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock = function (block) {
-	var _v0 = block.body;
-	if (_v0.$ === 'Left') {
-		var str = _v0.a;
-		return '| code\n' + str;
-	} else {
-		return 'Error: Invalid code block';
-	}
-};
-var $author$project$Render$Export$LaTeXToScripta2$renderEquationBlock = F2(
-	function (newMacroNames, block) {
-		var _v0 = block.body;
-		if (_v0.$ === 'Left') {
-			var str = _v0.a;
-			return '| equation\n' + A2($author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta, newMacroNames, str);
-		} else {
-			return 'Error: Invalid equation block';
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderFigureVerbatim = function (block) {
-	var _v0 = block.body;
-	if (_v0.$ === 'Left') {
-		var str = _v0.a;
-		var lines = $elm$core$String$lines(str);
-		var extractImageUrl = function (line) {
-			return A2($elm$core$String$contains, '\\includegraphics', line) ? A2(
-				$elm$core$Maybe$withDefault,
-				'',
-				$elm$core$List$head(
-					A2(
-						$elm$core$String$split,
-						'}',
-						A2(
-							$elm$core$Maybe$withDefault,
-							'',
-							$elm$core$List$head(
-								A2(
-									$elm$core$List$drop,
-									1,
-									A2($elm$core$String$split, '{', line))))))) : '';
-		};
-		var imageUrl = A2(
-			$elm$core$Maybe$withDefault,
-			'',
-			$elm$core$List$head(
-				A2(
-					$elm$core$List$filter,
-					$elm$core$Basics$neq(''),
-					A2($elm$core$List$map, extractImageUrl, lines))));
-		var extractCaption = function (lines_) {
-			return A2(
-				$elm$core$Maybe$withDefault,
-				'',
-				A2(
-					$elm$core$Maybe$map,
-					function (line) {
-						return A2(
-							$elm$core$Maybe$withDefault,
-							'',
-							$elm$core$List$head(
-								A2(
-									$elm$core$String$split,
-									'}',
-									A2(
-										$elm$core$String$join,
-										'',
-										A2(
-											$elm$core$List$drop,
-											1,
-											A2($elm$core$String$split, '\\caption{', line))))));
-					},
-					$elm$core$List$head(
-						A2(
-							$elm$core$List$filter,
-							$elm$core$String$contains('\\caption'),
-							lines_))));
-		};
-		var caption = extractCaption(lines);
-		return $elm$core$String$isEmpty(imageUrl) ? '| figure' : ($elm$core$String$isEmpty(caption) ? ('| image\n' + imageUrl) : ('| image caption:' + (caption + ('\n' + imageUrl))));
-	} else {
-		return '| figure';
-	}
-};
-var $author$project$Render$Export$LaTeXToScripta2$renderMathBlock = F2(
-	function (newMacroNames, block) {
-		var _v0 = block.body;
-		if (_v0.$ === 'Left') {
-			var str = _v0.a;
-			return '| math\n' + A2($author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta, newMacroNames, str);
-		} else {
-			return '| math';
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderVerbatimBlock = function (block) {
-	var _v0 = block.body;
-	if (_v0.$ === 'Left') {
-		var str = _v0.a;
-		return '| verbatim\n' + str;
-	} else {
-		return '| verbatim';
-	}
-};
-var $author$project$Render$Export$LaTeXToScripta2$renderVerbatim = F3(
-	function (newMacroNames, name, block) {
-		switch (name) {
-			case 'math':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderMathBlock, newMacroNames, block);
-			case 'equation':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderEquationBlock, newMacroNames, block);
-			case 'align':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderAlignedBlock, newMacroNames, block);
-			case 'code':
-				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
-			case 'verbatim':
-				return $author$project$Render$Export$LaTeXToScripta2$renderVerbatimBlock(block);
-			case 'lstlisting':
-				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
-			case 'minted':
-				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
-			case 'figure':
-				return $author$project$Render$Export$LaTeXToScripta2$renderFigureVerbatim(block);
-			default:
-				return '| ' + name;
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderBlock = F2(
-	function (newMacroNames, block) {
-		var _v0 = block.heading;
-		switch (_v0.$) {
-			case 'Paragraph':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderParagraph, newMacroNames, block);
-			case 'Ordinary':
-				var name = _v0.a;
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderOrdinary, newMacroNames, name, block);
-			default:
-				var name = _v0.a;
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderVerbatim, newMacroNames, name, block);
-		}
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderTree = F3(
-	function (newMacroNames, indent, tree) {
-		var indentStr = A2($elm$core$String$repeat, indent * 2, ' ');
-		var currentBlock = $maca$elm_rose_tree$RoseTree$Tree$value(tree);
-		var currentRendered = _Utils_ap(
-			indentStr,
-			A2($author$project$Render$Export$LaTeXToScripta2$renderBlock, newMacroNames, currentBlock));
-		var children = $maca$elm_rose_tree$RoseTree$Tree$children(tree);
-		var childrenRendered = function () {
-			if (!children.b) {
-				return '';
-			} else {
-				return function (s) {
-					return '\n' + s;
-				}(
-					A2(
-						$elm$core$String$join,
-						'\n',
-						A2(
-							$elm$core$List$map,
-							A2($author$project$Render$Export$LaTeXToScripta2$renderTree, newMacroNames, indent + 1),
-							children)));
-			}
-		}();
-		return _Utils_ap(currentRendered, childrenRendered);
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderS = F2(
-	function (newMacroNames, forest) {
-		return A2(
-			$elm$core$String$join,
-			'\n\n',
-			A2(
-				$elm$core$List$map,
-				A2($author$project$Render$Export$LaTeXToScripta2$renderTree, newMacroNames, 0),
-				forest));
-	});
-var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSource) {
-	var lines = $elm$core$String$lines(
-		$author$project$Render$Export$LaTeXToScripta2$convertVerbatimBacktick(latexSource));
-	var isNewCommand = function (line) {
-		return A2(
-			$elm$core$String$startsWith,
-			'\\newcommand',
-			$elm$core$String$trim(line));
-	};
-	var _v0 = A2($elm$core$List$partition, isNewCommand, lines);
-	var newCommandLines = _v0.a;
-	var contentLines = _v0.b;
-	var contentSource = A2($elm$core$String$join, '\n', contentLines);
-	var forest = $author$project$Render$Export$LaTeXToScripta2$parseL(contentSource);
-	var newMacroNames = A2(
-		$elm$core$List$filterMap,
-		function (line) {
-			var _v1 = $author$project$ETeX$MathMacros$parseNewCommand(line);
-			if ((_v1.$ === 'Ok') && (_v1.a.a.$ === 'MacroName')) {
-				var _v2 = _v1.a;
-				var name = _v2.a.a;
-				return $elm$core$Maybe$Just(name);
-			} else {
-				return $elm$core$Maybe$Nothing;
-			}
-		},
-		newCommandLines);
-	var macroBlock = $elm$core$List$isEmpty(newCommandLines) ? '' : (A2(
-		$author$project$Render$Export$LaTeXToScripta2$mathMacros,
-		newMacroNames,
-		A2($elm$core$String$join, '\n', newCommandLines)) + '\n\n');
-	var renderedContent = ($elm$core$List$isEmpty(forest) && (!$elm$core$String$isEmpty(
-		$elm$core$String$trim(contentSource)))) ? contentSource : A2($author$project$Render$Export$LaTeXToScripta2$renderS, newMacroNames, forest);
-	return _Utils_ap(macroBlock, renderedContent);
-};
 var $ohanhi$keyboard$Keyboard$Backspace = {$: 'Backspace'};
 var $ohanhi$keyboard$Keyboard$Clear = {$: 'Clear'};
 var $ohanhi$keyboard$Keyboard$Copy = {$: 'Copy'};
@@ -57441,33 +55878,33 @@ var $author$project$ScriptaV2$DifferentialCompiler$update = F2(
 			text + '\n',
 			editRecord);
 	});
-var $author$project$MainSQLite$update = F2(
+var $author$project$MainLocal$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 'CommonMsg':
 				var commonMsg = msg.a;
-				return A2($author$project$MainSQLite$updateCommon, commonMsg, model);
+				return A2($author$project$MainLocal$updateCommon, commonMsg, model);
 			case 'StorageMsg':
 				var storageMsg = msg.a;
-				return A2($author$project$MainSQLite$handleStorageMsg, storageMsg, model);
+				return A2($author$project$MainLocal$handleStorageMsg, storageMsg, model);
 			case 'FileSelected':
 				var file = msg.a;
 				return _Utils_Tuple2(
 					model,
 					A2(
 						$elm$core$Task$perform,
-						$author$project$MainSQLite$FileLoaded,
+						$author$project$MainLocal$FileLoaded,
 						$elm$file$File$toString(file)));
-			case 'FileLoaded':
+			default:
 				var content = msg.a;
 				var title = $author$project$Common$Model$getTitleFromContent(content);
-				var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
-				var _v11 = A2(
-					$author$project$MainSQLite$updateCommon,
+				var storage = $author$project$Storage$Local$storage($author$project$MainLocal$StorageMsg);
+				var _v10 = A2(
+					$author$project$MainLocal$updateCommon,
 					$author$project$Common$Model$InputText(content),
 					model);
-				var modelWithContent = _v11.a;
-				var cmdFromUpdate = _v11.b;
+				var modelWithContent = _v10.a;
+				var cmdFromUpdate = _v10.b;
 				var newId = 'imported-' + $elm$core$String$fromInt(
 					($elm$time$Time$posixToMillis(modelWithContent.common.currentTime) / 1) | 0);
 				var newDoc = A6(
@@ -57504,80 +55941,14 @@ var $author$project$MainSQLite$update = F2(
 								A2(
 								$elm$core$Task$perform,
 								$elm$core$Basics$always(
-									$author$project$MainSQLite$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
-								$elm$core$Process$sleep(100))
-							])));
-			case 'LaTeXFileSelected':
-				var file = msg.a;
-				return _Utils_Tuple2(
-					model,
-					A2(
-						$elm$core$Task$perform,
-						function (content) {
-							return $author$project$MainSQLite$LaTeXFileLoaded(
-								{
-									content: content,
-									filename: $elm$file$File$name(file)
-								});
-						},
-						$elm$file$File$toString(file)));
-			default:
-				var filename = msg.a.filename;
-				var content = msg.a.content;
-				var translatedContent = $author$project$Render$Export$LaTeXToScripta2$translate(content);
-				var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
-				var basename = A2($elm$core$String$endsWith, '.tex', filename) ? A2($elm$core$String$dropRight, 4, filename) : filename;
-				var scriptaContent = '| title\n' + (basename + ('\n\n' + translatedContent));
-				var _v12 = A2(
-					$author$project$MainSQLite$updateCommon,
-					$author$project$Common$Model$InputText(scriptaContent),
-					model);
-				var modelWithContent = _v12.a;
-				var cmdFromUpdate = _v12.b;
-				var newId = 'latex-import-' + $elm$core$String$fromInt(
-					($elm$time$Time$posixToMillis(modelWithContent.common.currentTime) / 1000) | 0);
-				var newDoc = A6(
-					$author$project$Document$newDocument,
-					newId,
-					basename,
-					A2($elm$core$Maybe$withDefault, '', modelWithContent.common.userName),
-					scriptaContent,
-					modelWithContent.common.theme,
-					modelWithContent.common.currentTime);
-				var updatedCommon = function () {
-					var oldCommon = modelWithContent.common;
-					return _Utils_update(
-						oldCommon,
-						{
-							currentDocument: $elm$core$Maybe$Just(newDoc),
-							documents: A2($elm$core$List$cons, newDoc, modelWithContent.common.documents),
-							initialText: scriptaContent,
-							lastLoadedDocumentId: $elm$core$Maybe$Just(newId),
-							loadDocumentIntoEditor: true,
-							sourceText: scriptaContent
-						});
-				}();
-				var updatedModel = _Utils_update(
-					modelWithContent,
-					{common: updatedCommon});
-				return _Utils_Tuple2(
-					updatedModel,
-					$elm$core$Platform$Cmd$batch(
-						_List_fromArray(
-							[
-								cmdFromUpdate,
-								storage.saveDocument(newDoc),
-								A2(
-								$elm$core$Task$perform,
-								$elm$core$Basics$always(
-									$author$project$MainSQLite$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
+									$author$project$MainLocal$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
 								$elm$core$Process$sleep(100))
 							])));
 		}
 	});
-var $author$project$MainSQLite$updateCommon = F2(
+var $author$project$MainLocal$updateCommon = F2(
 	function (msg, model) {
-		var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
+		var storage = $author$project$Storage$Local$storage($author$project$MainLocal$StorageMsg);
 		var common = model.common;
 		switch (msg.$) {
 			case 'NoOp':
@@ -57587,18 +55958,12 @@ var $author$project$MainSQLite$updateCommon = F2(
 				var newEditRecord = A2($author$project$ScriptaV2$DifferentialCompiler$update, common.editRecord, str);
 				var newCount = common.count + 1;
 				var updatedDisplaySettings = function () {
-					var panelWidth = A2(
-						$elm$core$Basics$max,
-						350,
-						((((common.windowWidth - 230) - ((common.windowWidth >= 1000) ? 221 : 0)) - 3) / 2) | 0);
+					var tocSpace = (common.windowWidth >= 1000) ? (220 + 1) : 0;
 					var oldSettings = common.displaySettings;
-					var contentWidth = panelWidth - 40;
+					var actualPanelWidth = A2($elm$core$Basics$max, 350, ((((common.windowWidth - 230) - tocSpace) - 3) / 2) | 0);
 					return _Utils_update(
 						oldSettings,
-						{
-							counter: newCount,
-							windowWidth: A2($elm$core$Basics$max, 310, contentWidth)
-						});
+						{counter: newCount, windowWidth: actualPanelWidth});
 				}();
 				var newCompilerOutput = A4(
 					$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
@@ -57628,18 +55993,12 @@ var $author$project$MainSQLite$updateCommon = F2(
 				var newEditRecord = A2($author$project$ScriptaV2$DifferentialCompiler$update, common.editRecord, source);
 				var newCount = common.count + 1;
 				var updatedDisplaySettings = function () {
-					var panelWidth = A2(
-						$elm$core$Basics$max,
-						350,
-						((((common.windowWidth - 230) - ((common.windowWidth >= 1000) ? 221 : 0)) - 3) / 2) | 0);
+					var tocSpace = (common.windowWidth >= 1000) ? (220 + 1) : 0;
 					var oldSettings = common.displaySettings;
-					var contentWidth = panelWidth - 40;
+					var actualPanelWidth = A2($elm$core$Basics$max, 350, ((((common.windowWidth - 230) - tocSpace) - 3) / 2) | 0);
 					return _Utils_update(
 						oldSettings,
-						{
-							counter: newCount,
-							windowWidth: A2($elm$core$Basics$max, 310, contentWidth)
-						});
+						{counter: newCount, windowWidth: actualPanelWidth});
 				}();
 				var newCompilerOutput = A4(
 					$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
@@ -57683,18 +56042,11 @@ var $author$project$MainSQLite$updateCommon = F2(
 			case 'GotNewWindowDimensions':
 				var width = msg.a;
 				var height = msg.b;
-				var panelWidth = A2(
-					$elm$core$Basics$max,
-					350,
-					((((width - 230) - ((width >= 1000) ? 221 : 0)) - 3) / 2) | 0);
 				var newEditRecord = A2($author$project$ScriptaV2$DifferentialCompiler$update, common.editRecord, common.sourceText);
 				var displaySettings = common.displaySettings;
-				var contentWidth = panelWidth - 40;
 				var newDisplaySettings = _Utils_update(
 					displaySettings,
-					{
-						windowWidth: A2($elm$core$Basics$max, 310, contentWidth)
-					});
+					{windowWidth: (width / 3) | 0});
 				var newCompilerOutput = A4(
 					$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
 					$author$project$Theme$mapTheme(common.theme),
@@ -57737,18 +56089,26 @@ var $author$project$MainSQLite$updateCommon = F2(
 					_Utils_update(
 						model,
 						{common: newCommon}),
-					$elm$core$Platform$Cmd$none);
+					$author$project$Ports$send(
+						$author$project$Ports$SaveTheme(
+							function () {
+								if (newTheme.$ === 'Light') {
+									return 'light';
+								} else {
+									return 'dark';
+								}
+							}())));
 			case 'CreateNewDocument':
-				var _v2 = common.currentDocument;
-				if (_v2.$ === 'Just') {
-					var doc = _v2.a;
+				var _v3 = common.currentDocument;
+				if (_v3.$ === 'Just') {
+					var doc = _v3.a;
 					if (!_Utils_eq(common.sourceText, doc.content)) {
-						var _v3 = A2(
-							$author$project$MainSQLite$update,
-							$author$project$MainSQLite$CommonMsg($author$project$Common$Model$SaveDocument),
+						var _v4 = A2(
+							$author$project$MainLocal$update,
+							$author$project$MainLocal$CommonMsg($author$project$Common$Model$SaveDocument),
 							model);
-						var newModel = _v3.a;
-						var saveCmd = _v3.b;
+						var newModel = _v4.a;
+						var saveCmd = _v4.b;
 						return _Utils_Tuple2(
 							newModel,
 							$elm$core$Platform$Cmd$batch(
@@ -57757,24 +56117,24 @@ var $author$project$MainSQLite$updateCommon = F2(
 										saveCmd,
 										A2(
 										$elm$random$Random$generate,
-										A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$GeneratedId),
-										$author$project$MainSQLite$generateId)
+										A2($elm$core$Basics$composeL, $author$project$MainLocal$CommonMsg, $author$project$Common$Model$GeneratedId),
+										$author$project$MainLocal$generateId)
 									])));
 					} else {
 						return _Utils_Tuple2(
 							model,
 							A2(
 								$elm$random$Random$generate,
-								A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$GeneratedId),
-								$author$project$MainSQLite$generateId));
+								A2($elm$core$Basics$composeL, $author$project$MainLocal$CommonMsg, $author$project$Common$Model$GeneratedId),
+								$author$project$MainLocal$generateId));
 					}
 				} else {
 					return _Utils_Tuple2(
 						model,
 						A2(
 							$elm$random$Random$generate,
-							A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$GeneratedId),
-							$author$project$MainSQLite$generateId));
+							A2($elm$core$Basics$composeL, $author$project$MainLocal$CommonMsg, $author$project$Common$Model$GeneratedId),
+							$author$project$MainLocal$generateId));
 				}
 			case 'GeneratedId':
 				var id = msg.a;
@@ -57821,13 +56181,15 @@ var $author$project$MainSQLite$updateCommon = F2(
 					$elm$core$Platform$Cmd$batch(
 						_List_fromArray(
 							[
-								storage.saveDocument(newDoc),
-								storage.saveLastDocumentId(newDoc.id)
+								$author$project$Ports$send(
+								$author$project$Ports$SaveDocument(newDoc)),
+								$author$project$Ports$send(
+								$author$project$Ports$SaveLastDocumentId(newDoc.id))
 							])));
 			case 'SaveDocument':
-				var _v4 = common.currentDocument;
-				if (_v4.$ === 'Just') {
-					var doc = _v4.a;
+				var _v5 = common.currentDocument;
+				if (_v5.$ === 'Just') {
+					var doc = _v5.a;
 					var updatedDoc = _Utils_update(
 						doc,
 						{content: common.sourceText, modifiedAt: common.currentTime, theme: common.theme, title: common.title});
@@ -57845,13 +56207,15 @@ var $author$project$MainSQLite$updateCommon = F2(
 						$elm$core$Platform$Cmd$batch(
 							_List_fromArray(
 								[
-									storage.saveDocument(updatedDoc),
-									storage.saveLastDocumentId(doc.id)
+									$author$project$Ports$send(
+									$author$project$Ports$SaveDocument(updatedDoc)),
+									$author$project$Ports$send(
+									$author$project$Ports$SaveLastDocumentId(doc.id))
 								])));
 				} else {
 					return A2(
-						$author$project$MainSQLite$update,
-						$author$project$MainSQLite$CommonMsg($author$project$Common$Model$CreateNewDocument),
+						$author$project$MainLocal$update,
+						$author$project$MainLocal$CommonMsg($author$project$Common$Model$CreateNewDocument),
 						model);
 				}
 			case 'LoadDocument':
@@ -57864,7 +56228,8 @@ var $author$project$MainSQLite$updateCommon = F2(
 								common,
 								{pdfLink: '', printingState: $author$project$Common$Model$PrintWaiting})
 						}),
-					storage.loadDocument(id));
+					$author$project$Ports$send(
+						$author$project$Ports$LoadDocument(id)));
 			case 'DeleteDocument':
 				var id = msg.a;
 				var newCommon = _Utils_eq(
@@ -57881,7 +56246,8 @@ var $author$project$MainSQLite$updateCommon = F2(
 					_Utils_update(
 						model,
 						{common: newCommon}),
-					storage.deleteDocument(id));
+					$author$project$Ports$send(
+						$author$project$Ports$DeleteDocument(id)));
 			case 'ToggleDocumentList':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -57894,8 +56260,8 @@ var $author$project$MainSQLite$updateCommon = F2(
 					$elm$core$Platform$Cmd$none);
 			case 'ToggleSortOrder':
 				var newSortOrder = function () {
-					var _v5 = common.sortOrder;
-					if (_v5.$ === 'Alphabetical') {
+					var _v6 = common.sortOrder;
+					if (_v6.$ === 'Alphabetical') {
 						return $author$project$Common$Model$Recent;
 					} else {
 						return $author$project$Common$Model$Alphabetical;
@@ -57925,8 +56291,8 @@ var $author$project$MainSQLite$updateCommon = F2(
 				var time = msg.a;
 				var shouldSave = (($elm$time$Time$posixToMillis(time) - $elm$time$Time$posixToMillis(common.lastSaved)) > 30000) && ((common.sourceText !== '') && (!_Utils_eq(common.lastChanged, common.lastSaved)));
 				return shouldSave ? A2(
-					$author$project$MainSQLite$update,
-					$author$project$MainSQLite$CommonMsg($author$project$Common$Model$SaveDocument),
+					$author$project$MainLocal$update,
+					$author$project$MainLocal$CommonMsg($author$project$Common$Model$SaveDocument),
 					model) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			case 'Tick':
 				var time = msg.a;
@@ -57940,7 +56306,9 @@ var $author$project$MainSQLite$updateCommon = F2(
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'LoadUserNameDelayed':
-				return _Utils_Tuple2(model, storage.loadUserName);
+				return _Utils_Tuple2(
+					model,
+					$author$project$Ports$send($author$project$Ports$LoadUserName));
 			case 'InputUserName':
 				var name = msg.a;
 				return _Utils_Tuple2(
@@ -57953,7 +56321,16 @@ var $author$project$MainSQLite$updateCommon = F2(
 									userName: $elm$core$Maybe$Just(name)
 								})
 						}),
-					storage.saveUserName(name));
+					$author$project$Ports$send(
+						$author$project$Ports$SaveUserName(name)));
+			case 'PortMsgReceived':
+				var result = msg.a;
+				if (result.$ === 'Ok') {
+					var incomingMsg = result.a;
+					return A2($author$project$MainLocal$handleIncomingPortMsg, incomingMsg, model);
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
 			case 'UpdateFileName':
 				var name = msg.a;
 				return _Utils_Tuple2(
@@ -58007,15 +56384,7 @@ var $author$project$MainSQLite$updateCommon = F2(
 						$elm$file$File$Select$file,
 						_List_fromArray(
 							['text/plain', '.scripta', '.txt']),
-						$author$project$MainSQLite$FileSelected));
-			case 'ImportLaTeXFile':
-				return _Utils_Tuple2(
-					model,
-					A2(
-						$elm$file$File$Select$file,
-						_List_fromArray(
-							['text/x-tex', 'text/x-latex', '.tex', 'application/x-tex']),
-						$author$project$MainSQLite$LaTeXFileSelected));
+						$author$project$MainLocal$FileSelected));
 			case 'PrintToPDF':
 				var settings = A7(
 					$author$project$Render$Settings$makeSettings,
@@ -58038,7 +56407,7 @@ var $author$project$MainSQLite$updateCommon = F2(
 						}),
 					A2(
 						$elm$core$Platform$Cmd$map,
-						$author$project$MainSQLite$CommonMsg,
+						$author$project$MainLocal$CommonMsg,
 						$author$project$Frontend$PDF$requestPDF(exportData)));
 			case 'GotPdfLink':
 				var result = msg.a;
@@ -58054,51 +56423,6 @@ var $author$project$MainSQLite$updateCommon = F2(
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
-					var httpError = result.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								common: _Utils_update(
-									common,
-									{printingState: $author$project$Common$Model$PrintWaiting})
-							}),
-						$elm$core$Platform$Cmd$none);
-				}
-			case 'GotPdfResponse':
-				var result = msg.a;
-				if (result.$ === 'Ok') {
-					var pdfResponse = result.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								common: _Utils_update(
-									common,
-									{
-										pdfResponse: $elm$core$Maybe$Just(pdfResponse),
-										printingState: $author$project$Common$Model$PrintReady
-									})
-							}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var httpError = result.a;
-					var errorMsg = function () {
-						if (httpError.$ === 'BadBody') {
-							var body = httpError.a;
-							return A2(
-								$elm$core$String$join,
-								'\n',
-								A2(
-									$elm$core$List$filter,
-									function (line) {
-										return !A2($elm$core$String$contains, '*geometry* driver', line);
-									},
-									$elm$core$String$lines(body)));
-						} else {
-							return 'HTTP Error';
-						}
-					}();
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -58111,7 +56435,6 @@ var $author$project$MainSQLite$updateCommon = F2(
 				}
 			case 'SelectedText':
 				var str = msg.a;
-				var oldDisplaySettings = common.displaySettings;
 				var foundIds = A2(
 					$elm$core$List$filter,
 					function (id) {
@@ -58122,20 +56445,9 @@ var $author$project$MainSQLite$updateCommon = F2(
 					$elm$core$Maybe$withDefault,
 					'',
 					$elm$core$List$head(foundIds));
-				var newDisplaySettings = _Utils_update(
-					oldDisplaySettings,
-					{selectedId: firstId});
-				var newCompilerOutput = A4(
-					$author$project$ScriptaV2$DifferentialCompiler$editRecordToCompilerOutput,
-					$author$project$Theme$mapTheme(common.theme),
-					$author$project$ScriptaV2$Compiler$SuppressDocumentBlocks,
-					newDisplaySettings,
-					common.editRecord);
 				var newCommon = _Utils_update(
 					common,
 					{
-						compilerOutput: newCompilerOutput,
-						displaySettings: newDisplaySettings,
 						foundIdIndex: $elm$core$List$isEmpty(foundIds) ? 0 : 1,
 						foundIds: foundIds,
 						selectedId: firstId
@@ -58144,13 +56456,7 @@ var $author$project$MainSQLite$updateCommon = F2(
 					_Utils_update(
 						model,
 						{common: newCommon}),
-					(firstId !== '') ? A2(
-						$elm$core$Task$perform,
-						function (_v9) {
-							return $author$project$MainSQLite$CommonMsg(
-								$author$project$Common$Model$SelectId(firstId));
-						},
-						$elm$core$Process$sleep(100)) : $elm$core$Platform$Cmd$none);
+					(firstId !== '') ? $author$project$MainLocal$jumpToId(firstId) : $elm$core$Platform$Cmd$none);
 			case 'LoadContentIntoEditorDelayed':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -58163,8 +56469,8 @@ var $author$project$MainSQLite$updateCommon = F2(
 					A2(
 						$elm$core$Task$perform,
 						$elm$core$Basics$always(
-							$author$project$MainSQLite$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
-						$elm$core$Process$sleep(300)));
+							$author$project$MainLocal$CommonMsg($author$project$Common$Model$ResetLoadFlag)),
+						$elm$core$Process$sleep(100)));
 			case 'ResetLoadFlag':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -58185,11 +56491,6 @@ var $author$project$MainSQLite$updateCommon = F2(
 								{doSync: !common.doSync})
 						}),
 					$elm$core$Platform$Cmd$none);
-			case 'SelectId':
-				var id = msg.a;
-				return _Utils_Tuple2(
-					model,
-					$author$project$MainSQLite$jumpToId(id));
 			case 'InitialDocumentId':
 				var content = msg.a;
 				var title = msg.b;
@@ -58216,10 +56517,9 @@ var $author$project$MainSQLite$updateCommon = F2(
 					{
 						compilerOutput: compilerOutput,
 						currentDocument: $elm$core$Maybe$Just(initialDoc),
-						documents: A2($elm$core$List$cons, initialDoc, common.documents),
 						editRecord: editRecord,
 						initialText: content,
-						loadDocumentIntoEditor: false,
+						loadDocumentIntoEditor: true,
 						sourceText: content,
 						title: title
 					});
@@ -58236,13 +56536,10 @@ var $author$project$MainSQLite$updateCommon = F2(
 					$elm$core$Platform$Cmd$batch(
 						_List_fromArray(
 							[
-								storage.saveDocument(initialDoc),
-								storage.saveLastDocumentId(initialDoc.id),
-								A2(
-								$elm$core$Task$perform,
-								$elm$core$Basics$always(
-									$author$project$MainSQLite$CommonMsg($author$project$Common$Model$LoadContentIntoEditorDelayed)),
-								$elm$core$Process$sleep(500))
+								$author$project$Ports$send(
+								$author$project$Ports$SaveDocument(initialDoc)),
+								$author$project$Ports$send(
+								$author$project$Ports$SaveLastDocumentId(initialDoc.id))
 							])));
 			default:
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -60701,16 +58998,16 @@ var $author$project$Common$View$view = F3(
 				]),
 			A3($author$project$Common$View$mainColumn, toMsg, renderMsg, model));
 	});
-var $author$project$MainSQLite$view = function (model) {
+var $author$project$MainLocal$view = function (model) {
 	return A3(
 		$author$project$Common$View$view,
-		$author$project$MainSQLite$CommonMsg,
-		A2($elm$core$Basics$composeL, $author$project$MainSQLite$CommonMsg, $author$project$Common$Model$Render),
+		$author$project$MainLocal$CommonMsg,
+		A2($elm$core$Basics$composeL, $author$project$MainLocal$CommonMsg, $author$project$Common$Model$Render),
 		model.common);
 };
-var $author$project$MainSQLite$main = $elm$browser$Browser$element(
-	{init: $author$project$MainSQLite$init, subscriptions: $author$project$MainSQLite$subscriptions, update: $author$project$MainSQLite$update, view: $author$project$MainSQLite$view});
-_Platform_export({'MainSQLite':{'init':$author$project$MainSQLite$main(
+var $author$project$MainLocal$main = $elm$browser$Browser$element(
+	{init: $author$project$MainLocal$init, subscriptions: $author$project$MainLocal$subscriptions, update: $author$project$MainLocal$update, view: $author$project$MainLocal$view});
+_Platform_export({'MainLocal':{'init':$author$project$MainLocal$main(
 	A2(
 		$elm$json$Json$Decode$andThen,
 		function (window) {

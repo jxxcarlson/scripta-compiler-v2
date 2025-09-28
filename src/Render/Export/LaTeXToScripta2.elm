@@ -261,7 +261,7 @@ renderOrdinary newMacroNames name block =
             renderEnvironment newMacroNames "quote" block
 
         "center" ->
-            renderEnvironment newMacroNames "center" block
+            renderCenterEnvironment newMacroNames block
 
         "figure" ->
             renderFigure block
@@ -664,6 +664,117 @@ renderEnvironment newMacroNames envName block =
                     exprs |> List.map (renderExpression newMacroNames) |> String.join " "
     in
     "| " ++ envName ++ "\n" ++ content
+
+
+{-| Render center environment with special handling for centered images
+-}
+renderCenterEnvironment : List String -> ExpressionBlock -> String
+renderCenterEnvironment newMacroNames block =
+    -- Check if this is a Verbatim block (which means it's properly parsed as center environment)
+    case block.heading of
+        Verbatim "center" ->
+            -- This is a verbatim center block
+            case block.body of
+                Left str ->
+                    if String.contains "\\includegraphics" str then
+                        -- Extract URL from \includegraphics[...]{url}
+                        let
+                            -- Handle the URL extraction, accounting for optional parameters
+                            extractUrl s =
+                                s
+                                    |> String.lines
+                                    |> List.filter (String.contains "\\includegraphics")
+                                    |> List.head
+                                    |> Maybe.withDefault ""
+                                    |> (\line ->
+                                        -- Split on { and get everything after it
+                                        case String.split "{" line of
+                                            _ :: rest ->
+                                                String.join "{" rest
+                                                    |> String.split "}"
+                                                    |> List.head
+                                                    |> Maybe.withDefault ""
+                                                    |> String.trim
+                                            _ ->
+                                                ""
+                                    )
+
+                            url = extractUrl str
+                        in
+                        if String.isEmpty url then
+                            "| image"
+                        else
+                            "| image\n" ++ url
+                    else
+                        -- Regular center content
+                        "| center\n" ++ String.trim str
+
+                Right _ ->
+                    "| center"
+
+        _ ->
+            -- This is an Ordinary block named "center"
+            case block.body of
+                Right exprs ->
+                    -- Check if any expression is includegraphics (may have optional parameters attached)
+                    let
+                        hasIncludeGraphics =
+                            exprs
+                                |> List.any (\expr ->
+                                    case expr of
+                                        Fun name _ _ -> String.startsWith "includegraphics" name
+                                        _ -> False
+                                )
+                    in
+                    if hasIncludeGraphics then
+                        -- Look for includegraphics function and extract URL
+                        exprs
+                            |> List.filterMap (\expr ->
+                                case expr of
+                                    Fun name args _ ->
+                                        if String.startsWith "includegraphics" name then
+                                            -- The URL is in the second element of args (after the optional parameters)
+                                            case args of
+                                                _ :: Text url _ :: _ ->
+                                                    if String.contains "http" url then
+                                                        Just url
+                                                    else
+                                                        Nothing
+                                                [ Text url _ ] ->
+                                                    -- Sometimes it's the only argument
+                                                    if String.contains "http" url then
+                                                        Just url
+                                                    else
+                                                        Nothing
+                                                _ ->
+                                                    -- Try to find any Text with http in args
+                                                    args
+                                                        |> List.filterMap (\arg ->
+                                                            case arg of
+                                                                Text url _ ->
+                                                                    if String.contains "http" url then
+                                                                        Just url
+                                                                    else
+                                                                        Nothing
+                                                                _ -> Nothing
+                                                        )
+                                                        |> List.head
+                                        else
+                                            Nothing
+                                    _ -> Nothing
+                            )
+                            |> List.head
+                            |> Maybe.map (\url -> "| image\n" ++ url)
+                            |> Maybe.withDefault "| image"
+                    else
+                        -- Regular center with expressions
+                        let
+                            content = exprs |> List.map (renderExpression newMacroNames) |> String.join " "
+                        in
+                        "| center\n" ++ content
+
+                Left str ->
+                    "| center\n" ++ String.trim str
 
 
 {-| Render figure environment
