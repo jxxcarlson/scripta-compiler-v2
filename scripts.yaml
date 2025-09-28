@@ -11,3 +11,9 @@ scripts:
   review-x: npx elm-review  --rules NoUnused.CustomTypeConstructors
 
   cloc: cloc --by-file --exclude-dir=Evergreen src/ compiler/
+
+  clean: rm -f assets/main-*.js
+
+  clean-all: rm -rf elm-stuff && rm -f assets/main-*.js
+
+  # OR: run npm run clean or npm run clean-all without worrying about accidentally deleting essential runtime dependencies!
