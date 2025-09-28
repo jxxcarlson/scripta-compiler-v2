@@ -1,5 +1,6 @@
 module Render.Export.LaTeXToScripta2 exposing
-    ( mathMacros
+    ( convertVerbatimBacktick
+    , mathMacros
     , parseL
     , parseNewCommand
     , renderBlock
@@ -17,6 +18,7 @@ import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
+import Regex
 import RoseTree.Tree as Tree exposing (Tree)
 import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language(..))
@@ -28,7 +30,7 @@ translate : String -> String
 translate latexSource =
     let
         lines =
-            String.lines latexSource
+            String.lines (convertVerbatimBacktick latexSource)
 
         -- Separate \newcommand lines from other content
         isNewCommand line =
@@ -78,6 +80,26 @@ translate latexSource =
     in
     -- Combine macros and content
     macroBlock ++ renderedContent
+
+
+convertVerbatimBacktick : String -> String
+convertVerbatimBacktick input =
+    let
+        -- Pattern specifically for verb`...` (no backslash required)
+        verbPattern =
+            Maybe.withDefault Regex.never <|
+                Regex.fromString "verb`([^`]*)`"
+
+        replacer : Regex.Match -> String
+        replacer match =
+            case match.submatches of
+                [ Just content ] ->
+                    "`" ++ content ++ "`"
+
+                _ ->
+                    match.match
+    in
+    Regex.replace verbPattern replacer input
 
 
 {-| Parse LaTeX source code to AST (List of Tree ExpressionBlock)
@@ -537,13 +559,46 @@ renderItem newMacroNames block =
             else
                 "- "
 
-        content =
-            case block.body of
-                Left str ->
-                    String.trim str
+        -- Extract content from \item{content} in firstLine
+        extractFromFirstLine =
+            if String.contains "\\item{" block.firstLine then
+                block.firstLine
+                    |> String.replace "\\item{" ""
+                    |> String.split "}"
+                    |> List.head
+                    |> Maybe.withDefault ""
+            else
+                ""
 
-                Right exprs ->
-                    exprs |> List.map (renderExpression newMacroNames) |> String.join " "
+        content =
+            -- First try to extract from \item{...} syntax in firstLine
+            if not (String.isEmpty extractFromFirstLine) then
+                extractFromFirstLine
+            -- Then check if there are args
+            else if not (List.isEmpty block.args) then
+                case block.args of
+                    arg :: _ ->
+                        arg
+                    [] ->
+                        ""
+            -- Otherwise fall back to body
+            else
+                case block.body of
+                    Left str ->
+                        String.trim str
+
+                    Right exprs ->
+                        -- Filter out error highlighting functions
+                        exprs
+                            |> List.filter (\expr ->
+                                case expr of
+                                    Fun "errorHighlight" _ _ -> False
+                                    Fun "blue" _ _ -> False  -- This seems to be a parsing artifact
+                                    _ -> True
+                            )
+                            |> List.map (renderExpression newMacroNames)
+                            |> String.join " "
+                            |> String.trim
     in
     prefix ++ content
 
@@ -1016,23 +1071,28 @@ decoToString newMacroNames deco =
     case deco of
         E.DecoM expr ->
             let
-                content = mathExprToScripta newMacroNames expr
+                content =
+                    mathExprToScripta newMacroNames expr
             in
             -- Add braces if needed
             if String.startsWith "\"" content then
                 -- Quoted strings don't need braces
                 content
+
             else if String.length content > 1 || String.contains " " content then
                 "{" ++ content ++ "}"
+
             else
                 content
 
         E.DecoI n ->
             let
-                nStr = String.fromInt n
+                nStr =
+                    String.fromInt n
             in
             -- Add braces if number has multiple digits
             if String.length nStr > 1 then
                 "{" ++ nStr ++ "}"
+
             else
                 nStr

@@ -4,6 +4,7 @@ module Common.Model exposing
     , Flags
     , PdfResponse
     , PrintingState(..)
+    , SortOrder(..)
     , getTitle
     , getTitleFromContent
     , initCommon
@@ -34,6 +35,11 @@ type PrintingState
     | PrintReady
 
 
+type SortOrder
+    = Alphabetical
+    | Recent
+
+
 type alias PdfResponse =
     { pdf : Maybe String
     , errorReport : Maybe String
@@ -59,6 +65,8 @@ type alias CommonModel =
     , documents : List Document
     , currentDocument : Maybe Document
     , showDocumentList : Bool
+    , sortOrder : SortOrder
+    , documentSearchText : String
     , lastSaved : Time.Posix
     , lastChanged : Time.Posix
     , userName : Maybe String
@@ -95,6 +103,8 @@ type CommonMsg
     | LoadDocument String
     | DeleteDocument String
     | ToggleDocumentList
+    | ToggleSortOrder
+    | InputDocumentSearchText String
     | AutoSave Time.Posix
     | Tick Time.Posix
     | GeneratedId String
@@ -189,6 +199,8 @@ initCommon flags =
     , documents = []
     , currentDocument = Nothing
     , showDocumentList = False
+    , sortOrder = Alphabetical
+    , documentSearchText = ""
     , lastSaved = currentTime
     , lastChanged = currentTime
     , userName = Just ""

@@ -603,6 +603,25 @@ updateCommon msg model =
             , Cmd.none
             )
 
+        Common.ToggleSortOrder ->
+            let
+                newSortOrder =
+                    case common.sortOrder of
+                        Common.Alphabetical ->
+                            Common.Recent
+
+                        Common.Recent ->
+                            Common.Alphabetical
+            in
+            ( { model | common = { common | sortOrder = newSortOrder } }
+            , Cmd.none
+            )
+
+        Common.InputDocumentSearchText text ->
+            ( { model | common = { common | documentSearchText = text } }
+            , Cmd.none
+            )
+
         Common.AutoSave time ->
             let
                 shouldSave =

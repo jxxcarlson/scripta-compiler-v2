@@ -134,6 +134,27 @@ mainColumn toMsg renderMsg model =
         ]
 
 
+sortDocuments : Common.SortOrder -> List Document -> List Document
+sortDocuments sortOrder docs =
+    case sortOrder of
+        Common.Alphabetical ->
+            List.sortBy .title docs
+
+        Common.Recent ->
+            List.sortBy (\d -> -(Time.posixToMillis d.modifiedAt)) docs
+
+
+filterDocuments : String -> List Document -> List Document
+filterDocuments searchText docs =
+    if String.isEmpty searchText then
+        docs
+    else
+        let
+            searchLower = String.toLower searchText
+        in
+        List.filter (\doc -> String.contains searchLower (String.toLower doc.title)) docs
+
+
 sidebar : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
 sidebar toMsg model =
     Element.column
@@ -146,17 +167,42 @@ sidebar toMsg model =
         , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
         , Border.color (Element.rgb 0.5 0.5 0.5)
         , Element.htmlAttribute (Html.Attributes.style "overflow" "hidden")
+        , paddingXY 8 8
         ]
-        [ -- Documents section that can grow
+        [ -- Top controls section (compact)
           Element.column
-            (Style.innerColumn ++ [height fill])
-            [ -- User name section
-              nameElement toMsg model
-            , Element.el [ Element.paddingXY 0 8, Element.width Element.fill ] (Element.text "")
+            [width fill, spacing 2, paddingEach { bottom = 36, top = 0, left = 0, right = 0 }]
+            [ nameElement toMsg model
             , toggleTheme toMsg model
             , crudButtons toMsg model
-            , exportStuff toMsg model
-            , Element.el [ Element.paddingXY 0 8, Element.width Element.fill ] (Element.text "")
+            ]
+
+        -- Export/Import section
+        , Element.column
+            [width fill, paddingEach { bottom = 36, top = 0, left = 0, right = 0 }]
+            [ exportStuff toMsg model
+            ]
+
+        -- Document list section (maximized)
+        , Element.column
+            [height fill, width fill, spacing 2]
+            [ -- Search input
+              Input.text
+                [ width fill
+                , height (px 28)
+                , Font.size 14
+                , paddingXY 8 3
+                , Border.width 1
+                , Border.color (Style.borderColor model.theme)
+                , Background.color (Style.backgroundColor model.theme)
+                , Font.color (Style.textColor model.theme)
+                ]
+                { onChange = toMsg << Common.InputDocumentSearchText
+                , text = model.documentSearchText
+                , placeholder = Just (Input.placeholder [] (Element.text "Search documents..."))
+                , label = Input.labelHidden "Search documents"
+                }
+            , toggleSortOrder toMsg model
             , Element.column
                 [ spacing 4
                 , width fill
@@ -167,7 +213,11 @@ sidebar toMsg model =
                 , Element.htmlAttribute (Html.Attributes.style "flex" "1")
                 , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
                 ]
-                (List.map (documentItem toMsg model) (List.sortBy (\d -> d.title) model.documents))
+                (model.documents
+                    |> filterDocuments model.documentSearchText
+                    |> sortDocuments model.sortOrder
+                    |> List.map (documentItem toMsg model)
+                )
             ]
         ]
 
@@ -217,7 +267,7 @@ tocPanel renderMsg model =
 
 crudButtons : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
 crudButtons toMsg model =
-    Element.row [ spacing 8, width fill ]
+    Element.row [ spacing 4, width fill ]
         [ newButton toMsg model
         , saveButton toMsg model
         ]
@@ -235,18 +285,18 @@ saveButton toMsg model =
 
 exportStuff : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
 exportStuff toMsg model =
-    Element.column [ spacing 4, width fill ]
-        [ Element.el [ Font.bold ] (Element.text "Export")
+    Element.column [ spacing 2, width fill ]
+        [ Element.el [ Font.semiBold ] (Element.text "Export/Import")
         , case model.printingState of
             Common.PrintWaiting ->
-                Element.column [ spacing 4, width fill ]
-                    [ Element.row [ spacing 4, width fill ]
+                Element.column [ spacing 2, width fill ]
+                    [ Element.row [ spacing 2, width fill ]
                         [ Widget.sidebarButton model.theme (Just (toMsg Common.PrintToPDF)) "PDF"
                         , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToLaTeX)) "LaTeX"
                         , Widget.sidebarButton model.theme (Just (toMsg Common.ExportToRawLaTeX)) "Raw LaTeX"
                         ]
-                    , Element.column [ spacing 4, width fill ]
-                        [ Element.row [ spacing 4, width fill ]
+                    , Element.column [ spacing 2, width fill ]
+                        [ Element.row [ spacing 2, width fill ]
                             [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportScriptaFile)) "Save Scripta"
                             , Widget.sidebarButton model.theme (Just (toMsg Common.ImportScriptaFile)) "Import Scripta"
                             ]
@@ -258,10 +308,10 @@ exportStuff toMsg model =
                 Element.el [ Font.size 14, padding 8 ] (Element.text "Processing...")
 
             Common.PrintReady ->
-                Element.column [ spacing 4, width fill ]
+                Element.column [ spacing 2, width fill ]
                     [ -- Always show the Save/Import buttons
-                      Element.column [ spacing 4, width fill ]
-                        [ Element.row [ spacing 4, width fill ]
+                      Element.column [ spacing 2, width fill ]
+                        [ Element.row [ spacing 2, width fill ]
                             [ Widget.sidebarButton model.theme (Just (toMsg Common.ExportScriptaFile)) "Save Scripta"
                             , Widget.sidebarButton model.theme (Just (toMsg Common.ImportScriptaFile)) "Import Scripta"
                             ]
@@ -664,6 +714,27 @@ toggleTheme toMsg model =
 
           else
             Widget.sidebarButton model.theme (Just (toMsg Common.ToggleTheme)) "Light"
+        ]
+
+
+toggleSortOrder : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
+toggleSortOrder toMsg model =
+    Element.row
+        [ height (px 30)
+        , spacing 0
+        ]
+        [ case model.sortOrder of
+            Common.Alphabetical ->
+                Element.row [ spacing 0 ]
+                    [ sidebarButton2 model.theme model.theme (Just (toMsg Common.ToggleSortOrder)) "Alpha"
+                    , Widget.sidebarButton model.theme (Just (toMsg Common.ToggleSortOrder)) "Recent"
+                    ]
+
+            Common.Recent ->
+                Element.row [ spacing 0 ]
+                    [ Widget.sidebarButton model.theme (Just (toMsg Common.ToggleSortOrder)) "Alpha"
+                    , sidebarButton2 model.theme model.theme (Just (toMsg Common.ToggleSortOrder)) "Recent"
+                    ]
         ]
 
 

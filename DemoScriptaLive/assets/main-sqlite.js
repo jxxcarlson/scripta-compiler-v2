@@ -5849,6 +5849,7 @@ var $elm$core$Basics$composeL = F3(
 			f(x));
 	});
 var $author$project$Storage$SQLite$init = {dbReady: false, initialized: false};
+var $author$project$Common$Model$Alphabetical = {$: 'Alphabetical'};
 var $author$project$Theme$Dark = {$: 'Dark'};
 var $author$project$ScriptaV2$Language$EnclosureLang = {$: 'EnclosureLang'};
 var $author$project$Theme$Light = {$: 'Light'};
@@ -22870,6 +22871,7 @@ var $author$project$Common$Model$initCommon = function (flags) {
 					((((flags.window.windowWidth - 230) - ((flags.window.windowWidth >= 1000) ? 221 : 0)) - 3) / 2) | 0) - 40)
 		},
 		doSync: false,
+		documentSearchText: '',
 		documents: _List_Nil,
 		editRecord: A3($author$project$ScriptaV2$DifferentialCompiler$init, $elm$core$Dict$empty, $author$project$ScriptaV2$Language$EnclosureLang, ''),
 		editorData: {begin: 0, end: 0},
@@ -22890,6 +22892,7 @@ var $author$project$Common$Model$initCommon = function (flags) {
 		selectId: '',
 		selectedId: '',
 		showDocumentList: false,
+		sortOrder: $author$project$Common$Model$Alphabetical,
 		sourceText: '',
 		targetData: $elm$core$Maybe$Nothing,
 		theme: theme,
@@ -23895,6 +23898,7 @@ var $author$project$MainSQLite$LaTeXFileSelected = function (a) {
 var $author$project$Common$Model$LoadContentIntoEditorDelayed = {$: 'LoadContentIntoEditorDelayed'};
 var $author$project$Common$Model$PrintProcessing = {$: 'PrintProcessing'};
 var $author$project$Common$Model$PrintReady = {$: 'PrintReady'};
+var $author$project$Common$Model$Recent = {$: 'Recent'};
 var $author$project$Common$Model$ResetLoadFlag = {$: 'ResetLoadFlag'};
 var $author$project$Common$Model$SaveDocument = {$: 'SaveDocument'};
 var $author$project$Common$Model$SelectId = function (a) {
@@ -55360,6 +55364,22 @@ var $elm$file$File$Download$string = F3(
 			A3(_File_download, name, mime, content));
 	});
 var $elm$file$File$toString = _File_toString;
+var $author$project$Render$Export$LaTeXToScripta2$convertVerbatimBacktick = function (input) {
+	var verbPattern = A2(
+		$elm$core$Maybe$withDefault,
+		$elm$regex$Regex$never,
+		$elm$regex$Regex$fromString('verb`([^`]*)`'));
+	var replacer = function (match) {
+		var _v0 = match.submatches;
+		if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
+			var content = _v0.a.a;
+			return '`' + (content + '`');
+		} else {
+			return match.match;
+		}
+	};
+	return A3($elm$regex$Regex$replace, verbPattern, replacer, input);
+};
 var $author$project$Render$Export$LaTeXToScripta2$formatMacroDefinition = function (_v0) {
 	var name = _v0.a;
 	var body = _v0.b;
@@ -56026,13 +56046,14 @@ var $author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta = F2
 			return latexMath;
 		}
 	});
+var $elm$core$Debug$log = _Debug_log;
 var $author$project$Render$Export$LaTeXToScripta2$renderVerbatimFunction = F3(
 	function (newMacroNames, name, content) {
 		switch (name) {
 			case 'math':
 				return '$' + (A2($author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta, newMacroNames, content) + '$');
 			case 'code':
-				return '`' + (content + '`');
+				return A2($elm$core$Debug$log, 'Code content', '`' + (content + '`'));
 			default:
 				return '[' + (name + (' ' + (content + ']')));
 		}
@@ -56183,19 +56204,25 @@ var $author$project$Render$Export$LaTeXToScripta2$renderItem = F2(
 		var isEnumerate = A2($elm$core$String$contains, '\\begin{enumerate}', block.meta.sourceText) || A2($elm$core$String$contains, 'enumerate', block.firstLine);
 		var prefix = isEnumerate ? '. ' : '- ';
 		var content = function () {
-			var _v0 = block.body;
-			if (_v0.$ === 'Left') {
-				var str = _v0.a;
-				return $elm$core$String$trim(str);
+			var _v0 = block.args;
+			if (_v0.b) {
+				var arg = _v0.a;
+				return arg;
 			} else {
-				var exprs = _v0.a;
-				return A2(
-					$elm$core$String$join,
-					' ',
-					A2(
-						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-						exprs));
+				var _v1 = block.body;
+				if (_v1.$ === 'Left') {
+					var str = _v1.a;
+					return $elm$core$String$trim(str);
+				} else {
+					var exprs = _v1.a;
+					return A2(
+						$elm$core$String$join,
+						' ',
+						A2(
+							$elm$core$List$map,
+							$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+							exprs));
+				}
 			}
 		}();
 		return _Utils_ap(prefix, content);
@@ -56560,7 +56587,8 @@ var $author$project$Render$Export$LaTeXToScripta2$renderS = F2(
 				forest));
 	});
 var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSource) {
-	var lines = $elm$core$String$lines(latexSource);
+	var lines = $elm$core$String$lines(
+		$author$project$Render$Export$LaTeXToScripta2$convertVerbatimBacktick(latexSource));
 	var isNewCommand = function (line) {
 		return A2(
 			$elm$core$String$startsWith,
@@ -57285,12 +57313,12 @@ var $author$project$MainSQLite$update = F2(
 				var content = msg.a;
 				var title = $author$project$Common$Model$getTitleFromContent(content);
 				var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
-				var _v10 = A2(
+				var _v11 = A2(
 					$author$project$MainSQLite$updateCommon,
 					$author$project$Common$Model$InputText(content),
 					model);
-				var modelWithContent = _v10.a;
-				var cmdFromUpdate = _v10.b;
+				var modelWithContent = _v11.a;
+				var cmdFromUpdate = _v11.b;
 				var newId = 'imported-' + $elm$core$String$fromInt(
 					($elm$time$Time$posixToMillis(modelWithContent.common.currentTime) / 1) | 0);
 				var newDoc = A6(
@@ -57351,12 +57379,12 @@ var $author$project$MainSQLite$update = F2(
 				var storage = $author$project$Storage$SQLite$storage($author$project$MainSQLite$StorageMsg);
 				var basename = A2($elm$core$String$endsWith, '.tex', filename) ? A2($elm$core$String$dropRight, 4, filename) : filename;
 				var scriptaContent = '| title\n' + (basename + ('\n\n' + translatedContent));
-				var _v11 = A2(
+				var _v12 = A2(
 					$author$project$MainSQLite$updateCommon,
 					$author$project$Common$Model$InputText(scriptaContent),
 					model);
-				var modelWithContent = _v11.a;
-				var cmdFromUpdate = _v11.b;
+				var modelWithContent = _v12.a;
+				var cmdFromUpdate = _v12.b;
 				var newId = 'latex-import-' + $elm$core$String$fromInt(
 					($elm$time$Time$posixToMillis(modelWithContent.common.currentTime) / 1000) | 0);
 				var newDoc = A6(
@@ -57715,6 +57743,35 @@ var $author$project$MainSQLite$updateCommon = F2(
 								{showDocumentList: !common.showDocumentList})
 						}),
 					$elm$core$Platform$Cmd$none);
+			case 'ToggleSortOrder':
+				var newSortOrder = function () {
+					var _v5 = common.sortOrder;
+					if (_v5.$ === 'Alphabetical') {
+						return $author$project$Common$Model$Recent;
+					} else {
+						return $author$project$Common$Model$Alphabetical;
+					}
+				}();
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							common: _Utils_update(
+								common,
+								{sortOrder: newSortOrder})
+						}),
+					$elm$core$Platform$Cmd$none);
+			case 'InputDocumentSearchText':
+				var text = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							common: _Utils_update(
+								common,
+								{documentSearchText: text})
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'AutoSave':
 				var time = msg.a;
 				var shouldSave = (($elm$time$Time$posixToMillis(time) - $elm$time$Time$posixToMillis(common.lastSaved)) > 30000) && ((common.sourceText !== '') && (!_Utils_eq(common.lastChanged, common.lastSaved)));
@@ -57940,7 +57997,7 @@ var $author$project$MainSQLite$updateCommon = F2(
 						{common: newCommon}),
 					(firstId !== '') ? A2(
 						$elm$core$Task$perform,
-						function (_v8) {
+						function (_v9) {
 							return $author$project$MainSQLite$CommonMsg(
 								$author$project$Common$Model$SelectId(firstId));
 						},
@@ -58633,6 +58690,9 @@ var $author$project$Common$View$mainColumnStyle = _List_fromArray(
 		$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 		$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
 	]);
+var $author$project$Common$Model$InputDocumentSearchText = function (a) {
+	return {$: 'InputDocumentSearchText', a: a};
+};
 var $mdgriffith$elm_ui$Internal$Model$Hover = {$: 'Hover'};
 var $mdgriffith$elm_ui$Internal$Flag$hover = $mdgriffith$elm_ui$Internal$Flag$flag(33);
 var $mdgriffith$elm_ui$Element$mouseOver = function (decs) {
@@ -58733,7 +58793,7 @@ var $author$project$Common$View$crudButtons = F2(
 			$mdgriffith$elm_ui$Element$row,
 			_List_fromArray(
 				[
-					$mdgriffith$elm_ui$Element$spacing(8),
+					$mdgriffith$elm_ui$Element$spacing(4),
 					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 				]),
 			_List_fromArray(
@@ -58854,7 +58914,7 @@ var $author$project$Common$View$exportStuff = F2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
 				[
-					$mdgriffith$elm_ui$Element$spacing(4),
+					$mdgriffith$elm_ui$Element$spacing(2),
 					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 				]),
 			_List_fromArray(
@@ -58862,8 +58922,8 @@ var $author$project$Common$View$exportStuff = F2(
 					A2(
 					$mdgriffith$elm_ui$Element$el,
 					_List_fromArray(
-						[$mdgriffith$elm_ui$Element$Font$bold]),
-					$mdgriffith$elm_ui$Element$text('Export')),
+						[$mdgriffith$elm_ui$Element$Font$semiBold]),
+					$mdgriffith$elm_ui$Element$text('Export/Import')),
 					function () {
 					var _v0 = model.printingState;
 					switch (_v0.$) {
@@ -58872,7 +58932,7 @@ var $author$project$Common$View$exportStuff = F2(
 								$mdgriffith$elm_ui$Element$column,
 								_List_fromArray(
 									[
-										$mdgriffith$elm_ui$Element$spacing(4),
+										$mdgriffith$elm_ui$Element$spacing(2),
 										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 									]),
 								_List_fromArray(
@@ -58881,7 +58941,7 @@ var $author$project$Common$View$exportStuff = F2(
 										$mdgriffith$elm_ui$Element$row,
 										_List_fromArray(
 											[
-												$mdgriffith$elm_ui$Element$spacing(4),
+												$mdgriffith$elm_ui$Element$spacing(2),
 												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 											]),
 										_List_fromArray(
@@ -58909,7 +58969,7 @@ var $author$project$Common$View$exportStuff = F2(
 										$mdgriffith$elm_ui$Element$column,
 										_List_fromArray(
 											[
-												$mdgriffith$elm_ui$Element$spacing(4),
+												$mdgriffith$elm_ui$Element$spacing(2),
 												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 											]),
 										_List_fromArray(
@@ -58918,7 +58978,7 @@ var $author$project$Common$View$exportStuff = F2(
 												$mdgriffith$elm_ui$Element$row,
 												_List_fromArray(
 													[
-														$mdgriffith$elm_ui$Element$spacing(4),
+														$mdgriffith$elm_ui$Element$spacing(2),
 														$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 													]),
 												_List_fromArray(
@@ -58958,7 +59018,7 @@ var $author$project$Common$View$exportStuff = F2(
 								$mdgriffith$elm_ui$Element$column,
 								_List_fromArray(
 									[
-										$mdgriffith$elm_ui$Element$spacing(4),
+										$mdgriffith$elm_ui$Element$spacing(2),
 										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 									]),
 								_List_fromArray(
@@ -58967,7 +59027,7 @@ var $author$project$Common$View$exportStuff = F2(
 										$mdgriffith$elm_ui$Element$column,
 										_List_fromArray(
 											[
-												$mdgriffith$elm_ui$Element$spacing(4),
+												$mdgriffith$elm_ui$Element$spacing(2),
 												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 											]),
 										_List_fromArray(
@@ -58976,7 +59036,7 @@ var $author$project$Common$View$exportStuff = F2(
 												$mdgriffith$elm_ui$Element$row,
 												_List_fromArray(
 													[
-														$mdgriffith$elm_ui$Element$spacing(4),
+														$mdgriffith$elm_ui$Element$spacing(2),
 														$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 													]),
 												_List_fromArray(
@@ -59105,20 +59165,27 @@ var $author$project$Common$View$exportStuff = F2(
 				}()
 				]));
 	});
-var $author$project$Style$innerColumn = _List_fromArray(
-	[
-		$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-		$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-		A2($mdgriffith$elm_ui$Element$paddingXY, 16, 16),
-		$mdgriffith$elm_ui$Element$spacing(12),
-		$mdgriffith$elm_ui$Element$scrollbarY,
-		$mdgriffith$elm_ui$Element$htmlAttribute(
-		A2($elm$html$Html$Attributes$style, 'overflow-y', 'auto')),
-		$mdgriffith$elm_ui$Element$htmlAttribute(
-		A2($elm$html$Html$Attributes$style, 'min-height', '0')),
-		$mdgriffith$elm_ui$Element$htmlAttribute(
-		A2($elm$html$Html$Attributes$style, 'box-sizing', 'border-box'))
-	]);
+var $author$project$Common$View$filterDocuments = F2(
+	function (searchText, docs) {
+		if ($elm$core$String$isEmpty(searchText)) {
+			return docs;
+		} else {
+			var searchLower = $elm$core$String$toLower(searchText);
+			return A2(
+				$elm$core$List$filter,
+				function (doc) {
+					return A2(
+						$elm$core$String$contains,
+						searchLower,
+						$elm$core$String$toLower(doc.title));
+				},
+				docs);
+		}
+	});
+var $mdgriffith$elm_ui$Element$Input$HiddenLabel = function (a) {
+	return {$: 'HiddenLabel', a: a};
+};
+var $mdgriffith$elm_ui$Element$Input$labelHidden = $mdgriffith$elm_ui$Element$Input$HiddenLabel;
 var $author$project$Common$Model$InputUserName = function (a) {
 	return {$: 'InputUserName', a: a};
 };
@@ -59143,10 +59210,6 @@ var $mdgriffith$elm_ui$Element$alpha = function (o) {
 			'transparency-' + $mdgriffith$elm_ui$Internal$Model$floatClass(transparency),
 			transparency));
 };
-var $mdgriffith$elm_ui$Element$Input$HiddenLabel = function (a) {
-	return {$: 'HiddenLabel', a: a};
-};
-var $mdgriffith$elm_ui$Element$Input$labelHidden = $mdgriffith$elm_ui$Element$Input$HiddenLabel;
 var $mdgriffith$elm_ui$Element$Input$TextInputNode = function (a) {
 	return {$: 'TextInputNode', a: a};
 };
@@ -60013,6 +60076,11 @@ var $author$project$Common$View$nameElement = F2(
 					A2($elm$core$Basics$composeL, toMsg, $author$project$Common$Model$InputUserName))
 				]));
 	});
+var $mdgriffith$elm_ui$Element$Input$Placeholder = F2(
+	function (a, b) {
+		return {$: 'Placeholder', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Element$Input$placeholder = $mdgriffith$elm_ui$Element$Input$Placeholder;
 var $author$project$Style$rightPanelBackgroundColor = function (theme) {
 	if (theme.$ === 'Light') {
 		return A3($mdgriffith$elm_ui$Element$rgb255, 230, 230, 230);
@@ -60024,7 +60092,25 @@ var $author$project$Style$rightPanelBackground_ = function (theme) {
 	return $mdgriffith$elm_ui$Element$Background$color(
 		$author$project$Style$rightPanelBackgroundColor(theme));
 };
-var $author$project$Common$Model$ToggleTheme = {$: 'ToggleTheme'};
+var $author$project$Common$View$sortDocuments = F2(
+	function (sortOrder, docs) {
+		if (sortOrder.$ === 'Alphabetical') {
+			return A2(
+				$elm$core$List$sortBy,
+				function ($) {
+					return $.title;
+				},
+				docs);
+		} else {
+			return A2(
+				$elm$core$List$sortBy,
+				function (d) {
+					return -$elm$time$Time$posixToMillis(d.modifiedAt);
+				},
+				docs);
+		}
+	});
+var $author$project$Common$Model$ToggleSortOrder = {$: 'ToggleSortOrder'};
 var $mdgriffith$elm_ui$Element$Font$extraLight = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontWeight, $mdgriffith$elm_ui$Internal$Style$classes.textExtraLight);
 var $author$project$Common$View$sidebarButton2 = F4(
 	function (modelTheme, buttonTheme, msg, label) {
@@ -60061,6 +60147,71 @@ var $author$project$Common$View$sidebarButton2 = F4(
 				onPress: msg
 			});
 	});
+var $author$project$Common$View$toggleSortOrder = F2(
+	function (toMsg, model) {
+		return A2(
+			$mdgriffith$elm_ui$Element$row,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$height(
+					$mdgriffith$elm_ui$Element$px(30)),
+					$mdgriffith$elm_ui$Element$spacing(0)
+				]),
+			_List_fromArray(
+				[
+					function () {
+					var _v0 = model.sortOrder;
+					if (_v0.$ === 'Alphabetical') {
+						return A2(
+							$mdgriffith$elm_ui$Element$row,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_ui$Element$spacing(0)
+								]),
+							_List_fromArray(
+								[
+									A4(
+									$author$project$Common$View$sidebarButton2,
+									model.theme,
+									model.theme,
+									$elm$core$Maybe$Just(
+										toMsg($author$project$Common$Model$ToggleSortOrder)),
+									'Alpha'),
+									A3(
+									$author$project$Widget$sidebarButton,
+									model.theme,
+									$elm$core$Maybe$Just(
+										toMsg($author$project$Common$Model$ToggleSortOrder)),
+									'Recent')
+								]));
+					} else {
+						return A2(
+							$mdgriffith$elm_ui$Element$row,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_ui$Element$spacing(0)
+								]),
+							_List_fromArray(
+								[
+									A3(
+									$author$project$Widget$sidebarButton,
+									model.theme,
+									$elm$core$Maybe$Just(
+										toMsg($author$project$Common$Model$ToggleSortOrder)),
+									'Alpha'),
+									A4(
+									$author$project$Common$View$sidebarButton2,
+									model.theme,
+									model.theme,
+									$elm$core$Maybe$Just(
+										toMsg($author$project$Common$Model$ToggleSortOrder)),
+									'Recent')
+								]));
+					}
+				}()
+				]));
+	});
+var $author$project$Common$Model$ToggleTheme = {$: 'ToggleTheme'};
 var $author$project$Common$View$toggleTheme = F2(
 	function (toMsg, model) {
 		return A2(
@@ -60117,40 +60268,76 @@ var $author$project$Common$View$sidebar = F2(
 					$mdgriffith$elm_ui$Element$Border$color(
 					A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5)),
 					$mdgriffith$elm_ui$Element$htmlAttribute(
-					A2($elm$html$Html$Attributes$style, 'overflow', 'hidden'))
+					A2($elm$html$Html$Attributes$style, 'overflow', 'hidden')),
+					A2($mdgriffith$elm_ui$Element$paddingXY, 8, 8)
 				]),
 			_List_fromArray(
 				[
 					A2(
 					$mdgriffith$elm_ui$Element$column,
-					_Utils_ap(
-						$author$project$Style$innerColumn,
-						_List_fromArray(
-							[
-								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
-							])),
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+							$mdgriffith$elm_ui$Element$spacing(2),
+							$mdgriffith$elm_ui$Element$paddingEach(
+							{bottom: 36, left: 0, right: 0, top: 0})
+						]),
 					_List_fromArray(
 						[
 							A2($author$project$Common$View$nameElement, toMsg, model),
-							A2(
-							$mdgriffith$elm_ui$Element$el,
-							_List_fromArray(
-								[
-									A2($mdgriffith$elm_ui$Element$paddingXY, 0, 8),
-									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
-								]),
-							$mdgriffith$elm_ui$Element$text('')),
 							A2($author$project$Common$View$toggleTheme, toMsg, model),
-							A2($author$project$Common$View$crudButtons, toMsg, model),
-							A2($author$project$Common$View$exportStuff, toMsg, model),
+							A2($author$project$Common$View$crudButtons, toMsg, model)
+						])),
+					A2(
+					$mdgriffith$elm_ui$Element$column,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+							$mdgriffith$elm_ui$Element$paddingEach(
+							{bottom: 36, left: 0, right: 0, top: 0})
+						]),
+					_List_fromArray(
+						[
+							A2($author$project$Common$View$exportStuff, toMsg, model)
+						])),
+					A2(
+					$mdgriffith$elm_ui$Element$column,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+							$mdgriffith$elm_ui$Element$spacing(2)
+						]),
+					_List_fromArray(
+						[
 							A2(
-							$mdgriffith$elm_ui$Element$el,
+							$mdgriffith$elm_ui$Element$Input$text,
 							_List_fromArray(
 								[
-									A2($mdgriffith$elm_ui$Element$paddingXY, 0, 8),
-									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+									$mdgriffith$elm_ui$Element$height(
+									$mdgriffith$elm_ui$Element$px(28)),
+									$mdgriffith$elm_ui$Element$Font$size(14),
+									A2($mdgriffith$elm_ui$Element$paddingXY, 8, 3),
+									$mdgriffith$elm_ui$Element$Border$width(1),
+									$mdgriffith$elm_ui$Element$Border$color(
+									$author$project$Style$borderColor(model.theme)),
+									$mdgriffith$elm_ui$Element$Background$color(
+									$author$project$Style$backgroundColor(model.theme)),
+									$mdgriffith$elm_ui$Element$Font$color(
+									$author$project$Style$textColor(model.theme))
 								]),
-							$mdgriffith$elm_ui$Element$text('')),
+							{
+								label: $mdgriffith$elm_ui$Element$Input$labelHidden('Search documents'),
+								onChange: A2($elm$core$Basics$composeL, toMsg, $author$project$Common$Model$InputDocumentSearchText),
+								placeholder: $elm$core$Maybe$Just(
+									A2(
+										$mdgriffith$elm_ui$Element$Input$placeholder,
+										_List_Nil,
+										$mdgriffith$elm_ui$Element$text('Search documents...'))),
+								text: model.documentSearchText
+							}),
+							A2($author$project$Common$View$toggleSortOrder, toMsg, model),
 							A2(
 							$mdgriffith$elm_ui$Element$column,
 							_List_fromArray(
@@ -60172,11 +60359,9 @@ var $author$project$Common$View$sidebar = F2(
 								$elm$core$List$map,
 								A2($author$project$Common$View$documentItem, toMsg, model),
 								A2(
-									$elm$core$List$sortBy,
-									function (d) {
-										return d.title;
-									},
-									model.documents)))
+									$author$project$Common$View$sortDocuments,
+									model.sortOrder,
+									A2($author$project$Common$View$filterDocuments, model.documentSearchText, model.documents))))
 						]))
 				]));
 	});
