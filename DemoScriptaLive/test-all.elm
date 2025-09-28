@@ -111,6 +111,9 @@ frac(d, dx) sin(x) = cos(x)"""
         , testCase "Test 16: Equation with fraction"
             "\\begin{equation}\nM  = \\frac{R\\sigma^2}{ G}\n\\end{equation}\n"
             "| equation\nM  = frac(R sigma^2, G)"
+        , testCase "Test 17: Equation with subscript text"
+            "\\begin{equation}\nM_\\text{cluster} \\sim 10^{14}-10^{15} M_\\odot.\n\\end{equation}\n"
+            "| equation\nM_\"cluster\" sim 10^{14}-10^{15} M_{odot}."
         , testCase "Test 15: Complex document"
             """\\section{Introduction}
 

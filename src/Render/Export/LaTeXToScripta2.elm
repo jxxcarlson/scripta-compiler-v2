@@ -1022,7 +1022,24 @@ decoToString : List String -> E.Deco -> String
 decoToString newMacroNames deco =
     case deco of
         E.DecoM expr ->
-            mathExprToScripta newMacroNames expr
+            let
+                content = mathExprToScripta newMacroNames expr
+            in
+            -- Add braces if needed
+            if String.startsWith "\"" content then
+                -- Quoted strings don't need braces
+                content
+            else if String.length content > 1 || String.contains " " content then
+                "{" ++ content ++ "}"
+            else
+                content
 
         E.DecoI n ->
-            String.fromInt n
+            let
+                nStr = String.fromInt n
+            in
+            -- Add braces if number has multiple digits
+            if String.length nStr > 1 then
+                "{" ++ nStr ++ "}"
+            else
+                nStr
