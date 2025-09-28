@@ -1,5 +1,15 @@
-module Render.Export.LaTeXToScripta2 exposing (mathMacros, parseL, parseNewCommand, renderBlock, renderExpression, renderS, renderTree, translate)
+module Render.Export.LaTeXToScripta2 exposing
+    ( mathMacros
+    , parseL
+    , parseNewCommand
+    , renderBlock
+    , renderExpression
+    , renderS
+    , renderTree
+    , translate
+    )
 
+import ETeX.KaTeX
 import ETeX.MathMacros as E
 import Either exposing (Either(..))
 import Generic.Compiler
@@ -438,7 +448,8 @@ renderVerbatimFunction : String -> String -> String
 renderVerbatimFunction name content =
     case name of
         "math" ->
-            "$" ++ content ++ "$"
+            -- Convert LaTeX math to Scripta math format
+            "$" ++ convertLatexMathToScripta content ++ "$"
 
         "code" ->
             "`" ++ content ++ "`"
@@ -453,7 +464,7 @@ renderMathBlock : ExpressionBlock -> String
 renderMathBlock block =
     case block.body of
         Left str ->
-            "| math\n" ++ str
+            "| math\n" ++ convertLatexMathToScripta str
 
         _ ->
             "| math"
@@ -489,7 +500,7 @@ renderEquationBlock : ExpressionBlock -> String
 renderEquationBlock block =
     case block.body of
         Left str ->
-            "| equation\n" ++ str
+            "| equation\n" ++ convertLatexMathToScripta str
 
         _ ->
             "Error: Invalid equation block"
@@ -714,7 +725,7 @@ renderAlignedBlock block =
         "| aligned"
 
     else
-        "| aligned\n" ++ content
+        "| aligned\n" ++ convertLatexMathToScripta content
 
 
 {-| Convert LaTeX newcommand macros to Scripta mathmacros format
@@ -868,6 +879,24 @@ parseNewCommand line =
             Nothing
 
 
+{-| Convert LaTeX math content to Scripta math format
+This uses the ETeX parser to parse LaTeX math and convert it to Scripta syntax
+-}
+convertLatexMathToScripta : String -> String
+convertLatexMathToScripta latexMath =
+    -- Parse the LaTeX math expression using ETeX parser
+    case E.parse latexMath of
+        Ok exprs ->
+            -- Convert each expression to Scripta format
+            exprs
+                |> List.map mathExprToScripta
+                |> String.join ""
+
+        Err _ ->
+            -- If parsing fails, return original LaTeX
+            latexMath
+
+
 {-| Convert ETeX MathExpr to Scripta format string
 -}
 mathExprToScripta : E.MathExpr -> String
@@ -878,7 +907,11 @@ mathExprToScripta expr =
 
         E.MacroName str ->
             -- Don't add backslash for macro names in Scripta format
-            "\\" ++ str
+            if ETeX.KaTeX.isKaTeX str then
+                str
+
+            else
+                "\\" ++ str
 
         E.FunctionName str ->
             str
@@ -913,51 +946,108 @@ mathExprToScripta expr =
             str
 
         E.Macro name args ->
-            -- Special handling for common macros in Scripta format
-            case name of
-                "frac" ->
-                    -- Convert \frac{a}{b} to frac(a, b)
-                    case args of
-                        [ E.Arg num, E.Arg denom ] ->
-                            let
-                                numStr =
-                                    List.map mathExprToScripta num |> String.join ""
+            if List.isEmpty args then
+                -- No arguments - check if it's a Greek letter or other special case
+                case name of
+                    -- Greek letters without backslash
+                    "alpha" -> "alpha"
+                    "beta" -> "beta"
+                    "gamma" -> "gamma"
+                    "delta" -> "delta"
+                    "epsilon" -> "epsilon"
+                    "zeta" -> "zeta"
+                    "eta" -> "eta"
+                    "theta" -> "theta"
+                    "iota" -> "iota"
+                    "kappa" -> "kappa"
+                    "lambda" -> "lambda"
+                    "mu" -> "mu"
+                    "nu" -> "nu"
+                    "xi" -> "xi"
+                    "pi" -> "pi"
+                    "rho" -> "rho"
+                    "sigma" -> "sigma"
+                    "tau" -> "tau"
+                    "upsilon" -> "upsilon"
+                    "phi" -> "phi"
+                    "chi" -> "chi"
+                    "psi" -> "psi"
+                    "omega" -> "omega"
+                    -- Capital Greek letters
+                    "Gamma" -> "Gamma"
+                    "Delta" -> "Delta"
+                    "Theta" -> "Theta"
+                    "Lambda" -> "Lambda"
+                    "Xi" -> "Xi"
+                    "Pi" -> "Pi"
+                    "Sigma" -> "Sigma"
+                    "Upsilon" -> "Upsilon"
+                    "Phi" -> "Phi"
+                    "Psi" -> "Psi"
+                    "Omega" -> "Omega"
+                    -- Special symbols without backslash
+                    "otimes" -> "otimes"
+                    "oplus" -> "oplus"
+                    "times" -> "times"
+                    "cdot" -> "cdot"
+                    "infty" -> "infty"
+                    "partial" -> "partial"
+                    "nabla" -> "nabla"
+                    -- Default: keep backslash
+                    _ ->
+                        if ETeX.KaTeX.isKaTeX name then
+                            name
+                        else
+                            "\\" ++ name
 
-                                denomStr =
-                                    List.map mathExprToScripta denom |> String.join ""
-                            in
-                            "frac(" ++ numStr ++ ", " ++ denomStr ++ ")"
+            else
+                -- Has arguments - special handling for functions
+                case name of
+                    -- \frac{num}{denom} to frac(num, denom)
+                    "frac" ->
+                        case args of
+                            [ E.Arg num, E.Arg denom ] ->
+                                "frac(" ++ (List.map mathExprToScripta num |> String.join "") ++ ", " ++ (List.map mathExprToScripta denom |> String.join "") ++ ")"
 
-                        _ ->
-                            -- Fallback for malformed frac
-                            "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
+                            _ ->
+                                "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
 
-                "langle" ->
-                    -- In Scripta format, we don't use backslash for langle
-                    "langle"
+                    -- \tfrac is like frac
+                    "tfrac" ->
+                        case args of
+                            [ E.Arg num, E.Arg denom ] ->
+                                "frac(" ++ (List.map mathExprToScripta num |> String.join "") ++ ", " ++ (List.map mathExprToScripta denom |> String.join "") ++ ")"
 
-                "rangle" ->
-                    -- In Scripta format, we don't use backslash for rangle
-                    "rangle"
+                            _ ->
+                                "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
 
-                "text" ->
-                    -- Convert \text{...} to "..." in Scripta
-                    case args of
-                        [ E.Arg content ] ->
-                            "\"" ++ (List.map mathExprToScripta content |> String.join "") ++ "\""
+                    -- \sqrt{x} to sqrt(x)
+                    "sqrt" ->
+                        case args of
+                            [ E.Arg content ] ->
+                                "sqrt(" ++ (List.map mathExprToScripta content |> String.join "") ++ ")"
 
-                        _ ->
-                            -- Fallback if malformed
-                            "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
+                            _ ->
+                                "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
 
-                _ ->
-                    -- For other macros, check if we need the backslash
-                    -- Common LaTeX symbols that should not have backslash in Scripta
-                    if List.member name [ "alpha", "beta", "gamma", "delta", "epsilon" ] then
-                        name
+                    -- \text{...} to "..."
+                    "text" ->
+                        case args of
+                            [ E.Arg content ] ->
+                                "\"" ++ (List.map mathExprToScripta content |> String.join "") ++ "\""
 
-                    else
-                        "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
+                            _ ->
+                                "\\" ++ name ++ (List.map mathExprToScriptaArg args |> String.join "")
+
+                    -- User-defined macros (like \ket) keep backslash (TODO: for now)
+                    _ ->
+                        if ETeX.KaTeX.isKaTeX name then
+                            name ++ "(" ++ (List.map mathExprToScripta args |> String.join ", ") ++ ")"
+
+                        else
+                            "\\"
+                                ++ name
+                                ++ (List.map (mathExprToScripta >> (\x -> "{" ++ x ++ "}")) args |> String.join "")
 
         E.Expr exprs ->
             List.map mathExprToScripta exprs |> String.join ""
