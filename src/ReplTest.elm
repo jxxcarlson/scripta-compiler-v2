@@ -68,9 +68,13 @@ t2 =
 
 t3 =
     """
-\\begin{equation}
-a^2 + b^2 = c^2
-\\end{equation}
+\\begin{enumerate}
+
+\\item{First}
+
+\\item{Second}
+
+\\end{enumerate}
 
 """
 

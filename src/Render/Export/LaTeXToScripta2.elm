@@ -6,7 +6,7 @@ module Render.Export.LaTeXToScripta2 exposing
     , renderBlock
     , renderExpression
     , renderS
-    , renderTree
+    , renderTreeWithContext
     , translate
     )
 
@@ -125,19 +125,65 @@ parseL latexSource =
         lines
 
 
+{-| Determine the context for a tree based on surrounding blocks
+-}
+determineContext : Int -> Forest ExpressionBlock -> Maybe String
+determineContext index forest =
+    -- Look backwards from current position to find enumerate/itemize
+    let
+        blocksBeforeIndex =
+            forest
+                |> List.take index
+                |> List.map Tree.value
+                |> List.reverse
+
+        -- Most recent first
+        findListContext blocks =
+            case blocks of
+                [] ->
+                    Nothing
+
+                block :: rest ->
+                    case block.heading of
+                        Ordinary "enumerate" ->
+                            Just "enumerate"
+
+                        Ordinary "itemize" ->
+                            Just "itemize"
+
+                        -- Stop searching if we hit a non-list, non-item block
+                        Ordinary "item" ->
+                            findListContext rest
+
+                        _ ->
+                            Nothing
+    in
+    findListContext blocksBeforeIndex
+
+
 {-| Render the AST to Scripta (Enclosure) syntax
 -}
 renderS : List String -> Forest ExpressionBlock -> String
 renderS newMacroNames forest =
+    -- Pass the forest to each tree so it can determine context
     forest
-        |> List.map (renderTree newMacroNames 0)
+        |> List.indexedMap
+            (\index tree ->
+                let
+                    context =
+                        determineContext index forest
+                in
+                renderTreeWithContext newMacroNames 0 context tree
+            )
+        |> List.filter (not << String.isEmpty)
+        -- Filter out empty blocks
         |> String.join "\n\n"
 
 
-{-| Render a tree with proper indentation
+{-| Render a tree with proper indentation and context
 -}
-renderTree : List String -> Int -> Tree ExpressionBlock -> String
-renderTree newMacroNames indent tree =
+renderTreeWithContext : List String -> Int -> Maybe String -> Tree ExpressionBlock -> String
+renderTreeWithContext newMacroNames indent parentContext tree =
     let
         -- Create indentation string (2 spaces per level)
         indentStr =
@@ -147,25 +193,66 @@ renderTree newMacroNames indent tree =
         currentBlock =
             Tree.value tree
 
+        -- Determine the context for children
+        context =
+            case currentBlock.heading of
+                Ordinary "enumerate" ->
+                    Just "enumerate"
+
+                Ordinary "itemize" ->
+                    Just "itemize"
+
+                _ ->
+                    parentContext
+
         currentRendered =
-            indentStr ++ renderBlock newMacroNames currentBlock
+            indentStr ++ renderBlockWithContext newMacroNames context currentBlock
+
+        -- Check if this is an itemize or enumerate block
+        -- If so, don't render children as they'll be rendered as top-level blocks
+        shouldRenderChildren =
+            case currentBlock.heading of
+                Ordinary "itemize" ->
+                    False
+
+                Ordinary "enumerate" ->
+                    False
+
+                _ ->
+                    True
 
         -- Recursively render all children with increased indentation
         children =
             Tree.children tree
 
         childrenRendered =
-            case children of
-                [] ->
-                    ""
+            if not shouldRenderChildren then
+                ""
 
-                _ ->
-                    children
-                        |> List.map (renderTree newMacroNames (indent + 1))
-                        |> String.join "\n"
-                        |> (\s -> "\n" ++ s)
+            else
+                case children of
+                    [] ->
+                        ""
+
+                    _ ->
+                        children
+                            |> List.map (renderTreeWithContext newMacroNames (indent + 1) context)
+                            |> String.join "\n"
+                            |> (\s -> "\n" ++ s)
     in
     currentRendered ++ childrenRendered
+
+
+{-| Render an individual ExpressionBlock to Scripta syntax with context
+-}
+renderBlockWithContext : List String -> Maybe String -> ExpressionBlock -> String
+renderBlockWithContext newMacroNames context block =
+    case block.heading of
+        Ordinary "item" ->
+            renderItemWithContext newMacroNames context block
+
+        _ ->
+            renderBlock newMacroNames block
 
 
 {-| Render an individual ExpressionBlock to Scripta syntax
@@ -542,6 +629,88 @@ renderEquationBlock newMacroNames block =
             "Error: Invalid equation block"
 
 
+{-| Render an item block with context
+-}
+renderItemWithContext : List String -> Maybe String -> ExpressionBlock -> String
+renderItemWithContext newMacroNames context block =
+    let
+        prefix =
+            case context of
+                Just "enumerate" ->
+                    ". "
+
+                _ ->
+                    "- "
+
+        -- Extract content from \item{content} or \item {content} in firstLine
+        extractFromFirstLine =
+            let
+                line =
+                    block.firstLine
+            in
+            if String.contains "\\item" line && String.contains "{" line then
+                -- Handle both \item{...} and \item {...}
+                line
+                    |> String.replace "\\item" ""
+                    |> String.trim
+                    |> (\s ->
+                            if String.startsWith "{" s then
+                                String.dropLeft 1 s
+
+                            else
+                                s
+                       )
+                    |> String.split "}"
+                    |> List.head
+                    |> Maybe.withDefault ""
+                    |> String.trim
+
+            else
+                ""
+
+        content =
+            -- First try to extract from \item{...} syntax in firstLine
+            if not (String.isEmpty extractFromFirstLine) then
+                extractFromFirstLine
+                -- Then check if there are args
+
+            else if not (List.isEmpty block.args) then
+                case block.args of
+                    arg :: _ ->
+                        arg
+
+                    [] ->
+                        ""
+                -- Otherwise fall back to body
+
+            else
+                case block.body of
+                    Left str ->
+                        String.trim str
+
+                    Right exprs ->
+                        -- Filter out error highlighting functions
+                        exprs
+                            |> List.filter
+                                (\expr ->
+                                    case expr of
+                                        Fun "errorHighlight" _ _ ->
+                                            False
+
+                                        Fun "blue" _ _ ->
+                                            False
+
+                                        -- This seems to be a parsing artifact
+                                        _ ->
+                                            True
+                                )
+                            |> List.map (renderExpression newMacroNames)
+                            |> String.join " "
+                            |> String.trim
+    in
+    prefix ++ content
+
+
 {-| Render an item block
 -}
 renderItem : List String -> ExpressionBlock -> String
@@ -562,18 +731,26 @@ renderItem newMacroNames block =
         -- Extract content from \item{content} or \item {content} in firstLine
         extractFromFirstLine =
             let
-                line = block.firstLine
+                line =
+                    block.firstLine
             in
             if String.contains "\\item" line && String.contains "{" line then
                 -- Handle both \item{...} and \item {...}
                 line
                     |> String.replace "\\item" ""
                     |> String.trim
-                    |> (\s -> if String.startsWith "{" s then String.dropLeft 1 s else s)
+                    |> (\s ->
+                            if String.startsWith "{" s then
+                                String.dropLeft 1 s
+
+                            else
+                                s
+                       )
                     |> String.split "}"
                     |> List.head
                     |> Maybe.withDefault ""
                     |> String.trim
+
             else
                 ""
 
@@ -581,14 +758,17 @@ renderItem newMacroNames block =
             -- First try to extract from \item{...} syntax in firstLine
             if not (String.isEmpty extractFromFirstLine) then
                 extractFromFirstLine
-            -- Then check if there are args
+                -- Then check if there are args
+
             else if not (List.isEmpty block.args) then
                 case block.args of
                     arg :: _ ->
                         arg
+
                     [] ->
                         ""
-            -- Otherwise fall back to body
+                -- Otherwise fall back to body
+
             else
                 case block.body of
                     Left str ->
@@ -597,12 +777,19 @@ renderItem newMacroNames block =
                     Right exprs ->
                         -- Filter out error highlighting functions
                         exprs
-                            |> List.filter (\expr ->
-                                case expr of
-                                    Fun "errorHighlight" _ _ -> False
-                                    Fun "blue" _ _ -> False  -- This seems to be a parsing artifact
-                                    _ -> True
-                            )
+                            |> List.filter
+                                (\expr ->
+                                    case expr of
+                                        Fun "errorHighlight" _ _ ->
+                                            False
+
+                                        Fun "blue" _ _ ->
+                                            False
+
+                                        -- This seems to be a parsing artifact
+                                        _ ->
+                                            True
+                                )
                             |> List.map (renderExpression newMacroNames)
                             |> String.join " "
                             |> String.trim
@@ -687,24 +874,28 @@ renderCenterEnvironment newMacroNames block =
                                     |> List.head
                                     |> Maybe.withDefault ""
                                     |> (\line ->
-                                        -- Split on { and get everything after it
-                                        case String.split "{" line of
-                                            _ :: rest ->
-                                                String.join "{" rest
-                                                    |> String.split "}"
-                                                    |> List.head
-                                                    |> Maybe.withDefault ""
-                                                    |> String.trim
-                                            _ ->
-                                                ""
-                                    )
+                                            -- Split on { and get everything after it
+                                            case String.split "{" line of
+                                                _ :: rest ->
+                                                    String.join "{" rest
+                                                        |> String.split "}"
+                                                        |> List.head
+                                                        |> Maybe.withDefault ""
+                                                        |> String.trim
 
-                            url = extractUrl str
+                                                _ ->
+                                                    ""
+                                       )
+
+                            url =
+                                extractUrl str
                         in
                         if String.isEmpty url then
                             "| image"
+
                         else
                             "| image\n" ++ url
+
                     else
                         -- Regular center content
                         "| center\n" ++ String.trim str
@@ -720,56 +911,74 @@ renderCenterEnvironment newMacroNames block =
                     let
                         hasIncludeGraphics =
                             exprs
-                                |> List.any (\expr ->
-                                    case expr of
-                                        Fun name _ _ -> String.startsWith "includegraphics" name
-                                        _ -> False
-                                )
+                                |> List.any
+                                    (\expr ->
+                                        case expr of
+                                            Fun name _ _ ->
+                                                String.startsWith "includegraphics" name
+
+                                            _ ->
+                                                False
+                                    )
                     in
                     if hasIncludeGraphics then
                         -- Look for includegraphics function and extract URL
                         exprs
-                            |> List.filterMap (\expr ->
-                                case expr of
-                                    Fun name args _ ->
-                                        if String.startsWith "includegraphics" name then
-                                            -- The URL is in the second element of args (after the optional parameters)
-                                            case args of
-                                                _ :: Text url _ :: _ ->
-                                                    if String.contains "http" url then
-                                                        Just url
-                                                    else
-                                                        Nothing
-                                                [ Text url _ ] ->
-                                                    -- Sometimes it's the only argument
-                                                    if String.contains "http" url then
-                                                        Just url
-                                                    else
-                                                        Nothing
-                                                _ ->
-                                                    -- Try to find any Text with http in args
-                                                    args
-                                                        |> List.filterMap (\arg ->
-                                                            case arg of
-                                                                Text url _ ->
-                                                                    if String.contains "http" url then
-                                                                        Just url
-                                                                    else
-                                                                        Nothing
-                                                                _ -> Nothing
-                                                        )
-                                                        |> List.head
-                                        else
+                            |> List.filterMap
+                                (\expr ->
+                                    case expr of
+                                        Fun name args _ ->
+                                            if String.startsWith "includegraphics" name then
+                                                -- The URL is in the second element of args (after the optional parameters)
+                                                case args of
+                                                    _ :: (Text url _) :: _ ->
+                                                        if String.contains "http" url then
+                                                            Just url
+
+                                                        else
+                                                            Nothing
+
+                                                    [ Text url _ ] ->
+                                                        -- Sometimes it's the only argument
+                                                        if String.contains "http" url then
+                                                            Just url
+
+                                                        else
+                                                            Nothing
+
+                                                    _ ->
+                                                        -- Try to find any Text with http in args
+                                                        args
+                                                            |> List.filterMap
+                                                                (\arg ->
+                                                                    case arg of
+                                                                        Text url _ ->
+                                                                            if String.contains "http" url then
+                                                                                Just url
+
+                                                                            else
+                                                                                Nothing
+
+                                                                        _ ->
+                                                                            Nothing
+                                                                )
+                                                            |> List.head
+
+                                            else
+                                                Nothing
+
+                                        _ ->
                                             Nothing
-                                    _ -> Nothing
-                            )
+                                )
                             |> List.head
                             |> Maybe.map (\url -> "| image\n" ++ url)
                             |> Maybe.withDefault "| image"
+
                     else
                         -- Regular center with expressions
                         let
-                            content = exprs |> List.map (renderExpression newMacroNames) |> String.join " "
+                            content =
+                                exprs |> List.map (renderExpression newMacroNames) |> String.join " "
                         in
                         "| center\n" ++ content
 
@@ -935,55 +1144,6 @@ mathMacros newMacroNames latexMacros =
 
     else
         "| mathmacros\n" ++ String.join "\n" macroDefinitions
-
-
-{-| Transform the macro body from LaTeX to Scripta format
--}
-transformMacroBody : String -> String
-transformMacroBody body =
-    body
-        -- Replace LaTeX backslash commands with their names
-        |> String.replace "\\langle" "langle"
-        |> String.replace "\\rangle" "rangle"
-        |> String.replace "\\frac{" "frac("
-        -- Handle frac specifically - convert \frac{a}{b} to frac(a, b)
-        |> transformFrac
-        -- Clean up spaces
-        |> String.trim
-
-
-{-| Transform \\frac{a}{b} patterns to frac(a, b)
--}
-transformFrac : String -> String
-transformFrac str =
-    if String.contains "frac(" str then
-        -- Find and replace }{  with ,  for frac arguments
-        let
-            -- Simple approach: replace }{ with , when it appears after frac(
-            parts =
-                String.split "frac(" str
-
-            processPart part =
-                if String.contains "}" part && String.contains "{" part then
-                    -- Find the first }{ pattern and replace with ,
-                    String.replace "}{" ", " part
-                        |> String.replace "}" ")"
-
-                else
-                    part
-
-            processedParts =
-                case parts of
-                    first :: rest ->
-                        first :: List.map processPart rest
-
-                    [] ->
-                        []
-        in
-        String.join "frac(" processedParts
-
-    else
-        str
 
 
 {-| Format a macro definition for Scripta output

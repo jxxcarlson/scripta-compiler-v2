@@ -37,21 +37,45 @@ Content here"""
             "\\compactItem{Butter }\n\\compactItem{Salt }\n\\compactItem{Pepper}\n"
             "- Butter\n- Salt\n- Pepper"
         , testCase "Test 6: Itemize list"
-            """\\begin{itemize}
-\\item First
-\\item Second
+            """AAA
+
+\\begin{itemize}
+
+\\item{First}
+
+\\item{Second}
+
 \\end{itemize}
+
+BBB
 """
-            """- First
-- Second"""
+            """AAA
+
+- First
+
+- Second
+
+BBB"""
         , testCase "Test 7: Enumerate list"
-            """\\begin{enumerate}
-\\item First
-\\item Second
+            """AAA
+
+\\begin{enumerate}
+
+\\item{First}
+
+\\item{Second}
+
 \\end{enumerate}
+
+BBB
 """
-            """. First
-. Second"""
+            """AAA
+
+. First
+
+. Second
+
+BBB"""
         , testCase "Test 8: Align environment"
             """\\begin{align}
 x &= 1\\\\

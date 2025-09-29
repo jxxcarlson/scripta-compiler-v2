@@ -15026,6 +15026,51 @@ var $elm$core$List$partition = F2(
 			_Utils_Tuple2(_List_Nil, _List_Nil),
 			list);
 	});
+var $maca$elm_rose_tree$RoseTree$Tree$value = function (_v0) {
+	var a = _v0.a;
+	return a;
+};
+var $author$project$Render$Export$LaTeXToScripta2$determineContext = F2(
+	function (index, forest) {
+		var findListContext = function (blocks) {
+			findListContext:
+			while (true) {
+				if (!blocks.b) {
+					return $elm$core$Maybe$Nothing;
+				} else {
+					var block = blocks.a;
+					var rest = blocks.b;
+					var _v1 = block.heading;
+					_v1$3:
+					while (true) {
+						if (_v1.$ === 'Ordinary') {
+							switch (_v1.a) {
+								case 'enumerate':
+									return $elm$core$Maybe$Just('enumerate');
+								case 'itemize':
+									return $elm$core$Maybe$Just('itemize');
+								case 'item':
+									var $temp$blocks = rest;
+									blocks = $temp$blocks;
+									continue findListContext;
+								default:
+									break _v1$3;
+							}
+						} else {
+							break _v1$3;
+						}
+					}
+					return $elm$core$Maybe$Nothing;
+				}
+			}
+		};
+		var blocksBeforeIndex = $elm$core$List$reverse(
+			A2(
+				$elm$core$List$map,
+				$maca$elm_rose_tree$RoseTree$Tree$value,
+				A2($elm$core$List$take, index, forest)));
+		return findListContext(blocksBeforeIndex);
+	});
 var $author$project$ETeX$MathMacros$parse = function (str) {
 	return A2(
 		$elm$parser$Parser$Advanced$run,
@@ -15743,32 +15788,157 @@ var $author$project$Render$Export$LaTeXToScripta2$renderBlock = F2(
 				return A3($author$project$Render$Export$LaTeXToScripta2$renderVerbatim, newMacroNames, name, block);
 		}
 	});
-var $maca$elm_rose_tree$RoseTree$Tree$value = function (_v0) {
-	var a = _v0.a;
-	return a;
-};
-var $author$project$Render$Export$LaTeXToScripta2$renderTree = F3(
-	function (newMacroNames, indent, tree) {
+var $author$project$Render$Export$LaTeXToScripta2$renderItemWithContext = F3(
+	function (newMacroNames, context, block) {
+		var prefix = function () {
+			if ((context.$ === 'Just') && (context.a === 'enumerate')) {
+				return '. ';
+			} else {
+				return '- ';
+			}
+		}();
+		var extractFromFirstLine = function () {
+			var line = block.firstLine;
+			return (A2($elm$core$String$contains, '\\item', line) && A2($elm$core$String$contains, '{', line)) ? $elm$core$String$trim(
+				A2(
+					$elm$core$Maybe$withDefault,
+					'',
+					$elm$core$List$head(
+						A2(
+							$elm$core$String$split,
+							'}',
+							function (s) {
+								return A2($elm$core$String$startsWith, '{', s) ? A2($elm$core$String$dropLeft, 1, s) : s;
+							}(
+								$elm$core$String$trim(
+									A3($elm$core$String$replace, '\\item', '', line))))))) : '';
+		}();
+		var content = function () {
+			if (!$elm$core$String$isEmpty(extractFromFirstLine)) {
+				return extractFromFirstLine;
+			} else {
+				if (!$elm$core$List$isEmpty(block.args)) {
+					var _v0 = block.args;
+					if (_v0.b) {
+						var arg = _v0.a;
+						return arg;
+					} else {
+						return '';
+					}
+				} else {
+					var _v1 = block.body;
+					if (_v1.$ === 'Left') {
+						var str = _v1.a;
+						return $elm$core$String$trim(str);
+					} else {
+						var exprs = _v1.a;
+						return $elm$core$String$trim(
+							A2(
+								$elm$core$String$join,
+								' ',
+								A2(
+									$elm$core$List$map,
+									$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+									A2(
+										$elm$core$List$filter,
+										function (expr) {
+											_v2$2:
+											while (true) {
+												if (expr.$ === 'Fun') {
+													switch (expr.a) {
+														case 'errorHighlight':
+															return false;
+														case 'blue':
+															return false;
+														default:
+															break _v2$2;
+													}
+												} else {
+													break _v2$2;
+												}
+											}
+											return true;
+										},
+										exprs))));
+					}
+				}
+			}
+		}();
+		return _Utils_ap(prefix, content);
+	});
+var $author$project$Render$Export$LaTeXToScripta2$renderBlockWithContext = F3(
+	function (newMacroNames, context, block) {
+		var _v0 = block.heading;
+		if ((_v0.$ === 'Ordinary') && (_v0.a === 'item')) {
+			return A3($author$project$Render$Export$LaTeXToScripta2$renderItemWithContext, newMacroNames, context, block);
+		} else {
+			return A2($author$project$Render$Export$LaTeXToScripta2$renderBlock, newMacroNames, block);
+		}
+	});
+var $author$project$Render$Export$LaTeXToScripta2$renderTreeWithContext = F4(
+	function (newMacroNames, indent, parentContext, tree) {
 		var indentStr = A2($elm$core$String$repeat, indent * 2, ' ');
 		var currentBlock = $maca$elm_rose_tree$RoseTree$Tree$value(tree);
+		var shouldRenderChildren = function () {
+			var _v2 = currentBlock.heading;
+			_v2$2:
+			while (true) {
+				if (_v2.$ === 'Ordinary') {
+					switch (_v2.a) {
+						case 'itemize':
+							return false;
+						case 'enumerate':
+							return false;
+						default:
+							break _v2$2;
+					}
+				} else {
+					break _v2$2;
+				}
+			}
+			return true;
+		}();
+		var context = function () {
+			var _v1 = currentBlock.heading;
+			_v1$2:
+			while (true) {
+				if (_v1.$ === 'Ordinary') {
+					switch (_v1.a) {
+						case 'enumerate':
+							return $elm$core$Maybe$Just('enumerate');
+						case 'itemize':
+							return $elm$core$Maybe$Just('itemize');
+						default:
+							break _v1$2;
+					}
+				} else {
+					break _v1$2;
+				}
+			}
+			return parentContext;
+		}();
 		var currentRendered = _Utils_ap(
 			indentStr,
-			A2($author$project$Render$Export$LaTeXToScripta2$renderBlock, newMacroNames, currentBlock));
+			A3($author$project$Render$Export$LaTeXToScripta2$renderBlockWithContext, newMacroNames, context, currentBlock));
 		var children = $maca$elm_rose_tree$RoseTree$Tree$children(tree);
 		var childrenRendered = function () {
-			if (!children.b) {
+			if (!shouldRenderChildren) {
 				return '';
 			} else {
-				return function (s) {
-					return '\n' + s;
-				}(
-					A2(
-						$elm$core$String$join,
-						'\n',
+				if (!children.b) {
+					return '';
+				} else {
+					return function (s) {
+						return '\n' + s;
+					}(
 						A2(
-							$elm$core$List$map,
-							A2($author$project$Render$Export$LaTeXToScripta2$renderTree, newMacroNames, indent + 1),
-							children)));
+							$elm$core$String$join,
+							'\n',
+							A2(
+								$elm$core$List$map,
+								A3($author$project$Render$Export$LaTeXToScripta2$renderTreeWithContext, newMacroNames, indent + 1, context),
+								children)));
+				}
 			}
 		}();
 		return _Utils_ap(currentRendered, childrenRendered);
@@ -15779,9 +15949,16 @@ var $author$project$Render$Export$LaTeXToScripta2$renderS = F2(
 			$elm$core$String$join,
 			'\n\n',
 			A2(
-				$elm$core$List$map,
-				A2($author$project$Render$Export$LaTeXToScripta2$renderTree, newMacroNames, 0),
-				forest));
+				$elm$core$List$filter,
+				A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
+				A2(
+					$elm$core$List$indexedMap,
+					F2(
+						function (index, tree) {
+							var context = A2($author$project$Render$Export$LaTeXToScripta2$determineContext, index, forest);
+							return A4($author$project$Render$Export$LaTeXToScripta2$renderTreeWithContext, newMacroNames, 0, context, tree);
+						}),
+					forest)));
 	});
 var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSource) {
 	var lines = $elm$core$String$lines(
@@ -15984,8 +16161,8 @@ var $author$project$TestAll$main = A2(
 			A3($author$project$TestAll$testCase, 'Test 3: Nested sections', '\\section{Main}\n\n\\subsection{Sub}\n\nContent here\n', '# Main\n\n## Sub\n\nContent here'),
 			A3($author$project$TestAll$testCase, 'Test 4: Simple math', '$x^2 + y^2 = z^2$\n', '$x^2 + y^2 = z^2$'),
 			A3($author$project$TestAll$testCase, 'Test 5: Compact items', '\\compactItem{Butter }\n\\compactItem{Salt }\n\\compactItem{Pepper}\n', '- Butter\n- Salt\n- Pepper'),
-			A3($author$project$TestAll$testCase, 'Test 6: Itemize list', '\\begin{itemize}\n\\item First\n\\item Second\n\\end{itemize}\n', '- First\n- Second'),
-			A3($author$project$TestAll$testCase, 'Test 7: Enumerate list', '\\begin{enumerate}\n\\item First\n\\item Second\n\\end{enumerate}\n', '. First\n. Second'),
+			A3($author$project$TestAll$testCase, 'Test 6: Itemize list', 'AAA\n\n\\begin{itemize}\n\n\\item{First}\n\n\\item{Second}\n\n\\end{itemize}\n\nBBB\n', 'AAA\n\n- First\n\n- Second\n\nBBB'),
+			A3($author$project$TestAll$testCase, 'Test 7: Enumerate list', 'AAA\n\n\\begin{enumerate}\n\n\\item{First}\n\n\\item{Second}\n\n\\end{enumerate}\n\nBBB\n', 'AAA\n\n. First\n\n. Second\n\nBBB'),
 			A3($author$project$TestAll$testCase, 'Test 8: Align environment', '\\begin{align}\nx &= 1\\\\\ny &= 2\n\\end{align}\n', '| aligned\nx &= 1\\\\\ny &= 2'),
 			A3($author$project$TestAll$testCase, 'Test 9: href link', '\\href{https://example.com}{link text}\n', '[link link text https://example.com]'),
 			A3($author$project$TestAll$testCase, 'Test 10: Image', '\\includegraphics{image.png}\n', '[image image.png]'),
