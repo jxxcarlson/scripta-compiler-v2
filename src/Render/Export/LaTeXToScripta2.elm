@@ -85,10 +85,10 @@ translate latexSource =
 convertVerbatimBacktick : String -> String
 convertVerbatimBacktick input =
     let
-        -- Pattern specifically for verb`...` (no backslash required)
+        -- Pattern specifically for \verb`...`
         verbPattern =
             Maybe.withDefault Regex.never <|
-                Regex.fromString "verb`([^`]*)`"
+                Regex.fromString "\\\\verb`([^`]*)`"
 
         replacer : Regex.Match -> String
         replacer match =

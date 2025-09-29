@@ -55368,7 +55368,7 @@ var $author$project$Render$Export$LaTeXToScripta2$convertVerbatimBacktick = func
 	var verbPattern = A2(
 		$elm$core$Maybe$withDefault,
 		$elm$regex$Regex$never,
-		$elm$regex$Regex$fromString('verb`([^`]*)`'));
+		$elm$regex$Regex$fromString('\\\\verb`([^`]*)`'));
 	var replacer = function (match) {
 		var _v0 = match.submatches;
 		if ((_v0.b && (_v0.a.$ === 'Just')) && (!_v0.b.b)) {
@@ -56216,8 +56216,9 @@ var $author$project$Render$Export$LaTeXToScripta2$renderCenterEnvironment = F2(
 				var hasIncludeGraphics = A2(
 					$elm$core$List$any,
 					function (expr) {
-						if ((expr.$ === 'Fun') && (expr.a === 'includegraphics')) {
-							return true;
+						if (expr.$ === 'Fun') {
+							var name = expr.a;
+							return A2($elm$core$String$startsWith, 'includegraphics', name);
 						} else {
 							return false;
 						}
@@ -56236,20 +56237,50 @@ var $author$project$Render$Export$LaTeXToScripta2$renderCenterEnvironment = F2(
 								A2(
 									$elm$core$List$filterMap,
 									function (expr) {
-										if ((expr.$ === 'Fun') && (expr.a === 'includegraphics')) {
+										if (expr.$ === 'Fun') {
+											var name = expr.a;
 											var args = expr.b;
-											return $elm$core$List$head(
-												A2(
-													$elm$core$List$filterMap,
-													function (arg) {
-														if (arg.$ === 'Text') {
-															var url = arg.a;
-															return A2($elm$core$String$contains, 'http', url) ? $elm$core$Maybe$Just(url) : $elm$core$Maybe$Nothing;
+											if (A2($elm$core$String$startsWith, 'includegraphics', name)) {
+												_v5$2:
+												while (true) {
+													if (args.b) {
+														if (args.b.b) {
+															if (args.b.a.$ === 'Text') {
+																var _v6 = args.b;
+																var _v7 = _v6.a;
+																var url = _v7.a;
+																return A2($elm$core$String$contains, 'http', url) ? $elm$core$Maybe$Just(url) : $elm$core$Maybe$Nothing;
+															} else {
+																break _v5$2;
+															}
 														} else {
-															return $elm$core$Maybe$Nothing;
+															if (args.a.$ === 'Text') {
+																var _v8 = args.a;
+																var url = _v8.a;
+																return A2($elm$core$String$contains, 'http', url) ? $elm$core$Maybe$Just(url) : $elm$core$Maybe$Nothing;
+															} else {
+																break _v5$2;
+															}
 														}
-													},
-													args));
+													} else {
+														break _v5$2;
+													}
+												}
+												return $elm$core$List$head(
+													A2(
+														$elm$core$List$filterMap,
+														function (arg) {
+															if (arg.$ === 'Text') {
+																var url = arg.a;
+																return A2($elm$core$String$contains, 'http', url) ? $elm$core$Maybe$Just(url) : $elm$core$Maybe$Nothing;
+															} else {
+																return $elm$core$Maybe$Nothing;
+															}
+														},
+														args));
+											} else {
+												return $elm$core$Maybe$Nothing;
+											}
 										} else {
 											return $elm$core$Maybe$Nothing;
 										}

@@ -145,6 +145,9 @@ See [link this link https://example.com] for more."""
 """
             """| image
 https://imagedelivery.net/9U-0Y4sEzXlO6BXzTnQnYQ/83fdbf6c-79d5-44e7-6ac6-00cdc7785000/public-b515cb4f06a34e66b084ba617995f00a.jpg"""
+        , testCase "Test 19: Verb inline code"
+            "an \\verb`equation` block\n"
+            "an `equation` block"
         ]
 
 testCase : String -> String -> String -> Html msg
