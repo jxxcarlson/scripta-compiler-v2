@@ -4723,7 +4723,7 @@ var $elm$core$Maybe$withDefault = F2(
 			return _default;
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$convertVerbatimBacktick = function (input) {
+var $author$project$Render$Export$LaTeXToScripta$convertVerbatimBacktick = function (input) {
 	var verbPattern = A2(
 		$elm$core$Maybe$withDefault,
 		$elm$regex$Regex$never,
@@ -4836,7 +4836,7 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
-var $author$project$Render$Export$LaTeXToScripta2$formatMacroDefinition = function (_v0) {
+var $author$project$Render$Export$LaTeXToScripta$formatMacroDefinition = function (_v0) {
 	var name = _v0.a;
 	var body = _v0.b;
 	return name + (': ' + body);
@@ -4861,7 +4861,7 @@ var $elm$core$Basics$composeR = F3(
 			f(x));
 	});
 var $elm$core$String$contains = _String_contains;
-var $author$project$Render$Export$LaTeXToScripta2$isAlphaNum = function (str) {
+var $author$project$Render$Export$LaTeXToScripta$isAlphaNum = function (str) {
 	var _v0 = $elm$core$String$uncons(str);
 	if (_v0.$ === 'Just') {
 		var _v1 = _v0.a;
@@ -4888,7 +4888,7 @@ var $elm$core$String$right = F2(
 			$elm$core$String$length(string),
 			string);
 	});
-var $author$project$Render$Export$LaTeXToScripta2$intelligentJoin = function (tokens) {
+var $author$project$Render$Export$LaTeXToScripta$intelligentJoin = function (tokens) {
 	if (!tokens.b) {
 		return '';
 	} else {
@@ -4900,15 +4900,15 @@ var $author$project$Render$Export$LaTeXToScripta2$intelligentJoin = function (to
 			var _v1 = tokens.b;
 			var second = _v1.a;
 			var rest = _v1.b;
-			var needsSpace = $author$project$Render$Export$LaTeXToScripta2$isAlphaNum(
-				A2($elm$core$String$right, 1, first)) && $author$project$Render$Export$LaTeXToScripta2$isAlphaNum(
+			var needsSpace = $author$project$Render$Export$LaTeXToScripta$isAlphaNum(
+				A2($elm$core$String$right, 1, first)) && $author$project$Render$Export$LaTeXToScripta$isAlphaNum(
 				A2($elm$core$String$left, 1, second));
 			var separator = needsSpace ? ' ' : '';
 			return _Utils_ap(
 				first,
 				_Utils_ap(
 					separator,
-					$author$project$Render$Export$LaTeXToScripta2$intelligentJoin(
+					$author$project$Render$Export$LaTeXToScripta$intelligentJoin(
 						A2($elm$core$List$cons, second, rest))));
 		}
 	}
@@ -5166,11 +5166,11 @@ var $elm$core$List$member = F2(
 			xs);
 	});
 var $elm$core$String$startsWith = _String_startsWith;
-var $author$project$Render$Export$LaTeXToScripta2$decoToString = F2(
+var $author$project$Render$Export$LaTeXToScripta$decoToString = F2(
 	function (newMacroNames, deco) {
 		if (deco.$ === 'DecoM') {
 			var expr = deco.a;
-			var content = A2($author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, newMacroNames, expr);
+			var content = A2($author$project$Render$Export$LaTeXToScripta$mathExprToScripta, newMacroNames, expr);
 			return A2($elm$core$String$startsWith, '\"', content) ? content : ((($elm$core$String$length(content) > 1) || A2($elm$core$String$contains, ' ', content)) ? ('{' + (content + '}')) : content);
 		} else {
 			var n = deco.a;
@@ -5178,7 +5178,7 @@ var $author$project$Render$Export$LaTeXToScripta2$decoToString = F2(
 			return ($elm$core$String$length(nStr) > 1) ? ('{' + (nStr + '}')) : nStr;
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = F2(
+var $author$project$Render$Export$LaTeXToScripta$mathExprToScripta = F2(
 	function (newMacroNames, expr) {
 		switch (expr.$) {
 			case 'AlphaNum':
@@ -5192,10 +5192,10 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = F2(
 				return str;
 			case 'Arg':
 				var exprs = expr.a;
-				return $author$project$Render$Export$LaTeXToScripta2$intelligentJoin(
+				return $author$project$Render$Export$LaTeXToScripta$intelligentJoin(
 					A2(
 						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
+						$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
 						exprs));
 			case 'Param':
 				var n = expr.a;
@@ -5229,7 +5229,7 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = F2(
 								'',
 								A2(
 									$elm$core$List$map,
-									$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
+									$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
 									content)) + '\"');
 						} else {
 							return '\\' + (name + A2(
@@ -5237,7 +5237,7 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = F2(
 								'',
 								A2(
 									$elm$core$List$map,
-									$author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg(newMacroNames),
+									$author$project$Render$Export$LaTeXToScripta$mathExprToScriptaArg(newMacroNames),
 									args)));
 						}
 					} else {
@@ -5246,7 +5246,7 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = F2(
 							', ',
 							A2(
 								$elm$core$List$map,
-								$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
+								$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
 								args)) + ')'))) : ('\\' + (name + A2(
 							$elm$core$String$join,
 							'',
@@ -5254,7 +5254,7 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = F2(
 								$elm$core$List$map,
 								A2(
 									$elm$core$Basics$composeR,
-									$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
+									$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
 									function (x) {
 										return '{' + (x + '}');
 									}),
@@ -5268,7 +5268,7 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = F2(
 					'',
 					A2(
 						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
+						$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
 						exprs));
 			case 'Comma':
 				return ',';
@@ -5278,13 +5278,13 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScripta = F2(
 				return ')';
 			case 'Sub':
 				var deco = expr.a;
-				return '_' + A2($author$project$Render$Export$LaTeXToScripta2$decoToString, newMacroNames, deco);
+				return '_' + A2($author$project$Render$Export$LaTeXToScripta$decoToString, newMacroNames, deco);
 			default:
 				var deco = expr.a;
-				return '^' + A2($author$project$Render$Export$LaTeXToScripta2$decoToString, newMacroNames, deco);
+				return '^' + A2($author$project$Render$Export$LaTeXToScripta$decoToString, newMacroNames, deco);
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg = F2(
+var $author$project$Render$Export$LaTeXToScripta$mathExprToScriptaArg = F2(
 	function (newMacroNames, expr) {
 		if (expr.$ === 'Arg') {
 			var exprs = expr.a;
@@ -5293,10 +5293,10 @@ var $author$project$Render$Export$LaTeXToScripta2$mathExprToScriptaArg = F2(
 				'',
 				A2(
 					$elm$core$List$map,
-					$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
+					$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
 					exprs)) + '}');
 		} else {
-			return A2($author$project$Render$Export$LaTeXToScripta2$mathExprToScripta, newMacroNames, expr);
+			return A2($author$project$Render$Export$LaTeXToScripta$mathExprToScripta, newMacroNames, expr);
 		}
 	});
 var $elm$parser$Parser$Advanced$Bad = F2(
@@ -6313,7 +6313,7 @@ var $author$project$ETeX$MathMacros$parseNewCommand = function (str) {
 	return A2($elm$parser$Parser$Advanced$run, $author$project$ETeX$MathMacros$newCommandParser, str);
 };
 var $elm$core$String$trim = _String_trim;
-var $author$project$Render$Export$LaTeXToScripta2$parseNewCommand = F2(
+var $author$project$Render$Export$LaTeXToScripta$parseNewCommand = F2(
 	function (newMacroNames, line) {
 		var _v0 = $author$project$ETeX$MathMacros$parseNewCommand(line);
 		if ((_v0.$ === 'Ok') && (_v0.a.a.$ === 'MacroName')) {
@@ -6326,7 +6326,7 @@ var $author$project$Render$Export$LaTeXToScripta2$parseNewCommand = F2(
 					'',
 					A2(
 						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
+						$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
 						bodyExprs)));
 			return $elm$core$Maybe$Just(
 				_Utils_Tuple2(name, body));
@@ -6334,7 +6334,7 @@ var $author$project$Render$Export$LaTeXToScripta2$parseNewCommand = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$mathMacros = F2(
+var $author$project$Render$Export$LaTeXToScripta$mathMacros = F2(
 	function (newMacroNames, latexMacros) {
 		var lines = A2(
 			$elm$core$List$filter,
@@ -6345,10 +6345,10 @@ var $author$project$Render$Export$LaTeXToScripta2$mathMacros = F2(
 				$elm$core$String$lines(latexMacros)));
 		var macroDefinitions = A2(
 			$elm$core$List$map,
-			$author$project$Render$Export$LaTeXToScripta2$formatMacroDefinition,
+			$author$project$Render$Export$LaTeXToScripta$formatMacroDefinition,
 			A2(
 				$elm$core$List$filterMap,
-				$author$project$Render$Export$LaTeXToScripta2$parseNewCommand(newMacroNames),
+				$author$project$Render$Export$LaTeXToScripta$parseNewCommand(newMacroNames),
 				lines));
 		return $elm$core$List$isEmpty(macroDefinitions) ? '' : ('| mathmacros\n' + A2($elm$core$String$join, '\n', macroDefinitions));
 	});
@@ -15002,7 +15002,7 @@ var $author$project$Generic$Compiler$parse_ = F6(
 				},
 				A3(primitiveBlockParser, idPrefix, outerCount, lines)));
 	});
-var $author$project$Render$Export$LaTeXToScripta2$parseL = function (latexSource) {
+var $author$project$Render$Export$LaTeXToScripta$parseL = function (latexSource) {
 	var outerCount = 0;
 	var lines = $elm$core$String$lines(latexSource);
 	var idPrefix = $author$project$ScriptaV2$Config$idPrefix;
@@ -15030,7 +15030,7 @@ var $maca$elm_rose_tree$RoseTree$Tree$value = function (_v0) {
 	var a = _v0.a;
 	return a;
 };
-var $author$project$Render$Export$LaTeXToScripta2$determineContext = F2(
+var $author$project$Render$Export$LaTeXToScripta$determineContext = F2(
 	function (index, forest) {
 		var findListContext = function (blocks) {
 			findListContext:
@@ -15077,42 +15077,42 @@ var $author$project$ETeX$MathMacros$parse = function (str) {
 		$author$project$ETeX$MathMacros$many($author$project$ETeX$MathMacros$mathExprParser),
 		str);
 };
-var $author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta = F2(
+var $author$project$Render$Export$LaTeXToScripta$convertLatexMathToScripta = F2(
 	function (newMacroNames, latexMath) {
 		var _v0 = $author$project$ETeX$MathMacros$parse(latexMath);
 		if (_v0.$ === 'Ok') {
 			var exprs = _v0.a;
-			return $author$project$Render$Export$LaTeXToScripta2$intelligentJoin(
+			return $author$project$Render$Export$LaTeXToScripta$intelligentJoin(
 				A2(
 					$elm$core$List$map,
-					$author$project$Render$Export$LaTeXToScripta2$mathExprToScripta(newMacroNames),
+					$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
 					exprs));
 		} else {
 			return latexMath;
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderVerbatimFunction = F3(
+var $author$project$Render$Export$LaTeXToScripta$renderVerbatimFunction = F3(
 	function (newMacroNames, name, content) {
 		switch (name) {
 			case 'math':
-				return '$' + (A2($author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta, newMacroNames, content) + '$');
+				return '$' + (A2($author$project$Render$Export$LaTeXToScripta$convertLatexMathToScripta, newMacroNames, content) + '$');
 			case 'code':
 				return '`' + (content + '`');
 			default:
 				return '[' + (name + (' ' + (content + ']')));
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderArgs = F2(
+var $author$project$Render$Export$LaTeXToScripta$renderArgs = F2(
 	function (newMacroNames, args) {
 		return A2(
 			$elm$core$String$join,
 			' ',
 			A2(
 				$elm$core$List$map,
-				$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+				$author$project$Render$Export$LaTeXToScripta$renderExpression(newMacroNames),
 				args));
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderExpression = F2(
+var $author$project$Render$Export$LaTeXToScripta$renderExpression = F2(
 	function (newMacroNames, expr) {
 		switch (expr.$) {
 			case 'Text':
@@ -15121,11 +15121,11 @@ var $author$project$Render$Export$LaTeXToScripta2$renderExpression = F2(
 			case 'Fun':
 				var name = expr.a;
 				var args = expr.b;
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderFunction, newMacroNames, name, args);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderFunction, newMacroNames, name, args);
 			case 'VFun':
 				var name = expr.a;
 				var arg = expr.b;
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderVerbatimFunction, newMacroNames, name, arg);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderVerbatimFunction, newMacroNames, name, arg);
 			default:
 				var exprs = expr.a;
 				return A2(
@@ -15133,45 +15133,45 @@ var $author$project$Render$Export$LaTeXToScripta2$renderExpression = F2(
 					' ',
 					A2(
 						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+						$author$project$Render$Export$LaTeXToScripta$renderExpression(newMacroNames),
 						exprs));
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F3(
+var $author$project$Render$Export$LaTeXToScripta$renderFunction = F3(
 	function (newMacroNames, name, args) {
 		switch (name) {
 			case 'text':
-				return '\"' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + '\"');
+				return '\"' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + '\"');
 			case 'bold':
-				return '[b ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
+				return '[b ' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + ']');
 			case 'textbf':
-				return '[b ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
+				return '[b ' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + ']');
 			case 'italic':
-				return '[i ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
+				return '[i ' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + ']');
 			case 'emph':
-				return '[i ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
+				return '[i ' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + ']');
 			case 'underline':
-				return '[u ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
+				return '[u ' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + ']');
 			case 'footnote':
-				return '[footnote ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
+				return '[footnote ' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + ']');
 			case 'cite':
-				return '[cite ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
+				return '[cite ' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + ']');
 			case 'compactItem':
-				return '- ' + A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args);
+				return '- ' + A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args);
 			case 'ref':
-				return '[ref ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
+				return '[ref ' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + ']');
 			case 'label':
-				return '[label ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']');
+				return '[label ' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + ']');
 			case 'href':
 				if (args.b) {
 					if (args.b.b) {
 						var first = args.a;
 						var _v2 = args.b;
 						var second = _v2.a;
-						return '[link ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, second) + (' ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, first) + ']')));
+						return '[link ' + (A2($author$project$Render$Export$LaTeXToScripta$renderExpression, newMacroNames, second) + (' ' + (A2($author$project$Render$Export$LaTeXToScripta$renderExpression, newMacroNames, first) + ']')));
 					} else {
 						var single = args.a;
-						return '[link ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, single) + ']');
+						return '[link ' + (A2($author$project$Render$Export$LaTeXToScripta$renderExpression, newMacroNames, single) + ']');
 					}
 				} else {
 					return '[link]';
@@ -15179,7 +15179,7 @@ var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F3(
 			case 'includegraphics':
 				if (args.b) {
 					var path = args.a;
-					return '[image ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, path) + ']');
+					return '[image ' + (A2($author$project$Render$Export$LaTeXToScripta$renderExpression, newMacroNames, path) + ']');
 				} else {
 					return '[image]';
 				}
@@ -15193,25 +15193,25 @@ var $author$project$Render$Export$LaTeXToScripta2$renderFunction = F3(
 							var _v6 = _v5.b;
 							var url = _v6.a;
 							var _v7 = width;
-							return '| image caption:' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, caption) + ('\n' + A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, url)));
+							return '| image caption:' + (A2($author$project$Render$Export$LaTeXToScripta$renderExpression, newMacroNames, caption) + ('\n' + A2($author$project$Render$Export$LaTeXToScripta$renderExpression, newMacroNames, url)));
 						} else {
 							var caption = args.a;
 							var _v8 = args.b;
 							var url = _v8.a;
-							return '| image caption:' + (A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, caption) + ('\n' + A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, url)));
+							return '| image caption:' + (A2($author$project$Render$Export$LaTeXToScripta$renderExpression, newMacroNames, caption) + ('\n' + A2($author$project$Render$Export$LaTeXToScripta$renderExpression, newMacroNames, url)));
 						}
 					} else {
 						var url = args.a;
-						return '| image\n' + A2($author$project$Render$Export$LaTeXToScripta2$renderExpression, newMacroNames, url);
+						return '| image\n' + A2($author$project$Render$Export$LaTeXToScripta$renderExpression, newMacroNames, url);
 					}
 				} else {
 					return '| image';
 				}
 			default:
-				return '[' + (name + (' ' + (A2($author$project$Render$Export$LaTeXToScripta2$renderArgs, newMacroNames, args) + ']')));
+				return '[' + (name + (' ' + (A2($author$project$Render$Export$LaTeXToScripta$renderArgs, newMacroNames, args) + ']')));
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderCenterEnvironment = F2(
+var $author$project$Render$Export$LaTeXToScripta$renderCenterEnvironment = F2(
 	function (newMacroNames, block) {
 		var _v0 = block.heading;
 		if ((_v0.$ === 'Verbatim') && (_v0.a === 'center')) {
@@ -15337,7 +15337,7 @@ var $author$project$Render$Export$LaTeXToScripta2$renderCenterEnvironment = F2(
 						' ',
 						A2(
 							$elm$core$List$map,
-							$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+							$author$project$Render$Export$LaTeXToScripta$renderExpression(newMacroNames),
 							exprs));
 					return '| center\n' + content;
 				}
@@ -15347,7 +15347,7 @@ var $author$project$Render$Export$LaTeXToScripta2$renderCenterEnvironment = F2(
 			}
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderEnvironment = F3(
+var $author$project$Render$Export$LaTeXToScripta$renderEnvironment = F3(
 	function (newMacroNames, envName, block) {
 		var content = function () {
 			var _v0 = block.body;
@@ -15361,13 +15361,13 @@ var $author$project$Render$Export$LaTeXToScripta2$renderEnvironment = F3(
 					' ',
 					A2(
 						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+						$author$project$Render$Export$LaTeXToScripta$renderExpression(newMacroNames),
 						exprs));
 			}
 		}();
 		return '| ' + (envName + ('\n' + content));
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderFigure = function (block) {
+var $author$project$Render$Export$LaTeXToScripta$renderFigure = function (block) {
 	var caption = function () {
 		var _v0 = block.args;
 		if (!_v0.b) {
@@ -15379,80 +15379,7 @@ var $author$project$Render$Export$LaTeXToScripta2$renderFigure = function (block
 	}();
 	return '| figure' + caption;
 };
-var $author$project$Render$Export$LaTeXToScripta2$renderItem = F2(
-	function (newMacroNames, block) {
-		var isEnumerate = A2($elm$core$String$contains, '\\begin{enumerate}', block.meta.sourceText) || A2($elm$core$String$contains, 'enumerate', block.firstLine);
-		var prefix = isEnumerate ? '. ' : '- ';
-		var extractFromFirstLine = function () {
-			var line = block.firstLine;
-			return (A2($elm$core$String$contains, '\\item', line) && A2($elm$core$String$contains, '{', line)) ? $elm$core$String$trim(
-				A2(
-					$elm$core$Maybe$withDefault,
-					'',
-					$elm$core$List$head(
-						A2(
-							$elm$core$String$split,
-							'}',
-							function (s) {
-								return A2($elm$core$String$startsWith, '{', s) ? A2($elm$core$String$dropLeft, 1, s) : s;
-							}(
-								$elm$core$String$trim(
-									A3($elm$core$String$replace, '\\item', '', line))))))) : '';
-		}();
-		var content = function () {
-			if (!$elm$core$String$isEmpty(extractFromFirstLine)) {
-				return extractFromFirstLine;
-			} else {
-				if (!$elm$core$List$isEmpty(block.args)) {
-					var _v0 = block.args;
-					if (_v0.b) {
-						var arg = _v0.a;
-						return arg;
-					} else {
-						return '';
-					}
-				} else {
-					var _v1 = block.body;
-					if (_v1.$ === 'Left') {
-						var str = _v1.a;
-						return $elm$core$String$trim(str);
-					} else {
-						var exprs = _v1.a;
-						return $elm$core$String$trim(
-							A2(
-								$elm$core$String$join,
-								' ',
-								A2(
-									$elm$core$List$map,
-									$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
-									A2(
-										$elm$core$List$filter,
-										function (expr) {
-											_v2$2:
-											while (true) {
-												if (expr.$ === 'Fun') {
-													switch (expr.a) {
-														case 'errorHighlight':
-															return false;
-														case 'blue':
-															return false;
-														default:
-															break _v2$2;
-													}
-												} else {
-													break _v2$2;
-												}
-											}
-											return true;
-										},
-										exprs))));
-					}
-				}
-			}
-		}();
-		return _Utils_ap(prefix, content);
-	});
-var $author$project$Render$Export$LaTeXToScripta2$renderNoteLike = F3(
+var $author$project$Render$Export$LaTeXToScripta$renderNoteLike = F3(
 	function (newMacroNames, envName, block) {
 		var content = function () {
 			var _v0 = block.body;
@@ -15466,7 +15393,7 @@ var $author$project$Render$Export$LaTeXToScripta2$renderNoteLike = F3(
 					' ',
 					A2(
 						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+						$author$project$Render$Export$LaTeXToScripta$renderExpression(newMacroNames),
 						exprs));
 			}
 		}();
@@ -15485,7 +15412,7 @@ var $elm$core$String$repeat = F2(
 	function (n, chunk) {
 		return A3($elm$core$String$repeatHelp, n, chunk, '');
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderSection = F2(
+var $author$project$Render$Export$LaTeXToScripta$renderSection = F2(
 	function (level, block) {
 		var title = function () {
 			var _v0 = block.body;
@@ -15512,11 +15439,11 @@ var $author$project$Render$Export$LaTeXToScripta2$renderSection = F2(
 		var marker = A2($elm$core$String$repeat, level, '#');
 		return marker + (' ' + title);
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderSectionWithLevel = function (block) {
+var $author$project$Render$Export$LaTeXToScripta$renderSectionWithLevel = function (block) {
 	var level = A2($elm$core$String$contains, '\\subsection', block.firstLine) ? 2 : (A2($elm$core$String$contains, '\\subsubsection', block.firstLine) ? 3 : 1);
-	return A2($author$project$Render$Export$LaTeXToScripta2$renderSection, level, block);
+	return A2($author$project$Render$Export$LaTeXToScripta$renderSection, level, block);
 };
-var $author$project$Render$Export$LaTeXToScripta2$renderTable = function (block) {
+var $author$project$Render$Export$LaTeXToScripta$renderTable = function (block) {
 	var _v0 = block.body;
 	if (_v0.$ === 'Left') {
 		var str = _v0.a;
@@ -15525,7 +15452,7 @@ var $author$project$Render$Export$LaTeXToScripta2$renderTable = function (block)
 		return '| table';
 	}
 };
-var $author$project$Render$Export$LaTeXToScripta2$renderTheoremLike = F3(
+var $author$project$Render$Export$LaTeXToScripta$renderTheoremLike = F3(
 	function (newMacroNames, envName, block) {
 		var title = function () {
 			var _v1 = block.args;
@@ -15548,58 +15475,58 @@ var $author$project$Render$Export$LaTeXToScripta2$renderTheoremLike = F3(
 					' ',
 					A2(
 						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+						$author$project$Render$Export$LaTeXToScripta$renderExpression(newMacroNames),
 						exprs));
 			}
 		}();
 		return '| ' + (envName + (title + ('\n' + content)));
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderOrdinary = F3(
+var $author$project$Render$Export$LaTeXToScripta$renderOrdinary = F3(
 	function (newMacroNames, name, block) {
 		switch (name) {
 			case 'section':
-				return $author$project$Render$Export$LaTeXToScripta2$renderSectionWithLevel(block);
+				return $author$project$Render$Export$LaTeXToScripta$renderSectionWithLevel(block);
 			case 'subsection':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderSection, 2, block);
+				return A2($author$project$Render$Export$LaTeXToScripta$renderSection, 2, block);
 			case 'subsubsection':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderSection, 3, block);
+				return A2($author$project$Render$Export$LaTeXToScripta$renderSection, 3, block);
 			case 'itemize':
 				return '';
 			case 'enumerate':
 				return '';
 			case 'item':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderItem, newMacroNames, block);
+				return '';
 			case 'theorem':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, newMacroNames, 'theorem', block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderTheoremLike, newMacroNames, 'theorem', block);
 			case 'lemma':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, newMacroNames, 'lemma', block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderTheoremLike, newMacroNames, 'lemma', block);
 			case 'proposition':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, newMacroNames, 'proposition', block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderTheoremLike, newMacroNames, 'proposition', block);
 			case 'corollary':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, newMacroNames, 'corollary', block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderTheoremLike, newMacroNames, 'corollary', block);
 			case 'definition':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderTheoremLike, newMacroNames, 'definition', block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderTheoremLike, newMacroNames, 'definition', block);
 			case 'example':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderNoteLike, newMacroNames, 'example', block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderNoteLike, newMacroNames, 'example', block);
 			case 'remark':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderNoteLike, newMacroNames, 'remark', block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderNoteLike, newMacroNames, 'remark', block);
 			case 'note':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderNoteLike, newMacroNames, 'note', block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderNoteLike, newMacroNames, 'note', block);
 			case 'abstract':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderEnvironment, newMacroNames, 'abstract', block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderEnvironment, newMacroNames, 'abstract', block);
 			case 'quote':
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderEnvironment, newMacroNames, 'quote', block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderEnvironment, newMacroNames, 'quote', block);
 			case 'center':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderCenterEnvironment, newMacroNames, block);
+				return A2($author$project$Render$Export$LaTeXToScripta$renderCenterEnvironment, newMacroNames, block);
 			case 'figure':
-				return $author$project$Render$Export$LaTeXToScripta2$renderFigure(block);
+				return $author$project$Render$Export$LaTeXToScripta$renderFigure(block);
 			case 'table':
-				return $author$project$Render$Export$LaTeXToScripta2$renderTable(block);
+				return $author$project$Render$Export$LaTeXToScripta$renderTable(block);
 			default:
 				return '| ' + name;
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderParagraph = F2(
+var $author$project$Render$Export$LaTeXToScripta$renderParagraph = F2(
 	function (newMacroNames, block) {
 		var _v0 = block.body;
 		if (_v0.$ === 'Left') {
@@ -15613,11 +15540,11 @@ var $author$project$Render$Export$LaTeXToScripta2$renderParagraph = F2(
 					' ',
 					A2(
 						$elm$core$List$map,
-						$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+						$author$project$Render$Export$LaTeXToScripta$renderExpression(newMacroNames),
 						exprs)));
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderAlignedBlock = F2(
+var $author$project$Render$Export$LaTeXToScripta$renderAlignedBlock = F2(
 	function (newMacroNames, block) {
 		var content = function () {
 			var _v0 = block.body;
@@ -15647,9 +15574,9 @@ var $author$project$Render$Export$LaTeXToScripta2$renderAlignedBlock = F2(
 				}
 			}
 		}();
-		return $elm$core$String$isEmpty(content) ? '| aligned' : ('| aligned\n' + A2($author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta, newMacroNames, content));
+		return $elm$core$String$isEmpty(content) ? '| aligned' : ('| aligned\n' + A2($author$project$Render$Export$LaTeXToScripta$convertLatexMathToScripta, newMacroNames, content));
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock = function (block) {
+var $author$project$Render$Export$LaTeXToScripta$renderCodeBlock = function (block) {
 	var _v0 = block.body;
 	if (_v0.$ === 'Left') {
 		var str = _v0.a;
@@ -15658,17 +15585,17 @@ var $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock = function (bl
 		return 'Error: Invalid code block';
 	}
 };
-var $author$project$Render$Export$LaTeXToScripta2$renderEquationBlock = F2(
+var $author$project$Render$Export$LaTeXToScripta$renderEquationBlock = F2(
 	function (newMacroNames, block) {
 		var _v0 = block.body;
 		if (_v0.$ === 'Left') {
 			var str = _v0.a;
-			return '| equation\n' + A2($author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta, newMacroNames, str);
+			return '| equation\n' + A2($author$project$Render$Export$LaTeXToScripta$convertLatexMathToScripta, newMacroNames, str);
 		} else {
 			return 'Error: Invalid equation block';
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderFigureVerbatim = function (block) {
+var $author$project$Render$Export$LaTeXToScripta$renderFigureVerbatim = function (block) {
 	var _v0 = block.body;
 	if (_v0.$ === 'Left') {
 		var str = _v0.a;
@@ -15732,17 +15659,17 @@ var $author$project$Render$Export$LaTeXToScripta2$renderFigureVerbatim = functio
 		return '| figure';
 	}
 };
-var $author$project$Render$Export$LaTeXToScripta2$renderMathBlock = F2(
+var $author$project$Render$Export$LaTeXToScripta$renderMathBlock = F2(
 	function (newMacroNames, block) {
 		var _v0 = block.body;
 		if (_v0.$ === 'Left') {
 			var str = _v0.a;
-			return '| math\n' + A2($author$project$Render$Export$LaTeXToScripta2$convertLatexMathToScripta, newMacroNames, str);
+			return '| math\n' + A2($author$project$Render$Export$LaTeXToScripta$convertLatexMathToScripta, newMacroNames, str);
 		} else {
 			return '| math';
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderVerbatimBlock = function (block) {
+var $author$project$Render$Export$LaTeXToScripta$renderVerbatimBlock = function (block) {
 	var _v0 = block.body;
 	if (_v0.$ === 'Left') {
 		var str = _v0.a;
@@ -15751,44 +15678,44 @@ var $author$project$Render$Export$LaTeXToScripta2$renderVerbatimBlock = function
 		return '| verbatim';
 	}
 };
-var $author$project$Render$Export$LaTeXToScripta2$renderVerbatim = F3(
+var $author$project$Render$Export$LaTeXToScripta$renderVerbatim = F3(
 	function (newMacroNames, name, block) {
 		switch (name) {
 			case 'math':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderMathBlock, newMacroNames, block);
+				return A2($author$project$Render$Export$LaTeXToScripta$renderMathBlock, newMacroNames, block);
 			case 'equation':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderEquationBlock, newMacroNames, block);
+				return A2($author$project$Render$Export$LaTeXToScripta$renderEquationBlock, newMacroNames, block);
 			case 'align':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderAlignedBlock, newMacroNames, block);
+				return A2($author$project$Render$Export$LaTeXToScripta$renderAlignedBlock, newMacroNames, block);
 			case 'code':
-				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
+				return $author$project$Render$Export$LaTeXToScripta$renderCodeBlock(block);
 			case 'verbatim':
-				return $author$project$Render$Export$LaTeXToScripta2$renderVerbatimBlock(block);
+				return $author$project$Render$Export$LaTeXToScripta$renderVerbatimBlock(block);
 			case 'lstlisting':
-				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
+				return $author$project$Render$Export$LaTeXToScripta$renderCodeBlock(block);
 			case 'minted':
-				return $author$project$Render$Export$LaTeXToScripta2$renderCodeBlock(block);
+				return $author$project$Render$Export$LaTeXToScripta$renderCodeBlock(block);
 			case 'figure':
-				return $author$project$Render$Export$LaTeXToScripta2$renderFigureVerbatim(block);
+				return $author$project$Render$Export$LaTeXToScripta$renderFigureVerbatim(block);
 			default:
 				return '| ' + name;
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderBlock = F2(
+var $author$project$Render$Export$LaTeXToScripta$renderBlock = F2(
 	function (newMacroNames, block) {
 		var _v0 = block.heading;
 		switch (_v0.$) {
 			case 'Paragraph':
-				return A2($author$project$Render$Export$LaTeXToScripta2$renderParagraph, newMacroNames, block);
+				return A2($author$project$Render$Export$LaTeXToScripta$renderParagraph, newMacroNames, block);
 			case 'Ordinary':
 				var name = _v0.a;
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderOrdinary, newMacroNames, name, block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderOrdinary, newMacroNames, name, block);
 			default:
 				var name = _v0.a;
-				return A3($author$project$Render$Export$LaTeXToScripta2$renderVerbatim, newMacroNames, name, block);
+				return A3($author$project$Render$Export$LaTeXToScripta$renderVerbatim, newMacroNames, name, block);
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderItemWithContext = F3(
+var $author$project$Render$Export$LaTeXToScripta$renderItemWithContext = F3(
 	function (newMacroNames, context, block) {
 		var prefix = function () {
 			if ((context.$ === 'Just') && (context.a === 'enumerate')) {
@@ -15838,7 +15765,7 @@ var $author$project$Render$Export$LaTeXToScripta2$renderItemWithContext = F3(
 								' ',
 								A2(
 									$elm$core$List$map,
-									$author$project$Render$Export$LaTeXToScripta2$renderExpression(newMacroNames),
+									$author$project$Render$Export$LaTeXToScripta$renderExpression(newMacroNames),
 									A2(
 										$elm$core$List$filter,
 										function (expr) {
@@ -15866,16 +15793,16 @@ var $author$project$Render$Export$LaTeXToScripta2$renderItemWithContext = F3(
 		}();
 		return _Utils_ap(prefix, content);
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderBlockWithContext = F3(
+var $author$project$Render$Export$LaTeXToScripta$renderBlockWithContext = F3(
 	function (newMacroNames, context, block) {
 		var _v0 = block.heading;
 		if ((_v0.$ === 'Ordinary') && (_v0.a === 'item')) {
-			return A3($author$project$Render$Export$LaTeXToScripta2$renderItemWithContext, newMacroNames, context, block);
+			return A3($author$project$Render$Export$LaTeXToScripta$renderItemWithContext, newMacroNames, context, block);
 		} else {
-			return A2($author$project$Render$Export$LaTeXToScripta2$renderBlock, newMacroNames, block);
+			return A2($author$project$Render$Export$LaTeXToScripta$renderBlock, newMacroNames, block);
 		}
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderTreeWithContext = F4(
+var $author$project$Render$Export$LaTeXToScripta$renderTreeWithContext = F4(
 	function (newMacroNames, indent, parentContext, tree) {
 		var indentStr = A2($elm$core$String$repeat, indent * 2, ' ');
 		var currentBlock = $maca$elm_rose_tree$RoseTree$Tree$value(tree);
@@ -15919,7 +15846,7 @@ var $author$project$Render$Export$LaTeXToScripta2$renderTreeWithContext = F4(
 		}();
 		var currentRendered = _Utils_ap(
 			indentStr,
-			A3($author$project$Render$Export$LaTeXToScripta2$renderBlockWithContext, newMacroNames, context, currentBlock));
+			A3($author$project$Render$Export$LaTeXToScripta$renderBlockWithContext, newMacroNames, context, currentBlock));
 		var children = $maca$elm_rose_tree$RoseTree$Tree$children(tree);
 		var childrenRendered = function () {
 			if (!shouldRenderChildren) {
@@ -15936,14 +15863,14 @@ var $author$project$Render$Export$LaTeXToScripta2$renderTreeWithContext = F4(
 							'\n',
 							A2(
 								$elm$core$List$map,
-								A3($author$project$Render$Export$LaTeXToScripta2$renderTreeWithContext, newMacroNames, indent + 1, context),
+								A3($author$project$Render$Export$LaTeXToScripta$renderTreeWithContext, newMacroNames, indent + 1, context),
 								children)));
 				}
 			}
 		}();
 		return _Utils_ap(currentRendered, childrenRendered);
 	});
-var $author$project$Render$Export$LaTeXToScripta2$renderS = F2(
+var $author$project$Render$Export$LaTeXToScripta$renderS = F2(
 	function (newMacroNames, forest) {
 		return A2(
 			$elm$core$String$join,
@@ -15955,14 +15882,14 @@ var $author$project$Render$Export$LaTeXToScripta2$renderS = F2(
 					$elm$core$List$indexedMap,
 					F2(
 						function (index, tree) {
-							var context = A2($author$project$Render$Export$LaTeXToScripta2$determineContext, index, forest);
-							return A4($author$project$Render$Export$LaTeXToScripta2$renderTreeWithContext, newMacroNames, 0, context, tree);
+							var context = A2($author$project$Render$Export$LaTeXToScripta$determineContext, index, forest);
+							return A4($author$project$Render$Export$LaTeXToScripta$renderTreeWithContext, newMacroNames, 0, context, tree);
 						}),
 					forest)));
 	});
-var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSource) {
+var $author$project$Render$Export$LaTeXToScripta$translate = function (latexSource) {
 	var lines = $elm$core$String$lines(
-		$author$project$Render$Export$LaTeXToScripta2$convertVerbatimBacktick(latexSource));
+		$author$project$Render$Export$LaTeXToScripta$convertVerbatimBacktick(latexSource));
 	var isNewCommand = function (line) {
 		return A2(
 			$elm$core$String$startsWith,
@@ -15973,7 +15900,7 @@ var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSou
 	var newCommandLines = _v0.a;
 	var contentLines = _v0.b;
 	var contentSource = A2($elm$core$String$join, '\n', contentLines);
-	var forest = $author$project$Render$Export$LaTeXToScripta2$parseL(contentSource);
+	var forest = $author$project$Render$Export$LaTeXToScripta$parseL(contentSource);
 	var newMacroNames = A2(
 		$elm$core$List$filterMap,
 		function (line) {
@@ -15988,17 +15915,17 @@ var $author$project$Render$Export$LaTeXToScripta2$translate = function (latexSou
 		},
 		newCommandLines);
 	var macroBlock = $elm$core$List$isEmpty(newCommandLines) ? '' : (A2(
-		$author$project$Render$Export$LaTeXToScripta2$mathMacros,
+		$author$project$Render$Export$LaTeXToScripta$mathMacros,
 		newMacroNames,
 		A2($elm$core$String$join, '\n', newCommandLines)) + '\n\n');
 	var renderedContent = ($elm$core$List$isEmpty(forest) && (!$elm$core$String$isEmpty(
-		$elm$core$String$trim(contentSource)))) ? contentSource : A2($author$project$Render$Export$LaTeXToScripta2$renderS, newMacroNames, forest);
+		$elm$core$String$trim(contentSource)))) ? contentSource : A2($author$project$Render$Export$LaTeXToScripta$renderS, newMacroNames, forest);
 	return _Utils_ap(macroBlock, renderedContent);
 };
 var $elm$core$String$words = _String_words;
 var $author$project$TestAll$testCase = F3(
 	function (title, input, expected) {
-		var output = $author$project$Render$Export$LaTeXToScripta2$translate(input);
+		var output = $author$project$Render$Export$LaTeXToScripta$translate(input);
 		var passed = _Utils_eq(output, expected);
 		var normalizeWhitespace = function (s) {
 			return $elm$core$String$trim(
