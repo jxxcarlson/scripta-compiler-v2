@@ -312,7 +312,9 @@ renderOrdinary newMacroNames name block =
             ""
 
         "item" ->
-            renderItem newMacroNames block
+            -- Items are rendered through renderTreeWithContext/renderBlockWithContext
+            -- to ensure proper context-aware prefixes, so skip them here
+            ""
 
         -- Theorem-like environments
         "theorem" ->
@@ -711,90 +713,6 @@ renderItemWithContext newMacroNames context block =
     prefix ++ content
 
 
-{-| Render an item block
--}
-renderItem : List String -> ExpressionBlock -> String
-renderItem newMacroNames block =
-    let
-        -- Check if we're in an enumerate context by looking at the source
-        isEnumerate =
-            String.contains "\\begin{enumerate}" block.meta.sourceText
-                || String.contains "enumerate" block.firstLine
-
-        prefix =
-            if isEnumerate then
-                ". "
-
-            else
-                "- "
-
-        -- Extract content from \item{content} or \item {content} in firstLine
-        extractFromFirstLine =
-            let
-                line =
-                    block.firstLine
-            in
-            if String.contains "\\item" line && String.contains "{" line then
-                -- Handle both \item{...} and \item {...}
-                line
-                    |> String.replace "\\item" ""
-                    |> String.trim
-                    |> (\s ->
-                            if String.startsWith "{" s then
-                                String.dropLeft 1 s
-
-                            else
-                                s
-                       )
-                    |> String.split "}"
-                    |> List.head
-                    |> Maybe.withDefault ""
-                    |> String.trim
-
-            else
-                ""
-
-        content =
-            -- First try to extract from \item{...} syntax in firstLine
-            if not (String.isEmpty extractFromFirstLine) then
-                extractFromFirstLine
-                -- Then check if there are args
-
-            else if not (List.isEmpty block.args) then
-                case block.args of
-                    arg :: _ ->
-                        arg
-
-                    [] ->
-                        ""
-                -- Otherwise fall back to body
-
-            else
-                case block.body of
-                    Left str ->
-                        String.trim str
-
-                    Right exprs ->
-                        -- Filter out error highlighting functions
-                        exprs
-                            |> List.filter
-                                (\expr ->
-                                    case expr of
-                                        Fun "errorHighlight" _ _ ->
-                                            False
-
-                                        Fun "blue" _ _ ->
-                                            False
-
-                                        -- This seems to be a parsing artifact
-                                        _ ->
-                                            True
-                                )
-                            |> List.map (renderExpression newMacroNames)
-                            |> String.join " "
-                            |> String.trim
-    in
-    prefix ++ content
 
 
 {-| Render theorem-like environments
