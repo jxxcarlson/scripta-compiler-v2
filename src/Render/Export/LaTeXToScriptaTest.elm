@@ -1,6 +1,6 @@
-module Render.Export.LaTeXToScripta2Test exposing (runTests, test1, test10, test11, test12, test13, test14, test15, test2, test3, test4, test5, test6, test7, test8, test9)
+module Render.Export.LaTeXToScriptaTest exposing (runTests, test1, test10, test11, test12, test13, test14, test15, test2, test3, test4, test5, test6, test7, test8, test9)
 
-import Render.Export.LaTeXToScripta2 as L2S
+import Render.Export.LaTeXToScripta as L2S
 
 
 {-| Run all tests and return results as a string

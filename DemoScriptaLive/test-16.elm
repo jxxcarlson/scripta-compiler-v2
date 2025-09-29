@@ -2,7 +2,7 @@ module Test16 exposing (main)
 
 import Html exposing (..)
 import Html.Attributes exposing (style)
-import Render.Export.LaTeXToScripta2 as L2S
+import Render.Export.LaTeXToScripta as L2S
 
 main =
     let

@@ -1,4 +1,4 @@
-module Render.Export.LaTeXToScripta2 exposing
+module Render.Export.LaTeXToScripta exposing
     ( convertVerbatimBacktick
     , mathMacros
     , parseL

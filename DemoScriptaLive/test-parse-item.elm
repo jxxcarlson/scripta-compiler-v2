@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser
 import Html exposing (Html, div, pre, text, h2)
 import Html.Attributes exposing (style)
-import Render.Export.LaTeXToScripta2 as L2S
+import Render.Export.LaTeXToScripta as L2S
 import Generic.Language exposing (ExpressionBlock)
 import Generic.Forest exposing (Forest)
 

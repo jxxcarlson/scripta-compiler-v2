@@ -1,7 +1,7 @@
 module QuickTest exposing (main)
 
 import Platform
-import Render.Export.LaTeXToScripta2 as L2S
+import Render.Export.LaTeXToScripta as L2S
 
 
 main : Program () () ()

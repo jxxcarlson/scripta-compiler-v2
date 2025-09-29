@@ -2,7 +2,7 @@ module DebugSubsection exposing (main)
 
 import Html exposing (Html, div, pre, text)
 import Html.Attributes exposing (style)
-import Render.Export.LaTeXToScripta2 as L2S
+import Render.Export.LaTeXToScripta as L2S
 import Debug
 
 

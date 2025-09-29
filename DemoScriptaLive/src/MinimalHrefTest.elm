@@ -2,7 +2,7 @@ module MinimalHrefTest exposing (main)
 
 import Html exposing (Html, div, h3, pre, text)
 import Html.Attributes exposing (style)
-import Render.Export.LaTeXToScripta2 as L2S
+import Render.Export.LaTeXToScripta as L2S
 
 
 main : Html msg

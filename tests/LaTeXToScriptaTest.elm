@@ -1,7 +1,7 @@
-module LaTeXToScripta2Test exposing (..)
+module LaTeXToScriptaTest exposing (..)
 
 import Expect
-import Render.Export.LaTeXToScripta2 as L2S
+import Render.Export.LaTeXToScripta as L2S
 import Test exposing (..)
 
 

@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Html, div, pre, text, h2, h3, textarea, button)
 import Html.Attributes exposing (style, value, rows, cols)
 import Html.Events exposing (onInput, onClick)
-import Render.Export.LaTeXToScripta2 as L2S
+import Render.Export.LaTeXToScripta as L2S
 
 
 main : Program () Model Msg

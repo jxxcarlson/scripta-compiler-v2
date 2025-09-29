@@ -3,7 +3,7 @@ module TestImageCaptioned exposing (main)
 import Browser
 import Html exposing (Html, div, h1, h2, pre, text)
 import Html.Attributes exposing (style)
-import Render.Export.LaTeXToScripta2 as L2S
+import Render.Export.LaTeXToScripta as L2S
 
 
 main : Program () () ()

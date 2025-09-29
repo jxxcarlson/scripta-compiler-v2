@@ -3,7 +3,7 @@ module TestDebug exposing (main)
 import Browser
 import Html exposing (Html, div, h1, text)
 import Html.Attributes exposing (style)
-import Render.Export.LaTeXToScripta2Test as Test
+import Render.Export.LaTeXToScriptaTest as Test
 
 
 main : Program () () ()

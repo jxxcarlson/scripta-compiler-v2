@@ -24,7 +24,7 @@ import Ports
 import Process
 import Random
 import Render.Export.LaTeX
-import Render.Export.LaTeXToScripta2
+import Render.Export.LaTeXToScripta
 import Render.Settings
 import ScriptaV2.API
 import ScriptaV2.Compiler
@@ -191,7 +191,7 @@ update msg model =
 
                 -- Translate LaTeX to Scripta
                 translatedContent =
-                    Render.Export.LaTeXToScripta2.translate content
+                    Render.Export.LaTeXToScripta.translate content
 
                 -- Add title block at the top
                 scriptaContent =
