@@ -278,33 +278,81 @@ exportTree mathMacroDict settings tree =
                     exportBlock mathMacroDict settings (Tree.value tree)
 
                 children ->
-                    let
-                        renderedChildren : List String
-                        renderedChildren =
-                            List.map (exportTree mathMacroDict settings) children
-                                |> List.map String.lines
-                                |> List.concat
+                    -- Special handling for item blocks with nested list children
+                    case Generic.BlockUtilities.getExpressionBlockName (Tree.value tree) of
+                        Just "item" ->
+                            handleItemWithChildren mathMacroDict settings tree children
 
-                        root : List String
-                        root =
-                            exportBlock mathMacroDict settings (Tree.value tree) |> String.lines
-                    in
-                    case List.Extra.unconsLast root of
-                        Nothing ->
-                            ""
+                        Just "numbered" ->
+                            handleItemWithChildren mathMacroDict settings tree children
 
-                        Just ( lastLine, firstLines ) ->
+                        _ ->
+                            -- Default behavior for other blocks with children
                             let
-                                _ =
-                                    firstLines
+                                renderedChildren : List String
+                                renderedChildren =
+                                    List.map (exportTree mathMacroDict settings) children
+                                        |> List.map String.lines
+                                        |> List.concat
 
-                                _ =
-                                    renderedChildren
-
-                                _ =
-                                    lastLine
+                                root : List String
+                                root =
+                                    exportBlock mathMacroDict settings (Tree.value tree) |> String.lines
                             in
-                            firstLines ++ renderedChildren ++ [ lastLine ] |> String.join "\n"
+                            case List.Extra.unconsLast root of
+                                Nothing ->
+                                    ""
+
+                                Just ( lastLine, firstLines ) ->
+                                    let
+                                        _ =
+                                            firstLines
+
+                                        _ =
+                                            renderedChildren
+
+                                        _ =
+                                            lastLine
+                                    in
+                                    firstLines ++ renderedChildren ++ [ lastLine ] |> String.join "\n"
+
+
+handleItemWithChildren : ETeX.MathMacros.MathMacroDict -> RenderSettings -> Tree ExpressionBlock -> List (Tree ExpressionBlock) -> String
+handleItemWithChildren mathMacroDict settings tree children =
+    let
+        -- Export the item content
+        itemContent =
+            exportBlock mathMacroDict settings (Tree.value tree)
+
+        -- Check if first child is a beginBlock (nested list)
+        firstChildIsBeginBlock =
+            List.head children
+                |> Maybe.map Tree.value
+                |> Maybe.andThen Generic.BlockUtilities.getExpressionBlockName
+                |> Maybe.map (\name -> name == "beginBlock" || name == "beginNumberedBlock")
+                |> Maybe.withDefault False
+    in
+    if firstChildIsBeginBlock then
+        -- Nested list case: export item, then children with indentation
+        let
+            childrenOutput =
+                List.map (exportTree mathMacroDict settings) children
+                    |> String.join "\n"
+                    |> indentNestedList
+        in
+        itemContent ++ "\n" ++ childrenOutput
+
+    else
+        -- No nested list: just concatenate
+        itemContent ++ "\n" ++ (List.map (exportTree mathMacroDict settings) children |> String.join "\n")
+
+
+indentNestedList : String -> String
+indentNestedList str =
+    str
+        |> String.lines
+        |> List.map (\line -> "  " ++ line)
+        |> String.join "\n"
 
 
 {-| -}

@@ -15452,6 +15452,21 @@ var $author$project$Render$Export$LaTeXToScripta$renderTable = function (block) 
 		return '| table';
 	}
 };
+var $elm$core$String$endsWith = _String_endsWith;
+var $author$project$Render$Export$LaTeXToScripta$smartJoin = function (parts) {
+	return $elm$core$String$trim(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (part, acc) {
+					return $elm$core$String$isEmpty(acc) ? part : ((A2($elm$core$String$startsWith, '$', part) || A2($elm$core$String$endsWith, '$', acc)) ? _Utils_ap(acc, part) : (acc + (' ' + part)));
+				}),
+			'',
+			A2(
+				$elm$core$List$filter,
+				A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
+				parts)));
+};
 var $author$project$Render$Export$LaTeXToScripta$renderTheoremLike = F3(
 	function (newMacroNames, envName, block) {
 		var title = function () {
@@ -15470,9 +15485,7 @@ var $author$project$Render$Export$LaTeXToScripta$renderTheoremLike = F3(
 				return $elm$core$String$trim(str);
 			} else {
 				var exprs = _v0.a;
-				return A2(
-					$elm$core$String$join,
-					' ',
+				return $author$project$Render$Export$LaTeXToScripta$smartJoin(
 					A2(
 						$elm$core$List$map,
 						$author$project$Render$Export$LaTeXToScripta$renderExpression(newMacroNames),
@@ -15673,9 +15686,9 @@ var $author$project$Render$Export$LaTeXToScripta$renderVerbatimBlock = function 
 	var _v0 = block.body;
 	if (_v0.$ === 'Left') {
 		var str = _v0.a;
-		return '| verbatim\n' + str;
+		return '| code\n' + str;
 	} else {
-		return '| verbatim';
+		return '| code';
 	}
 };
 var $author$project$Render$Export$LaTeXToScripta$renderVerbatim = F3(
@@ -16093,10 +16106,11 @@ var $author$project$TestAll$main = A2(
 			A3($author$project$TestAll$testCase, 'Test 8: Align environment', '\\begin{align}\nx &= 1\\\\\ny &= 2\n\\end{align}\n', '| aligned\nx &= 1\\\\\ny &= 2'),
 			A3($author$project$TestAll$testCase, 'Test 9: href link', '\\href{https://example.com}{link text}\n', '[link link text https://example.com]'),
 			A3($author$project$TestAll$testCase, 'Test 10: Image', '\\includegraphics{image.png}\n', '[image image.png]'),
-			A3($author$project$TestAll$testCase, 'Test 11: Code block', '\\begin{lstlisting}\ndef hello():\n    print("Hello")\n\\end{lstlisting}\n', '| code\ndef hello():\n    print("Hello")'),
-			A3($author$project$TestAll$testCase, 'Test 12: Theorem', '\\begin{theorem}[Pythagorean]\nIn a right triangle, $a^2 + b^2 = c^2$.\n\\end{theorem}\n', '| theorem Pythagorean\nIn a right triangle, $a^2 + b^2 = c^2$.'),
+			A3($author$project$TestAll$testCase, 'Test 11: Code block', '\\begin{verbatim}\n  # Multiplication table using nested loops\n\n  for i in range(1, 6):        # Outer loop (rows)\n      for j in range(1, 6):    # Inner loop (columns)\n          product = i * j\n          print(f"{product:3}", end=" ")  # Format spacing\n      print()  # Newline after each row\n\\end{verbatim}\n', '| code\n  # Multiplication table using nested loops\n\n  for i in range(1, 6):        # Outer loop (rows)\n      for j in range(1, 6):    # Inner loop (columns)\n          product = i * j\n          print(f"{product:3}", end=" ")  # Format spacing\n      print()  # Newline after each row'),
+			A3($author$project$TestAll$testCase, 'Test 12: Theorem', '\\begin{theorem}\nIn a right triangle, $a^2 + b^2 = c^2$.\n\\end{theorem}\n', '| theorem\nIn a right triangle, $a^2 + b^2 = c^2$.'),
 			A3($author$project$TestAll$testCase, 'Test 13: Mixed content', '\\section{Math}\n\nThe equation $E = mc^2$ is famous.\n\n\\begin{equation}\n\\frac{d}{dx} \\sin(x) = \\cos(x)\n\\end{equation}\n', '# Math\n\nThe equation $E = mc^2$ is famous.\n\n| equation\nfrac(d, dx) sin(x) = cos(x)'),
 			A3($author$project$TestAll$testCase, 'Test 14: Nested lists', '\\begin{itemize}\n\\item Outer\n\\begin{itemize}\n\\item Inner\n\\end{itemize}\n\\end{itemize}\n', '- Outer\n  - Inner'),
+			A3($author$project$TestAll$testCase, 'Test 20: Nested lists with multiple items', 'AAA\n\n\\begin{itemize}\n  \\item Outer 1\n    \\begin{itemize}\n      \\item Inner 1\n      \\item Inner 2\n    \\end{itemize}\n  \\item Outer 2\n\\end{itemize}\n\nBBB\n', 'AAA\n\n- Outer 1\n\n  - Inner 1\n\n  - Inner 2\n\n- Outer 2\n\nBBB'),
 			A3($author$project$TestAll$testCase, 'Test 16: Equation with fraction', '\\begin{equation}\nM  = \\frac{R\\sigma^2}{ G}\n\\end{equation}\n', '| equation\nM  = frac(R sigma^2, G)'),
 			A3($author$project$TestAll$testCase, 'Test 17: Equation with subscript text', '\\begin{equation}\nM_\\text{cluster} \\sim 10^{14}-10^{15} M_\\odot.\n\\end{equation}\n', '| equation\nM_\"cluster\" sim 10^{14}-10^{15} M_{odot}.'),
 			A3($author$project$TestAll$testCase, 'Test 15: Complex document', '\\section{Introduction}\n\nThis is \\textbf{important}.\n\n\\subsection{Details}\n\n\\begin{itemize}\n\\item Point 1\n\\item Point 2\n\\end{itemize}\n\nSee \\href{https://example.com}{this link} for more.\n', '# Introduction\n\nThis is [b important].\n\n## Details\n\n- Point 1\n- Point 2\n\nSee [link this link https://example.com] for more.'),
