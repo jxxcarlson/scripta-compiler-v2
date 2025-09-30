@@ -412,8 +412,10 @@ rawExport settings ast_ =
 
 
 {-| Join exported strings intelligently:
-- List structure elements (begin/end/item) use single newlines
-- Regular content uses double newlines
+
+  - List structure elements (begin/end/item) use single newlines
+  - Regular content uses double newlines
+
 -}
 smartJoin : List String -> String
 smartJoin strings =
@@ -469,7 +471,8 @@ encloseLists blocks =
     loop { status = OutsideList, input = processedBlocks, output = [], itemNumber = 0 } nextStep |> List.reverse
 
 
-{-| Recursively process children of a tree to enclose nested lists -}
+{-| Recursively process children of a tree to enclose nested lists
+-}
 processTreeChildren : Tree ExpressionBlock -> Tree ExpressionBlock
 processTreeChildren (Tree block children) =
     let
@@ -793,14 +796,25 @@ exportBlock mathMacroDict settings block =
                         "aligned" ->
                             -- TODO: equation numbers and label
                             let
-                                -- Process each line separately to preserve \\ line breaks
-                                processedLines =
+                                -- Process each line separately and add \\ line breaks
+                                lines =
                                     str
-                                        |> String.split "\\\\"
+                                        |> String.lines
                                         |> List.map String.trim
+                                        |> List.filter (\line -> not (String.isEmpty line))
                                         |> List.map (ETeX.Transform.transformETeX mathMacroDict)
                                         |> List.map MicroLaTeX.Util.transformLabel
-                                        |> String.join "\\\\\n"
+
+                                -- Add \\ to the end of all lines except the last
+                                processedLines =
+                                    case List.reverse lines of
+                                        [] ->
+                                            ""
+
+                                        lastLine :: restReversed ->
+                                            (List.reverse restReversed |> List.map (\line -> line ++ "\\\\"))
+                                                ++ [ lastLine ]
+                                                |> String.join "\n"
                             in
                             [ "\\begin{align}", processedLines, "\\end{align}" ] |> String.join "\n"
 
@@ -1339,8 +1353,11 @@ exportExpr mathMacroDict settings expr =
                     Nothing ->
                         -- For nested expressions, we need to combine the content properly
                         let
-                            exportedExprs = List.map (exportExpr mathMacroDict settings) exps_
-                            combinedContent = String.join "" exportedExprs
+                            exportedExprs =
+                                List.map (exportExpr mathMacroDict settings) exps_
+
+                            combinedContent =
+                                String.join "" exportedExprs
                         in
                         "\\" ++ unalias name ++ "{" ++ combinedContent ++ "}"
 
