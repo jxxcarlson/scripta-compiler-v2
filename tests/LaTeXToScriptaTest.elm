@@ -79,4 +79,24 @@ Content here"""
                     -- Verify it creates a non-empty forest
                     Expect.notEqual [] forest
             ]
+        , describe "Aligned block conversion"
+            [ test "align environment with line breaks" <|
+                \_ ->
+                    let
+                        latex =
+                            """\\begin{align}
+a &= b + c \\\\
+x &= y + z
+\\end{align}"""
+
+                        result =
+                            L2S.translate latex
+
+                        expected =
+                            """| aligned
+a &= b + c \\\\
+x &= y + z"""
+                    in
+                    Expect.equal expected result
+            ]
         ]
