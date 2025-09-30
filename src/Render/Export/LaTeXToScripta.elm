@@ -1181,8 +1181,8 @@ mathExprToScripta newMacroNames expr =
             str
 
         E.MacroName str ->
-            -- Don't add backslash for macro names in Scripta format
-            if ETeX.KaTeX.isKaTeX str then
+            -- Don't add backslash for KaTeX built-ins or newly defined macros in Scripta format
+            if ETeX.KaTeX.isKaTeX str || List.member str newMacroNames then
                 str
 
             else
@@ -1244,7 +1244,8 @@ mathExprToScripta newMacroNames expr =
 
                     _ ->
                         if ETeX.KaTeX.isKaTeX name || List.member name newMacroNames then
-                            name ++ "(" ++ (List.map (mathExprToScripta newMacroNames) args |> String.join ", ") ++ ")"
+                            -- Use space-separated format for KaTeX functions: mathbb N instead of mathbb(N)
+                            name ++ " " ++ (List.map (mathExprToScripta newMacroNames) args |> String.join " ")
 
                         else
                             "\\"

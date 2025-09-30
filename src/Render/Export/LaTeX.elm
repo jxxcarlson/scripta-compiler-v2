@@ -413,44 +413,13 @@ rawExport settings ast_ =
 
 {-| Join exported strings intelligently:
 
-  - List structure elements (begin/end/item) use single newlines
-  - Regular content uses double newlines
+  - All elements use double newlines (one empty line) for proper LaTeX formatting
+  - This ensures proper spacing after \\begin{itemize}, \\item, \\end{itemize}, etc.
 
 -}
 smartJoin : List String -> String
 smartJoin strings =
-    let
-        isListStructure str =
-            String.startsWith "\\begin{itemize}" str
-                || String.startsWith "\\end{itemize}" str
-                || String.startsWith "\\begin{enumerate}" str
-                || String.startsWith "\\end{enumerate}" str
-                || String.startsWith "\\begin{description}" str
-                || String.startsWith "\\end{description}" str
-                || String.startsWith "\\item " str
-
-        joinPair ( prev, curr ) =
-            if isListStructure prev && isListStructure curr then
-                "\n"
-
-            else
-                "\n\n"
-
-        joined =
-            case strings of
-                [] ->
-                    ""
-
-                first :: rest ->
-                    List.foldl
-                        (\curr ( acc, prevStr ) ->
-                            ( acc ++ joinPair ( prevStr, curr ) ++ curr, curr )
-                        )
-                        ( first, first )
-                        rest
-                        |> Tuple.first
-    in
-    joined
+    String.join "\n\n" strings
 
 
 type Status

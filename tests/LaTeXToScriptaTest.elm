@@ -99,4 +99,24 @@ x &= y + z"""
                     in
                     Expect.equal expected result
             ]
+        , describe "Math macro conversion"
+            [ test "newcommand to mathmacros block" <|
+                \_ ->
+                    let
+                        latex =
+                            """\\newcommand{\\N}{\\mathbb{N}}
+
+$\\N$"""
+
+                        result =
+                            L2S.translate latex
+
+                        expected =
+                            """| mathmacros
+N: mathbb N
+
+"""
+                    in
+                    Expect.equal expected result
+            ]
         ]
