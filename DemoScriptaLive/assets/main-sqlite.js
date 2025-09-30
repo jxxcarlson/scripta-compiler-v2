@@ -52069,9 +52069,6 @@ var $author$project$Generic$BlockUtilities$condenseUrls = function (block) {
 	}
 };
 var $author$project$Render$Export$LaTeX$OutsideList = {$: 'OutsideList'};
-var $author$project$Render$Export$LaTeX$InsideDescriptionList = {$: 'InsideDescriptionList'};
-var $author$project$Render$Export$LaTeX$InsideItemizedList = {$: 'InsideItemizedList'};
-var $author$project$Render$Export$LaTeX$InsideNumberedList = {$: 'InsideNumberedList'};
 var $author$project$Generic$Language$expressionBlockEmpty = {
 	args: _List_Nil,
 	body: $toastal$either$Either$Right(_List_Nil),
@@ -52083,69 +52080,6 @@ var $author$project$Generic$Language$expressionBlockEmpty = {
 	style: $elm$core$Maybe$Nothing
 };
 var $author$project$Render$Export$LaTeX$emptyExpressionBlock = $author$project$Generic$Language$expressionBlockEmpty;
-var $author$project$Render$Export$LaTeX$beginDescriptionBlock = A2(
-	$author$project$Generic$BlockUtilities$updateMeta,
-	function (m) {
-		return _Utils_update(
-			m,
-			{numberOfLines: 2, sourceText: '| beginBlock\ndescription'});
-	},
-	_Utils_update(
-		$author$project$Render$Export$LaTeX$emptyExpressionBlock,
-		{
-			body: $toastal$either$Either$Right(
-				_List_fromArray(
-					[
-						A2(
-						$author$project$Generic$Language$Text,
-						'description',
-						{begin: 0, end: 7, id: 'begin', index: 0})
-					])),
-			heading: $author$project$Generic$Language$Ordinary('beginDescriptionBlock'),
-			indent: 1
-		}));
-var $author$project$Render$Export$LaTeX$beginItemizedBlock = A2(
-	$author$project$Generic$BlockUtilities$updateMeta,
-	function (m) {
-		return _Utils_update(
-			m,
-			{numberOfLines: 2, sourceText: '| beginBlock\nitemize'});
-	},
-	_Utils_update(
-		$author$project$Render$Export$LaTeX$emptyExpressionBlock,
-		{
-			body: $toastal$either$Either$Right(
-				_List_fromArray(
-					[
-						A2(
-						$author$project$Generic$Language$Text,
-						'itemize',
-						{begin: 0, end: 7, id: '', index: 0})
-					])),
-			heading: $author$project$Generic$Language$Ordinary('beginBlock'),
-			indent: 1
-		}));
-var $author$project$Render$Export$LaTeX$beginNumberedBlock = A2(
-	$author$project$Generic$BlockUtilities$updateMeta,
-	function (m) {
-		return _Utils_update(
-			m,
-			{numberOfLines: 2, sourceText: '| beginBlock\nitemize'});
-	},
-	_Utils_update(
-		$author$project$Render$Export$LaTeX$emptyExpressionBlock,
-		{
-			body: $toastal$either$Either$Right(
-				_List_fromArray(
-					[
-						A2(
-						$author$project$Generic$Language$Text,
-						'enumerate',
-						{begin: 0, end: 7, id: 'begin', index: 0})
-					])),
-			heading: $author$project$Generic$Language$Ordinary('beginNumberedBlock'),
-			indent: 1
-		}));
 var $author$project$Render$Export$LaTeX$endDescriptionBlock = A2(
 	$author$project$Generic$BlockUtilities$updateMeta,
 	function (m) {
@@ -52207,6 +52141,72 @@ var $author$project$Render$Export$LaTeX$endNumberedBlock = A2(
 						{begin: 0, end: 7, id: 'begin', index: 0})
 					])),
 			heading: $author$project$Generic$Language$Ordinary('endNumberedBlock'),
+			indent: 1
+		}));
+var $author$project$Render$Export$LaTeX$InsideDescriptionList = {$: 'InsideDescriptionList'};
+var $author$project$Render$Export$LaTeX$InsideItemizedList = {$: 'InsideItemizedList'};
+var $author$project$Render$Export$LaTeX$InsideNumberedList = {$: 'InsideNumberedList'};
+var $author$project$Render$Export$LaTeX$beginDescriptionBlock = A2(
+	$author$project$Generic$BlockUtilities$updateMeta,
+	function (m) {
+		return _Utils_update(
+			m,
+			{numberOfLines: 2, sourceText: '| beginBlock\ndescription'});
+	},
+	_Utils_update(
+		$author$project$Render$Export$LaTeX$emptyExpressionBlock,
+		{
+			body: $toastal$either$Either$Right(
+				_List_fromArray(
+					[
+						A2(
+						$author$project$Generic$Language$Text,
+						'description',
+						{begin: 0, end: 7, id: 'begin', index: 0})
+					])),
+			heading: $author$project$Generic$Language$Ordinary('beginDescriptionBlock'),
+			indent: 1
+		}));
+var $author$project$Render$Export$LaTeX$beginItemizedBlock = A2(
+	$author$project$Generic$BlockUtilities$updateMeta,
+	function (m) {
+		return _Utils_update(
+			m,
+			{numberOfLines: 2, sourceText: '| beginBlock\nitemize'});
+	},
+	_Utils_update(
+		$author$project$Render$Export$LaTeX$emptyExpressionBlock,
+		{
+			body: $toastal$either$Either$Right(
+				_List_fromArray(
+					[
+						A2(
+						$author$project$Generic$Language$Text,
+						'itemize',
+						{begin: 0, end: 7, id: '', index: 0})
+					])),
+			heading: $author$project$Generic$Language$Ordinary('beginBlock'),
+			indent: 1
+		}));
+var $author$project$Render$Export$LaTeX$beginNumberedBlock = A2(
+	$author$project$Generic$BlockUtilities$updateMeta,
+	function (m) {
+		return _Utils_update(
+			m,
+			{numberOfLines: 2, sourceText: '| beginBlock\nitemize'});
+	},
+	_Utils_update(
+		$author$project$Render$Export$LaTeX$emptyExpressionBlock,
+		{
+			body: $toastal$either$Either$Right(
+				_List_fromArray(
+					[
+						A2(
+						$author$project$Generic$Language$Text,
+						'enumerate',
+						{begin: 0, end: 7, id: 'begin', index: 0})
+					])),
+			heading: $author$project$Generic$Language$Ordinary('beginNumberedBlock'),
 			indent: 1
 		}));
 var $author$project$Render$Export$LaTeX$nextState = F2(
@@ -52368,7 +52368,29 @@ var $author$project$Render$Export$LaTeX$nextState = F2(
 var $author$project$Render$Export$LaTeX$nextStep = function (state) {
 	var _v0 = $elm$core$List$head(state.input);
 	if (_v0.$ === 'Nothing') {
-		return $author$project$Tools$Loop$Done(state.output);
+		var _v1 = state.status;
+		switch (_v1.$) {
+			case 'InsideItemizedList':
+				return $author$project$Tools$Loop$Done(
+					A2(
+						$elm$core$List$cons,
+						$maca$elm_rose_tree$RoseTree$Tree$leaf($author$project$Render$Export$LaTeX$endItemizedBlock),
+						state.output));
+			case 'InsideNumberedList':
+				return $author$project$Tools$Loop$Done(
+					A2(
+						$elm$core$List$cons,
+						$maca$elm_rose_tree$RoseTree$Tree$leaf($author$project$Render$Export$LaTeX$endNumberedBlock),
+						state.output));
+			case 'InsideDescriptionList':
+				return $author$project$Tools$Loop$Done(
+					A2(
+						$elm$core$List$cons,
+						$maca$elm_rose_tree$RoseTree$Tree$leaf($author$project$Render$Export$LaTeX$endDescriptionBlock),
+						state.output));
+			default:
+				return $author$project$Tools$Loop$Done(state.output);
+		}
 	} else {
 		var tree = _v0.a;
 		return $author$project$Tools$Loop$Loop(
@@ -52376,11 +52398,26 @@ var $author$project$Render$Export$LaTeX$nextStep = function (state) {
 	}
 };
 var $author$project$Render$Export$LaTeX$encloseLists = function (blocks) {
+	var processedBlocks = A2($elm$core$List$map, $author$project$Render$Export$LaTeX$processTreeChildren, blocks);
 	return $elm$core$List$reverse(
 		A2(
 			$author$project$Tools$Loop$loop,
-			{input: blocks, itemNumber: 0, output: _List_Nil, status: $author$project$Render$Export$LaTeX$OutsideList},
+			{input: processedBlocks, itemNumber: 0, output: _List_Nil, status: $author$project$Render$Export$LaTeX$OutsideList},
 			$author$project$Render$Export$LaTeX$nextStep));
+};
+var $author$project$Render$Export$LaTeX$processTreeChildren = function (_v0) {
+	var block = _v0.a;
+	var children = _v0.b;
+	var childList = $elm$core$Array$toList(children);
+	var processedChildren = function () {
+		if (!childList.b) {
+			return $elm$core$Array$empty;
+		} else {
+			return $elm$core$Array$fromList(
+				$author$project$Render$Export$LaTeX$encloseLists(childList));
+		}
+	}();
+	return A2($maca$elm_rose_tree$RoseTree$Tree$Tree, block, processedChildren);
 };
 var $author$project$Render$Export$LaTeX$addTikzPictureClosing = F2(
 	function (flagUp, str) {
@@ -52404,6 +52441,16 @@ var $author$project$Render$Export$LaTeX$descriptionItem = F2(
 			return '\\item{' + (body + '}');
 		} else {
 			return '\\item[' + (arg + (']{' + (body + '}')));
+		}
+	});
+var $author$project$Render$Utility$getArg = F3(
+	function (_default, index, args) {
+		var _v0 = A2($elm_community$list_extra$List$Extra$getAt, index, args);
+		if (_v0.$ === 'Nothing') {
+			return _default;
+		} else {
+			var a = _v0.a;
+			return a;
 		}
 	});
 var $author$project$Render$Export$LaTeX$functionDict = $elm$core$Dict$fromList(
@@ -52459,16 +52506,6 @@ var $author$project$Render$Export$LaTeX$macro1 = F2(
 					}
 				}
 			}
-		}
-	});
-var $author$project$Render$Utility$getArg = F3(
-	function (_default, index, args) {
-		var _v0 = A2($elm_community$list_extra$List$Extra$getAt, index, args);
-		if (_v0.$ === 'Nothing') {
-			return _default;
-		} else {
-			var a = _v0.a;
-			return a;
 		}
 	});
 var $author$project$Tools$Utility$removeNonAlphaNum = function (string) {
@@ -52676,7 +52713,7 @@ var $author$project$Render$Export$LaTeX$blockDict = function (mathMacroDict) {
 				'item',
 				F3(
 					function (_v38, _v39, body) {
-						return A2($author$project$Render$Export$LaTeX$macro1, 'item', body);
+						return '\\item ' + body;
 					})),
 				_Utils_Tuple2(
 				'itemList',
@@ -52694,7 +52731,7 @@ var $author$project$Render$Export$LaTeX$blockDict = function (mathMacroDict) {
 				'numbered',
 				F3(
 					function (_v43, _v44, body) {
-						return A2($author$project$Render$Export$LaTeX$macro1, 'item', body);
+						return '\\item ' + body;
 					})),
 				_Utils_Tuple2(
 				'desc',
@@ -53938,19 +53975,49 @@ var $author$project$Render$Export$LaTeX$exportBlock = F3(
 										'\\end{equation}'
 									]));
 						case 'aligned':
-							var processedLines = A2(
-								$elm$core$String$join,
-								'\\\\\n',
+							var stripTrailingBackslashes = function (line) {
+								return A2($elm$core$String$endsWith, '\\\\', line) ? $elm$core$String$trimRight(
+									A2($elm$core$String$dropRight, 2, line)) : line;
+							};
+							var lines = A2(
+								$elm$core$List$map,
+								$author$project$MicroLaTeX$Util$transformLabel,
 								A2(
 									$elm$core$List$map,
-									$author$project$MicroLaTeX$Util$transformLabel,
+									$author$project$ETeX$Transform$transformETeX(mathMacroDict),
 									A2(
 										$elm$core$List$map,
-										$author$project$ETeX$Transform$transformETeX(mathMacroDict),
+										stripTrailingBackslashes,
 										A2(
-											$elm$core$List$map,
-											$elm$core$String$trim,
-											A2($elm$core$String$split, '\\\\', str)))));
+											$elm$core$List$filter,
+											function (line) {
+												return !$elm$core$String$isEmpty(line);
+											},
+											A2(
+												$elm$core$List$map,
+												$elm$core$String$trim,
+												$elm$core$String$lines(str))))));
+							var processedLines = function () {
+								var _v12 = $elm$core$List$reverse(lines);
+								if (!_v12.b) {
+									return '';
+								} else {
+									var lastLine = _v12.a;
+									var restReversed = _v12.b;
+									return A2(
+										$elm$core$String$join,
+										'\n',
+										_Utils_ap(
+											A2(
+												$elm$core$List$map,
+												function (line) {
+													return line + '\\\\';
+												},
+												$elm$core$List$reverse(restReversed)),
+											_List_fromArray(
+												[lastLine])));
+								}
+							}();
 							return A2(
 								$elm$core$String$join,
 								'\n',
@@ -54079,6 +54146,17 @@ var $author$project$Render$Export$LaTeX$exportBlock = F3(
 var $author$project$Generic$Language$getHeadingFromBlock = function (block) {
 	return block.heading;
 };
+var $author$project$Render$Export$LaTeX$indentNestedList = function (str) {
+	return A2(
+		$elm$core$String$join,
+		'\n',
+		A2(
+			$elm$core$List$map,
+			function (line) {
+				return '  ' + line;
+			},
+			$elm$core$String$lines(str)));
+};
 var $author$project$Render$Export$LaTeX$exportTree = F3(
 	function (mathMacroDict, settings, tree) {
 		var _v0 = $author$project$Generic$Language$getHeadingFromBlock(
@@ -54164,6 +54242,23 @@ var $author$project$Render$Export$LaTeX$exportTree = F3(
 				$maca$elm_rose_tree$RoseTree$Tree$value(tree));
 		} else {
 			var children = _v3;
+			var _v4 = $author$project$Generic$BlockUtilities$getExpressionBlockName(
+				$maca$elm_rose_tree$RoseTree$Tree$value(tree));
+			_v4$2:
+			while (true) {
+				if (_v4.$ === 'Just') {
+					switch (_v4.a) {
+						case 'item':
+							return A4($author$project$Render$Export$LaTeX$handleItemWithChildren, mathMacroDict, settings, tree, children);
+						case 'numbered':
+							return A4($author$project$Render$Export$LaTeX$handleItemWithChildren, mathMacroDict, settings, tree, children);
+						default:
+							break _v4$2;
+					}
+				} else {
+					break _v4$2;
+				}
+			}
 			var root = $elm$core$String$lines(
 				A3(
 					$author$project$Render$Export$LaTeX$exportBlock,
@@ -54178,16 +54273,16 @@ var $author$project$Render$Export$LaTeX$exportTree = F3(
 						$elm$core$List$map,
 						A2($author$project$Render$Export$LaTeX$exportTree, mathMacroDict, settings),
 						children)));
-			var _v4 = $elm_community$list_extra$List$Extra$unconsLast(root);
-			if (_v4.$ === 'Nothing') {
+			var _v5 = $elm_community$list_extra$List$Extra$unconsLast(root);
+			if (_v5.$ === 'Nothing') {
 				return '';
 			} else {
-				var _v5 = _v4.a;
-				var lastLine = _v5.a;
-				var firstLines = _v5.b;
-				var _v6 = firstLines;
-				var _v7 = renderedChildren;
-				var _v8 = lastLine;
+				var _v6 = _v5.a;
+				var lastLine = _v6.a;
+				var firstLines = _v6.b;
+				var _v7 = firstLines;
+				var _v8 = renderedChildren;
+				var _v9 = lastLine;
 				return A2(
 					$elm$core$String$join,
 					'\n',
@@ -54198,6 +54293,48 @@ var $author$project$Render$Export$LaTeX$exportTree = F3(
 							_List_fromArray(
 								[lastLine]))));
 			}
+		}
+	});
+var $author$project$Render$Export$LaTeX$handleItemWithChildren = F4(
+	function (mathMacroDict, settings, tree, children) {
+		var itemContent = A3(
+			$author$project$Render$Export$LaTeX$exportBlock,
+			mathMacroDict,
+			settings,
+			$maca$elm_rose_tree$RoseTree$Tree$value(tree));
+		var firstChildIsBeginBlock = A2(
+			$elm$core$Maybe$withDefault,
+			false,
+			A2(
+				$elm$core$Maybe$map,
+				function (name) {
+					return (name === 'beginBlock') || (name === 'beginNumberedBlock');
+				},
+				A2(
+					$elm$core$Maybe$andThen,
+					$author$project$Generic$BlockUtilities$getExpressionBlockName,
+					A2(
+						$elm$core$Maybe$map,
+						$maca$elm_rose_tree$RoseTree$Tree$value,
+						$elm$core$List$head(children)))));
+		if (firstChildIsBeginBlock) {
+			var childrenOutput = $author$project$Render$Export$LaTeX$indentNestedList(
+				A2(
+					$elm$core$String$join,
+					'\n',
+					A2(
+						$elm$core$List$map,
+						A2($author$project$Render$Export$LaTeX$exportTree, mathMacroDict, settings),
+						children)));
+			return itemContent + ('\n' + childrenOutput);
+		} else {
+			return itemContent + ('\n' + A2(
+				$elm$core$String$join,
+				'\n',
+				A2(
+					$elm$core$List$map,
+					A2($author$project$Render$Export$LaTeX$exportTree, mathMacroDict, settings),
+					children)));
 		}
 	});
 var $elm$core$Elm$JsArray$map = _JsArray_map;
@@ -54257,6 +54394,9 @@ var $maca$elm_rose_tree$RoseTree$Tree$map = F2(
 					$maca$elm_rose_tree$RoseTree$Tree$map(f),
 					ns)));
 	});
+var $author$project$Render$Export$LaTeX$smartJoin = function (strings) {
+	return A2($elm$core$String$join, '\n\n', strings);
+};
 var $author$project$Render$Export$LaTeX$rawExport = F2(
 	function (settings, ast_) {
 		var mathMacroDict = $author$project$ETeX$Transform$makeMacroDict(
@@ -54303,24 +54443,23 @@ var $author$project$Render$Export$LaTeX$rawExport = F2(
 						ast_));
 			}
 		}();
-		return A2(
-			$elm$core$String$join,
-			'\n\n',
+		var processedTrees = $author$project$Render$Export$LaTeX$encloseLists(
 			A2(
-				$elm$core$List$map,
-				A2($author$project$Render$Export$LaTeX$exportTree, mathMacroDict, settings),
-				$author$project$Render$Export$LaTeX$encloseLists(
-					A2(
-						$author$project$Generic$Forest$map,
-						$author$project$Generic$BlockUtilities$condenseUrls,
-						A2(
-							$author$project$Generic$ASTTools$filterForestOnLabelNames,
-							function (name) {
-								return !_Utils_eq(
-									name,
-									$elm$core$Maybe$Just('runninghead'));
-							},
-							ast)))));
+				$author$project$Generic$Forest$map,
+				$author$project$Generic$BlockUtilities$condenseUrls,
+				A2(
+					$author$project$Generic$ASTTools$filterForestOnLabelNames,
+					function (name) {
+						return !_Utils_eq(
+							name,
+							$elm$core$Maybe$Just('runninghead'));
+					},
+					ast)));
+		var exportedStrings = A2(
+			$elm$core$List$map,
+			A2($author$project$Render$Export$LaTeX$exportTree, mathMacroDict, settings),
+			processedTrees);
+		return $author$project$Render$Export$LaTeX$smartJoin(exportedStrings);
 	});
 var $author$project$Render$Export$LaTeX$tableofcontents = F2(
 	function (properties, rawBlockNames_) {
@@ -55440,7 +55579,7 @@ var $author$project$Render$Export$LaTeXToScripta$mathExprToScripta = F2(
 				return str;
 			case 'MacroName':
 				var str = expr.a;
-				return $author$project$ETeX$KaTeX$isKaTeX(str) ? str : ('\\' + str);
+				return ($author$project$ETeX$KaTeX$isKaTeX(str) || A2($elm$core$List$member, str, newMacroNames)) ? str : ('\\' + str);
 			case 'FunctionName':
 				var str = expr.a;
 				return str;
@@ -55495,13 +55634,13 @@ var $author$project$Render$Export$LaTeXToScripta$mathExprToScripta = F2(
 									args)));
 						}
 					} else {
-						return ($author$project$ETeX$KaTeX$isKaTeX(name) || A2($elm$core$List$member, name, newMacroNames)) ? (name + ('(' + (A2(
+						return ($author$project$ETeX$KaTeX$isKaTeX(name) || A2($elm$core$List$member, name, newMacroNames)) ? (name + (' ' + A2(
 							$elm$core$String$join,
-							', ',
+							' ',
 							A2(
 								$elm$core$List$map,
 								$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
-								args)) + ')'))) : ('\\' + (name + A2(
+								args)))) : ('\\' + (name + A2(
 							$elm$core$String$join,
 							'',
 							A2(
@@ -56435,6 +56574,20 @@ var $author$project$Render$Export$LaTeXToScripta$renderTable = function (block) 
 		return '| table';
 	}
 };
+var $author$project$Render$Export$LaTeXToScripta$smartJoin = function (parts) {
+	return $elm$core$String$trim(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (part, acc) {
+					return $elm$core$String$isEmpty(acc) ? part : ((A2($elm$core$String$startsWith, '$', part) || A2($elm$core$String$endsWith, '$', acc)) ? _Utils_ap(acc, part) : (acc + (' ' + part)));
+				}),
+			'',
+			A2(
+				$elm$core$List$filter,
+				A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
+				parts)));
+};
 var $author$project$Render$Export$LaTeXToScripta$renderTheoremLike = F3(
 	function (newMacroNames, envName, block) {
 		var title = function () {
@@ -56453,9 +56606,7 @@ var $author$project$Render$Export$LaTeXToScripta$renderTheoremLike = F3(
 				return $elm$core$String$trim(str);
 			} else {
 				var exprs = _v0.a;
-				return A2(
-					$elm$core$String$join,
-					' ',
+				return $author$project$Render$Export$LaTeXToScripta$smartJoin(
 					A2(
 						$elm$core$List$map,
 						$author$project$Render$Export$LaTeXToScripta$renderExpression(newMacroNames),
@@ -56656,9 +56807,9 @@ var $author$project$Render$Export$LaTeXToScripta$renderVerbatimBlock = function 
 	var _v0 = block.body;
 	if (_v0.$ === 'Left') {
 		var str = _v0.a;
-		return '| verbatim\n' + str;
+		return '| code\n' + str;
 	} else {
-		return '| verbatim';
+		return '| code';
 	}
 };
 var $author$project$Render$Export$LaTeXToScripta$renderVerbatim = F3(
