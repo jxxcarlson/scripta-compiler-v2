@@ -142,6 +142,31 @@ frac(d, dx) sin(x) = cos(x)"""
 """
             """- Outer
   - Inner"""
+        , testCase "Test 20: Nested lists with multiple items"
+            """AAA
+
+\\begin{itemize}
+  \\item Outer 1
+    \\begin{itemize}
+      \\item Inner 1
+      \\item Inner 2
+    \\end{itemize}
+  \\item Outer 2
+\\end{itemize}
+
+BBB
+"""
+            """AAA
+
+- Outer 1
+
+  - Inner 1
+
+  - Inner 2
+
+- Outer 2
+
+BBB"""
         , testCase "Test 16: Equation with fraction"
             "\\begin{equation}\nM  = \\frac{R\\sigma^2}{ G}\n\\end{equation}\n"
             "| equation\nM  = frac(R sigma^2, G)"
