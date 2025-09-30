@@ -397,13 +397,58 @@ rawExport settings ast_ =
                 Just mathMacroBlock ->
                     Tree.leaf mathMacroBlock :: List.map (Tree.map hideMathMacros) ast_
     in
-    ast
-        |> ASTTools.filterForestOnLabelNames (\name -> not (name == Just "runninghead"))
-        |> Generic.Forest.map Generic.BlockUtilities.condenseUrls
-        |> encloseLists
-        -- Don't shift sections anymore since level 1 is now \section, not \title
-        |> List.map (exportTree mathMacroDict settings)
-        |> String.join "\n\n"
+    let
+        processedTrees =
+            ast
+                |> ASTTools.filterForestOnLabelNames (\name -> not (name == Just "runninghead"))
+                |> Generic.Forest.map Generic.BlockUtilities.condenseUrls
+                |> encloseLists
+
+        exportedStrings =
+            processedTrees
+                |> List.map (exportTree mathMacroDict settings)
+    in
+    smartJoin exportedStrings
+
+
+{-| Join exported strings intelligently:
+- List structure elements (begin/end/item) use single newlines
+- Regular content uses double newlines
+-}
+smartJoin : List String -> String
+smartJoin strings =
+    let
+        isListStructure str =
+            String.startsWith "\\begin{itemize}" str
+                || String.startsWith "\\end{itemize}" str
+                || String.startsWith "\\begin{enumerate}" str
+                || String.startsWith "\\end{enumerate}" str
+                || String.startsWith "\\begin{description}" str
+                || String.startsWith "\\end{description}" str
+                || String.startsWith "\\item " str
+
+        joinPair ( prev, curr ) =
+            if isListStructure prev && isListStructure curr then
+                "\n"
+
+            else
+                "\n\n"
+
+        joined =
+            case strings of
+                [] ->
+                    ""
+
+                first :: rest ->
+                    List.foldl
+                        (\curr ( acc, prevStr ) ->
+                            ( acc ++ joinPair ( prevStr, curr ) ++ curr, curr )
+                        )
+                        ( first, first )
+                        rest
+                        |> Tuple.first
+    in
+    joined
 
 
 type Status

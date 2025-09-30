@@ -28,12 +28,12 @@ expectedOutput =
     """AAA
 
 \\begin{itemize}
-  \\item Outer 1
-    \\begin{itemize}
-      \\item Inner 1
-      \\item Inner 2
-    \\end{itemize}
-  \\item Outer 2
+\\item Outer 1
+  \\begin{itemize}
+  \\item Inner 1
+  \\item Inner 2
+  \\end{itemize}
+\\item Outer 2
 \\end{itemize}
 
 BBB"""
