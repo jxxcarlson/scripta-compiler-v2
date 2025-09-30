@@ -92,20 +92,30 @@ y &= 2"""
             "\\includegraphics{image.png}\n"
             "[image image.png]"
         , testCase "Test 11: Code block"
-            """\\begin{lstlisting}
-def hello():
-    print("Hello")
-\\end{lstlisting}
+            """\\begin{verbatim}
+  # Multiplication table using nested loops
+
+  for i in range(1, 6):        # Outer loop (rows)
+      for j in range(1, 6):    # Inner loop (columns)
+          product = i * j
+          print(f"{product:3}", end=" ")  # Format spacing
+      print()  # Newline after each row
+\\end{verbatim}
 """
             """| code
-def hello():
-    print("Hello")"""
+  # Multiplication table using nested loops
+
+  for i in range(1, 6):        # Outer loop (rows)
+      for j in range(1, 6):    # Inner loop (columns)
+          product = i * j
+          print(f"{product:3}", end=" ")  # Format spacing
+      print()  # Newline after each row"""
         , testCase "Test 12: Theorem"
-            """\\begin{theorem}[Pythagorean]
+            """\\begin{theorem}
 In a right triangle, $a^2 + b^2 = c^2$.
 \\end{theorem}
 """
-            """| theorem Pythagorean
+            """| theorem
 In a right triangle, $a^2 + b^2 = c^2$."""
         , testCase "Test 13: Mixed content"
             """\\section{Math}

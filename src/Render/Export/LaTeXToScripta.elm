@@ -613,10 +613,10 @@ renderVerbatimBlock : ExpressionBlock -> String
 renderVerbatimBlock block =
     case block.body of
         Left str ->
-            "| verbatim\n" ++ str
+            "| code\n" ++ str
 
         _ ->
-            "| verbatim"
+            "| code"
 
 
 {-| Render a equation block
@@ -715,6 +715,26 @@ renderItemWithContext newMacroNames context block =
 
 
 
+{-| Smart join that doesn't add unnecessary spaces around inline math
+-}
+smartJoin : List String -> String
+smartJoin parts =
+    parts
+        |> List.filter (not << String.isEmpty)
+        |> List.foldl
+            (\part acc ->
+                if String.isEmpty acc then
+                    part
+                else if String.startsWith "$" part || String.endsWith "$" acc then
+                    -- Don't add space before/after inline math
+                    acc ++ part
+                else
+                    acc ++ " " ++ part
+            )
+            ""
+        |> String.trim
+
+
 {-| Render theorem-like environments
 -}
 renderTheoremLike : List String -> String -> ExpressionBlock -> String
@@ -734,7 +754,10 @@ renderTheoremLike newMacroNames envName block =
                     String.trim str
 
                 Right exprs ->
-                    exprs |> List.map (renderExpression newMacroNames) |> String.join " "
+                    -- Smart join: don't add spaces around inline math
+                    exprs
+                        |> List.map (renderExpression newMacroNames)
+                        |> smartJoin
     in
     "| " ++ envName ++ title ++ "\n" ++ content
 
