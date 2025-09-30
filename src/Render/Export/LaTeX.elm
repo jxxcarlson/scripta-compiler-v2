@@ -6,6 +6,7 @@ module Render.Export.LaTeX exposing (export, exportExpr, rawExport)
 
 -}
 
+import Array
 import Dict exposing (Dict)
 import ETeX.MathMacros
 import ETeX.Transform
@@ -414,7 +415,32 @@ type Status
 
 encloseLists : Forest ExpressionBlock -> Forest ExpressionBlock
 encloseLists blocks =
-    loop { status = OutsideList, input = blocks, output = [], itemNumber = 0 } nextStep |> List.reverse
+    -- First, recursively process children of each tree
+    let
+        processedBlocks =
+            List.map processTreeChildren blocks
+    in
+    -- Then wrap consecutive items at this level
+    loop { status = OutsideList, input = processedBlocks, output = [], itemNumber = 0 } nextStep |> List.reverse
+
+
+{-| Recursively process children of a tree to enclose nested lists -}
+processTreeChildren : Tree ExpressionBlock -> Tree ExpressionBlock
+processTreeChildren (Tree block children) =
+    let
+        childList =
+            Array.toList children
+
+        processedChildren =
+            case childList of
+                [] ->
+                    Array.empty
+
+                _ ->
+                    -- Recursively process children and wrap them in begin/end blocks if needed
+                    encloseLists childList |> Array.fromList
+    in
+    Tree block processedChildren
 
 
 type alias State =
@@ -425,7 +451,19 @@ nextStep : State -> Step State (Forest ExpressionBlock)
 nextStep state =
     case List.head state.input of
         Nothing ->
-            Done state.output
+            -- When input is exhausted, close any open lists
+            case state.status of
+                InsideItemizedList ->
+                    Done (Tree.leaf endItemizedBlock :: state.output)
+
+                InsideNumberedList ->
+                    Done (Tree.leaf endNumberedBlock :: state.output)
+
+                InsideDescriptionList ->
+                    Done (Tree.leaf endDescriptionBlock :: state.output)
+
+                OutsideList ->
+                    Done state.output
 
         Just tree ->
             Loop (nextState tree state)
@@ -927,10 +965,10 @@ blockDict mathMacroDict =
         , ( "section", \settings_ args body -> section settings_ args body )
         , ( "subheading", \settings_ args body -> subheading settings_ args body )
         , ( "smallsubheading", \settings_ args body -> smallsubheading settings_ args body )
-        , ( "item", \_ _ body -> macro1 "item" body )
+        , ( "item", \_ _ body -> "\\item " ++ body )
         , ( "itemList", \_ _ body -> body )
         , ( "descriptionItem", \_ args body -> descriptionItem args body )
-        , ( "numbered", \_ _ body -> macro1 "item" body )
+        , ( "numbered", \_ _ body -> "\\item " ++ body )
         , ( "desc", \_ args body -> descriptionItem args body )
         , ( "beginBlock", \_ _ _ -> "\\begin{itemize}" )
         , ( "endBlock", \_ _ _ -> "\\end{itemize}" )
