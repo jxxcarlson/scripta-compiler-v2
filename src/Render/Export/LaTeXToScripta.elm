@@ -1244,8 +1244,15 @@ mathExprToScripta newMacroNames expr =
 
                     _ ->
                         if ETeX.KaTeX.isKaTeX name || List.member name newMacroNames then
-                            -- Use space-separated format for KaTeX functions: mathbb N instead of mathbb(N)
-                            name ++ " " ++ (List.map (mathExprToScripta newMacroNames) args |> String.join " ")
+                            -- Scripta format for functions/macros depends on argument count:
+                            -- Single argument: space-separated (mathbb N)
+                            -- Multiple arguments: parentheses with commas (frac(a,b), pdd(u,t))
+                            case args of
+                                [ singleArg ] ->
+                                    name ++ " " ++ mathExprToScripta newMacroNames singleArg
+
+                                _ ->
+                                    name ++ "(" ++ (List.map (mathExprToScripta newMacroNames) args |> String.join ",") ++ ")"
 
                         else
                             "\\"

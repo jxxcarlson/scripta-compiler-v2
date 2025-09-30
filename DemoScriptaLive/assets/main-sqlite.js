@@ -55634,24 +55634,33 @@ var $author$project$Render$Export$LaTeXToScripta$mathExprToScripta = F2(
 									args)));
 						}
 					} else {
-						return ($author$project$ETeX$KaTeX$isKaTeX(name) || A2($elm$core$List$member, name, newMacroNames)) ? (name + (' ' + A2(
-							$elm$core$String$join,
-							' ',
-							A2(
-								$elm$core$List$map,
-								$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
-								args)))) : ('\\' + (name + A2(
-							$elm$core$String$join,
-							'',
-							A2(
-								$elm$core$List$map,
+						if ($author$project$ETeX$KaTeX$isKaTeX(name) || A2($elm$core$List$member, name, newMacroNames)) {
+							if (args.b && (!args.b.b)) {
+								var singleArg = args.a;
+								return name + (' ' + A2($author$project$Render$Export$LaTeXToScripta$mathExprToScripta, newMacroNames, singleArg));
+							} else {
+								return name + ('(' + (A2(
+									$elm$core$String$join,
+									',',
+									A2(
+										$elm$core$List$map,
+										$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
+										args)) + ')'));
+							}
+						} else {
+							return '\\' + (name + A2(
+								$elm$core$String$join,
+								'',
 								A2(
-									$elm$core$Basics$composeR,
-									$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
-									function (x) {
-										return '{' + (x + '}');
-									}),
-								args))));
+									$elm$core$List$map,
+									A2(
+										$elm$core$Basics$composeR,
+										$author$project$Render$Export$LaTeXToScripta$mathExprToScripta(newMacroNames),
+										function (x) {
+											return '{' + (x + '}');
+										}),
+									args)));
+						}
 					}
 				}
 			case 'Expr':
