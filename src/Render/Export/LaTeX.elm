@@ -796,12 +796,22 @@ exportBlock mathMacroDict settings block =
                         "aligned" ->
                             -- TODO: equation numbers and label
                             let
+                                -- Strip trailing \\ from a line if present
+                                stripTrailingBackslashes : String -> String
+                                stripTrailingBackslashes line =
+                                    if String.endsWith "\\\\" line then
+                                        String.dropRight 2 line |> String.trimRight
+
+                                    else
+                                        line
+
                                 -- Process each line separately and add \\ line breaks
                                 lines =
                                     str
                                         |> String.lines
                                         |> List.map String.trim
                                         |> List.filter (\line -> not (String.isEmpty line))
+                                        |> List.map stripTrailingBackslashes
                                         |> List.map (ETeX.Transform.transformETeX mathMacroDict)
                                         |> List.map MicroLaTeX.Util.transformLabel
 

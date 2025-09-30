@@ -23,12 +23,22 @@ suite =
                     mathMacroDict =
                         Dict.empty
 
+                    -- Strip trailing \\ from a line if present
+                    stripTrailingBackslashes : String -> String
+                    stripTrailingBackslashes line =
+                        if String.endsWith "\\\\" line then
+                            String.dropRight 2 line |> String.trimRight
+
+                        else
+                            line
+
                     -- Process the aligned block with the new logic
                     lines =
                         inputString
                             |> String.lines
                             |> List.map String.trim
                             |> List.filter (\line -> not (String.isEmpty line))
+                            |> List.map stripTrailingBackslashes
                             |> List.map (ETeX.Transform.transformETeX mathMacroDict)
                             |> List.map MicroLaTeX.Util.transformLabel
 
@@ -60,11 +70,20 @@ suite =
                     mathMacroDict =
                         Dict.empty
 
+                    stripTrailingBackslashes : String -> String
+                    stripTrailingBackslashes line =
+                        if String.endsWith "\\\\" line then
+                            String.dropRight 2 line |> String.trimRight
+
+                        else
+                            line
+
                     lines =
                         inputString
                             |> String.lines
                             |> List.map String.trim
                             |> List.filter (\line -> not (String.isEmpty line))
+                            |> List.map stripTrailingBackslashes
                             |> List.map (ETeX.Transform.transformETeX mathMacroDict)
                             |> List.map MicroLaTeX.Util.transformLabel
 
@@ -83,6 +102,51 @@ suite =
 
                     expected =
                         "\\begin{align}\nx = 1\n\\end{align}"
+                in
+                output
+                    |> Expect.equal expected
+        , test "aligned block with trailing \\\\ doesn't double them" <|
+            \_ ->
+                let
+                    -- Input with \\ already at the end of the first line
+                    inputString =
+                        "a &= b + c \\\\\nx &= y + z"
+
+                    mathMacroDict =
+                        Dict.empty
+
+                    stripTrailingBackslashes : String -> String
+                    stripTrailingBackslashes line =
+                        if String.endsWith "\\\\" line then
+                            String.dropRight 2 line |> String.trimRight
+
+                        else
+                            line
+
+                    lines =
+                        inputString
+                            |> String.lines
+                            |> List.map String.trim
+                            |> List.filter (\line -> not (String.isEmpty line))
+                            |> List.map stripTrailingBackslashes
+                            |> List.map (ETeX.Transform.transformETeX mathMacroDict)
+                            |> List.map MicroLaTeX.Util.transformLabel
+
+                    processedLines =
+                        case List.reverse lines of
+                            [] ->
+                                ""
+
+                            lastLine :: restReversed ->
+                                (List.reverse restReversed |> List.map (\line -> line ++ "\\\\"))
+                                    ++ [ lastLine ]
+                                    |> String.join "\n"
+
+                    output =
+                        [ "\\begin{align}", processedLines, "\\end{align}" ] |> String.join "\n"
+
+                    expected =
+                        "\\begin{align}\na &= b + c\\\\\nx &= y + z\n\\end{align}"
                 in
                 output
                     |> Expect.equal expected
