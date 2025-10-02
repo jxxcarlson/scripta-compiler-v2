@@ -1,20 +1,6 @@
 module ETeX.Transform exposing
-    ( Deco(..)
-    , MathExpr(..)
-    , evalStr
-    , isUserDefinedMacro
-    , macroDefString
+    ( evalStr
     , makeMacroDict
-    , makeMacroDictFromSimpleLines
-    , parse
-    , parseETeX
-    , parseSimpleMacro
-    , printList
-    , printResult
-    , processSimpleMacroBody
-    , resolveSymbolName
-    , resolveSymbolNames
-    , testMacroDict
     , toLaTeXNewCommands
     , transformETeX
     )
@@ -87,29 +73,6 @@ type Deco
 -- OTHER --
 
 
-macroDefString =
-    """
-\\newcommand{\\nat}{\\mathbb{N}}
-\\newcommand{\\reals}{\\mathbb{R}}
-\\newcommand{\\space}[1]{\\reals^{#1}}
-\\newcommand{\\set}[1]{\\{ #1 \\}}
-\\newcommand{\\sett}[2]{\\{\\ #1 \\ | \\ #2\\ \\}}
-"""
-
-
-testMacroDict : Dict String MacroBody
-testMacroDict =
-    makeMacroDict macroDefString
-
-
-parseETeX : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) String
-parseETeX userMacroDict src =
-    src
-        |> parse userMacroDict
-        |> Result.map resolveSymbolNames
-        |> Result.map printList
-
-
 transformETeX : MathMacroDict -> String -> String
 transformETeX userdefinedMacroDict src =
     case transformETeX_ userdefinedMacroDict src of
@@ -143,7 +106,12 @@ resolveSymbolNames exprs =
 -}
 resolveSymbolName : MathExpr -> MathExpr
 resolveSymbolName expr =
-    case expr of
+    let
+        -- Check if the symbol is a known KaTeX command or a user-defined macro
+        _ =
+            Debug.log "resolveSymbolName input" expr
+    in
+    (case expr of
         AlphaNum str ->
             case Dict.get str ETeX.Dictionary.symbolDict of
                 Just _ ->
@@ -214,6 +182,8 @@ resolveSymbolName expr =
 
         Text str ->
             Text str
+    )
+        |> Debug.log "resolveSymbolName output"
 
 
 
@@ -569,15 +539,6 @@ addMixedFormatMacro line dict =
     else
         -- Skip unrecognized lines
         dict
-
-
-
--- Parse a simplified macro line like "set: \{ #1 \}"
-
-
-parseSimpleMacro : String -> Maybe ( String, MacroBody )
-parseSimpleMacro line =
-    parseSimpleMacroWithContext [] line
 
 
 
@@ -971,43 +932,6 @@ simpleMacroToLaTeX line =
 
     else
         ""
-
-
-makeMacroDictFromLines : List String -> Dict String MacroBody
-makeMacroDictFromLines lines =
-    lines
-        |> List.map (parseNewCommand Dict.empty >> makeEntry)
-        |> Maybe.Extra.values
-        |> Dict.fromList
-
-
-
--- Make a macro dictionary from simplified syntax lines
-
-
-makeMacroDictFromSimpleLines : List String -> Dict String MacroBody
-makeMacroDictFromSimpleLines lines =
-    -- Build the dictionary progressively so later macros can reference earlier ones
-    List.foldl addSimpleMacro Dict.empty lines
-
-
-
--- Add a single macro to the dictionary with context
-
-
-addSimpleMacro : String -> Dict String MacroBody -> Dict String MacroBody
-addSimpleMacro line dict =
-    let
-        knownMacros =
-            Dict.keys dict
-    in
-    case parseSimpleMacroWithContext knownMacros line of
-        Just ( name, body ) ->
-            Dict.insert name body dict
-
-        Nothing ->
-            dict
-
 
 
 -- CONVERSIONS
@@ -1415,11 +1339,6 @@ type alias MathExprParser a =
 -- PARSER
 
 
-parse : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
-parse userMacroDict str =
-    parseWithDict userMacroDict str
-
-
 parseWithDict : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
 parseWithDict userMacroDict str =
     PA.run (many (mathExprParser userMacroDict)) str
@@ -1704,16 +1623,6 @@ newCommandParser2 userMacroDict =
         |= many (mathExprParser userMacroDict)
 
 
-newCommandParser3 : MathMacroDict -> PA.Parser Context Problem NewCommand
-newCommandParser3 userMacroDict =
-    succeed (\name body -> NewCommand (convertToETeXMathExpr name) 0 (List.map convertToETeXMathExpr body))
-        |. symbol (Token "\\newcommand" ExpectingNewCommand)
-        |. symbol (Token "{" ExpectingLeftBrace)
-        |= f0Parser
-        |. symbol (Token "}" ExpectingRightBrace)
-        |= many (mathExprParser userMacroDict)
-
-
 argParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 argParser userMacroDict =
     (succeed identity
@@ -1819,16 +1728,6 @@ printNewCommand (NewCommand mathExpr arity body) =
 printList : List MathExpr -> String
 printList exprs =
     List.map print exprs |> String.join ""
-
-
-printResult : Result (List (DeadEnd Context Problem)) (List MathExpr) -> String
-printResult result =
-    case result of
-        Ok exprs ->
-            printList exprs
-
-        Err errors ->
-            "Error!"
 
 
 print : MathExpr -> String
