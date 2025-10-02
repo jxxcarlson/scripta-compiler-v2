@@ -1,5 +1,6 @@
 module ETeX.Transform exposing
     ( evalStr
+    , greekSymbolParser
     , makeMacroDict
     , toLaTeXNewCommands
     , transformETeX
@@ -58,6 +59,7 @@ type MathExpr
     | RightParen
     | Comma
     | MathSymbols String
+    | GreekSymbol String
     | Macro String (List MathExpr)
     | FCall String (List MathExpr)
     | Expr (List MathExpr)
@@ -106,12 +108,7 @@ resolveSymbolNames exprs =
 -}
 resolveSymbolName : MathExpr -> MathExpr
 resolveSymbolName expr =
-    let
-        -- Check if the symbol is a known KaTeX command or a user-defined macro
-        _ =
-            Debug.log "resolveSymbolName input" expr
-    in
-    (case expr of
+    case expr of
         AlphaNum str ->
             case Dict.get str ETeX.Dictionary.symbolDict of
                 Just _ ->
@@ -182,8 +179,9 @@ resolveSymbolName expr =
 
         Text str ->
             Text str
-    )
-        |> Debug.log "resolveSymbolName output"
+
+        GreekSymbol str ->
+            Text ("\\" ++ str)
 
 
 
@@ -375,6 +373,9 @@ expandMacroWithDict dict expr =
         MathSymbols str ->
             MathSymbols str
 
+        GreekSymbol str ->
+            GreekSymbol str
+
 
 {-|
 
@@ -477,6 +478,9 @@ replaceParam_ k expr target =
 
         MathSymbols str ->
             MathSymbols str
+
+        GreekSymbol str ->
+            GreekSymbol str
 
 
 replaceParam : Int -> MathExpr -> List MathExpr -> List MathExpr
@@ -934,6 +938,7 @@ simpleMacroToLaTeX line =
         ""
 
 
+
 -- CONVERSIONS
 -- Convert local MacroBody to Generic.MathMacro.MacroBody
 
@@ -1027,6 +1032,10 @@ convertToGenericMathExpr expr =
             -- Generic.MathMacro doesn't have Text, so convert to MathSymbols
             Generic.MathMacro.MathSymbols str
 
+        GreekSymbol str ->
+            -- Convert GreekSymbol to AlphaNum with backslash
+            Generic.MathMacro.AlphaNum ("\\" ++ str)
+
 
 
 -- Convert local Deco to Generic.MathMacro.Deco
@@ -1116,6 +1125,9 @@ convertToETeXMathExpr expr =
 
         Text str ->
             ETeX.MathMacros.MathSymbols str
+
+        GreekSymbol str ->
+            ETeX.MathMacros.AlphaNum ("\\" ++ str)
 
 
 
@@ -1329,6 +1341,7 @@ type Problem
     | ExpectingNewCommand
     | ExpectingComma
     | ExpectingQuote
+    | ExpectingGreekLetter
 
 
 type alias MathExprParser a =
@@ -1479,6 +1492,12 @@ textParser =
 
 
 
+--greekLetterParser : PA.Parser Context Problem MathExpr
+--greekLetterParser =
+--    succeed AlphaNum
+--        |. symbol (Token "\\" ExpectingBackslash)
+--        |= greekLetterNameParser
+--
 -- Parser that looks for function calls with lookahead
 
 
@@ -1515,13 +1534,14 @@ mathExprParser : MathMacroDict -> PA.Parser Context Problem MathExpr
 mathExprParser userMacroDict =
     oneOf
         [ textParser -- Parse quoted text first
+        , backtrackable greekSymbolParser -- For Greek letters without lookahead
         , mathMediumSpaceParser
         , mathSmallSpaceParser
         , mathSpaceParser
         , leftBraceParser
         , rightBraceParser
-        , macroParser userMacroDict
         , alphaNumWithLookaheadParser userMacroDict -- This handles both function calls and plain alphanums
+        , macroParser userMacroDict
         , lazy (\_ -> standaloneParenthExprParser userMacroDict) -- For standalone parentheses
         , commaParser
         , mathSymbolsParser
@@ -1532,6 +1552,20 @@ mathExprParser userMacroDict =
         , subscriptParser userMacroDict
         , superscriptParser userMacroDict
         ]
+
+
+greekSymbolParser : PA.Parser Context Problem MathExpr
+greekSymbolParser =
+    succeed identity
+        |= alphaNumParser_
+        |> PA.andThen
+            (\str ->
+                if List.member str ETeX.KaTeX.greekLetters then
+                    succeed (AlphaNum ("\\" ++ str))
+
+                else
+                    PA.problem ExpectingGreekLetter
+            )
 
 
 mathSymbolsParser =
@@ -1818,6 +1852,9 @@ print expr =
 
         Text str ->
             "\\text{" ++ str ++ "}"
+
+        GreekSymbol str ->
+            "\\" ++ str
 
 
 printDeco : Deco -> String

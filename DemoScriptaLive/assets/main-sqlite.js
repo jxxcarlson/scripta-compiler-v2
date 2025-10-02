@@ -19601,9 +19601,12 @@ var $author$project$ETeX$Transform$convertToETeXMathExpr = function (expr) {
 			return $author$project$ETeX$MathMacros$RightParen;
 		case 'Comma':
 			return $author$project$ETeX$MathMacros$Comma;
-		default:
+		case 'Text':
 			var str = expr.a;
 			return $author$project$ETeX$MathMacros$MathSymbols(str);
+		default:
+			var str = expr.a;
+			return $author$project$ETeX$MathMacros$AlphaNum('\\' + str);
 	}
 };
 var $author$project$ETeX$Transform$ExpectingBackslash = {$: 'ExpectingBackslash'};
@@ -19790,6 +19793,26 @@ var $author$project$ETeX$Transform$commaParser = A2(
 	$elm$parser$Parser$Advanced$succeed($author$project$ETeX$Transform$Comma),
 	$elm$parser$Parser$Advanced$symbol(
 		A2($elm$parser$Parser$Advanced$Token, ',', $author$project$ETeX$Transform$ExpectingComma)));
+var $author$project$ETeX$Transform$ExpectingGreekLetter = {$: 'ExpectingGreekLetter'};
+var $elm$parser$Parser$Advanced$problem = function (x) {
+	return $elm$parser$Parser$Advanced$Parser(
+		function (s) {
+			return A2(
+				$elm$parser$Parser$Advanced$Bad,
+				false,
+				A2($elm$parser$Parser$Advanced$fromState, s, x));
+		});
+};
+var $author$project$ETeX$Transform$greekSymbolParser = A2(
+	$elm$parser$Parser$Advanced$andThen,
+	function (str) {
+		return A2($elm$core$List$member, str, $author$project$ETeX$KaTeX$greekLetters) ? $elm$parser$Parser$Advanced$succeed(
+			$author$project$ETeX$Transform$AlphaNum('\\' + str)) : $elm$parser$Parser$Advanced$problem($author$project$ETeX$Transform$ExpectingGreekLetter);
+	},
+	A2(
+		$elm$parser$Parser$Advanced$keeper,
+		$elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity),
+		$author$project$ETeX$Transform$alphaNumParser_));
 var $elm$parser$Parser$Advanced$lazy = function (thunk) {
 	return $elm$parser$Parser$Advanced$Parser(
 		function (s) {
@@ -20307,13 +20330,14 @@ var $author$project$ETeX$Transform$mathExprParser = function (userMacroDict) {
 		_List_fromArray(
 			[
 				$author$project$ETeX$Transform$textParser,
+				$elm$parser$Parser$Advanced$backtrackable($author$project$ETeX$Transform$greekSymbolParser),
 				$author$project$ETeX$Transform$mathMediumSpaceParser,
 				$author$project$ETeX$Transform$mathSmallSpaceParser,
 				$author$project$ETeX$Transform$mathSpaceParser,
 				$author$project$ETeX$Transform$leftBraceParser,
 				$author$project$ETeX$Transform$rightBraceParser,
-				$author$project$ETeX$Transform$macroParser(userMacroDict),
 				$author$project$ETeX$Transform$alphaNumWithLookaheadParser(userMacroDict),
+				$author$project$ETeX$Transform$macroParser(userMacroDict),
 				$elm$parser$Parser$Advanced$lazy(
 				function (_v1) {
 					return $author$project$ETeX$Transform$standaloneParenthExprParser(userMacroDict);
@@ -33151,6 +33175,9 @@ var $author$project$Render$Math$InlineMathMode = {$: 'InlineMathMode'};
 var $author$project$ETeX$Transform$Expr = function (a) {
 	return {$: 'Expr', a: a};
 };
+var $author$project$ETeX$Transform$GreekSymbol = function (a) {
+	return {$: 'GreekSymbol', a: a};
+};
 var $author$project$ETeX$Transform$LeftParen = {$: 'LeftParen'};
 var $author$project$ETeX$Transform$RightParen = {$: 'RightParen'};
 var $author$project$ETeX$Transform$convertFromETeXDeco = function (deco) {
@@ -33328,9 +33355,12 @@ var $author$project$ETeX$Transform$replaceParam_ = F3(
 				return $author$project$ETeX$Transform$RightParen;
 			case 'Comma':
 				return $author$project$ETeX$Transform$Comma;
-			default:
+			case 'MathSymbols':
 				var str = target.a;
 				return $author$project$ETeX$Transform$MathSymbols(str);
+			default:
+				var str = target.a;
+				return $author$project$ETeX$Transform$GreekSymbol(str);
 		}
 	});
 var $author$project$ETeX$Transform$replaceParam = F3(
@@ -33552,18 +33582,25 @@ var $author$project$ETeX$Transform$expandMacroWithDict = F2(
 				return $author$project$ETeX$Transform$RightParen;
 			case 'Comma':
 				return $author$project$ETeX$Transform$Comma;
-			default:
+			case 'MathSymbols':
 				var str = expr.a;
 				return $author$project$ETeX$Transform$MathSymbols(str);
+			default:
+				var str = expr.a;
+				return $author$project$ETeX$Transform$GreekSymbol(str);
 		}
 	});
+var $elm$core$Debug$log = _Debug_log;
 var $author$project$ETeX$Transform$parseWithDict = F2(
 	function (userMacroDict, str) {
 		return A2(
-			$elm$parser$Parser$Advanced$run,
-			$author$project$ETeX$Transform$many(
-				$author$project$ETeX$Transform$mathExprParser(userMacroDict)),
-			str);
+			$elm$core$Debug$log,
+			'EXPRS',
+			A2(
+				$elm$parser$Parser$Advanced$run,
+				$author$project$ETeX$Transform$many(
+					$author$project$ETeX$Transform$mathExprParser(userMacroDict)),
+				str));
 	});
 var $author$project$ETeX$Transform$parseManyWithDict = F2(
 	function (userMacroDict, str) {
@@ -33673,9 +33710,12 @@ var $author$project$ETeX$Transform$print = function (expr) {
 			var exprs = expr.a;
 			return $author$project$ETeX$Transform$encloseP(
 				$author$project$ETeX$Transform$printList(exprs));
-		default:
+		case 'Text':
 			var str = expr.a;
 			return '\\text{' + (str + '}');
+		default:
+			var str = expr.a;
+			return '\\' + str;
 	}
 };
 var $author$project$ETeX$Transform$printArgList = function (exprs) {
@@ -46744,15 +46784,6 @@ var $pablohirafuji$elm_syntax_highlight$SyntaxHighlight$Language$Helpers$delimit
 var $elm$parser$Parser$Problem = function (a) {
 	return {$: 'Problem', a: a};
 };
-var $elm$parser$Parser$Advanced$problem = function (x) {
-	return $elm$parser$Parser$Advanced$Parser(
-		function (s) {
-			return A2(
-				$elm$parser$Parser$Advanced$Bad,
-				false,
-				A2($elm$parser$Parser$Advanced$fromState, s, x));
-		});
-};
 var $elm$parser$Parser$problem = function (msg) {
 	return $elm$parser$Parser$Advanced$problem(
 		$elm$parser$Parser$Problem(msg));
@@ -53417,9 +53448,12 @@ var $author$project$ETeX$Transform$resolveSymbolName = function (expr) {
 			var exprs = expr.a;
 			return $author$project$ETeX$Transform$Expr(
 				A2($elm$core$List$map, $author$project$ETeX$Transform$resolveSymbolName, exprs));
-		default:
+		case 'Text':
 			var str = expr.a;
 			return $author$project$ETeX$Transform$Text(str);
+		default:
+			var str = expr.a;
+			return $author$project$ETeX$Transform$Text('\\' + str);
 	}
 };
 var $author$project$ETeX$Transform$resolveSymbolNameInDeco = function (deco) {

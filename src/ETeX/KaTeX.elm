@@ -1,4 +1,4 @@
-module ETeX.KaTeX exposing (isKaTeX)
+module ETeX.KaTeX exposing (greekLetters, isKaTeX)
 
 import Set exposing (Set)
 
