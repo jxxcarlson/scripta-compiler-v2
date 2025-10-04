@@ -131,6 +131,11 @@ filterBlocksOnName name blocks =
     List.filter (matchBlockName name) blocks
 
 
+filterBlocksOnName2 : String -> String -> List ExpressionBlock -> List ExpressionBlock
+filterBlocksOnName2 name name2 blocks =
+    List.filter (matchBlockName2 name name2) blocks
+
+
 filterNotBlocksOnName : String -> List ExpressionBlock -> List ExpressionBlock
 filterNotBlocksOnName name blocks =
     List.filter (matchBlockName name >> not) blocks
@@ -170,6 +175,11 @@ labelName tree =
 matchBlockName : String -> ExpressionBlock -> Bool
 matchBlockName key block =
     Just key == Generic.Language.getName block
+
+
+matchBlockName2 : String -> String -> ExpressionBlock -> Bool
+matchBlockName2 key key2 block =
+    (Just key == Generic.Language.getName block) || (Just key2 == Generic.Language.getName block)
 
 
 matchExprOnName : String -> Expression -> Bool
@@ -384,9 +394,9 @@ extractTextFromSyntaxTreeByKey key syntaxTree =
     syntaxTree |> filterBlocksByArgs key |> expressionBlockToText
 
 
-tableOfContents : Int -> List (Tree ExpressionBlock) -> List ExpressionBlock
-tableOfContents maximumLevel ast =
-    filterBlocksOnName "section" (List.map Library.Tree.flatten ast |> List.concat)
+tableOfContents : List (Tree ExpressionBlock) -> List ExpressionBlock
+tableOfContents ast =
+    filterBlocksOnName2 "section" "chapter" (List.map Library.Tree.flatten ast |> List.concat)
 
 
 filterBlocksByArgs : String -> Forest ExpressionBlock -> List ExpressionBlock

@@ -113,7 +113,7 @@ prepareTOCWithTitle maximumLevel count acc settings attr ast =
     let
         rawToc : List ExpressionBlock
         rawToc =
-            Generic.ASTTools.tableOfContents maximumLevel ast
+            Generic.ASTTools.tableOfContents ast
                 |> List.filter (tocLevelAtMost maximumLevel)
 
         headings =
@@ -157,7 +157,7 @@ prepareTOC maximumLevel count acc settings attr ast =
 
         rawToc : List ExpressionBlock
         rawToc =
-            Generic.ASTTools.tableOfContents maximumLevel ast
+            Generic.ASTTools.tableOfContents ast
                 |> List.filter (tocLevelAtMost maximumLevel)
                 -- The "xy" line below is needed because we also have the possibility of
                 -- the TOC in the sidebar. We do not want click on a TOC item in the sidebar

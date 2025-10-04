@@ -223,6 +223,16 @@ transformBlock acc block =
                     block.properties
                         |> Dict.insert "label" (Vector.toString acc.headingIndex)
                         |> Dict.insert "tag" (block.firstLine |> Tools.String.makeSlug)
+                        |> Debug.log "@@X.transformBlock section"
+            }
+
+        ( Ordinary "chapter", _ ) ->
+            { block
+                | properties =
+                    block.properties
+                        |> Dict.insert "label" (Vector.toString acc.headingIndex)
+                        |> Dict.insert "tag" (block.firstLine |> Tools.String.makeSlug)
+                        |> Debug.log "@@X.transformBlock chapter"
             }
 
         ( Ordinary "quiver", _ ) ->
@@ -509,6 +519,9 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
     case heading of
         -- provide numbering for sections
         -- reference : Dict String { id : String, numRef : String }
+        Verbatim "settings" ->
+            { accumulator | keyValueDict = Dict.union properties accumulator.keyValueDict }
+
         Ordinary "q" ->
             { accumulator
               -- set the qAndAList to  [(id, "??")]
@@ -546,10 +559,33 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
         Ordinary "list" ->
             { accumulator | itemVector = Vector.init 4 }
 
+        Ordinary "chapter" ->
+            let
+                level : String
+                level =
+                    "0" |> Debug.log "@@X.updateAcc!! CHAPTER level!!"
+            in
+            case getNameContentId block of
+                Just { name, content, id } ->
+                    updateWithOrdinarySectionBlock accumulator (Just name) content level id
+                        |> updateReferenceWithBlock block
+
+                Nothing ->
+                    accumulator |> updateReferenceWithBlock block
+
         Ordinary "section" ->
             let
+                level : String
                 level =
-                    Dict.get "level" properties |> Maybe.withDefault "1"
+                    case Dict.get "has-chapters" accumulator.keyValueDict of
+                        Nothing ->
+                            Dict.get "level" properties |> Debug.log "@@X.updateAcc SECTION level" |> Maybe.withDefault "1"
+
+                        Just "yes" ->
+                            Dict.get "level" properties |> Debug.log "@@X.updateAcc SECTION level" |> Maybe.withDefault "1"
+
+                        _ ->
+                            Dict.get "level" properties |> Debug.log "@@X.updateAcc SECTION level" |> Maybe.withDefault "1"
             in
             case getNameContentId block of
                 Just { name, content, id } ->
@@ -645,8 +681,8 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
                     accumulator |> updateWithParagraph block |> updateReferenceWithBlock block
 
 
-normalzeLines : List String -> List String
-normalzeLines lines =
+normalizeLines : List String -> List String
+normalizeLines lines =
     List.map (\line -> String.trim line) lines |> List.filter (\line -> line /= "")
 
 
@@ -665,8 +701,22 @@ updateWithOrdinarySectionBlock accumulator name content level id =
             -- TODO: the below is a bad solution
             titleWords |> List.map (String.toLower >> String.trim >> String.replace " " "-") |> String.join ""
 
+        delta =
+            case Dict.get "has-chapters" accumulator.keyValueDict of
+                Nothing ->
+                    0
+
+                Just "yes" ->
+                    1
+
+                _ ->
+                    0
+
+        _ =
+            Debug.log "@@X.DELTA" delta
+
         headingIndex =
-            Vector.increment (String.toInt level |> Maybe.withDefault 1 |> (\x -> x - 1 + accumulator.deltaLevel)) accumulator.headingIndex
+            Vector.increment (String.toInt level |> Maybe.withDefault 1 |> (\x -> x - 1 + delta + accumulator.deltaLevel)) accumulator.headingIndex
 
         blockCounter =
             0
@@ -827,7 +877,7 @@ updateWithOrdinaryBlock block accumulator =
 
 updateWithTextMacros : String -> Accumulator -> Accumulator
 updateWithTextMacros content accumulator =
-    { accumulator | textMacroDict = Generic.TextMacro.buildDictionary (String.lines content |> normalzeLines) }
+    { accumulator | textMacroDict = Generic.TextMacro.buildDictionary (String.lines content |> normalizeLines) }
 
 
 updateWithMathMacros : String -> Accumulator -> Accumulator

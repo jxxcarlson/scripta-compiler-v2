@@ -228,6 +228,7 @@ verbatimWords =
     , "include"
     , "setup"
     , "iframe"
+    , "settings"
     ]
 
 

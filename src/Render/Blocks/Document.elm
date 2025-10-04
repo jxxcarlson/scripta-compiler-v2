@@ -27,6 +27,7 @@ import Render.Helper
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
 import Render.Sync2
+import Render.Theme
 import Render.Utility exposing (elementAttribute)
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 import Tools.Utility as Utility
@@ -38,10 +39,12 @@ registerRenderers : BlockRegistry -> BlockRegistry
 registerRenderers registry =
     Render.BlockRegistry.registerBatch
         [ ( "document", document )
+        , ( "chapter", chapter )
         , ( "section", section )
         , ( "section*", unnumberedSection )
         , ( "subheading", subheading )
         , ( "sh", subheading )
+        , ( "settings", \_ _ _ _ _ -> Element.none )
 
         --, ( "title", title )
         , ( "visibleBanner", visibleBanner )
@@ -132,6 +135,30 @@ ilink docTitle selectedId selecteSlug docId =
                 , Render.Helper.fontColor selectedId selecteSlug docId
                 ]
                 (Element.text docTitle)
+        }
+
+
+chapter : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+chapter count acc settings attr block =
+    -- level 1 is reserved for titles
+    let
+        fontSize =
+            1.6 * settings.maxHeadingFontSize |> round
+
+        exprs =
+            Generic.Language.getExpressionContent block
+    in
+    Element.link
+        (sectionBlockAttributes block
+            settings
+            [ topPadding 20
+            , Font.size fontSize
+            , Font.color (Render.Theme.getElementColor settings.theme .text)
+            ]
+            ++ Render.Sync.attributes settings block
+        )
+        { url = Render.Utility.internalLink (settings.titlePrefix ++ "title")
+        , label = Element.paragraph [] (renderWithDefaultWithSize 18 "--" count acc settings attr exprs)
         }
 
 

@@ -77,9 +77,6 @@ finalize block =
                 Verbatim "equation" ->
                     addLabel content_
 
-                Verbatim "aligned" ->
-                    addLabel content_
-
                 _ ->
                     content_
 
@@ -116,6 +113,28 @@ finalize block =
                                 |> Maybe.withDefault "noDocId"
                     in
                     Dict.insert "docId" docId block.properties
+
+                Verbatim "settings" ->
+                    let
+                        getPair : List String -> Maybe ( String, String )
+                        getPair strings =
+                            case strings of
+                                a :: b :: [] ->
+                                    Just ( a, b )
+
+                                _ ->
+                                    Nothing
+
+                        dict : Dict String String
+                        dict =
+                            block.body
+                                |> List.map String.trim
+                                |> List.map (\s -> String.split ":" s)
+                                |> List.map getPair
+                                |> List.filterMap identity
+                                |> Dict.fromList
+                    in
+                    Dict.union dict block.properties
 
                 _ ->
                     block.properties

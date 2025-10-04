@@ -42,7 +42,7 @@ view theme viewParameters acc documentAst =
     let
         tocAST : List ExpressionBlock
         tocAST =
-            Generic.ASTTools.tableOfContents 8 documentAst
+            Generic.ASTTools.tableOfContents documentAst
 
         nodes : List TOCNodeValue
         nodes =
@@ -132,17 +132,17 @@ viewTOCTree theme viewParameters acc depth indentation maybeFoundIds tocTree =
 
 viewNode : Render.Theme.Theme -> ViewParameters -> Accumulator -> Int -> TOCNodeValue -> Element MarkupMsg
 viewNode theme viewParameters acc indentation node =
-    viewTocItem_ theme viewParameters acc False node.block
+    viewTocItem_ theme indentation viewParameters acc False node.block
 
 
 viewNodeWithChildren : Render.Theme.Theme -> ViewParameters -> Accumulator -> Int -> TOCNodeValue -> Bool -> Element MarkupMsg
 viewNodeWithChildren theme viewParameters acc indentation node hasChildren =
-    viewTocItem_ theme viewParameters acc hasChildren node.block
+    viewTocItem_ theme indentation viewParameters acc hasChildren node.block
 
 
 tocForest : List String -> Forest ExpressionBlock -> List (Tree TOCNodeValue)
 tocForest idsOfOpenNodes ast =
-    Generic.ASTTools.tableOfContents 8 ast
+    Generic.ASTTools.tableOfContents ast
         |> List.map (makeNodeValue idsOfOpenNodes)
         |> Library.Forest.makeForest nodeLevel
 
@@ -171,12 +171,8 @@ makeNodeValue idsOfOpenNodes block =
     { block = newBlock, visible = True }
 
 
-viewTocItem_ : Render.Theme.Theme -> ViewParameters -> Accumulator -> Bool -> ExpressionBlock -> Element MarkupMsg
-viewTocItem_ theme viewParameters acc hasChildren ({ args, body, properties } as block) =
-    let
-        maximumNumberedTocLevel =
-            1
-    in
+viewTocItem_ : Render.Theme.Theme -> Int -> ViewParameters -> Accumulator -> Bool -> ExpressionBlock -> Element MarkupMsg
+viewTocItem_ theme indentation viewParameters acc hasChildren ({ args, body, properties } as block) =
     case body of
         Left _ ->
             Element.none
@@ -191,25 +187,25 @@ viewTocItem_ theme viewParameters acc hasChildren ({ args, body, properties } as
 
                 sectionNumber =
                     let
-                        nosectionNumeber =
-                            Element.el [ Element.paddingEach { left = 8, right = 0, top = 0, bottom = 0 } ] (Element.text "-")
+                        nosectionNumber str =
+                            Element.el [ Element.paddingEach { left = 8, right = 0, top = 0, bottom = 0 } ] (Element.text str)
                     in
-                    case Dict.get "number-to-level" properties |> Maybe.andThen String.toInt of
+                    --case Dict.get "number-to-level" properties |> Maybe.andThen String.toInt of
+                    --    Nothing ->
+                    --        nosectionNumber "**"
+                    --
+                    --    Just level ->
+                    --        --if level <= maximumNumberedTocLevel then
+                    --        if level <= 6 then
+                    case Dict.get "label" properties of
                         Nothing ->
-                            nosectionNumeber
+                            nosectionNumber "@@"
 
-                        Just level ->
-                            if level <= maximumNumberedTocLevel then
-                                case Dict.get "label" properties of
-                                    Nothing ->
-                                        nosectionNumeber
+                        Just label ->
+                            Element.el [] (Element.text (label ++ "."))
 
-                                    Just label ->
-                                        Element.el [] (Element.text (label ++ "."))
-
-                            else
-                                nosectionNumeber
-
+                --else
+                --    nosectionNumber "!!"
                 --exprs2 : Element MarkupMsg
                 exprs2 =
                     case exprs |> List.head |> Maybe.andThen Generic.Language.extractText of
@@ -236,9 +232,16 @@ viewTocItem_ theme viewParameters acc hasChildren ({ args, body, properties } as
 
                     else
                         [ Events.onClick (SelectId <| id), Font.size 14 ]
+
+                leadingSpace =
+                    if indentation == 0 then
+                        Element.paddingEach { left = 0, right = 0, top = 12, bottom = 0 }
+
+                    else
+                        Element.paddingEach { left = 4 * (indentation + 1), right = 0, top = 0, bottom = 0 }
             in
             Element.el clickHandlers
-                (Element.link [ Font.color color ] { url = Render.Utility.internalLink id, label = content })
+                (Element.link [ Font.color (Element.rgb 1 0 0), leadingSpace ] { url = Render.Utility.internalLink id, label = content })
 
 
 blockLabel : Dict String String -> String

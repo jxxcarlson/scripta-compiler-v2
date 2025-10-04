@@ -6925,7 +6925,7 @@ var $elm$core$Dict$singleton = F2(
 		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
 	});
 var $author$project$M$PrimitiveBlock$verbatimWords = _List_fromArray(
-	['math', 'chem', 'compute', 'equation', 'aligned', 'array', 'textarray', 'table', 'code', 'verse', 'verbatim', 'load', 'load-data', 'hide', 'texComment', 'docinfo', 'mathmacros', 'textmacros', 'csvtable', 'table', 'chart', 'svg', 'quiver', 'image', 'tikz', 'load-files', 'include', 'setup', 'iframe']);
+	['math', 'chem', 'compute', 'equation', 'aligned', 'array', 'textarray', 'table', 'code', 'verse', 'verbatim', 'load', 'load-data', 'hide', 'texComment', 'docinfo', 'mathmacros', 'textmacros', 'csvtable', 'table', 'chart', 'svg', 'quiver', 'image', 'tikz', 'load-files', 'include', 'setup', 'iframe', 'settings']);
 var $elm$core$String$words = _String_words;
 var $author$project$M$PrimitiveBlock$getHeadingData = function (line_) {
 	var line = $elm$core$String$trim(line_);
@@ -7205,26 +7205,94 @@ var $author$project$Generic$BlockUtilities$dropLast = function (list) {
 	var n = $elm$core$List$length(list);
 	return A2($elm$core$List$take, n - 1, list);
 };
+var $elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3($elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
+	});
+var $elm$core$Dict$union = F2(
+	function (t1, t2) {
+		return A3($elm$core$Dict$foldl, $elm$core$Dict$insert, t2, t1);
+	});
 var $author$project$Generic$PrimitiveBlock$finalize = function (block) {
 	var properties = function () {
 		var _v3 = block.heading;
-		if ((_v3.$ === 'Ordinary') && (_v3.a === 'document')) {
-			var docId = A2(
-				$elm$core$Maybe$withDefault,
-				'noDocId',
-				A2(
-					$elm$core$Maybe$map,
-					function (_v4) {
-						var a = _v4.a;
-						var b = _v4.b;
-						return a + (':' + b);
-					},
-					$elm$core$List$head(
-						$elm$core$Dict$toList(block.properties))));
-			return A3($elm$core$Dict$insert, 'docId', docId, block.properties);
-		} else {
-			return block.properties;
+		_v3$2:
+		while (true) {
+			switch (_v3.$) {
+				case 'Ordinary':
+					if (_v3.a === 'document') {
+						var docId = A2(
+							$elm$core$Maybe$withDefault,
+							'noDocId',
+							A2(
+								$elm$core$Maybe$map,
+								function (_v4) {
+									var a = _v4.a;
+									var b = _v4.b;
+									return a + (':' + b);
+								},
+								$elm$core$List$head(
+									$elm$core$Dict$toList(block.properties))));
+						return A3($elm$core$Dict$insert, 'docId', docId, block.properties);
+					} else {
+						break _v3$2;
+					}
+				case 'Verbatim':
+					if (_v3.a === 'settings') {
+						var getPair = function (strings) {
+							if ((strings.b && strings.b.b) && (!strings.b.b.b)) {
+								var a = strings.a;
+								var _v6 = strings.b;
+								var b = _v6.a;
+								return $elm$core$Maybe$Just(
+									_Utils_Tuple2(a, b));
+							} else {
+								return $elm$core$Maybe$Nothing;
+							}
+						};
+						var dict = $elm$core$Dict$fromList(
+							A2(
+								$elm$core$List$filterMap,
+								$elm$core$Basics$identity,
+								A2(
+									$elm$core$List$map,
+									getPair,
+									A2(
+										$elm$core$List$map,
+										function (s) {
+											return A2($elm$core$String$split, ':', s);
+										},
+										A2($elm$core$List$map, $elm$core$String$trim, block.body)))));
+						return A2($elm$core$Dict$union, dict, block.properties);
+					} else {
+						break _v3$2;
+					}
+				default:
+					break _v3$2;
+			}
 		}
+		return block.properties;
 	}();
 	var oldMeta = block.meta;
 	var content_ = $elm$core$List$reverse(block.body);
@@ -7247,22 +7315,11 @@ var $author$project$Generic$PrimitiveBlock$finalize = function (block) {
 	};
 	var content = function () {
 		var _v0 = block.heading;
-		_v0$2:
-		while (true) {
-			if (_v0.$ === 'Verbatim') {
-				switch (_v0.a) {
-					case 'equation':
-						return addLabel(content_);
-					case 'aligned':
-						return addLabel(content_);
-					default:
-						break _v0$2;
-				}
-			} else {
-				break _v0$2;
-			}
+		if ((_v0.$ === 'Verbatim') && (_v0.a === 'equation')) {
+			return addLabel(content_);
+		} else {
+			return content_;
 		}
-		return content_;
 	}();
 	var sourceText = (!_Utils_eq(block.heading, $author$project$Generic$Language$Paragraph)) ? A2(
 		$elm$core$String$join,
@@ -21354,6 +21411,7 @@ var $author$project$Generic$ASTTools$getText = function (expression) {
 };
 var $author$project$Generic$Acc$itemsNotNumbered = _List_fromArray(
 	['preface', 'introduction', 'appendix', 'references', 'index', 'scratch']);
+var $elm$core$Debug$log = _Debug_log;
 var $author$project$Tools$String$userReplace = F3(
 	function (userRegex, replacer, string) {
 		var _v0 = $elm$regex$Regex$fromString(userRegex);
@@ -21413,7 +21471,7 @@ var $author$project$Generic$Acc$vectorPrefix = function (headingIndex) {
 var $author$project$Generic$Acc$transformBlock = F2(
 	function (acc, block) {
 		var _v0 = _Utils_Tuple2(block.heading, block.args);
-		_v0$8:
+		_v0$9:
 		while (true) {
 			switch (_v0.a.$) {
 				case 'Ordinary':
@@ -21422,15 +21480,35 @@ var $author$project$Generic$Acc$transformBlock = F2(
 							return _Utils_update(
 								block,
 								{
-									properties: A3(
-										$elm$core$Dict$insert,
-										'tag',
-										$author$project$Tools$String$makeSlug(block.firstLine),
+									properties: A2(
+										$elm$core$Debug$log,
+										'@@X.transformBlock section',
 										A3(
 											$elm$core$Dict$insert,
-											'label',
-											$author$project$Generic$Vector$toString(acc.headingIndex),
-											block.properties))
+											'tag',
+											$author$project$Tools$String$makeSlug(block.firstLine),
+											A3(
+												$elm$core$Dict$insert,
+												'label',
+												$author$project$Generic$Vector$toString(acc.headingIndex),
+												block.properties)))
+								});
+						case 'chapter':
+							return _Utils_update(
+								block,
+								{
+									properties: A2(
+										$elm$core$Debug$log,
+										'@@X.transformBlock chapter',
+										A3(
+											$elm$core$Dict$insert,
+											'tag',
+											$author$project$Tools$String$makeSlug(block.firstLine),
+											A3(
+												$elm$core$Dict$insert,
+												'label',
+												$author$project$Generic$Vector$toString(acc.headingIndex),
+												block.properties)))
 								});
 						case 'quiver':
 							return _Utils_update(
@@ -21497,7 +21575,7 @@ var $author$project$Generic$Acc$transformBlock = F2(
 									properties: A3($elm$core$Dict$insert, 'label', label, block.properties)
 								});
 						default:
-							break _v0$8;
+							break _v0$9;
 					}
 				case 'Verbatim':
 					switch (_v0.a.a) {
@@ -21519,10 +21597,10 @@ var $author$project$Generic$Acc$transformBlock = F2(
 									properties: A3($elm$core$Dict$insert, 'equation-number', equationProp, block.properties)
 								});
 						default:
-							break _v0$8;
+							break _v0$9;
 					}
 				default:
-					break _v0$8;
+					break _v0$9;
 			}
 		}
 		var heading = _v0.a;
@@ -21967,10 +22045,22 @@ var $author$project$Generic$Acc$updateWithOrdinarySectionBlock = F5(
 						$elm$core$String$trim,
 						A2($elm$core$String$replace, ' ', '-'))),
 				titleWords));
+		var delta = function () {
+			var _v1 = A2($elm$core$Dict$get, 'has-chapters', accumulator.keyValueDict);
+			if (_v1.$ === 'Nothing') {
+				return 0;
+			} else {
+				if (_v1.a === 'yes') {
+					return 1;
+				} else {
+					return 0;
+				}
+			}
+		}();
 		var headingIndex = A2(
 			$author$project$Generic$Vector$increment,
 			function (x) {
-				return (x - 1) + accumulator.deltaLevel;
+				return ((x - 1) + delta) + accumulator.deltaLevel;
 			}(
 				A2(
 					$elm$core$Maybe$withDefault,
@@ -21983,6 +22073,7 @@ var $author$project$Generic$Acc$updateWithOrdinarySectionBlock = F5(
 			sectionTag,
 			$author$project$Generic$Vector$toString(headingIndex));
 		var blockCounter = 0;
+		var _v0 = A2($elm$core$Debug$log, '@@X.DELTA', delta);
 		return A3(
 			$author$project$Generic$Acc$updateReference,
 			accumulator.headingIndex,
@@ -22405,7 +22496,7 @@ var $author$project$Generic$TextMacro$buildDictionary = function (lines) {
 		$elm$core$Dict$empty,
 		lines);
 };
-var $author$project$Generic$Acc$normalzeLines = function (lines) {
+var $author$project$Generic$Acc$normalizeLines = function (lines) {
 	return A2(
 		$elm$core$List$filter,
 		function (line) {
@@ -22424,7 +22515,7 @@ var $author$project$Generic$Acc$updateWithTextMacros = F2(
 			accumulator,
 			{
 				textMacroDict: $author$project$Generic$TextMacro$buildDictionary(
-					$author$project$Generic$Acc$normalzeLines(
+					$author$project$Generic$Acc$normalizeLines(
 						$elm$core$String$lines(content)))
 			});
 	});
@@ -22606,11 +22697,8 @@ var $author$project$Generic$Acc$updateAccumulator = F2(
 							{
 								itemVector: $author$project$Generic$Vector$init(4)
 							});
-					case 'section':
-						var level = A2(
-							$elm$core$Maybe$withDefault,
-							'1',
-							A2($elm$core$Dict$get, 'level', properties));
+					case 'chapter':
+						var level = A2($elm$core$Debug$log, '@@X.updateAcc!! CHAPTER level!!', '0');
 						var _v5 = $author$project$Generic$Acc$getNameContentId(block);
 						if (_v5.$ === 'Just') {
 							var name = _v5.a.name;
@@ -22629,16 +22717,65 @@ var $author$project$Generic$Acc$updateAccumulator = F2(
 						} else {
 							return A2($author$project$Generic$Acc$updateReferenceWithBlock, block, accumulator);
 						}
-					case 'document':
-						var level = A2(
-							$elm$core$Maybe$withDefault,
-							'1',
-							$elm$core$List$head(args));
+					case 'section':
+						var level = function () {
+							var _v7 = A2($elm$core$Dict$get, 'has-chapters', accumulator.keyValueDict);
+							if (_v7.$ === 'Nothing') {
+								return A2(
+									$elm$core$Maybe$withDefault,
+									'1',
+									A2(
+										$elm$core$Debug$log,
+										'@@X.updateAcc SECTION level',
+										A2($elm$core$Dict$get, 'level', properties)));
+							} else {
+								if (_v7.a === 'yes') {
+									return A2(
+										$elm$core$Maybe$withDefault,
+										'1',
+										A2(
+											$elm$core$Debug$log,
+											'@@X.updateAcc SECTION level',
+											A2($elm$core$Dict$get, 'level', properties)));
+								} else {
+									return A2(
+										$elm$core$Maybe$withDefault,
+										'1',
+										A2(
+											$elm$core$Debug$log,
+											'@@X.updateAcc SECTION level',
+											A2($elm$core$Dict$get, 'level', properties)));
+								}
+							}
+						}();
 						var _v6 = $author$project$Generic$Acc$getNameContentId(block);
 						if (_v6.$ === 'Just') {
 							var name = _v6.a.name;
 							var content = _v6.a.content;
 							var id = _v6.a.id;
+							return A2(
+								$author$project$Generic$Acc$updateReferenceWithBlock,
+								block,
+								A5(
+									$author$project$Generic$Acc$updateWithOrdinarySectionBlock,
+									accumulator,
+									$elm$core$Maybe$Just(name),
+									content,
+									level,
+									id));
+						} else {
+							return A2($author$project$Generic$Acc$updateReferenceWithBlock, block, accumulator);
+						}
+					case 'document':
+						var level = A2(
+							$elm$core$Maybe$withDefault,
+							'1',
+							$elm$core$List$head(args));
+						var _v8 = $author$project$Generic$Acc$getNameContentId(block);
+						if (_v8.$ === 'Just') {
+							var name = _v8.a.name;
+							var content = _v8.a.content;
+							var id = _v8.a.id;
 							return A5(
 								$author$project$Generic$Acc$updateWithOrdinaryDocumentBlock,
 								accumulator,
@@ -22651,18 +22788,18 @@ var $author$project$Generic$Acc$updateAccumulator = F2(
 						}
 					case 'title':
 						var headingIndex = function () {
-							var _v7 = A2($elm$core$Dict$get, 'first-section', block.properties);
-							if (_v7.$ === 'Nothing') {
+							var _v9 = A2($elm$core$Dict$get, 'first-section', block.properties);
+							if (_v9.$ === 'Nothing') {
 								return {
 									content: _List_fromArray(
 										[0, 0, 0, 0]),
 									size: 4
 								};
 							} else {
-								var firstSection_ = _v7.a;
-								var _v8 = $elm$core$String$toInt(firstSection_);
-								if (_v8.$ === 'Just') {
-									var n = _v8.a;
+								var firstSection_ = _v9.a;
+								var _v10 = $elm$core$String$toInt(firstSection_);
+								if (_v10.$ === 'Just') {
+									var n = _v10.a;
 									return {
 										content: _List_fromArray(
 											[
@@ -22730,35 +22867,41 @@ var $author$project$Generic$Acc$updateAccumulator = F2(
 				}
 			case 'Verbatim':
 				switch (heading.a) {
+					case 'settings':
+						return _Utils_update(
+							accumulator,
+							{
+								keyValueDict: A2($elm$core$Dict$union, properties, accumulator.keyValueDict)
+							});
 					case 'mathmacros':
-						var _v9 = $author$project$Generic$Language$getVerbatimContent(block);
-						if (_v9.$ === 'Nothing') {
+						var _v11 = $author$project$Generic$Language$getVerbatimContent(block);
+						if (_v11.$ === 'Nothing') {
 							return accumulator;
 						} else {
-							var str = _v9.a;
+							var str = _v11.a;
 							return A2($author$project$Generic$Acc$updateWithMathMacros, str, accumulator);
 						}
 					case 'textmacros':
-						var _v10 = $author$project$Generic$Language$getVerbatimContent(block);
-						if (_v10.$ === 'Nothing') {
+						var _v12 = $author$project$Generic$Language$getVerbatimContent(block);
+						if (_v12.$ === 'Nothing') {
 							return accumulator;
 						} else {
-							var str = _v10.a;
+							var str = _v12.a;
 							return A2($author$project$Generic$Acc$updateWithTextMacros, str, accumulator);
 						}
 					default:
 						var name_ = heading.a;
-						var _v11 = block.body;
-						if (_v11.$ === 'Left') {
-							var str = _v11.a;
+						var _v13 = block.body;
+						if (_v13.$ === 'Left') {
+							var str = _v13.a;
 							return A2($author$project$Generic$Acc$updateWithVerbatimBlock, block, accumulator);
 						} else {
 							return accumulator;
 						}
 				}
 			default:
-				var _v12 = $author$project$Generic$Acc$getNameContentIdTag(block);
-				if (_v12.$ === 'Nothing') {
+				var _v14 = $author$project$Generic$Acc$getNameContentIdTag(block);
+				if (_v14.$ === 'Nothing') {
 					return A2(
 						$author$project$Generic$Acc$updateReferenceWithBlock,
 						block,
@@ -22771,10 +22914,10 @@ var $author$project$Generic$Acc$updateAccumulator = F2(
 									inListState: A2($author$project$Generic$Acc$nextInListState, block.heading, accumulator.inListState)
 								})));
 				} else {
-					var name = _v12.a.name;
-					var content = _v12.a.content;
-					var id = _v12.a.id;
-					var tag = _v12.a.tag;
+					var name = _v14.a.name;
+					var content = _v14.a.content;
+					var id = _v14.a.id;
+					var tag = _v14.a.tag;
 					return A2(
 						$author$project$Generic$Acc$updateReferenceWithBlock,
 						block,
@@ -23189,31 +23332,6 @@ var $elm$time$Time$addMySub = F2(
 		}
 	});
 var $elm$core$Process$kill = _Scheduler_kill;
-var $elm$core$Dict$foldl = F3(
-	function (func, acc, dict) {
-		foldl:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return acc;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var $temp$func = func,
-					$temp$acc = A3(
-					func,
-					key,
-					value,
-					A3($elm$core$Dict$foldl, func, acc, left)),
-					$temp$dict = right;
-				func = $temp$func;
-				acc = $temp$acc;
-				dict = $temp$dict;
-				continue foldl;
-			}
-		}
-	});
 var $elm$core$Dict$merge = F6(
 	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
 		var stepState = F3(
@@ -23467,10 +23585,6 @@ var $elm$browser$Browser$Events$spawn = F3(
 						router,
 						A2($elm$browser$Browser$Events$Event, key, event));
 				}));
-	});
-var $elm$core$Dict$union = F2(
-	function (t1, t2) {
-		return A3($elm$core$Dict$foldl, $elm$core$Dict$insert, t2, t1);
 	});
 var $elm$browser$Browser$Events$onEffects = F3(
 	function (router, subs, state) {
@@ -33590,17 +33704,13 @@ var $author$project$ETeX$Transform$expandMacroWithDict = F2(
 				return $author$project$ETeX$Transform$GreekSymbol(str);
 		}
 	});
-var $elm$core$Debug$log = _Debug_log;
 var $author$project$ETeX$Transform$parseWithDict = F2(
 	function (userMacroDict, str) {
 		return A2(
-			$elm$core$Debug$log,
-			'EXPRS',
-			A2(
-				$elm$parser$Parser$Advanced$run,
-				$author$project$ETeX$Transform$many(
-					$author$project$ETeX$Transform$mathExprParser(userMacroDict)),
-				str));
+			$elm$parser$Parser$Advanced$run,
+			$author$project$ETeX$Transform$many(
+				$author$project$ETeX$Transform$mathExprParser(userMacroDict)),
+			str);
 	});
 var $author$project$ETeX$Transform$parseManyWithDict = F2(
 	function (userMacroDict, str) {
@@ -36333,6 +36443,117 @@ var $author$project$Render$Blocks$Container$registerRenderers = function (regist
 			]),
 		registry);
 };
+var $author$project$Render$Blocks$Document$renderWithDefaultWithSize = F7(
+	function (size, _default, count, acc, settings, attr, exprs) {
+		return $elm$core$List$isEmpty(exprs) ? _List_fromArray(
+			[
+				A2(
+				$mdgriffith$elm_ui$Element$el,
+				_Utils_ap(
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$Font$color(settings.redColor),
+							$mdgriffith$elm_ui$Element$Font$size(size)
+						]),
+					attr),
+				$mdgriffith$elm_ui$Element$text(_default))
+			]) : A2(
+			$elm$core$List$map,
+			A4($author$project$Render$Expression$render, count, acc, settings, attr),
+			exprs);
+	});
+var $author$project$Render$Sync$highlightIfIdIsSelected = F3(
+	function (firstLineNumber, numberOfLines, settings) {
+		return _Utils_eq(
+			$elm$core$String$fromInt(firstLineNumber),
+			settings.selectedId) ? _List_fromArray(
+			[
+				A2($author$project$Render$Sync$rightToLeftSyncHelper, firstLineNumber, firstLineNumber + numberOfLines),
+				$mdgriffith$elm_ui$Element$Background$color(
+				A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 1.0))
+			]) : _List_Nil;
+	});
+var $author$project$Generic$ASTTools$stringValue = function (expr) {
+	switch (expr.$) {
+		case 'Text':
+			var str = expr.a;
+			return str;
+		case 'Fun':
+			var textList = expr.b;
+			return A2(
+				$elm$core$String$join,
+				' ',
+				A2($elm$core$List$map, $author$project$Generic$ASTTools$stringValue, textList));
+		case 'VFun':
+			var str = expr.b;
+			return str;
+		default:
+			return '[ExprList]';
+	}
+};
+var $author$project$Generic$ASTTools$stringValueOfList = function (textList) {
+	return A2(
+		$elm$core$String$join,
+		' ',
+		A2($elm$core$List$map, $author$project$Generic$ASTTools$stringValue, textList));
+};
+var $author$project$Render$Utility$makeId = function (exprs) {
+	return A2(
+		$author$project$Render$Utility$elementAttribute,
+		'id',
+		$author$project$Render$Utility$makeSlug(
+			$elm$core$String$trim(
+				$author$project$Generic$ASTTools$stringValueOfList(exprs))));
+};
+var $author$project$Render$Blocks$Document$sectionBlockAttributes = F3(
+	function (block, settings, attrs) {
+		return _Utils_ap(
+			_List_fromArray(
+				[
+					$author$project$Render$Utility$makeId(
+					$author$project$Generic$Language$getExpressionContent(block)),
+					$author$project$Render$Utility$idAttribute(block.meta.id)
+				]),
+			_Utils_ap(
+				A3($author$project$Render$Sync$highlightIfIdIsSelected, block.meta.lineNumber, block.meta.numberOfLines, settings),
+				attrs));
+	});
+var $author$project$Render$Blocks$Document$topPadding = function (k) {
+	return $mdgriffith$elm_ui$Element$paddingEach(
+		{bottom: 0, left: 0, right: 0, top: k});
+};
+var $author$project$Render$Blocks$Document$chapter = F5(
+	function (count, acc, settings, attr, block) {
+		var fontSize = $elm$core$Basics$round(1.6 * settings.maxHeadingFontSize);
+		var exprs = $author$project$Generic$Language$getExpressionContent(block);
+		return A2(
+			$mdgriffith$elm_ui$Element$link,
+			_Utils_ap(
+				A3(
+					$author$project$Render$Blocks$Document$sectionBlockAttributes,
+					block,
+					settings,
+					_List_fromArray(
+						[
+							$author$project$Render$Blocks$Document$topPadding(20),
+							$mdgriffith$elm_ui$Element$Font$size(fontSize),
+							$mdgriffith$elm_ui$Element$Font$color(
+							A2(
+								$author$project$Render$Theme$getElementColor,
+								settings.theme,
+								function ($) {
+									return $.text;
+								}))
+						])),
+				A2($author$project$Render$Sync$attributes, settings, block)),
+			{
+				label: A2(
+					$mdgriffith$elm_ui$Element$paragraph,
+					_List_Nil,
+					A7($author$project$Render$Blocks$Document$renderWithDefaultWithSize, 18, '--', count, acc, settings, attr, exprs)),
+				url: $author$project$Render$Utility$internalLink(settings.titlePrefix + 'title')
+			});
+	});
 var $author$project$Render$Helper$fontColor = F3(
 	function (selectedId, selectedSlug, docId) {
 		return _Utils_eq(selectedId, docId) ? $mdgriffith$elm_ui$Element$Font$color(
@@ -36472,86 +36693,7 @@ var $author$project$Render$Helper$blockLabel = function (properties) {
 		'',
 		A2($elm$core$Dict$get, 'label', properties));
 };
-var $author$project$Render$Blocks$Document$renderWithDefaultWithSize = F7(
-	function (size, _default, count, acc, settings, attr, exprs) {
-		return $elm$core$List$isEmpty(exprs) ? _List_fromArray(
-			[
-				A2(
-				$mdgriffith$elm_ui$Element$el,
-				_Utils_ap(
-					_List_fromArray(
-						[
-							$mdgriffith$elm_ui$Element$Font$color(settings.redColor),
-							$mdgriffith$elm_ui$Element$Font$size(size)
-						]),
-					attr),
-				$mdgriffith$elm_ui$Element$text(_default))
-			]) : A2(
-			$elm$core$List$map,
-			A4($author$project$Render$Expression$render, count, acc, settings, attr),
-			exprs);
-	});
-var $author$project$Render$Sync$highlightIfIdIsSelected = F3(
-	function (firstLineNumber, numberOfLines, settings) {
-		return _Utils_eq(
-			$elm$core$String$fromInt(firstLineNumber),
-			settings.selectedId) ? _List_fromArray(
-			[
-				A2($author$project$Render$Sync$rightToLeftSyncHelper, firstLineNumber, firstLineNumber + numberOfLines),
-				$mdgriffith$elm_ui$Element$Background$color(
-				A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 1.0))
-			]) : _List_Nil;
-	});
-var $author$project$Generic$ASTTools$stringValue = function (expr) {
-	switch (expr.$) {
-		case 'Text':
-			var str = expr.a;
-			return str;
-		case 'Fun':
-			var textList = expr.b;
-			return A2(
-				$elm$core$String$join,
-				' ',
-				A2($elm$core$List$map, $author$project$Generic$ASTTools$stringValue, textList));
-		case 'VFun':
-			var str = expr.b;
-			return str;
-		default:
-			return '[ExprList]';
-	}
-};
-var $author$project$Generic$ASTTools$stringValueOfList = function (textList) {
-	return A2(
-		$elm$core$String$join,
-		' ',
-		A2($elm$core$List$map, $author$project$Generic$ASTTools$stringValue, textList));
-};
-var $author$project$Render$Utility$makeId = function (exprs) {
-	return A2(
-		$author$project$Render$Utility$elementAttribute,
-		'id',
-		$author$project$Render$Utility$makeSlug(
-			$elm$core$String$trim(
-				$author$project$Generic$ASTTools$stringValueOfList(exprs))));
-};
-var $author$project$Render$Blocks$Document$sectionBlockAttributes = F3(
-	function (block, settings, attrs) {
-		return _Utils_ap(
-			_List_fromArray(
-				[
-					$author$project$Render$Utility$makeId(
-					$author$project$Generic$Language$getExpressionContent(block)),
-					$author$project$Render$Utility$idAttribute(block.meta.id)
-				]),
-			_Utils_ap(
-				A3($author$project$Render$Sync$highlightIfIdIsSelected, block.meta.lineNumber, block.meta.numberOfLines, settings),
-				attrs));
-	});
 var $elm$core$Basics$sqrt = _Basics_sqrt;
-var $author$project$Render$Blocks$Document$topPadding = function (k) {
-	return $mdgriffith$elm_ui$Element$paddingEach(
-		{bottom: 0, left: 0, right: 0, top: k});
-};
 var $author$project$Render$Blocks$Document$section = F5(
 	function (count, acc, settings, attr, block) {
 		var maxNumberedLevel = A2(
@@ -36718,6 +36860,7 @@ var $author$project$Render$Blocks$Document$registerRenderers = function (registr
 		_List_fromArray(
 			[
 				_Utils_Tuple2('document', $author$project$Render$Blocks$Document$document),
+				_Utils_Tuple2('chapter', $author$project$Render$Blocks$Document$chapter),
 				_Utils_Tuple2('section', $author$project$Render$Blocks$Document$section),
 				_Utils_Tuple2('section*', $author$project$Render$Blocks$Document$unnumberedSection),
 				_Utils_Tuple2('subheading', $author$project$Render$Blocks$Document$subheading),
@@ -51437,36 +51580,25 @@ var $author$project$Render$TOCTree$viewTocItem_ = F5(
 		} else {
 			var exprs = body.a;
 			var sectionNumber = function () {
-				var nosectionNumeber = A2(
-					$mdgriffith$elm_ui$Element$el,
-					_List_fromArray(
-						[
-							$mdgriffith$elm_ui$Element$paddingEach(
-							{bottom: 0, left: 8, right: 0, top: 0})
-						]),
-					$mdgriffith$elm_ui$Element$text('-'));
-				var _v3 = A2(
-					$elm$core$Maybe$andThen,
-					$elm$core$String$toInt,
-					A2($elm$core$Dict$get, 'number-to-level', properties));
+				var nosectionNumber = function (str) {
+					return A2(
+						$mdgriffith$elm_ui$Element$el,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$paddingEach(
+								{bottom: 0, left: 8, right: 0, top: 0})
+							]),
+						$mdgriffith$elm_ui$Element$text(str));
+				};
+				var _v3 = A2($elm$core$Dict$get, 'label', properties);
 				if (_v3.$ === 'Nothing') {
-					return nosectionNumeber;
+					return nosectionNumber('@@');
 				} else {
-					var level = _v3.a;
-					if (_Utils_cmp(level, maximumNumberedTocLevel) < 1) {
-						var _v4 = A2($elm$core$Dict$get, 'label', properties);
-						if (_v4.$ === 'Nothing') {
-							return nosectionNumeber;
-						} else {
-							var label = _v4.a;
-							return A2(
-								$mdgriffith$elm_ui$Element$el,
-								_List_Nil,
-								$mdgriffith$elm_ui$Element$text(label + '.'));
-						}
-					} else {
-						return nosectionNumeber;
-					}
+					var label = _v3.a;
+					return A2(
+						$mdgriffith$elm_ui$Element$el,
+						_List_Nil,
+						$mdgriffith$elm_ui$Element$text(label + '.'));
 				}
 			}();
 			var nodeId = block.meta.id;

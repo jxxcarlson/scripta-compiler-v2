@@ -302,7 +302,7 @@ body editRecord =
 
 
 {-| -}
-tableOfContents : Int -> Forest ExpressionBlock -> List ExpressionBlock
+tableOfContents : Forest ExpressionBlock -> List ExpressionBlock
 tableOfContents =
     Generic.ASTTools.tableOfContents
 
