@@ -72,6 +72,7 @@ verbatimDict =
         , ( "code", renderCode )
         , ( "verse", renderVerse )
         , ( "verbatim", renderVerbatim )
+        , ( "settings", Render.Helper.renderNothing )
 
         -- , ( "tabular", Render.Tabular.render )
         , ( "load", renderLoad )
