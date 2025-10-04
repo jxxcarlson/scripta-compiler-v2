@@ -125,7 +125,7 @@ frontMatter currentTime ast =
                         |> (\s -> "\\author{\n" ++ s ++ "\n}")
 
         title =
-            ASTTools.title ast |> (\title_ -> "\\title{" ++ title_ ++ "}")
+            ASTTools.getValue "title" ast |> (\title_ -> "\\title{" ++ title_ ++ "}")
 
         date =
             Dict.get "date" dict |> Maybe.map (\date_ -> "\\date{" ++ date_ ++ "}") |> Maybe.withDefault ""
@@ -879,7 +879,7 @@ exportBlock mathMacroDict settings block =
                             ""
 
                         _ ->
-                            ": export of this block is unimplemented"
+                            "%%% export of this block is unimplemented"
 
                 Right _ ->
                     "???(13)"
@@ -1000,6 +1000,7 @@ blockDict mathMacroDict =
         , ( "index", \_ _ _ -> "Index: not implemented" )
 
         --
+        , ( "chapter", \settings_ args body -> chapter settings_ args body )
         , ( "section", \settings_ args body -> section settings_ args body )
         , ( "subheading", \settings_ args body -> subheading settings_ args body )
         , ( "smallsubheading", \settings_ args body -> smallsubheading settings_ args body )
@@ -1170,6 +1171,20 @@ descriptionItem args body =
 argString : List String -> String
 argString args =
     List.filter (\arg -> not <| String.contains "label:" arg) args |> String.join " "
+
+
+chapter : RenderSettings -> List String -> String -> String
+chapter _ _ body =
+    let
+        tag =
+            body
+                |> String.words
+                |> MicroLaTeX.Util.normalizedWord
+
+        label =
+            " \\label{" ++ tag ++ "}"
+    in
+    "\\chapter{" ++ body ++ "}" ++ label
 
 
 section : RenderSettings -> List String -> String -> String
