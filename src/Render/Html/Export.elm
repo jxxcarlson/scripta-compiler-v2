@@ -480,7 +480,7 @@ exportBlock1 settings block =
                             ""
 
                         _ ->
-                            ": export of this block is unimplemented"
+                            "%%% export of this block is unimplemented"
 
                 Right _ ->
                     "???(13)"
