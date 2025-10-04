@@ -217,7 +217,7 @@ viewTocItem_ theme indentation viewParameters acc hasChildren ({ args, body, pro
                     Dict.get "level" properties |> Maybe.andThen String.toInt |> Maybe.withDefault 4
 
                 spacer =
-                    Element.el [ Element.width (Element.px (15 * lvl)) ] Element.none
+                    Element.el [ Element.width (Element.px (20 * lvl)) ] Element.none
 
                 content =
                     Element.row ([ Element.width (Element.px 240), Element.spacing 8 ] ++ style_ theme) (sectionNumber :: List.map (Render.Expression.render viewParameters.counter acc viewParameters.settings viewParameters.attr) exprs2)
