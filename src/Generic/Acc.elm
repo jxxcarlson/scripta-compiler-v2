@@ -223,7 +223,6 @@ transformBlock acc block =
                     block.properties
                         |> Dict.insert "label" (Vector.toString acc.headingIndex)
                         |> Dict.insert "tag" (block.firstLine |> Tools.String.makeSlug)
-                        |> Debug.log "@@X.transformBlock section"
             }
 
         ( Ordinary "chapter", _ ) ->
@@ -243,7 +242,6 @@ transformBlock acc block =
                         |> Dict.insert "tag" tag
                         |> Dict.insert "chapter-number" (getCounterAsString "chapter" acc.counter)
                         |> Dict.insert "level" "0"
-                        |> Debug.log "@@X.transformBlock chapter"
             }
 
         ( Ordinary "quiver", _ ) ->
@@ -574,7 +572,7 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
             let
                 level : String
                 level =
-                    "0" |> Debug.log "@@X.updateAcc!! CHAPTER level!!"
+                    "0"
             in
             case getNameContentId block of
                 Just { name, content, id } ->
@@ -590,13 +588,13 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
                 level =
                     case Dict.get "has-chapters" accumulator.keyValueDict of
                         Nothing ->
-                            Dict.get "level" properties |> Debug.log "@@X.updateAcc SECTION level" |> Maybe.withDefault "1"
+                            Dict.get "level" properties |> Maybe.withDefault "1"
 
                         Just "yes" ->
-                            Dict.get "level" properties |> Debug.log "@@X.updateAcc SECTION level" |> Maybe.withDefault "1"
+                            Dict.get "level" properties |> Maybe.withDefault "1"
 
                         _ ->
-                            Dict.get "level" properties |> Debug.log "@@X.updateAcc SECTION level" |> Maybe.withDefault "1"
+                            Dict.get "level" properties |> Maybe.withDefault "1"
             in
             case getNameContentId block of
                 Just { name, content, id } ->
@@ -722,9 +720,6 @@ updateWithOrdinarySectionBlock accumulator name content level id =
 
                 _ ->
                     0
-
-        _ =
-            Debug.log "@@X.DELTA" delta
 
         headingIndex =
             Vector.increment (String.toInt level |> Maybe.withDefault 1 |> (\x -> x - 1 + delta + accumulator.deltaLevel)) accumulator.headingIndex

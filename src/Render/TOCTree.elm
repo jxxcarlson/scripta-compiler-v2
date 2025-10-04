@@ -93,9 +93,6 @@ style_ theme_ =
 viewTOCTree : Render.Theme.Theme -> ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
 viewTOCTree theme viewParameters acc depth indentation maybeFoundIds tocTree =
     let
-        _ =
-            Debug.log "@@X.viewTOCTree" ( depth, indentation, tocTree )
-
         val : TOCNodeValue
         val =
             RoseTree.Tree.value tocTree
@@ -179,9 +176,6 @@ viewTocItem_ theme indentation viewParameters acc hasChildren ({ args, body, pro
 
         Right exprs ->
             let
-                _ =
-                    Debug.log "@@X.VTI" ( block.body, indentation, properties )
-
                 id =
                     Config.expressionIdPrefix ++ String.fromInt block.meta.lineNumber ++ ".0"
 
@@ -221,9 +215,6 @@ viewTocItem_ theme indentation viewParameters acc hasChildren ({ args, body, pro
                 lvl : Int
                 lvl =
                     Dict.get "level" properties |> Maybe.andThen String.toInt |> Maybe.withDefault 4
-
-                _ =
-                    Debug.log "@@X.lvl" ( lvl, Dict.get "tag" properties )
 
                 spacer =
                     Element.el [ Element.width (Element.px (15 * lvl)) ] Element.none
