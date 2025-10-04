@@ -227,11 +227,22 @@ transformBlock acc block =
             }
 
         ( Ordinary "chapter", _ ) ->
+            let
+                tag =
+                    case block.body of
+                        Left str ->
+                            Tools.String.makeSlug str
+
+                        Right expr ->
+                            List.map Generic.ASTTools.getText expr |> Maybe.Extra.values |> String.join "-" |> Tools.String.makeSlug
+            in
             { block
                 | properties =
                     block.properties
                         |> Dict.insert "label" (Vector.toString acc.headingIndex)
-                        |> Dict.insert "tag" (block.firstLine |> Tools.String.makeSlug)
+                        |> Dict.insert "tag" tag
+                        |> Dict.insert "chapter-number" (getCounterAsString "chapter" acc.counter)
+                        |> Dict.insert "level" "0"
                         |> Debug.log "@@X.transformBlock chapter"
             }
 

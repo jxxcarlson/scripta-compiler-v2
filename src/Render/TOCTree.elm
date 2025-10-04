@@ -93,6 +93,9 @@ style_ theme_ =
 viewTOCTree : Render.Theme.Theme -> ViewParameters -> Accumulator -> Int -> Int -> Maybe (List String) -> Tree TOCNodeValue -> Element MarkupMsg
 viewTOCTree theme viewParameters acc depth indentation maybeFoundIds tocTree =
     let
+        _ =
+            Debug.log "@@X.viewTOCTree" ( depth, indentation, tocTree )
+
         style =
             style_ theme
 
@@ -179,6 +182,9 @@ viewTocItem_ theme indentation viewParameters acc hasChildren ({ args, body, pro
 
         Right exprs ->
             let
+                _ =
+                    Debug.log "@@X.VTI" ( block.body, indentation, properties )
+
                 id =
                     Config.expressionIdPrefix ++ String.fromInt block.meta.lineNumber ++ ".0"
 
@@ -234,11 +240,15 @@ viewTocItem_ theme indentation viewParameters acc hasChildren ({ args, body, pro
                         [ Events.onClick (SelectId <| id), Font.size 14 ]
 
                 leadingSpace =
-                    if indentation == 0 then
-                        Element.paddingEach { left = 0, right = 0, top = 12, bottom = 0 }
+                    let
+                        _ =
+                            Debug.log "@@X.lvl" ( lvl, properties )
 
-                    else
-                        Element.paddingEach { left = 4 * (indentation + 1), right = 0, top = 0, bottom = 0 }
+                        lvl : Int
+                        lvl =
+                            Dict.get "level" properties |> Maybe.andThen String.toInt |> Maybe.withDefault 4
+                    in
+                    Element.paddingEach { left = 10 * lvl, right = 0, top = 0, bottom = 0 }
             in
             Element.el clickHandlers
                 (Element.link [ Font.color (Element.rgb 1 0 0), leadingSpace ] { url = Render.Utility.internalLink id, label = content })
