@@ -39,6 +39,7 @@ registerRenderers : BlockRegistry -> BlockRegistry
 registerRenderers registry =
     Render.BlockRegistry.registerBatch
         [ ( "document", document )
+        , ( "book", book )
         , ( "chapter", chapter )
         , ( "section", section )
         , ( "section*", unnumberedSection )
@@ -136,6 +137,18 @@ ilink docTitle selectedId selecteSlug docId =
                 ]
                 (Element.text docTitle)
         }
+
+
+book : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+book count acc settings attr block =
+    let
+        fontSize =
+            2.2 * settings.maxHeadingFontSize |> round
+
+        exprs =
+            Generic.Language.getExpressionContent block
+    in
+    Element.paragraph [ Font.size fontSize ] (renderWithDefaultWithSize fontSize "--" count acc settings attr exprs)
 
 
 chapter : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
