@@ -96,9 +96,6 @@ viewTOCTree theme viewParameters acc depth indentation maybeFoundIds tocTree =
         _ =
             Debug.log "@@X.viewTOCTree" ( depth, indentation, tocTree )
 
-        style =
-            style_ theme
-
         val : TOCNodeValue
         val =
             RoseTree.Tree.value tocTree
@@ -123,11 +120,11 @@ viewTOCTree theme viewParameters acc depth indentation maybeFoundIds tocTree =
         Element.none
 
     else if List.isEmpty children then
-        Element.el style (viewNodeWithChildren theme viewParameters acc indentation val hasChildren)
+        viewNodeWithChildren theme viewParameters acc indentation val hasChildren
 
     else
         Element.column [ Element.spacing 8 ]
-            (Element.el style (viewNodeWithChildren theme viewParameters acc indentation val hasChildren)
+            (viewNodeWithChildren theme viewParameters acc indentation val hasChildren
                 :: List.map (viewTOCTree theme viewParameters acc (depth - 1) (indentation + 1) maybeFoundIds)
                     children
             )
@@ -221,8 +218,18 @@ viewTocItem_ theme indentation viewParameters acc hasChildren ({ args, body, pro
                         Just ( text, meta ) ->
                             [ Generic.Language.composeTextElement (String.Extra.softWrapWith 22 "..." (String.trim text)) meta ]
 
+                lvl : Int
+                lvl =
+                    Dict.get "level" properties |> Maybe.andThen String.toInt |> Maybe.withDefault 4
+
+                _ =
+                    Debug.log "@@X.lvl" ( lvl, Dict.get "tag" properties )
+
+                spacer =
+                    Element.el [ Element.width (Element.px (15 * lvl)) ] Element.none
+
                 content =
-                    Element.row ([ tocIndent args, Element.width (Element.px 180), Element.spacing 8 ] ++ style_ theme) (sectionNumber :: List.map (Render.Expression.render viewParameters.counter acc viewParameters.settings viewParameters.attr) exprs2)
+                    Element.row ([ Element.width (Element.px 240), Element.spacing 8 ] ++ style_ theme) (sectionNumber :: List.map (Render.Expression.render viewParameters.counter acc viewParameters.settings viewParameters.attr) exprs2)
 
                 color =
                     if id == viewParameters.selectedId then
@@ -238,20 +245,12 @@ viewTocItem_ theme indentation viewParameters acc hasChildren ({ args, body, pro
 
                     else
                         [ Events.onClick (SelectId <| id), Font.size 14 ]
-
-                leadingSpace =
-                    let
-                        _ =
-                            Debug.log "@@X.lvl" ( lvl, properties )
-
-                        lvl : Int
-                        lvl =
-                            Dict.get "level" properties |> Maybe.andThen String.toInt |> Maybe.withDefault 4
-                    in
-                    Element.paddingEach { left = 10 * lvl, right = 0, top = 0, bottom = 0 }
             in
-            Element.el clickHandlers
-                (Element.link [ Font.color (Element.rgb 1 0 0), leadingSpace ] { url = Render.Utility.internalLink id, label = content })
+            Element.row []
+                [ spacer
+                , Element.el (clickHandlers ++ style_ theme)
+                    (Element.link [ Font.color (Element.rgb 1 0 0) ] { url = Render.Utility.internalLink id, label = content })
+                ]
 
 
 blockLabel : Dict String String -> String
