@@ -1,12 +1,46 @@
-module Render.Export.Preamble exposing (make, supportingCode)
+module Render.Export.Preamble exposing (Publication, make, supportingCode)
 
 -- PREAMBLE
 
 import List.Extra
 
 
-make : List String -> List String -> String
-make blockNames_ expressionNames_ =
+type alias Publication =
+    { title : String
+    , authorList : List String
+    , kind : String
+    }
+
+
+make : Publication -> List String -> List String -> String
+make publication =
+    if publication.kind == "Book" then
+        makeBook
+
+    else
+        makeArticle
+
+
+makeBook : List String -> List String -> String
+makeBook blockNames_ expressionNames_ =
+    let
+        names =
+            blockNames_ ++ expressionNames_
+
+        packagesUsed =
+            packagesNeeded names
+    in
+    [ "\\documentclass[11pt, oneside]{book}"
+    , newPackageText packagesUsed
+    , supportingCode packagesUsed
+    , standardPackages
+    , commands
+    ]
+        |> String.join "\n"
+
+
+makeArticle : List String -> List String -> String
+makeArticle blockNames_ expressionNames_ =
     let
         names =
             blockNames_ ++ expressionNames_

@@ -167,6 +167,13 @@ fileNameForExport ast =
         |> (\s -> s ++ ".tex")
 
 
+publicationData =
+    { title = "My Document"
+    , authorList = [ "John Doe", "Jane Doe" ]
+    , kind = "article" -- or "book"
+    }
+
+
 {-| -}
 pdfFileNameToGet : Forest ExpressionBlock -> String
 pdfFileNameToGet ast =
@@ -197,7 +204,7 @@ prepareContentForExport currentTime settings syntaxTree =
     let
         contentForExport : String
         contentForExport =
-            Render.Export.LaTeX.export currentTime settings syntaxTree
+            Render.Export.LaTeX.export currentTime publicationData settings syntaxTree
     in
     contentForExport
 

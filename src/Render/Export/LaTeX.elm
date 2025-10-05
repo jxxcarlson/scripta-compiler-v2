@@ -39,9 +39,16 @@ counterValue ast =
         |> Maybe.andThen String.toInt
 
 
+type alias PublicationData =
+    { title : String
+    , authorList : List String
+    , kind : String
+    }
+
+
 {-| -}
-export : Time.Posix -> RenderSettings -> List (Tree ExpressionBlock) -> String
-export currentTime settings_ ast =
+export : Time.Posix -> PublicationData -> RenderSettings -> List (Tree ExpressionBlock) -> String
+export currentTime publicationData settings_ ast =
     let
         titleData : Maybe ExpressionBlock
         titleData =
@@ -79,10 +86,10 @@ export currentTime settings_ ast =
         macrosInTextMacroDefinitions =
             Generic.TextMacro.getTextMacroFunctionNames textMacroDefinitions
     in
-    Render.Export.Preamble.make
+    Render.Export.Preamble.make publicationData
         rawBlockNames
         expressionNames
-        ++ frontMatter currentTime ast
+        ++ frontMatter currentTime publicationData ast
         ++ setTheFirstSection
         ++ tableofcontents properties rawBlockNames
         ++ "\n\n"
@@ -90,30 +97,17 @@ export currentTime settings_ ast =
         ++ "\n\n\\end{document}\n"
 
 
-frontMatter : Time.Posix -> Forest ExpressionBlock -> String
-frontMatter currentTime ast =
+frontMatter : Time.Posix -> PublicationData -> Forest ExpressionBlock -> String
+frontMatter currentTime publicationData ast =
     let
         dict =
             ASTTools.frontMatterDict ast
-
-        author1 =
-            Dict.get "author1" dict
-
-        author2 =
-            Dict.get "author2" dict
-
-        author3 =
-            Dict.get "author3" dict
-
-        author4 =
-            Dict.get "author4" dict
 
         authors =
             let
                 authorList : List String
                 authorList =
-                    [ author1, author2, author3, author4 ]
-                        |> List.filterMap identity
+                    publicationData.authorList
             in
             case authorList of
                 [] ->
@@ -125,7 +119,7 @@ frontMatter currentTime ast =
                         |> (\s -> "\\author{\n" ++ s ++ "\n}")
 
         title =
-            ASTTools.getValue "title" ast |> (\title_ -> "\\title{" ++ title_ ++ "}")
+            "\\title{" ++ publicationData.title ++ "}"
 
         date =
             Dict.get "date" dict |> Maybe.map (\date_ -> "\\date{" ++ date_ ++ "}") |> Maybe.withDefault ""

@@ -1,0 +1,28 @@
+{
+  "targets": {
+    "LocalStorage": {
+      "inputs": [
+        "src/MainLocal.elm"
+      ],
+      "output": "assets/main-local.js"
+    },
+    "SQLite": {
+      "inputs": [
+        "src/MainSQLite.elm"
+      ],
+      "output": "assets/main-sqlite.js"
+    },
+    "Legacy": {
+      "inputs": [
+        "src/Main.elm"
+      ],
+      "output": "assets/main.js"
+    },
+    "Tauri": {
+      "inputs": [
+        "src/MainTauri.elm"
+      ],
+      "output": "assets/main-tauri.js"
+    }
+  }
+}

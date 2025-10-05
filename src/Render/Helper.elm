@@ -35,6 +35,13 @@ import Render.Utility
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 
 
+publicationData =
+    { title = "No Title"
+    , authorList = []
+    , kind = "Article"
+    }
+
+
 features settings block =
     let
         author =

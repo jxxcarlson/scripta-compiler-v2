@@ -15,9 +15,9 @@ echo ""
 
 # Check if Python 3 is available
 if command -v python3 &> /dev/null; then
-    python3 -m http.server 8000
+    python3 -m http.server 8007
 elif command -v python &> /dev/null; then
-    python -m SimpleHTTPServer 8000
+    python -m SimpleHTTPServer 8007
 else
     echo "Error: Python is not installed. Please install Python to run the server."
     exit 1
