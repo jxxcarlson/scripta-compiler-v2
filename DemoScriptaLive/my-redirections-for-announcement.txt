@@ -1,2 +1,0 @@
-  1.  remove the old Announcement:  window.debugScripta.forceUpdateAnnouncement()
-  2. Now reload the page (Cmd+Shift+R)
