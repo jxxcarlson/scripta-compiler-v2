@@ -13,5 +13,6 @@ Example/
 debug/
 DemoTOC/assets/main.js
 DemoScriptaLive/tests/
+DemoScriptaLive/scripts/
 
 **/.claude/settings.local.json
