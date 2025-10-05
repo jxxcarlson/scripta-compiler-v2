@@ -762,7 +762,7 @@ ${indent.repeat(level)}}`;
   var WEBSOCKET_TOKEN = "89903bf7-c69e-46e4-9419-1e43d288e5ac";
   var TARGET_NAME = "SQLite";
   var INITIAL_ELM_COMPILED_TIMESTAMP = Number(
-    "1759692951056"
+    "1759695958905"
   );
   var ORIGINAL_COMPILATION_MODE = "standard";
   var ORIGINAL_BROWSER_UI_POSITION = "BottomLeft";
