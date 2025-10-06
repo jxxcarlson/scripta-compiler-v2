@@ -11,14 +11,12 @@ import Dict exposing (Dict)
 import ETeX.MathMacros
 import ETeX.Transform
 import Either exposing (Either(..))
-import Element
 import Generic.ASTTools as ASTTools
 import Generic.BlockUtilities
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Generic.TextMacro
 import List.Extra
-import Maybe.Extra
 import MicroLaTeX.Util
 import Render.Data
 import Render.Export.Image
@@ -220,96 +218,118 @@ shiftSection delta block =
         block
 
 
+{-| Prepend a line number comment to exported LaTeX if the block has a valid source line number.
+Synthetic blocks (created by the compiler) won't have valid line numbers and are skipped.
+-}
+annotateWithLineNumber : ExpressionBlock -> String -> String
+annotateWithLineNumber block output =
+    let
+        lineNumber =
+            block.meta.lineNumber
+    in
+    if lineNumber > 0 then
+        "%%% Line " ++ String.fromInt lineNumber ++ "\n" ++ output
+    else
+        output
+
+
 exportTree : ETeX.MathMacros.MathMacroDict -> RenderSettings -> Tree ExpressionBlock -> String
 exportTree mathMacroDict settings tree =
-    case Tree.value tree |> Generic.Language.getHeadingFromBlock of
-        Ordinary "itemList" ->
-            let
-                exprList : List Expression
-                exprList =
-                    case Tree.value tree |> .body of
-                        Left _ ->
-                            []
+    let
+        block =
+            Tree.value tree
 
-                        Right exprs ->
-                            exprs
+        result =
+            case Generic.Language.getHeadingFromBlock block of
+                Ordinary "itemList" ->
+                    let
+                        exprList : List Expression
+                        exprList =
+                            case block.body of
+                                Left _ ->
+                                    []
 
-                compactItem x =
-                    "\\compactItem{" ++ x ++ "}"
+                                Right exprs ->
+                                    exprs
 
-                renderExprList : List Expression -> String
-                renderExprList exprs =
-                    List.map (exportExpr mathMacroDict settings >> compactItem) exprs |> String.join "\n"
-            in
-            renderExprList exprList
+                        compactItem x =
+                            "\\compactItem{" ++ x ++ "}"
 
-        Ordinary "numberedList" ->
-            let
-                label : Int -> String
-                label n =
-                    String.fromInt (n + 1) ++ ". "
+                        renderExprList : List Expression -> String
+                        renderExprList exprs =
+                            List.map (exportExpr mathMacroDict settings >> compactItem) exprs |> String.join "\n"
+                    in
+                    renderExprList exprList
 
-                hang str =
-                    "\\leftskip=1em\\hangindent=1em\n\\hangafter=1\n" ++ str
+                Ordinary "numberedList" ->
+                    let
+                        label : Int -> String
+                        label n =
+                            String.fromInt (n + 1) ++ ". "
 
-                exprList : List Expression
-                exprList =
-                    case Tree.value tree |> .body of
-                        Left _ ->
-                            []
+                        hang str =
+                            "\\leftskip=1em\\hangindent=1em\n\\hangafter=1\n" ++ str
 
-                        Right exprs ->
-                            exprs
+                        exprList : List Expression
+                        exprList =
+                            case block.body of
+                                Left _ ->
+                                    []
 
-                renderExprList : List Expression -> String
-                renderExprList exprs =
-                    List.indexedMap (\k -> exportExpr mathMacroDict settings >> (\x -> label k ++ hang x)) exprs |> String.join "\n\n"
-            in
-            renderExprList exprList
+                                Right exprs ->
+                                    exprs
 
-        _ ->
-            case Tree.children tree of
-                [] ->
-                    exportBlock mathMacroDict settings (Tree.value tree)
+                        renderExprList : List Expression -> String
+                        renderExprList exprs =
+                            List.indexedMap (\k -> exportExpr mathMacroDict settings >> (\x -> label k ++ hang x)) exprs |> String.join "\n\n"
+                    in
+                    renderExprList exprList
 
-                children ->
-                    -- Special handling for item blocks with nested list children
-                    case Generic.BlockUtilities.getExpressionBlockName (Tree.value tree) of
-                        Just "item" ->
-                            handleItemWithChildren mathMacroDict settings tree children
+                _ ->
+                    case Tree.children tree of
+                        [] ->
+                            exportBlock mathMacroDict settings block
 
-                        Just "numbered" ->
-                            handleItemWithChildren mathMacroDict settings tree children
+                        children ->
+                            -- Special handling for item blocks with nested list children
+                            case Generic.BlockUtilities.getExpressionBlockName block of
+                                Just "item" ->
+                                    handleItemWithChildren mathMacroDict settings tree children
 
-                        _ ->
-                            -- Default behavior for other blocks with children
-                            let
-                                renderedChildren : List String
-                                renderedChildren =
-                                    List.map (exportTree mathMacroDict settings) children
-                                        |> List.map String.lines
-                                        |> List.concat
+                                Just "numbered" ->
+                                    handleItemWithChildren mathMacroDict settings tree children
 
-                                root : List String
-                                root =
-                                    exportBlock mathMacroDict settings (Tree.value tree) |> String.lines
-                            in
-                            case List.Extra.unconsLast root of
-                                Nothing ->
-                                    ""
-
-                                Just ( lastLine, firstLines ) ->
+                                _ ->
+                                    -- Default behavior for other blocks with children
                                     let
-                                        _ =
-                                            firstLines
+                                        renderedChildren : List String
+                                        renderedChildren =
+                                            List.map (exportTree mathMacroDict settings) children
+                                                |> List.map String.lines
+                                                |> List.concat
 
-                                        _ =
-                                            renderedChildren
-
-                                        _ =
-                                            lastLine
+                                        root : List String
+                                        root =
+                                            exportBlock mathMacroDict settings block |> String.lines
                                     in
-                                    firstLines ++ renderedChildren ++ [ lastLine ] |> String.join "\n"
+                                    case List.Extra.unconsLast root of
+                                        Nothing ->
+                                            ""
+
+                                        Just ( lastLine, firstLines ) ->
+                                            let
+                                                _ =
+                                                    firstLines
+
+                                                _ =
+                                                    renderedChildren
+
+                                                _ =
+                                                    lastLine
+                                            in
+                                            firstLines ++ renderedChildren ++ [ lastLine ] |> String.join "\n"
+    in
+    annotateWithLineNumber block result
 
 
 handleItemWithChildren : ETeX.MathMacros.MathMacroDict -> RenderSettings -> Tree ExpressionBlock -> List (Tree ExpressionBlock) -> String
