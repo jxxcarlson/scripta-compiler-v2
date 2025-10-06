@@ -261,8 +261,14 @@ update msg model =
                             settings =
                                 Render.Settings.makeSettings model.displaySettings (Theme.mapTheme model.theme) model.selectId Nothing 1.0 model.windowWidth Dict.empty
 
+                            publicationData =
+                                { title = model.title
+                                , authorList = []
+                                , kind = "article"
+                                }
+
                             exportText =
-                                Render.Export.LaTeX.export model.currentTime settings model.editRecord.tree
+                                Render.Export.LaTeX.export model.currentTime publicationData settings model.editRecord.tree
                         in
                         File.Download.string (model.title ++ ".tex") "application/x-latex" exportText
 
@@ -586,8 +592,14 @@ update msg model =
                 settings =
                     Render.Settings.makeSettings model.displaySettings (Theme.mapTheme model.theme) model.selectId Nothing 1.0 model.windowWidth Dict.empty
 
+                publicationData =
+                    { title = model.title
+                    , authorList = []
+                    , kind = "article"
+                    }
+
                 exportText =
-                    Render.Export.LaTeX.export model.currentTime settings model.editRecord.tree
+                    Render.Export.LaTeX.export model.currentTime publicationData settings model.editRecord.tree
             in
             ( model, File.Download.string (model.title ++ ".tex") "application/x-latex" exportText )
 
