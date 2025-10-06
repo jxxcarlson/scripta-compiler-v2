@@ -14,5 +14,8 @@ debug/
 DemoTOC/assets/main.js
 DemoScriptaLive/tests/
 DemoScriptaLive/scripts/
+DemoScriptaLive/assets/main-local.js
+DemoScriptaLive/assets/main-sqlite.js
+
 
 **/.claude/settings.local.json
