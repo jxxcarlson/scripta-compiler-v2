@@ -516,8 +516,14 @@ updateCommon msg model =
                 settings =
                     Render.Settings.makeSettings common.displaySettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
 
+                publicationData =
+                    { title = common.title
+                    , authorList = []
+                    , kind = "article"
+                    }
+
                 exportText =
-                    Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
+                    Render.Export.LaTeX.export common.currentTime publicationData settings common.editRecord.tree
 
                 fileName =
                     common.title ++ ".tex"
@@ -563,8 +569,14 @@ updateCommon msg model =
                 settings =
                     Render.Settings.makeSettings common.displaySettings (Theme.mapTheme common.theme) "-" Nothing 1.0 common.windowWidth Dict.empty
 
+                publicationData =
+                    { title = common.title
+                    , authorList = []
+                    , kind = "article"
+                    }
+
                 exportText =
-                    Render.Export.LaTeX.export common.currentTime settings common.editRecord.tree
+                    Render.Export.LaTeX.export common.currentTime publicationData settings common.editRecord.tree
 
                 exportData =
                     { title = common.title
