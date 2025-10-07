@@ -903,24 +903,38 @@ updateWithMathMacros content accumulator =
     { accumulator | mathMacroDict = mathMacroDict }
 
 
+
+{-
+
+   Update the accumulator with data from a verbatim block. In particular,
+   if it has a label property, then update the reference dictionary.
+-}
+
+
 updateWithVerbatimBlock : ExpressionBlock -> Accumulator -> Accumulator
 updateWithVerbatimBlock block accumulator =
     case block.body of
         Right _ ->
             accumulator
 
-        Left content ->
+        Left _ ->
             let
                 name =
                     Generic.BlockUtilities.getExpressionBlockName block |> Maybe.withDefault ""
 
-                tag =
-                    case getMacroArg "label" content of
-                        Ok str ->
-                            str
+                updateAccumulatorWithLabel =
+                    case Dict.get "label" block.properties of
+                        Just tag ->
+                            let
+                                referenceDatum =
+                                    makeReferenceDatum block.meta.id
+                                        tag
+                                        (verbatimBlockReference isSimple accumulator.headingIndex name newCounter)
+                            in
+                            \acc -> updateReference accumulator.headingIndex referenceDatum acc
 
-                        Err _ ->
-                            "???"
+                        Nothing ->
+                            identity
 
                 --Dict.get "label" dict |> Maybe.withDefault body
                 isSimple =
@@ -934,12 +948,9 @@ updateWithVerbatimBlock block accumulator =
 
                     else
                         accumulator.counter
-
-                referenceDatum =
-                    makeReferenceDatum block.meta.id tag (verbatimBlockReference isSimple accumulator.headingIndex name newCounter)
             in
             { accumulator | inListState = nextInListState block.heading accumulator.inListState, counter = newCounter }
-                |> updateReference accumulator.headingIndex referenceDatum
+                |> updateAccumulatorWithLabel
 
 
 verbatimBlockReference : Bool -> Vector -> String -> Dict String Int -> String
