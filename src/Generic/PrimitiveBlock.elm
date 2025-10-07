@@ -69,24 +69,8 @@ type alias State =
 finalize : PrimitiveBlock -> PrimitiveBlock
 finalize block =
     let
-        content_ =
-            List.reverse block.body
-
         content =
-            case block.heading of
-                Verbatim "equation" ->
-                    addLabel content_
-
-                _ ->
-                    content_
-
-        addLabel content__ =
-            case Dict.get "label" block.properties of
-                Just lbl ->
-                    ("\\label{" ++ lbl ++ "}") :: content__
-
-                Nothing ->
-                    content__
+            List.reverse block.body
 
         sourceText =
             if block.heading /= Paragraph then
