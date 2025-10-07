@@ -229,6 +229,7 @@ annotateWithLineNumber block output =
     in
     if lineNumber > 0 then
         "%%% Line " ++ String.fromInt lineNumber ++ "\n" ++ output
+
     else
         output
 
@@ -772,13 +773,25 @@ exportBlock mathMacroDict settings block =
                                     [ "\\begin{verbatim}", title, separator, renderedRows, "\\end{verbatim}" ] |> String.join "\n"
 
                         "equation" ->
-                            -- TODO: there should be a trailing "$$"
-                            -- TODO: equation numbers and label
-                            [ "\\begin{equation}", str |> ETeX.Transform.transformETeX mathMacroDict |> MicroLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
+                            let
+                                maybeLabel : Maybe String
+                                maybeLabel =
+                                    Dict.get "label" block.properties |> Maybe.map (\l -> "\\label{" ++ String.trim l ++ "}")
+                            in
+                            case maybeLabel of
+                                Nothing ->
+                                    [ "\\begin{equation}", str |> ETeX.Transform.transformETeX mathMacroDict |> MicroLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
+
+                                Just label ->
+                                    [ "\\begin{equation}", label, str |> ETeX.Transform.transformETeX mathMacroDict |> MicroLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
 
                         "aligned" ->
                             -- TODO: equation numbers and label
                             let
+                                maybeLabel : Maybe String
+                                maybeLabel =
+                                    Dict.get "label" block.properties |> Maybe.map (\l -> "\\label{" ++ String.trim l ++ "}")
+
                                 -- Strip trailing \\ from a line if present
                                 stripTrailingBackslashes : String -> String
                                 stripTrailingBackslashes line =
@@ -809,7 +822,12 @@ exportBlock mathMacroDict settings block =
                                                 ++ [ lastLine ]
                                                 |> String.join "\n"
                             in
-                            [ "\\begin{align}", processedLines, "\\end{align}" ] |> String.join "\n"
+                            case maybeLabel of
+                                Nothing ->
+                                    [ "\\begin{align}", processedLines, "\\end{align}" ] |> String.join "\n"
+
+                                Just label ->
+                                    [ "\\begin{align}", label, processedLines, "\\end{align}" ] |> String.join "\n"
 
                         "code" ->
                             str |> fixChars |> (\s -> "\\begin{verbatim}\n" ++ s ++ "\n\\end{verbatim}")
@@ -974,6 +992,7 @@ macroDict =
         , ( "ilink", \_ -> ilink )
         , ( "mark", \_ -> markwith )
         , ( "par", \_ -> par )
+        , ( "eqref", \_ -> eqref )
         , ( "index_", \_ _ -> blindIndex )
         , ( "image", Render.Export.Image.export )
         , ( "vspace", \_ -> vspace )
@@ -1088,6 +1107,16 @@ vspace exprs =
                 |> (\x -> x ++ "pt")
     in
     [ "\\par\\vspace{", arg, "}" ] |> String.join ""
+
+
+eqref : List Expression -> String
+eqref exprs =
+    let
+        arg =
+            Render.Export.Util.getOneArg exprs
+                |> String.trim
+    in
+    [ "\\eqref{", arg, "}" ] |> String.join ""
 
 
 par : List Expression -> String
