@@ -1,13 +1,16 @@
-module ScriptaV2.DifferentialCompiler exposing
-    ( EditRecord, init, update, renderEditRecord, messagesFromForest, editRecordToCompilerOutput
-    , pp, toExprBlock
-    )
+module ScriptaV2.DifferentialCompiler exposing (EditRecord, init, update, messagesFromForest, editRecordToCompilerOutput)
 
 {-|
 
 @docs EditRecord, init, update, renderEditRecord, messagesFromForest, editRecordToCompilerOutput
 
 -}
+
+-- Previous exposing list
+--exposing
+--    ( EditRecord, init, update, renderEditRecord, messagesFromForest, editRecordToCompilerOutput
+--    , pp, toExprBlock
+--    )
 
 import Dict exposing (Dict)
 import Differential.AbstractDifferentialParser

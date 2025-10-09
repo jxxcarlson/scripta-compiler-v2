@@ -1,11 +1,16 @@
 module ScriptaV2.Helper exposing
-    ( encodeForPDF, pdfFileNameToGet
+    ( encodeForPDF
     , fileNameForExport, prepareContentForExport
-    , getName, getBlockNames, getImageUrls
-    , banner, renderBody, setName, title, viewToc, tableOfContents, existsBlockWithName, matchingIdsInAST
+    , getBlockNames, getImageUrls
+    , title, viewToc, tableOfContents, existsBlockWithName, matchingIdsInAST
     )
 
-{-|
+{-| -- Previous exposing list:
+--( encodeForPDF, pdfFileNameToGet
+-- , fileNameForExport, prepareContentForExport
+-- , getName, getBlockNames, getImageUrls
+-- , banner, renderBody, setName, title, viewToc, tableOfContents, existsBlockWithName, matchingIdsInAST
+-- )
 
 
 ## PDF

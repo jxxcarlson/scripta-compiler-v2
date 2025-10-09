@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
-    ( CompilerOutput, Filter(..), compile, parse, parseFromString, render, renderForest, view, viewTOC, filterForest, px, viewBody
-    , CompilerParameters, filterForest2, header, header_, parseM, pl, pm, ps, viewBodyOnly, view_
+    ( CompilerOutput, Filter(..), compile, parse, parseFromString, renderForest, view, viewTOC
+    , CompilerParameters, filterForest2, header_, viewBodyOnly
     )
 
 {-|
@@ -9,6 +9,10 @@ module ScriptaV2.Compiler exposing
 
 -}
 
+-- Previous exposing list:
+--( CompilerOutput, Filter(..), compile, parse, parseFromString, render, renderForest, view, viewTOC, filterForest, px, viewBody
+--, CompilerParameters, filterForest2, header, header_, parseM, pl, pm, ps, viewBodyOnly, view_
+--)
 -- import Markdown.Compiler
 
 import Element exposing (Element)
