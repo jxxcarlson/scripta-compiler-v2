@@ -5,6 +5,7 @@ module Main exposing (main)
 import Browser
 import Browser.Dom
 import Browser.Events
+import Color
 import Data.M
 import Data.MicroLaTeX
 import Data.XMarkdown
@@ -72,6 +73,9 @@ setSourceText currentLanguage =
             Data.MicroLaTeX.text
 
         ScriptaV2.Language.SMarkdownLang ->
+            Data.XMarkdown.text
+
+        ScriptaV2.Language.MarkdownLang ->
             Data.XMarkdown.text
 
 
@@ -224,6 +228,9 @@ languageToString lang =
 
         ScriptaV2.Language.MicroLaTeXLang ->
             "MicroLaTeX"
+
+        ScriptaV2.Language.MarkdownLang ->
+            "Markdown"
 
 
 buttonBackground currentLanguage targetLanguage =

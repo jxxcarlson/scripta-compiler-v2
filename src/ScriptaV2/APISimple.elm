@@ -27,8 +27,11 @@ in ScriptaV2.Language
 
 -}
 
+import Dict
 import Element exposing (Element)
-import ScriptaV2.Compiler
+import Render.Settings
+import Render.Theme
+import ScriptaV2.Compiler exposing (Filter)
 import ScriptaV2.Language exposing (Language)
 import ScriptaV2.Msg exposing (MarkupMsg)
 
@@ -45,6 +48,30 @@ defined by docWidth. The editCount should be 0 for a static document. For docume
 in a live editing context, the editCount should be increment after each edit.
 This ensures that the rendered text is properly updated.
 -}
-compile : ScriptaV2.Compiler.CompilerParameters -> String -> List (Element MarkupMsg)
+compile : CompilerParameters -> String -> List (Element MarkupMsg)
 compile params sourceText =
-    ScriptaV2.Compiler.compile params (String.lines sourceText) |> ScriptaV2.Compiler.view params.docWidth
+    ScriptaV2.Compiler.compile (displaySettings params) Render.Theme.Light params (String.lines sourceText) |> ScriptaV2.Compiler.view params.docWidth
+
+
+type alias CompilerParameters =
+    { lang : Language
+    , docWidth : Int
+    , editCount : Int
+    , selectedId : String
+    , idsOfOpenNodes : List String
+    , filter : Filter
+    }
+
+
+displaySettings : CompilerParameters -> Render.Settings.DisplaySettings
+displaySettings params =
+    { windowWidth = params.docWidth
+    , longEquationLimit = toFloat params.docWidth - 100.0
+    , counter = params.editCount
+    , selectedId = params.selectedId
+    , selectedSlug = Nothing
+    , scale = 1.0
+    , data = Dict.empty
+    , idsOfOpenNodes = params.idsOfOpenNodes
+    , numberToLevel = 3
+    }

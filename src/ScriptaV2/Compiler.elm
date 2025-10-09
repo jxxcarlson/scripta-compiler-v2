@@ -15,6 +15,7 @@ module ScriptaV2.Compiler exposing
 --)
 -- import Markdown.Compiler
 
+import Dict
 import Element exposing (Element)
 import Element.Font as Font
 import Generic.ASTTools
@@ -47,6 +48,38 @@ type alias CompilerParameters =
     , selectedId : String
     , idsOfOpenNodes : List String
     , filter : Filter
+    }
+
+
+{-| -}
+type alias CompilerParametersX =
+    { lang : Language
+    , docWidth : Int
+    , editCount : Int
+    , selectedId : String
+    , idsOfOpenNodes : List String
+    , filter : Filter
+    , theme : Render.Theme.Theme
+
+    --
+    , windowWidth : Int
+    , longEquationLimit : Float
+    , selectedSlug : Maybe String
+    , scale : Float
+    , numberToLevel : Int
+    }
+
+
+type alias DisplaySettings =
+    { windowWidth : Int
+    , longEquationLimit : Float
+    , counter : Int
+    , selectedId : String
+    , selectedSlug : Maybe String
+    , scale : Float
+    , data : Dict.Dict String String
+    , idsOfOpenNodes : List String
+    , numberToLevel : Int
     }
 
 
@@ -290,6 +323,12 @@ filterForest2 forest =
 compileM : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
 compileM displaySettings theme params lines =
     render displaySettings theme params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
+
+
+
+--compileMX : CompilerParametersX -> List String -> CompilerOutput
+--compileMX params lines =
+--    render params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
 
 
 compileX : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput

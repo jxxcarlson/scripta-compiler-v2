@@ -1,4 +1,5 @@
 {
+    "port": 8020,
     "targets": {
         "My target name": {
             "inputs": [
