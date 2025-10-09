@@ -75,14 +75,20 @@ renderTree params settings accumulator attrs_ tree =
                     Element.rgba 0.6 0.6 0.6 0.5
 
         width2 =
-            Element.width <| Element.px (params.docWidth - 60)
+            Element.width <| Element.px (settings.width - 60)
 
         blockAttrs =
-            style :: (Element.width <| Element.px (params.docWidth - 0)) :: Element.Background.color bgColorAttr :: []
+            style :: (Element.width <| Element.px settings.width) :: Element.Background.color bgColorAttr :: []
     in
     if isBoxLike root then
         Element.column blockAttrs
-            [ Element.column [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 18 }, Element.Border.color borderColor, Element.Border.width 2, Element.centerX, width2 ]
+            [ Element.column
+                [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 18 }
+                , Element.Border.color borderColor
+                , Element.Border.width 4
+                , Element.centerX
+                , width2
+                ]
                 [ renderTree_ params
                     { settings
                         | width = settings.width - 24
