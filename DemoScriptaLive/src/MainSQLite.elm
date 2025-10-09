@@ -315,7 +315,7 @@ updateCommon msg model =
                             { oldParams
                                 | filter = ScriptaV2.Types.SuppressDocumentBlocks
                                 , theme = Theme.mapTheme common.theme
-                                , docWidth = Common.View.panelWidth model.common
+                                , windowWidth = Common.View.panelWidth model.common - 30
                             }
                     in
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
@@ -350,7 +350,7 @@ updateCommon msg model =
                     { oldParams
                         | filter = ScriptaV2.Types.SuppressDocumentBlocks
                         , theme = Theme.mapTheme common.theme
-                        , docWidth = Common.View.panelWidth model.common
+                        , windowWidth = Common.View.panelWidth model.common - 30
                     }
 
                 updatedDisplaySettings =
@@ -433,7 +433,7 @@ updateCommon msg model =
                     { oldParams
                         | filter = ScriptaV2.Types.SuppressDocumentBlocks
                         , theme = Theme.mapTheme common.theme
-                        , docWidth = Common.View.panelWidth newModel
+                        , windowWidth = Common.View.panelWidth newModel - 20
                     }
 
                 displaySettings =
