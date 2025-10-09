@@ -1210,4 +1210,5 @@ makeCompilerParams common displaySettings =
         , idsOfOpenNodes = displaySettings.idsOfOpenNodes
         , numberToLevel = displaySettings.numberToLevel
         , selectedId = displaySettings.selectedId
+        , editCount = displaySettings.counter
     }
