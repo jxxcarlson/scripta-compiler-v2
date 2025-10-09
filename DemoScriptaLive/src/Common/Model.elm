@@ -195,7 +195,7 @@ initCommon flags =
         , scale = 1.0
         , data = Dict.empty
         , idsOfOpenNodes = []
-        , numberToLevel = 0
+        , numberToLevel = 3
         }
     , params = ScriptaV2.Types.defaultCompilerParameters
     , sourceText = ""

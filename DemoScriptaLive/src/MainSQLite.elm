@@ -306,18 +306,10 @@ updateCommon msg model =
                         , windowWidth = max 310 contentWidth -- Minimum 310px for content
                     }
 
-                newCompilerOutput =
-                    let
-                        oldParams =
-                            ScriptaV2.Types.defaultCompilerParameters
+                params =
+                    makeCompilerParams common updatedDisplaySettings
 
-                        params =
-                            { oldParams
-                                | filter = ScriptaV2.Types.SuppressDocumentBlocks
-                                , theme = Theme.mapTheme common.theme
-                                , windowWidth = Common.View.panelWidth model.common - 30
-                            }
-                    in
+                newCompilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
                         params
                         newEditRecord
@@ -342,16 +334,6 @@ updateCommon msg model =
 
                 newCount =
                     common.count + 1
-
-                oldParams =
-                    ScriptaV2.Types.defaultCompilerParameters
-
-                params =
-                    { oldParams
-                        | filter = ScriptaV2.Types.SuppressDocumentBlocks
-                        , theme = Theme.mapTheme common.theme
-                        , windowWidth = Common.View.panelWidth model.common - 30
-                    }
 
                 updatedDisplaySettings =
                     let
@@ -389,6 +371,9 @@ updateCommon msg model =
                         , windowWidth = max 310 contentWidth -- Minimum 310px for content
                     }
 
+                params =
+                    makeCompilerParams common updatedDisplaySettings
+
                 newCompilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
                         params
@@ -415,6 +400,38 @@ updateCommon msg model =
                     , Cmd.none
                     )
 
+                ScriptaV2.Msg.ToggleTOCNodeID id ->
+                    let
+                        oldDisplaySettings =
+                            common.displaySettings
+
+                        -- Always toggle TOC nodes - they all have the "xy" prefix
+                        idsOfOpenNodes =
+                            if List.member id oldDisplaySettings.idsOfOpenNodes then
+                                List.Extra.remove id oldDisplaySettings.idsOfOpenNodes
+
+                            else
+                                id :: oldDisplaySettings.idsOfOpenNodes
+
+                        newDisplaySettings =
+                            { oldDisplaySettings | idsOfOpenNodes = idsOfOpenNodes }
+
+                        params =
+                            makeCompilerParams model.common newDisplaySettings
+
+                        newCompilerOutput =
+                            ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
+                                params
+                                common.editRecord
+
+                        newCommon =
+                            { common
+                                | displaySettings = newDisplaySettings
+                                , compilerOutput = newCompilerOutput
+                            }
+                    in
+                    ( { model | common = newCommon }, Cmd.none )
+
                 _ ->
                     ( model, Cmd.none )
 
@@ -425,16 +442,6 @@ updateCommon msg model =
 
                 newModel =
                     { oldModel | windowWidth = width, windowHeight = height }
-
-                oldParams =
-                    ScriptaV2.Types.defaultCompilerParameters
-
-                params =
-                    { oldParams
-                        | filter = ScriptaV2.Types.SuppressDocumentBlocks
-                        , theme = Theme.mapTheme common.theme
-                        , windowWidth = Common.View.panelWidth newModel - 20
-                    }
 
                 displaySettings =
                     common.displaySettings
@@ -462,6 +469,9 @@ updateCommon msg model =
                     { displaySettings
                         | windowWidth = max 310 contentWidth
                     }
+
+                params =
+                    makeCompilerParams newModel newDisplaySettings
 
                 newEditRecord =
                     ScriptaV2.DifferentialCompiler.update common.editRecord common.sourceText
@@ -499,14 +509,11 @@ updateCommon msg model =
                     else
                         Theme.Dark
 
-                oldParams =
-                    ScriptaV2.Types.defaultCompilerParameters
+                newCommon =
+                    { common | theme = newTheme }
 
                 params =
-                    { oldParams
-                        | filter = ScriptaV2.Types.SuppressDocumentBlocks
-                        , theme = Theme.mapTheme newTheme
-                    }
+                    makeCompilerParams newCommon common.displaySettings
 
                 newEditRecord =
                     ScriptaV2.DifferentialCompiler.update common.editRecord common.sourceText
@@ -516,14 +523,13 @@ updateCommon msg model =
                         params
                         newEditRecord
 
-                newCommon =
-                    { common
-                        | theme = newTheme
-                        , editRecord = newEditRecord
+                updatedCommon =
+                    { newCommon
+                        | editRecord = newEditRecord
                         , compilerOutput = newCompilerOutput
                     }
             in
-            ( { model | common = newCommon }
+            ( { model | common = updatedCommon }
             , Cmd.none
               -- Theme is saved with each document
             )
@@ -556,15 +562,6 @@ updateCommon msg model =
 
         Common.GeneratedId id ->
             let
-                oldParams =
-                    ScriptaV2.Types.defaultCompilerParameters
-
-                params =
-                    { oldParams
-                        | filter = ScriptaV2.Types.SuppressDocumentBlocks
-                        , theme = Theme.mapTheme common.theme
-                    }
-
                 newDocumentContent =
                     "| title\nNew Document\n"
 
@@ -573,6 +570,9 @@ updateCommon msg model =
 
                 editRecord =
                     ScriptaV2.DifferentialCompiler.init Dict.empty common.currentLanguage newDocumentContent
+
+                params =
+                    makeCompilerParams common common.displaySettings
 
                 compilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
@@ -850,15 +850,6 @@ updateCommon msg model =
 
         Common.SelectedText str ->
             let
-                oldParams =
-                    ScriptaV2.Types.defaultCompilerParameters
-
-                params =
-                    { oldParams
-                        | filter = ScriptaV2.Types.SuppressDocumentBlocks
-                        , theme = Theme.mapTheme common.theme
-                    }
-
                 foundIds =
                     ScriptaV2.Helper.matchingIdsInAST str common.editRecord.tree
                         |> List.filter (\id -> id /= "")
@@ -872,6 +863,9 @@ updateCommon msg model =
 
                 newDisplaySettings =
                     { oldDisplaySettings | selectedId = firstId }
+
+                params =
+                    makeCompilerParams common newDisplaySettings
 
                 -- Re-render with updated settings
                 newCompilerOutput =
@@ -926,20 +920,14 @@ updateCommon msg model =
 
         Common.InitialDocumentId content title currentTime theme id ->
             let
-                oldParams =
-                    ScriptaV2.Types.defaultCompilerParameters
-
-                params =
-                    { oldParams
-                        | filter = ScriptaV2.Types.SuppressDocumentBlocks
-                        , theme = Theme.mapTheme common.theme
-                    }
-
                 initialDoc =
                     Document.newDocument id title (Maybe.withDefault "" common.userName) content theme currentTime
 
                 editRecord =
                     ScriptaV2.DifferentialCompiler.init Dict.empty common.currentLanguage content
+
+                params =
+                    makeCompilerParams common common.displaySettings
 
                 compilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
@@ -998,17 +986,11 @@ handleStorageMsg msg model =
 
         Storage.DocumentLoaded (Ok doc) ->
             let
-                oldParams =
-                    ScriptaV2.Types.defaultCompilerParameters
-
-                params =
-                    { oldParams
-                        | filter = ScriptaV2.Types.SuppressDocumentBlocks
-                        , theme = Theme.mapTheme common.theme
-                    }
-
                 editRecord =
                     ScriptaV2.DifferentialCompiler.init Dict.empty common.currentLanguage doc.content
+
+                params =
+                    makeCompilerParams common common.displaySettings
 
                 compilerOutput =
                     ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput
@@ -1209,3 +1191,22 @@ generateId : Random.Generator String
 generateId =
     Random.int 100000 999999
         |> Random.map (\n -> "doc-" ++ String.fromInt n)
+
+
+
+-- COMPILER PARAMS HELPER
+
+
+makeCompilerParams : Common.CommonModel -> ScriptaV2.Settings.DisplaySettings -> ScriptaV2.Types.CompilerParameters
+makeCompilerParams common displaySettings =
+    let
+        oldParams =
+            ScriptaV2.Types.defaultCompilerParameters
+    in
+    { oldParams
+        | filter = ScriptaV2.Types.SuppressDocumentBlocks
+        , theme = Theme.mapTheme common.theme
+        , windowWidth = Common.View.panelWidth common - 30
+        , idsOfOpenNodes = displaySettings.idsOfOpenNodes
+        , numberToLevel = displaySettings.numberToLevel
+    }
