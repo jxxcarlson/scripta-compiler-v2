@@ -630,6 +630,10 @@ updateCommon msg model =
                     update (CommonMsg Common.CreateNewDocument) model
 
         Common.LoadDocument id ->
+            let
+                _ =
+                    Debug.log "Attempting to load document" id
+            in
             ( { model | common = { common | printingState = Common.PrintWaiting, pdfLink = "" } }
             , storage.loadDocument id
             )
@@ -968,6 +972,13 @@ handleStorageMsg msg model =
     in
     case msg of
         Storage.DocumentsListed (Ok docs) ->
+            let
+                _ =
+                    Debug.log "Documents listed" (List.length docs)
+
+                _ =
+                    Debug.log "Document IDs" (List.map .id docs)
+            in
             if List.isEmpty docs then
                 -- No documents in storage, create default document
                 ( { model | common = { common | documents = docs } }
@@ -1016,10 +1027,39 @@ handleStorageMsg msg model =
             )
 
         Storage.DocumentLoaded (Err error) ->
-            ( model, Cmd.none )
+            -- Document failed to load, try to load the first document from the list
+            let
+                _ =
+                    Debug.log "Document load failed" error
+
+                firstDoc =
+                    List.head common.documents
+            in
+            case firstDoc of
+                Just doc ->
+                    -- Load the first available document
+                    let
+                        _ =
+                            Debug.log "Loading first available document instead" doc.id
+
+                        storage =
+                            Storage.SQLite.storage StorageMsg
+                    in
+                    ( model
+                    , storage.loadDocument doc.id
+                    )
+
+                Nothing ->
+                    -- No documents available, create a new one
+                    ( model
+                    , Random.generate (CommonMsg << Common.GeneratedId) generateId
+                    )
 
         Storage.DocumentSaved (Ok doc) ->
             let
+                _ =
+                    Debug.log "Document saved successfully" doc.id
+
                 updatedDocs =
                     doc :: List.filter (\d -> d.id /= doc.id) common.documents
             in
@@ -1028,6 +1068,10 @@ handleStorageMsg msg model =
             )
 
         Storage.DocumentSaved (Err error) ->
+            let
+                _ =
+                    Debug.log "Document save failed" error
+            in
             ( model, Cmd.none )
 
         Storage.DocumentDeleted (Ok id) ->
@@ -1055,6 +1099,9 @@ handleStorageMsg msg model =
 
         Storage.LastDocumentIdLoaded (Ok maybeId) ->
             let
+                _ =
+                    Debug.log "Last document ID loaded" maybeId
+
                 newCommon =
                     { common | lastSavedDocumentId = maybeId }
             in
