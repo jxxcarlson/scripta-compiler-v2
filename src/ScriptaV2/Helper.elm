@@ -52,6 +52,7 @@ import Render.Settings exposing (DisplaySettings)
 import Render.TOC
 import RoseTree.Tree as Tree
 import ScriptaV2.Msg exposing (MarkupMsg)
+import ScriptaV2.Types
 import Time
 import Tools.Utility
 
@@ -87,9 +88,9 @@ title =
 
 
 {-| -}
-viewToc : DisplaySettings -> Int -> Accumulator -> List (Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
-viewToc displaySettings counter acc attr ast =
-    Render.TOC.viewWithTitle displaySettings counter acc attr ast
+viewToc : ScriptaV2.Types.CompilerParameters -> Int -> Accumulator -> List (Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element MarkupMsg)
+viewToc params counter acc attr ast =
+    Render.TOC.viewWithTitle params counter acc attr ast
 
 
 

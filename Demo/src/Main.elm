@@ -20,6 +20,7 @@ import ScriptaV2.APISimple
 import ScriptaV2.Compiler
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
+import ScriptaV2.Types exposing (Filter(..))
 import Task
 
 
@@ -278,7 +279,7 @@ displayRenderedText model =
             , editCount = model.count
             , selectedId = "selectedId"
             , idsOfOpenNodes = model.idsOfOpenNodes
-            , filter = ScriptaV2.Compiler.NoFilter
+            , filter = NoFilter
             }
     in
     column [ spacing 8, Font.size 14 ]

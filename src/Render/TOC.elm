@@ -20,10 +20,11 @@ import Render.Theme
 import Render.Utility
 import ScriptaV2.Config as Config
 import ScriptaV2.Msg exposing (MarkupMsg(..))
+import ScriptaV2.Types
 
 
-viewWithTitle : DisplaySettings -> Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
-viewWithTitle displaySettings counter acc attr ast =
+viewWithTitle : ScriptaV2.Types.CompilerParameters -> Int -> Accumulator -> List (Element.Attribute MarkupMsg) -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)
+viewWithTitle params counter acc attr ast =
     let
         maximumLevel =
             case Dict.get "contentsdepth" acc.keyValueDict of
@@ -33,7 +34,12 @@ viewWithTitle displaySettings counter acc attr ast =
                 Nothing ->
                     3
     in
-    prepareTOCWithTitle maximumLevel counter acc (Render.Settings.defaultSettings displaySettings) attr ast
+    -- TODO: bad code!
+    prepareTOCWithTitle maximumLevel counter acc (Render.Settings.default params params.selectedId params.docWidth) attr ast
+
+
+
+--default params selectedId width
 
 
 view : Render.Theme.Theme -> Render.TOCTree.ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element ScriptaV2.Msg.MarkupMsg)

@@ -18,6 +18,7 @@ import ScriptaV2.DifferentialCompiler
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg(..))
 import ScriptaV2.Settings
+import ScriptaV2.Types
 import Sync
 import Task
 import Theme
@@ -130,6 +131,9 @@ init flags =
                 _ ->
                     Theme.Dark
 
+        params =
+            ScriptaV2.Types.defaultCompilerParameters
+
         displaySettings =
             initialDisplaySettings flags
 
@@ -158,7 +162,7 @@ init flags =
       , pressedKeys = []
       , currentTime = currentTime
       , compilerOutput =
-            ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput (Theme.mapTheme theme) ScriptaV2.Compiler.SuppressDocumentBlocks displaySettings editRecord
+            ScriptaV2.DifferentialCompiler.editRecordToCompilerOutput { params | filter = ScriptaV2.Types.SuppressDocumentBlocks } editRecord
       , editRecord = editRecord
       , documents = []
       , currentDocument = Nothing

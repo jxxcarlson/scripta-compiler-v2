@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
-    ( CompilerOutput, Filter(..), compile, parse, parseFromString, renderForest, view, viewTOC
-    , CompilerParameters, filterForest2, header_, viewBodyOnly
+    ( CompilerOutput, compile, parse, parseFromString, renderForest, view, viewTOC
+    , filterForest2, header_, viewBodyOnly
     )
 
 {-|
@@ -36,37 +36,19 @@ import RoseTree.Tree
 import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language(..))
 import ScriptaV2.Msg exposing (MarkupMsg(..))
+import ScriptaV2.Types exposing (CompilerParameters, Filter(..))
 import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
 
 
 {-| -}
-type alias CompilerParameters =
+type alias CompilerParametersOLD =
     { lang : Language
     , docWidth : Int
     , editCount : Int
     , selectedId : String
     , idsOfOpenNodes : List String
     , filter : Filter
-    }
-
-
-{-| -}
-type alias CompilerParametersX =
-    { lang : Language
-    , docWidth : Int
-    , editCount : Int
-    , selectedId : String
-    , idsOfOpenNodes : List String
-    , filter : Filter
-    , theme : Render.Theme.Theme
-
-    --
-    , windowWidth : Int
-    , longEquationLimit : Float
-    , selectedSlug : Maybe String
-    , scale : Float
-    , numberToLevel : Int
     }
 
 
@@ -81,12 +63,6 @@ type alias DisplaySettings =
     , idsOfOpenNodes : List String
     , numberToLevel : Int
     }
-
-
-{-| -}
-type Filter
-    = NoFilter
-    | SuppressDocumentBlocks
 
 
 {-| -}
@@ -180,22 +156,22 @@ bottomPadding k =
     Used only in View.Phone (twice)
 
 -}
-compile : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
-compile displaySettings theme params lines =
+compile : CompilerParameters -> List String -> CompilerOutput
+compile params lines =
     case params.lang of
         EnclosureLang ->
-            compileM displaySettings theme params lines
+            compileM params lines
 
         MicroLaTeXLang ->
-            compileL displaySettings theme params lines
+            compileL params lines
 
         SMarkdownLang ->
-            compileX displaySettings theme params lines
+            compileX params lines
 
         MarkdownLang ->
             -- Use the Markdown compiler
             -- Markdown.Compiler.compileForScripta displaySettings theme (String.join "\n" lines)
-            compileX displaySettings theme params lines
+            compileX params lines
 
 
 {-|
@@ -320,29 +296,23 @@ filterForest2 forest =
         |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "title")
 
 
-compileM : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
-compileM displaySettings theme params lines =
-    render displaySettings theme params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
+compileM : CompilerParameters -> List String -> CompilerOutput
+compileM params lines =
+    render params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
 
 
-
---compileMX : CompilerParametersX -> List String -> CompilerOutput
---compileMX params lines =
---    render params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
-
-
-compileX : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
-compileX displaySettings theme params lines =
-    render displaySettings theme params (filterForest params.filter (parseX Config.idPrefix params.editCount lines))
+compileX : CompilerParameters -> List String -> CompilerOutput
+compileX params lines =
+    render params (filterForest params.filter (parseX Config.idPrefix params.editCount lines))
 
 
 
 -- LaTeX compiler
 
 
-compileL : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> List String -> CompilerOutput
-compileL displaySettings theme params lines =
-    render displaySettings theme params (filterForest params.filter (parseL Config.idPrefix params.editCount lines))
+compileL : CompilerParameters -> List String -> CompilerOutput
+compileL params lines =
+    render params (filterForest params.filter (parseL Config.idPrefix params.editCount lines))
 
 
 {-|
@@ -358,11 +328,12 @@ type alias ViewParameters =
 }
 
 -}
-render : Render.Settings.DisplaySettings -> Render.Theme.Theme -> CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
-render displaySettings theme params forest_ =
+render : CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
+render params forest_ =
     let
+        renderSettings : Render.Settings.RenderSettings
         renderSettings =
-            Render.Settings.defaultRenderSettings displaySettings theme params.docWidth params.selectedId
+            Render.Settings.defaultRenderSettings params
 
         ( accumulator, forest ) =
             Generic.Acc.transformAccumulate Generic.Acc.initialData forest_
@@ -380,7 +351,7 @@ render displaySettings theme params forest_ =
             -- this value is used in DemoTOC for the document TOC
             -- it is NOT used for the documentTOC in Lamdera
             --Render.TOCTree.view viewParameters accumulator forest_
-            Render.TOCTree.view theme viewParameters accumulator forest_
+            Render.TOCTree.view params.theme viewParameters accumulator forest_
 
         banner : Maybe (Element MarkupMsg)
         banner =
@@ -393,7 +364,7 @@ render displaySettings theme params forest_ =
             Element.paragraph [] [ Element.text <| Generic.ASTTools.title forest ]
     in
     { body =
-        renderForest theme params.editCount renderSettings accumulator forest
+        renderForest params renderSettings accumulator forest
     , banner = banner
     , toc = toc
     , title = title
@@ -406,14 +377,13 @@ render displaySettings theme params forest_ =
 
 -}
 renderForest :
-    Render.Theme.Theme
-    -> Int
+    ScriptaV2.Types.CompilerParameters
     -> Render.Settings.RenderSettings
     -> Generic.Acc.Accumulator
     -> List (RoseTree.Tree.Tree ExpressionBlock)
     -> List (Element MarkupMsg)
-renderForest theme count renderSettings accumulator forest =
-    List.map (Render.Tree.renderTree theme count accumulator renderSettings []) forest
+renderForest params settings accumulator forest =
+    List.map (Render.Tree.renderTree params settings accumulator []) forest
 
 
 

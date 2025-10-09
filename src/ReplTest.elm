@@ -37,7 +37,7 @@ t str =
 
 dfrs : Render.Settings.RenderSettings
 dfrs =
-    Render.Settings.defaultSettings Render.Settings.defaultDisplaySettings
+    Render.Settings.defaultRenderSettings Render.Settings.defaultDisplaySettings
 
 
 expressionBlockFromPrimitiveBlock : Generic.Language.PrimitiveBlock -> Generic.Language.ExpressionBlock

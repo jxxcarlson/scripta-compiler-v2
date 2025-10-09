@@ -1,4 +1,7 @@
-module ScriptaV2.Settings exposing (RenderSettings, DisplaySettings, defaultSettings, makeSettings, renderSettingsFromDisplaySettings)
+module ScriptaV2.Settings exposing
+    ( RenderSettings, DisplaySettings, defaultSettings, makeSettings
+    , renderSettingsFromCompilerParameters
+    )
 
 {-|
 
@@ -9,6 +12,7 @@ module ScriptaV2.Settings exposing (RenderSettings, DisplaySettings, defaultSett
 import Dict exposing (Dict)
 import Render.Settings
 import Render.Theme
+import ScriptaV2.Types
 
 
 {-| -}
@@ -17,9 +21,9 @@ type alias RenderSettings =
 
 
 {-| -}
-makeSettings : DisplaySettings -> Render.Theme.Theme -> String -> Maybe String -> Float -> Int -> Dict String String -> Render.Settings.RenderSettings
-makeSettings displaySettings =
-    Render.Settings.makeSettings displaySettings
+makeSettings : ScriptaV2.Types.CompilerParameters -> Render.Settings.RenderSettings
+makeSettings params =
+    Render.Settings.makeSettings params
 
 
 {-|
@@ -42,12 +46,12 @@ type alias DisplaySettings =
 
 
 {-| -}
-renderSettingsFromDisplaySettings : DisplaySettings -> Render.Theme.Theme -> DisplaySettings -> RenderSettings
-renderSettingsFromDisplaySettings displaySettings theme ds =
-    Render.Settings.makeSettings displaySettings theme ds.selectedId ds.selectedSlug ds.scale ds.windowWidth ds.data
+renderSettingsFromCompilerParameters : ScriptaV2.Types.CompilerParameters -> RenderSettings
+renderSettingsFromCompilerParameters params =
+    Render.Settings.makeSettings params
 
 
 {-| -}
-defaultSettings : DisplaySettings -> RenderSettings
+defaultSettings : ScriptaV2.Types.CompilerParameters -> RenderSettings
 defaultSettings displaySettings =
-    Render.Settings.defaultSettings displaySettings
+    Render.Settings.defaultRenderSettings displaySettings

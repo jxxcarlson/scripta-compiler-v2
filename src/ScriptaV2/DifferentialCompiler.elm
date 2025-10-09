@@ -42,6 +42,7 @@ import ScriptaV2.Config
 import ScriptaV2.Language exposing (Language(..))
 import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.Settings
+import ScriptaV2.Types
 import XMarkdown.Expression
 import XMarkdown.PrimitiveBlock
 
@@ -56,42 +57,41 @@ pp str =
 
 
 {-| -}
-renderEditRecord : Render.Theme.Theme -> Render.Settings.DisplaySettings -> EditRecord -> List (Element MarkupMsg)
-renderEditRecord theme displaySettings editRecord =
+renderEditRecord : ScriptaV2.Types.CompilerParameters -> EditRecord -> List (Element MarkupMsg)
+renderEditRecord params editRecord =
     let
         renderSettings =
-            ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings theme displaySettings
-
-        counter =
-            displaySettings.counter
+            ScriptaV2.Settings.renderSettingsFromCompilerParameters params
     in
-    ScriptaV2.Compiler.renderForest theme counter renderSettings editRecord.accumulator editRecord.tree
+    ScriptaV2.Compiler.renderForest params renderSettings editRecord.accumulator editRecord.tree
 
 
 {-| -}
-editRecordToCompilerOutput : Render.Theme.Theme -> ScriptaV2.Compiler.Filter -> Render.Settings.DisplaySettings -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
-editRecordToCompilerOutput theme filter displaySettings editRecord =
+editRecordToCompilerOutput : ScriptaV2.Types.CompilerParameters -> EditRecord -> ScriptaV2.Compiler.CompilerOutput
+editRecordToCompilerOutput params editRecord =
     let
         renderSettings : ScriptaV2.Settings.RenderSettings
         renderSettings =
-            ScriptaV2.Settings.renderSettingsFromDisplaySettings displaySettings theme displaySettings
+            ScriptaV2.Settings.renderSettingsFromCompilerParameters params
 
         viewParameters =
-            { idsOfOpenNodes = displaySettings.idsOfOpenNodes
-            , selectedId = displaySettings.selectedId
-            , counter = displaySettings.counter
+            { idsOfOpenNodes = params.idsOfOpenNodes
+            , selectedId = params.selectedId
+            , counter = params.editCount
             , attr = []
             , settings = renderSettings
             }
 
         toc : List (Element MarkupMsg)
         toc =
-            Render.TOCTree.view theme viewParameters editRecord.accumulator editRecord.tree
+            Render.TOCTree.view params.theme viewParameters editRecord.accumulator editRecord.tree
 
+        --view : Render.Theme.Theme -> ViewParameters -> Accumulator -> Forest ExpressionBlock -> List (Element MarkupMsg)
+        --view theme viewParameters acc documentAst
         banner : Maybe (Element MarkupMsg)
         banner =
             Generic.ASTTools.banner editRecord.tree
-                |> Maybe.map (Render.Block.renderBody displaySettings.counter editRecord.accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
+                |> Maybe.map (Render.Block.renderBody params.editCount editRecord.accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
                 |> Maybe.map (Element.row [ Element.height (Element.px 40) ])
 
         titleData : Maybe ExpressionBlock
@@ -107,7 +107,7 @@ editRecordToCompilerOutput theme filter displaySettings editRecord =
             Element.paragraph [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 36 } ] [ Element.text <| Generic.ASTTools.title editRecord.tree ]
     in
     { body =
-        ScriptaV2.Compiler.renderForest theme displaySettings.counter { renderSettings | properties = properties } editRecord.accumulator (ScriptaV2.Compiler.filterForest2 editRecord.tree)
+        ScriptaV2.Compiler.renderForest params { renderSettings | properties = properties } editRecord.accumulator (ScriptaV2.Compiler.filterForest2 editRecord.tree)
     , banner = banner
     , toc = toc -- THIS IS WHERE THE SIDEBAR TOC IS COMPUTED
     , title = title

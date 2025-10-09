@@ -19,11 +19,12 @@ import Json.Decode as Decode
 import Keyboard
 import List.Extra
 import Ports
-import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.Compiler
 import ScriptaV2.DifferentialCompiler
 import ScriptaV2.Language
+import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.Settings
+import ScriptaV2.Types
 import Sync
 import Theme
 import Time
@@ -50,6 +51,7 @@ type alias PdfResponse =
 
 type alias CommonModel =
     { displaySettings : ScriptaV2.Settings.DisplaySettings
+    , params : ScriptaV2.Types.CompilerParameters
     , sourceText : String
     , count : Int
     , windowWidth : Int
@@ -169,7 +171,23 @@ initCommon flags =
             Time.millisToPosix flags.currentTime
     in
     { displaySettings =
-        { windowWidth = max 310 ((max 350 ((flags.window.windowWidth - 230 - (if flags.window.windowWidth >= 1000 then 221 else 0) - 3) // 2)) - 40) -- Reduced padding experiment
+        { windowWidth =
+            max 310
+                (max 350
+                    ((flags.window.windowWidth - 230
+                        - (if flags.window.windowWidth >= 1000 then
+                            221
+
+                           else
+                            0
+                          )
+                        - 3
+                     )
+                        // 2
+                    )
+                    - 40
+                )
+          -- Reduced padding experiment
         , longEquationLimit = 100.0
         , counter = 0
         , selectedId = "-"
@@ -179,6 +197,7 @@ initCommon flags =
         , idsOfOpenNodes = []
         , numberToLevel = 0
         }
+    , params = ScriptaV2.Types.defaultCompilerParameters
     , sourceText = ""
     , count = 0
     , windowWidth = flags.window.windowWidth
@@ -189,7 +208,7 @@ initCommon flags =
     , theme = theme
     , pressedKeys = []
     , currentTime = currentTime
-    , compilerOutput = 
+    , compilerOutput =
         { body = []
         , banner = Nothing
         , toc = []

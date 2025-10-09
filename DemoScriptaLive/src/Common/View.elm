@@ -1,4 +1,4 @@
-module Common.View exposing (view)
+module Common.View exposing (panelWidth, view)
 
 import Browser.Dom
 import Common.Model as Common
@@ -33,6 +33,7 @@ import Time
 import Widget
 
 
+
 -- VIEW
 
 
@@ -46,6 +47,7 @@ view toMsg renderMsg model =
         (mainColumn toMsg renderMsg model)
 
 
+
 -- GEOMETRY
 
 
@@ -55,11 +57,19 @@ appWidth model =
 
 
 sidebarWidth =
-    230  -- Adjusted for better button layout
+    230
+
+
+
+-- Adjusted for better button layout
 
 
 tocWidth =
-    220  -- Increased from 180
+    220
+
+
+
+-- Increased from 180
 
 
 panelWidth : Common.CommonModel -> Int
@@ -67,7 +77,14 @@ panelWidth model =
     -- Calculate width for editor and rendered text panels
     -- When TOC is hidden (window < 1000px), don't subtract its width
     let
-        tocSpace = if model.windowWidth >= 1000 then tocWidth + 1 else 0  -- +1 for border
+        tocSpace =
+            if model.windowWidth >= 1000 then
+                tocWidth + 1
+
+            else
+                0
+
+        -- +1 for border
     in
     max 350 ((appWidth model - sidebarWidth - tocSpace - 3) // 2)
 
@@ -100,35 +117,36 @@ mainColumn toMsg renderMsg model =
                 , Element.htmlAttribute (Html.Attributes.style "min-height" "0")
                 ]
                 ([ editorView toMsg model
-                , Element.el
+                 , Element.el
                     [ width (px 1)
                     , height fill
                     , Background.color (Style.borderColor model.theme)
                     ]
                     Element.none
-                , displayRenderedText renderMsg model
-                ]
-                -- Only show TOC and its border when window is wide enough
-                ++ (if model.windowWidth >= 1000 then
-                        [ Element.el
+                 , displayRenderedText renderMsg model
+                 ]
+                    -- Only show TOC and its border when window is wide enough
+                    ++ (if model.windowWidth >= 1000 then
+                            [ Element.el
+                                [ width (px 1)
+                                , height fill
+                                , Background.color (Style.borderColor model.theme)
+                                ]
+                                Element.none
+                            , tocPanel renderMsg model
+                            ]
+
+                        else
+                            []
+                       )
+                    ++ [ Element.el
                             [ width (px 1)
                             , height fill
                             , Background.color (Style.borderColor model.theme)
                             ]
                             Element.none
-                        , tocPanel renderMsg model
-                        ]
-                    else
-                        []
-                   )
-                ++ [ Element.el
-                        [ width (px 1)
-                        , height fill
-                        , Background.color (Style.borderColor model.theme)
-                        ]
-                        Element.none
-                    , sidebar toMsg model
-                    ]
+                       , sidebar toMsg model
+                       ]
                 )
             ]
         ]
@@ -148,9 +166,11 @@ filterDocuments : String -> List Document -> List Document
 filterDocuments searchText docs =
     if String.isEmpty searchText then
         docs
+
     else
         let
-            searchLower = String.toLower searchText
+            searchLower =
+                String.toLower searchText
         in
         List.filter (\doc -> String.contains searchLower (String.toLower doc.title)) docs
 
@@ -171,7 +191,7 @@ sidebar toMsg model =
         ]
         [ -- Top controls section (compact)
           Element.column
-            [width fill, spacing 2, paddingEach { bottom = 36, top = 0, left = 0, right = 0 }]
+            [ width fill, spacing 2, paddingEach { bottom = 36, top = 0, left = 0, right = 0 } ]
             [ nameElement toMsg model
             , toggleTheme toMsg model
             , crudButtons toMsg model
@@ -179,13 +199,13 @@ sidebar toMsg model =
 
         -- Export/Import section
         , Element.column
-            [width fill, paddingEach { bottom = 36, top = 0, left = 0, right = 0 }]
+            [ width fill, paddingEach { bottom = 36, top = 0, left = 0, right = 0 } ]
             [ exportStuff toMsg model
             ]
 
         -- Document list section (maximized)
         , Element.column
-            [height fill, width fill, spacing 2]
+            [ height fill, width fill, spacing 2 ]
             [ -- Search input
               Input.text
                 [ width fill
@@ -227,6 +247,7 @@ tocPanel renderMsg model =
     -- Hide TOC when window width is below 1000px to give more space to content
     if model.windowWidth < 1000 then
         Element.none
+
     else
         let
             tocItems =
@@ -235,34 +256,35 @@ tocPanel renderMsg model =
                     |> List.map (Element.map renderMsg)
         in
         Element.column
-        [ Element.width (px tocWidth)
-        , height fill
-        , Font.color (Style.textColor model.theme)
-        , Font.size 12
-        , Background.color (Style.backgroundColor model.theme)
-        , Element.scrollbarY
-        , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
-        , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
-        , Element.htmlAttribute (Html.Attributes.id "toc-panel")
-        , padding 12
-        , spacing 6
-        ]
-        (if List.isEmpty tocItems then
-            [ Element.el
-                [ Font.color (Style.mutedTextColor model.theme)
-                , Font.italic
-                ]
-                (Element.text "No headings")
+            [ Element.width (px tocWidth)
+            , height fill
+            , Font.color (Style.textColor model.theme)
+            , Font.size 12
+            , Background.color (Style.backgroundColor model.theme)
+            , Element.scrollbarY
+            , Element.htmlAttribute (Html.Attributes.style "overflow-y" "auto")
+            , Element.htmlAttribute (Html.Attributes.style "overflow-x" "hidden")
+            , Element.htmlAttribute (Html.Attributes.id "toc-panel")
+            , padding 12
+            , spacing 6
             ]
-         else
-            Element.el
-                [ Font.bold
-                , Font.size 14
-                , Element.paddingEach { top = 0, bottom = 8, left = 0, right = 0 }
+            (if List.isEmpty tocItems then
+                [ Element.el
+                    [ Font.color (Style.mutedTextColor model.theme)
+                    , Font.italic
+                    ]
+                    (Element.text "No headings")
                 ]
-                (Element.text "Contents")
-            :: tocItems
-        )
+
+             else
+                Element.el
+                    [ Font.bold
+                    , Font.size 14
+                    , Element.paddingEach { top = 0, bottom = 8, left = 0, right = 0 }
+                    ]
+                    (Element.text "Contents")
+                    :: tocItems
+            )
 
 
 crudButtons : (Common.CommonMsg -> msg) -> Common.CommonModel -> Element msg
@@ -326,8 +348,10 @@ exportStuff toMsg model =
                                 , Font.color
                                     (if model.theme == Theme.Light then
                                         Element.rgb 0 0 0.8
+
                                      else
-                                        Element.rgb 0.4 0.6 1.0  -- Light blue for dark mode
+                                        Element.rgb 0.4 0.6 1.0
+                                     -- Light blue for dark mode
                                     )
                                 ]
                                 { url = Config.pdfServUrl ++ extractFileName model.pdfLink
@@ -344,8 +368,10 @@ exportStuff toMsg model =
                                             , Font.color
                                                 (if model.theme == Theme.Light then
                                                     Element.rgb 0 0 0.8
+
                                                  else
-                                                    Element.rgb 0.4 0.6 1.0  -- Light blue for dark mode
+                                                    Element.rgb 0.4 0.6 1.0
+                                                 -- Light blue for dark mode
                                                 )
                                             ]
                                             { url = Config.pdfServUrl ++ pdfFile
@@ -359,7 +385,6 @@ exportStuff toMsg model =
 
                                     Nothing ->
                                         Element.none
-
                                 , -- Show error report link if available
                                   case response.errorReport of
                                     Just errorFile ->
@@ -519,6 +544,7 @@ header model =
         ]
 
 
+
 -- STYLE
 
 
@@ -526,6 +552,7 @@ mainColumnStyle =
     [ width fill
     , height fill
     ]
+
 
 
 -- EDITOR
@@ -575,6 +602,7 @@ editorHeight model =
     max 100 (model.windowHeight - headerHeight - 1)
 
 
+
 -- Editor event handlers
 
 
@@ -596,6 +624,7 @@ onTextChange toMsg =
             (Json.Decode.at [ "detail", "position" ] Json.Decode.int)
             (Json.Decode.at [ "detail", "source" ] Json.Decode.string)
         )
+
 
 
 -- Editor utility functions
@@ -631,6 +660,7 @@ stringOfBool b =
         "false"
 
 
+
 -- WIDGET WRAPPERS
 
 
@@ -650,8 +680,11 @@ nameElement toMsg model =
             , Font.color (Style.textColor model.theme)
             , if showLabel then
                 Element.alpha 1
+
               else
-                Element.alpha 0  -- Hide label but keep structure
+                Element.alpha 0
+
+            -- Hide label but keep structure
             ]
             (text "Name your app:")
         , inputTextWidget model.theme currentValue (toMsg << Common.InputUserName)
@@ -763,7 +796,8 @@ sidebarButton2 modelTheme buttonTheme msg label =
                         "rgb(0, 40, 40)"
 
                     Theme.Dark ->
-                        "rgb(100, 150, 255)"  -- Light blue instead of orange
+                        "rgb(100, 150, 255)"
+                 -- Light blue instead of orange
                 )
             )
         , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 4, bottomRight = 4 }
@@ -773,7 +807,8 @@ sidebarButton2 modelTheme buttonTheme msg label =
                 Element.rgba 0.2 0.2 0.2 1.0
 
              else
-                Element.rgba 0.39 0.59 1.0 0.5  -- Light blue border
+                Element.rgba 0.39 0.59 1.0 0.5
+             -- Light blue border
             )
         , Font.size 12
         , if buttonTheme == modelTheme then

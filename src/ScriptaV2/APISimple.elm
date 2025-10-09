@@ -31,9 +31,10 @@ import Dict
 import Element exposing (Element)
 import Render.Settings
 import Render.Theme
-import ScriptaV2.Compiler exposing (Filter)
+import ScriptaV2.Compiler
 import ScriptaV2.Language exposing (Language)
 import ScriptaV2.Msg exposing (MarkupMsg)
+import ScriptaV2.Types exposing (CompilerParameters, Filter)
 
 
 type alias Input =
@@ -50,17 +51,7 @@ This ensures that the rendered text is properly updated.
 -}
 compile : CompilerParameters -> String -> List (Element MarkupMsg)
 compile params sourceText =
-    ScriptaV2.Compiler.compile (displaySettings params) Render.Theme.Light params (String.lines sourceText) |> ScriptaV2.Compiler.view params.docWidth
-
-
-type alias CompilerParameters =
-    { lang : Language
-    , docWidth : Int
-    , editCount : Int
-    , selectedId : String
-    , idsOfOpenNodes : List String
-    , filter : Filter
-    }
+    ScriptaV2.Compiler.compile params (String.lines sourceText) |> ScriptaV2.Compiler.view params.docWidth
 
 
 displaySettings : CompilerParameters -> Render.Settings.DisplaySettings

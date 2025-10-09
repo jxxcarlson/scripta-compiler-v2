@@ -1,5 +1,5 @@
 module Render.Settings exposing
-    ( Display(..), defaultSettings, makeSettings, RenderSettings, default
+    ( Display(..), makeSettings, RenderSettings, default
     , DisplaySettings, RenderData, ThemedStyles, darkTheme, defaultDisplaySettings, defaultRenderData, defaultRenderSettings, getThemedColor, getThemedElementColor, lightTheme, toElementColor, unrollTheme
     )
 
@@ -20,6 +20,7 @@ import Element.Font as Font
 import Generic.Acc
 import Render.NewColor exposing (..)
 import Render.Theme
+import ScriptaV2.Types exposing (CompilerParameters)
 
 
 type alias RenderData =
@@ -34,18 +35,13 @@ type alias RenderData =
 -- default selectedId width
 
 
-defaultRenderData : DisplaySettings -> Render.Theme.Theme -> Int -> Int -> String -> RenderData
-defaultRenderData displaysettings theme width outerCount selectedId =
+defaultRenderData : CompilerParameters -> Int -> Int -> String -> RenderData
+defaultRenderData params width outerCount selectedId =
     { count = outerCount
     , idPrefix = "!!"
-    , settings = default displaysettings theme selectedId width
+    , settings = default params selectedId width
     , initialAccumulatorData = Generic.Acc.initialData
     }
-
-
-defaultRenderSettings : DisplaySettings -> Render.Theme.Theme -> Int -> String -> RenderSettings
-defaultRenderSettings displaysettings theme width selectedId =
-    default displaysettings theme selectedId width
 
 
 defaultDisplaySettings : DisplaySettings
@@ -200,39 +196,39 @@ type Display
 
 
 {-| -}
-defaultSettings : DisplaySettings -> RenderSettings
-defaultSettings displaySettings =
-    makeSettings displaySettings Render.Theme.Light "" Nothing 1 600 Dict.empty
+defaultRenderSettings : CompilerParameters -> RenderSettings
+defaultRenderSettings params =
+    makeSettings params
 
 
 {-| -}
-default : DisplaySettings -> Render.Theme.Theme -> String -> Int -> RenderSettings
-default displaySettings theme selectedId width =
-    makeSettings displaySettings theme selectedId Nothing 1 width Dict.empty
+default : CompilerParameters -> String -> Int -> RenderSettings
+default params selectedId width =
+    makeSettings params
 
 
 {-| -}
-makeSettings : DisplaySettings -> Render.Theme.Theme -> String -> Maybe String -> Float -> Int -> Dict String String -> RenderSettings
-makeSettings displaySettings theme selectedId selectedSlug scale windowWidth data =
+makeSettings : CompilerParameters -> RenderSettings
+makeSettings params =
     let
         titleSize =
             32
     in
-    { width = round (scale * toFloat windowWidth)
+    { width = round (params.scale * toFloat params.windowWidth)
     , titleSize = titleSize
     , paragraphSpacing = 28
     , display = DefaultDisplay
-    , longEquationLimit = 1 * (windowWidth |> toFloat)
+    , longEquationLimit = 1 * (params.windowWidth |> toFloat)
     , showTOC = True
     , showErrorMessages = False
-    , selectedId = selectedId
-    , selectedSlug = selectedSlug
-    , backgroundColor = getThemedElementColor .background theme
-    , textColor = getThemedElementColor .text theme
-    , codeColor = getThemedElementColor .codeText theme
-    , linkColor = getThemedElementColor .link theme
-    , highlight = getThemedElementColor .highlight theme
-    , codeBackground = getThemedElementColor .codeBackground theme
+    , selectedId = params.selectedId
+    , selectedSlug = params.selectedSlug
+    , backgroundColor = getThemedElementColor .background params.theme
+    , textColor = getThemedElementColor .text params.theme
+    , codeColor = getThemedElementColor .codeText params.theme
+    , linkColor = getThemedElementColor .link params.theme
+    , highlight = getThemedElementColor .highlight params.theme
+    , codeBackground = getThemedElementColor .codeBackground params.theme
     , titlePrefix = ""
     , isStandaloneDocument = False
     , leftIndent = 0
@@ -243,8 +239,8 @@ makeSettings displaySettings theme selectedId selectedSlug scale windowWidth dat
     , maxHeadingFontSize = (titleSize |> toFloat) * 0.72
     , redColor = Element.rgb 0.7 0 0
     , topMarginForChildren = 6
-    , data = data
-    , theme = theme
+    , data = params.data
+    , theme = params.theme
     , paddingTop = 0
     , paddingBottom = 0
     , properties = Dict.empty

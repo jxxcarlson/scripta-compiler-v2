@@ -21,6 +21,7 @@ import Render.Theme
 import Render.Utility
 import Render.VerbatimBlock as VerbatimBlock
 import ScriptaV2.Msg exposing (MarkupMsg(..))
+import ScriptaV2.Types
 
 
 {-| Simplified version of Block.renderAttributes
@@ -51,17 +52,17 @@ syncAttributes settings block =
 
 {-| Simplified version of Block.renderBody
 -}
-renderBody : Render.Theme.Theme -> Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Element MarkupMsg)
-renderBody theme count acc settings _ block =
+renderBody : ScriptaV2.Types.CompilerParameters -> RenderSettings -> Accumulator -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> List (Element MarkupMsg)
+renderBody params settings acc _ block =
     case block.heading of
         Paragraph ->
-            [ Element.column (Render.Sync.attributes settings block) [ renderParagraphBody count acc settings (Render.Settings.unrollTheme theme) block ] ]
+            [ Element.column (Render.Sync.attributes settings block) [ renderParagraphBody params.editCount acc settings (Render.Settings.unrollTheme params.theme) block ] ]
 
         Ordinary _ ->
-            [ Element.column (Render.Sync.attributes settings block) [ Render.OrdinaryBlock.render count acc settings (Render.Settings.unrollTheme theme) block ] ]
+            [ Element.column (Render.Sync.attributes settings block) [ Render.OrdinaryBlock.render params.editCount acc settings (Render.Settings.unrollTheme params.theme) block ] ]
 
         Verbatim _ ->
-            [ Element.column (Render.Sync.attributes settings block) [ VerbatimBlock.render count acc settings (Render.Settings.unrollTheme theme) block |> Render.Helper.showError block.meta.error ] ]
+            [ Element.column (Render.Sync.attributes settings block) [ VerbatimBlock.render params.editCount acc settings (Render.Settings.unrollTheme params.theme) block |> Render.Helper.showError block.meta.error ] ]
 
 
 {-| Render a paragraph body
