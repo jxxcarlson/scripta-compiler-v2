@@ -3,8 +3,25 @@ const init =  async function(app) {
   console.log("I am starting elm-katex: init");
   var katexJs = document.createElement('script')
   katexJs.type = 'text/javascript'
-  katexJs.onload = initKatex
+  katexJs.onload = function() {
+    console.log("elm-katex: katex loading");
+    initKatex();
+    console.log("elm-katex: mhchem loading");
+    loadMhchem();
+  }
   katexJs.src = "https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js"
+
+  function loadMhchem() {
+    var mhChemJs = document.createElement('script');
+    mhChemJs.type = 'text/javascript';
+    mhChemJs.onload = function() {
+      console.log("elm-katex: mhchem loaded");
+    };
+    mhChemJs.src = "https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/mhchem.min.js";
+
+    document.head.appendChild(mhChemJs);
+    console.log("elm-katex: I have appended mhChemJs to document.head");
+  }
 
   document.head.appendChild(katexJs);
   console.log("elm-katex: I have appended katexJs to document.head");
