@@ -1209,4 +1209,5 @@ makeCompilerParams common displaySettings =
         , windowWidth = Common.View.panelWidth common - 30
         , idsOfOpenNodes = displaySettings.idsOfOpenNodes
         , numberToLevel = displaySettings.numberToLevel
+        , selectedId = displaySettings.selectedId
     }
