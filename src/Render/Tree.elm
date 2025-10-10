@@ -64,7 +64,7 @@ renderTree params settings accumulator attrs_ tree =
         bgColorAttr =
             Render.Settings.getThemedElementColor .offsetBackground params.theme
 
-        -- Determine if the root block is a box-like block
+        -- Determine if the root bloc`k is a box-like block
         --blockAttrs : List (Element.Attribute MarkupMsg)
         borderColor =
             case params.theme of

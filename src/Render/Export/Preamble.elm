@@ -80,6 +80,8 @@ packageList =
     , ( "strike", [ "soul" ] )
     , ( "errorHighlight", [ "xcolor" ] )
     , ( "image", [ "graphicx", "wrapfig", "float" ] )
+
+    --, ( "ce", [ "mhchem" ] )
     ]
 
 
@@ -176,6 +178,10 @@ standardPackages =
 \\usepackage{amscd}
 
 \\usepackage{fancyvrb} %% for inline verbatim
+
+%% Chemistry
+\\usepackage{mhchem} % for \\ce
+
 """
 
 
