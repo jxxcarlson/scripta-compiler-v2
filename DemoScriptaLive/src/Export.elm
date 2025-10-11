@@ -791,7 +791,7 @@ inlineMath str =
 
 inlineCode : String -> String
 inlineCode str =
-    "\\verb`" ++ str ++ "`"
+    "\\texttt{" ++ str ++ "}"
 
 
 link : List Expression -> String
