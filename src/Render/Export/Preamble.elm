@@ -180,7 +180,7 @@ standardPackages =
 \\usepackage{fancyvrb} %% for inline verbatim
 
 %% Chemistry
-\\usepackage{mhchem} % for \\ce
+\\usepackage[version=4]{mhchem} % for \\ce
 
 """
 
