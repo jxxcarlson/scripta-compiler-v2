@@ -790,7 +790,11 @@ inlineMath str =
 
 
 inlineCode : String -> String
-inlineCode str =
+inlineCode str_ =
+    let
+        str =
+            String.replace "\\" "\\\\" str_
+    in
     "\\texttt{" ++ str ++ "}"
 
 

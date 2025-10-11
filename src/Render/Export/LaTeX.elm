@@ -1082,8 +1082,12 @@ inlineMath str =
 
 
 inlineCode : String -> String
-inlineCode str =
-    "\\verb`" ++ str ++ "`"
+inlineCode str_ =
+    let
+        str =
+            String.replace "\\" "\\\\" str_
+    in
+    "\\texttt{" ++ str ++ "}"
 
 
 link : List Expression -> String
