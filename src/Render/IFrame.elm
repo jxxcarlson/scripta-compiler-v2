@@ -97,6 +97,7 @@ allowedIFrameSrcList =
     , "https://q.uiver.app/"
     , "https://www.youtube.com/embed/"
     , "https://www.geogebra.org/"
+    , "https://claude.site/public/artifacts"
     ]
 
 
