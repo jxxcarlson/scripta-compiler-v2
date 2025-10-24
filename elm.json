@@ -3,7 +3,7 @@
     "name": "jxxcarlson/scripta-compiler-v2",
     "summary": "A compiler for the scripta languages: L0, MiniLaTeX, XMarkdown",
     "license": "MIT",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "exposed-modules": [
         "ScriptaV2.APISimple",
         "ScriptaV2.API",
