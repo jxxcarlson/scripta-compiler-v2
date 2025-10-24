@@ -196,7 +196,7 @@ viewTocItem_ theme indentation viewParameters acc hasChildren ({ args, body, pro
                     --        if level <= 6 then
                     case Dict.get "label" properties of
                         Nothing ->
-                            nosectionNumber "@@"
+                            nosectionNumber ""
 
                         Just label ->
                             Element.el [] (Element.text (label ++ "."))
