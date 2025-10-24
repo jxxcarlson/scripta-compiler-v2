@@ -1,0 +1,314 @@
+# The Abstract Syntax Tree for Scripta Markup (Enclosure/L0)
+
+[i Author: Claude Code]
+
+[i Date: 2025-10-17]
+
+## Overview
+
+Scripta Markup (also known as Enclosure or L0) is one of three markup languages supported by the Scripta Compiler V2. This document describes its Abstract Syntax Tree (AST) structure, which is defined in the [code M/] directory of the compiler codebase.
+
+## Core Expression Types
+
+The fundamental AST node type is [code Expr metaData], defined in [code Generic.Language:52-56]. It has four variants:
+
+. [b Text String metaData] — Plain text content with position metadata
+
+. [b Fun String (List (Expr metaData)) metaData] — Function application with name and arguments, e.g., [code [b important]]
+
+. [b VFun String String metaData] — Verbatim function for math or code, e.g., [code $a^2 + b^2$] or [code `println(x)`]
+
+. [b ExprList (List (Expr metaData)) metaData] — A list of expressions
+
+### Expression Metadata
+
+Each expression carries [code ExprMeta] metadata ([code Generic.Language:105-106]):
+
+| code
+type alias ExprMeta =
+    { begin : Int        -- Start position in source text
+    , end : Int          -- End position in source text
+    , index : Int        -- Token index during parsing
+    , id : String        -- Unique identifier: "e-LINE.INDEX"
+    }
+
+### Expression Examples
+
+From [code M.Expression:47-54]:
+
+. [code "hello"] parses to [code Text "hello" ()]
+
+. [code "This is [b important]"] parses to [code Fun "b" [Text " important" ()] ()]
+
+. [code "I like $a^2 + b^2 = c^2$"] parses to [code VFun "math" "a^2 + b^2 = c^2" ()]
+
+## Block-Level Structure
+
+Blocks are the top-level structural elements. The generic block type is defined in [code Generic.Language:85-94]:
+
+| code
+type alias Block content blockMetaData =
+    { heading : Heading              -- Block type classifier
+    , indent : Int                   -- Indentation level
+    , args : List String             -- Command arguments
+    , properties : Dict String String -- Key-value properties
+    , firstLine : String             -- First line of block
+    , body : content                 -- Content (polymorphic)
+    , meta : blockMetaData           -- Metadata
+    , style : Maybe Style            -- Optional styling
+    }
+
+### Heading Types
+
+Blocks are classified by their heading ([code Generic.Language:144-147]):
+
+. [b Paragraph] — Regular text block
+
+. [b Ordinary String] — Named block: [code [section]], [code [item]], [code [equation]], etc.
+
+. [b Verbatim String] — Verbatim blocks: [code code], [code math], [code verse], etc.
+
+### Block Metadata
+
+Block metadata ([code Generic.Language:119-127]) tracks position and compilation messages:
+
+| code
+type alias BlockMeta =
+    { position : Int             -- Byte position in source
+    , lineNumber : Int           -- Line number
+    , numberOfLines : Int        -- Number of lines in block
+    , id : String                -- Block identifier
+    , messages : List String     -- Compiler messages
+    , sourceText : String        -- Full source text
+    , error : Maybe String       -- Error information
+    }
+
+### Concrete Block Types
+
+. [b PrimitiveBlock] — Body contains raw strings: [code Block (List String) BlockMeta]
+
+. [b ExpressionBlock] — Body contains parsed expressions: [code Block (Either String (List Expression)) BlockMeta]
+
+The [code Either] type allows verbatim blocks ([code Left String]) to bypass expression parsing while ordinary blocks ([code Right (List Expression)]) contain parsed AST nodes.
+
+## Block Syntax Recognition
+
+The parser ([code M.PrimitiveBlock]) recognizes these block prefixes:
+
+. [code -] for list items: [code - Eggs] → [code Ordinary "item"]
+
+. [code .] for numbered items: [code . First item] → [code Ordinary "numbered"]
+
+. [code #] for sections: [code # Heading] → [code Ordinary "section"]
+
+. [code |] for special blocks: [code | equation], [code | table], etc.
+
+. [code ||] for explicit verbatim: [code || code python]
+
+. [code ```] for code fences: [code ```python]
+
+. [code $$] for math blocks
+
+### Verbatim Block Names
+
+From [code M.PrimitiveBlock:201-232], these names trigger verbatim (non-parsed) content:
+
+[code math], [code chem], [code compute], [code equation], [code aligned], [code array], [code table], [code code], [code verse], [code verbatim], [code load], [code load-data], [code hide], [code texComment], [code docinfo], [code mathmacros], [code textmacros], [code csvtable], [code chart], [code svg], [code quiver], [code image], [code tikz], [code load-files], [code include], [code setup], [code iframe], [code settings]
+
+## Tokenization Layer
+
+Before expression parsing, text is tokenized ([code M.Tokenizer:39-49]):
+
+| code
+type Token_ meta
+    = LB meta                      -- Left bracket: [
+    | RB meta                      -- Right bracket: ]
+    | LMB meta                     -- Left math bracket: \(
+    | RMB meta                     -- Right math bracket: \)
+    | S String meta                -- String/text token
+    | W String meta                -- Whitespace token
+    | MathToken meta               -- Math delimiter: $
+    | BracketedMath String meta    -- Bracketed math: \[...\]
+    | CodeToken meta               -- Code delimiter: `
+    | TokenError (List DeadEnd) meta -- Parse error
+
+Tokens carry position metadata: [code { begin : Int, end : Int, index : Int }]
+
+## Symbol Abstraction for Bracket Matching
+
+Tokens are converted to symbols for bracket matching ([code M.Symbol:6-16]):
+
+| code
+type Symbol
+    = L       -- Left bracket [
+    | R       -- Right bracket ]
+    | BM      -- Bracketed math \[...\]
+    | LM      -- Left math \(
+    | RM      -- Right math \)
+    | ST      -- String token
+    | M       -- Math delimiter $
+    | C       -- Code delimiter `
+    | WS      -- Whitespace
+    | E       -- Token error
+
+Symbols have balance values for matching:
+
+. [code L], [code LM], [code BM]: value +1 (opening brackets)
+
+. [code R], [code RM]: value -1 (closing brackets)
+
+. Others: value 0
+
+## Expression Parser State Machine
+
+The parser maintains state ([code M.Expression:122-131]):
+
+| code
+type alias State =
+    { step : Int
+    , tokens : List Token
+    , numberOfTokens : Int
+    , tokenIndex : Int
+    , committed : List Expression  -- Finalized expressions
+    , stack : List Token            -- Working stack
+    , messages : List String        -- Parser messages
+    , lineNumber : Int
+    }
+
+### Parsing Algorithm
+
+The parser ([code M.Expression:166-182]) follows this loop:
+
+. Get next token
+
+. Push token to stack or commit if it's plain text
+
+. Check if stack is reducible (has matching brackets)
+
+. If reducible, reduce stack to expression and commit
+
+. If not reducible, continue
+
+. On end of input with non-empty stack, recover from errors
+
+### Reduction Rules
+
+From [code M.Expression:301-363], reducible token sequences become:
+
+. [code [LB name EXPRS RB]] → [code Fun name (reduceRest EXPRS) meta]
+
+. [code [$ text $]] → [code VFun "math" "text" meta]
+
+. [code [` text `]] → [code VFun "code" "text" meta]
+
+. [code [\( text \)]] → [code VFun "math" "text" meta]
+
+## Forest Structure for Document Hierarchy
+
+Blocks are organized into a forest (tree structure) based on indentation ([code Generic.Forest:52-53]):
+
+| code
+type alias Forest a = List (Tree a)
+
+The forest is built by [code Generic.ForestTransform.forestFromBlocks] which converts indentation levels into parent-child relationships.
+
+### Example
+
+| code
+Block 1 (indent 0)     → Tree "1" [
+  Block 2 (indent 2)              Tree "2" []
+  Block 3 (indent 2)              Tree "3" []
+  Block 4 (indent 2)              Tree "4" []
+Block 5 (indent 0)            ]
+  Block 6 (indent 2)     → Tree "5" [
+  Block 7 (indent 2)              Tree "6" []
+                                  Tree "7" []
+                               ]
+
+## Compilation Pipeline
+
+The complete pipeline for Scripta Markup:
+
+. [b Source Text] (String) → Lines of text
+
+. [b Tokenization] → [code M.Tokenizer.run] produces tokens
+
+. [b Primitive Block Parsing] → [code M.PrimitiveBlock.parse] produces [code PrimitiveBlock] list
+
+. [b Forest Transform] → [code Generic.ForestTransform.forestFromBlocks] creates document hierarchy
+
+. [b Expression Parsing] → [code M.Expression.parse] parses non-verbatim blocks into expressions
+
+. [b Rendering] → Render to HTML/elm-ui elements
+
+## Error Recovery
+
+The parser includes sophisticated error recovery ([code M.Expression:417-629]):
+
+. Missing right brackets → error message and partial recovery
+
+. Consecutive left brackets → insert error token
+
+. Unmatched math delimiters → special error handling
+
+. Extra right brackets → detailed error messages
+
+. Unknown errors → balance brackets and attempt reduction
+
+Errors are reported with line numbers and inserted as special [code errorHighlight] expressions in the AST.
+
+## AST Summary Diagram
+
+| code
+Document Source
+    ↓
+List String (lines)
+    ↓
+List PrimitiveBlock
+    body: List String
+    heading: Heading
+    meta: BlockMeta
+    ↓
+Forest (List (Tree ExpressionBlock))
+    body: Either String (List Expression)
+    heading: Heading (Paragraph | Ordinary | Verbatim)
+    ↓
+Expression
+    ├─ Text String ExprMeta
+    ├─ Fun String (List Expression) ExprMeta
+    ├─ VFun String String ExprMeta
+    └─ ExprList (List Expression) ExprMeta
+
+## Key Design Decisions
+
+. [b Separation of Concerns] — Tokenization, block parsing, expression parsing, and rendering are distinct phases
+
+. [b Metadata Propagation] — Position tracking throughout for error reporting
+
+. [b Verbatim vs. Parsed] — [code Either] type allows some blocks to skip expression parsing
+
+. [b Error Recovery] — Parser attempts to recover and produce partial AST even with errors
+
+. [b Indentation-Based Hierarchy] — Forest structure reflects document outline via indentation
+
+. [b Polymorphic Block Type] — Generic [code Block] type works at different compilation stages
+
+## References
+
+Key source files in the codebase:
+
+. [code Generic.Language] — Core AST type definitions
+
+. [code M.Expression] — Expression parser with state machine
+
+. [code M.PrimitiveBlock] — Block-level syntax recognition
+
+. [code M.Tokenizer] — Tokenization layer
+
+. [code M.Symbol] — Symbol abstraction for bracket matching
+
+. [code M.Match] — Bracket matching algorithm
+
+. [code Generic.Forest] — Forest/tree data structures
+
+. [code Generic.ForestTransform] — Indentation to forest conversion
