@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
-    ( CompilerOutput, compile, parse, parseFromString, renderForest, view, viewTOC
-    , filterForest2, header_, viewBodyOnly
+    ( CompilerOutput, compile, parse, parseFromString, renderForest, view, viewTOC, px, viewBody
+    , compileL, compileM, compileX, filterForest2, header_, parseL, parseM, parseX, pl, ps, viewBodyOnly
     )
 
 {-|
