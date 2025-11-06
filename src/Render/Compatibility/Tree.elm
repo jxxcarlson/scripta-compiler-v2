@@ -13,10 +13,11 @@ import Render.Settings exposing (RenderSettings)
 import Render.Tree as NewTree
 import RoseTree.Tree exposing (Tree)
 import ScriptaV2.Msg exposing (MarkupMsg)
+import ScriptaV2.Types
 
 
 {-| Compatibility wrapper for Tree.renderTree
 -}
-renderTree : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> Tree ExpressionBlock -> Element MarkupMsg
+renderTree : ScriptaV2.Types.CompilerParameters -> RenderSettings -> Accumulator -> List (Element.Attribute MarkupMsg) -> Tree ExpressionBlock -> Element MarkupMsg
 renderTree =
     NewTree.renderTree

@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
     ( CompilerOutput, compile, parse, parseFromString, renderForest, view, viewTOC, px, viewBody
-    , compileL, compileM, compileX, filterForest2, header_, parseL, parseM, parseX, pl, ps, viewBodyOnly
+    , filterForest2, header_, parseL, parseM, parseToForestWithAccumulator, parseX, pl, ps, viewBodyOnly
     )
 
 {-|
@@ -19,7 +19,7 @@ import Dict
 import Element exposing (Element)
 import Element.Font as Font
 import Generic.ASTTools
-import Generic.Acc
+import Generic.Acc exposing (Accumulator)
 import Generic.Compiler
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExpressionBlock)
@@ -158,20 +158,7 @@ bottomPadding k =
 -}
 compile : CompilerParameters -> List String -> CompilerOutput
 compile params lines =
-    case params.lang of
-        EnclosureLang ->
-            compileM params lines
-
-        MicroLaTeXLang ->
-            compileL params lines
-
-        SMarkdownLang ->
-            compileX params lines
-
-        MarkdownLang ->
-            -- Use the Markdown compiler
-            -- Markdown.Compiler.compileForScripta displaySettings theme (String.join "\n" lines)
-            compileX params lines
+    render params (parseToForestWithAccumulator params lines)
 
 
 {-|
@@ -296,48 +283,39 @@ filterForest2 forest =
         |> Generic.ASTTools.filterForestOnLabelNames (\name -> name /= Just "title")
 
 
-compileM : CompilerParameters -> List String -> CompilerOutput
-compileM params lines =
-    render params (filterForest params.filter (parseM Config.idPrefix params.editCount lines))
+parseToForestWithAccumulator : CompilerParameters -> List String -> ( Accumulator, Forest ExpressionBlock )
+parseToForestWithAccumulator params lines =
+    let
+        parser =
+            case params.lang of
+                EnclosureLang ->
+                    parseM
+
+                MicroLaTeXLang ->
+                    parseL
+
+                SMarkdownLang ->
+                    parseX
+
+                MarkdownLang ->
+                    parseX
+
+        -- NOTE: really bad idea!
+        forest =
+            filterForest params.filter (parser Config.idPrefix params.editCount lines)
+    in
+    Generic.Acc.transformAccumulate Generic.Acc.initialData forest
 
 
-compileX : CompilerParameters -> List String -> CompilerOutput
-compileX params lines =
-    render params (filterForest params.filter (parseX Config.idPrefix params.editCount lines))
-
-
-
--- LaTeX compiler
-
-
-compileL : CompilerParameters -> List String -> CompilerOutput
-compileL params lines =
-    render params (filterForest params.filter (parseL Config.idPrefix params.editCount lines))
-
-
-{-|
-
-    render width selectedId counter forest
-
-type alias ViewParameters =
-{ idsOfOpenNodes : List String
-, selectedId : String
-, counter : Int
-, attr : List (Element.Attribute MarkupMsg)
-, settings : Render.Settings.RenderSettings
-}
-
--}
-render : CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
-render params forest_ =
+render : CompilerParameters -> ( Accumulator, Forest ExpressionBlock ) -> CompilerOutput
+render params ( accumulator_, forest_ ) =
     let
         renderSettings : Render.Settings.RenderSettings
         renderSettings =
             Render.Settings.defaultRenderSettings params
 
-        ( accumulator, forest ) =
-            Generic.Acc.transformAccumulate Generic.Acc.initialData forest_
-
+        --( accumulator, forest ) =
+        --    Generic.Acc.transformAccumulate Generic.Acc.initialData forest_
         viewParameters =
             { idsOfOpenNodes = params.idsOfOpenNodes
             , selectedId = params.selectedId
@@ -351,20 +329,20 @@ render params forest_ =
             -- this value is used in DemoTOC for the document TOC
             -- it is NOT used for the documentTOC in Lamdera
             --Render.TOCTree.view viewParameters accumulator forest_
-            Render.TOCTree.view params.theme viewParameters accumulator forest_
+            Render.TOCTree.view params.theme viewParameters accumulator_ forest_
 
         banner : Maybe (Element MarkupMsg)
         banner =
-            Generic.ASTTools.banner forest
-                |> Maybe.map (Render.Block.renderBody params.editCount accumulator renderSettings [ Font.color (Element.rgb 1 0 0) ])
+            Generic.ASTTools.banner forest_
+                |> Maybe.map (Render.Block.renderBody params.editCount accumulator_ renderSettings [ Font.color (Element.rgb 1 0 0) ])
                 |> Maybe.map (Element.row [ Element.height (Element.px 40) ])
 
         title : Element MarkupMsg
         title =
-            Element.paragraph [] [ Element.text <| Generic.ASTTools.title forest ]
+            Element.paragraph [] [ Element.text <| Generic.ASTTools.title forest_ ]
     in
     { body =
-        renderForest params renderSettings accumulator forest
+        renderForest params renderSettings accumulator_ forest_
     , banner = banner
     , toc = toc
     , title = title

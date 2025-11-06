@@ -23,7 +23,7 @@ elm make src/Main.elm --output=./assets/main.js
 
 ### Run Tests
 ```bash
-elm-test                    # Run all tests
+elm-test                   # Run all tests
 elm-test --watch           # Watch mode
 ```
 
