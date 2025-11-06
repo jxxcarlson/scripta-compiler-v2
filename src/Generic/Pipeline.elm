@@ -10,8 +10,8 @@ import Tools.Utility
 
 
 toExpressionBlock : (Int -> String -> List Expression) -> PrimitiveBlock -> ExpressionBlock
-toExpressionBlock parser block =
-    toExpressionBlock_ (parser block.meta.lineNumber) block
+toExpressionBlock exprParser block =
+    toExpressionBlock_ (exprParser block.meta.lineNumber) block
         |> Generic.Language.boostBlock
 
 
