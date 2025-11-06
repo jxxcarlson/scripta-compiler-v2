@@ -298,10 +298,10 @@ parseToForestWithAccumulator params lines =
                     parseSMarkdown
 
                 MarkdownLang ->
-                    nullParser
+                    neverUsedParser
 
-        nullParser : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
-        nullParser _ _ _ =
+        neverUsedParser : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
+        neverUsedParser _ _ _ =
             []
 
         -- NOTE: really bad idea!
