@@ -29,42 +29,50 @@ compile params sourceText =
 
 ---
 
-### 2. Language Dispatch: ScriptaV2.Compiler.compile
-**Location:** `src/ScriptaV2/Compiler.elm:159-174`
+### 2. Core Compilation: ScriptaV2.Compiler.compile
+**Location:** `src/ScriptaV2/Compiler.elm:159-161`
 
 ```elm
 compile : CompilerParameters -> List String -> CompilerOutput
 compile params lines =
-    case params.lang of
-        EnclosureLang -> compileM params lines
-        MicroLaTeXLang -> compileL params lines
-        SMarkdownLang -> compileX params lines
-        MarkdownLang -> compileX params lines
+    render params (parseToForestWithAccumulator params lines)
 ```
 
 **What it does:**
-- Dispatches to language-specific compiler based on `params.lang`
+- Calls `parseToForestWithAccumulator` to parse lines and transform accumulator
+- Passes the result to `render` for final rendering
 - Returns a `CompilerOutput` containing body, banner, toc, and title
 
 ---
 
-### 3. Language-Specific Compilation (e.g., compileL)
-**Location:** `src/ScriptaV2/Compiler.elm:313-315`
+### 3. Parse to Forest with Accumulator: parseToForestWithAccumulator
+**Location:** `src/ScriptaV2/Compiler.elm:286-307`
 
 ```elm
-compileL : CompilerParameters -> List String -> CompilerOutput
-compileL params lines =
-    render params (filterForest params.filter (parseL Config.idPrefix params.editCount lines))
+parseToForestWithAccumulator : CompilerParameters -> List String -> ( Accumulator, Forest ExpressionBlock )
+parseToForestWithAccumulator params lines =
+    let
+        parser =
+            case params.lang of
+                EnclosureLang -> parseM
+                MicroLaTeXLang -> parseL
+                SMarkdownLang -> parseX
+                MarkdownLang -> parseX
+
+        forest =
+            filterForest params.filter (parser Config.idPrefix params.editCount lines)
+    in
+    Generic.Acc.transformAccumulate Generic.Acc.initialData forest
 ```
 
 **What it does:**
-1. Parses lines into a Forest using `parseL`
-2. Applies optional filtering with `filterForest`
-3. Renders the forest to a `CompilerOutput`
+1. Selects the appropriate parser based on `params.lang`
+2. Parses lines into a Forest using the selected parser (parseL, parseM, or parseX)
+3. Applies optional filtering with `filterForest`
+4. Transforms the forest with accumulator to track cross-references, numbering, etc.
+5. Returns a tuple of `(Accumulator, Forest ExpressionBlock)`
 
-**Similar functions:**
-- `compileM` (line 299-301) for Enclosure/L0
-- `compileX` (line 304-306) for XMarkdown/SMarkdown
+**Note:** This function consolidates the logic previously split across `compileL`, `compileM`, and `compileX`, making the accumulator transformation accessible earlier in the pipeline.
 
 ---
 
@@ -165,24 +173,40 @@ filterForest filter forest =
 ---
 
 ### 7. Rendering: render
-**Location:** `src/ScriptaV2/Compiler.elm:331-371`
+**Location:** `src/ScriptaV2/Compiler.elm:310-348`
 
 ```elm
-render : CompilerParameters -> Forest ExpressionBlock -> CompilerOutput
-render params forest_ =
+render : CompilerParameters -> ( Accumulator, Forest ExpressionBlock ) -> CompilerOutput
+render params ( accumulator_, forest_ ) =
     let
-        renderSettings = Render.Settings.defaultRenderSettings params
+        renderSettings : Render.Settings.RenderSettings
+        renderSettings =
+            Render.Settings.defaultRenderSettings params
 
-        ( accumulator, forest ) =
-            Generic.Acc.transformAccumulate Generic.Acc.initialData forest_
+        viewParameters =
+            { idsOfOpenNodes = params.idsOfOpenNodes
+            , selectedId = params.selectedId
+            , counter = params.editCount
+            , attr = []
+            , settings = renderSettings
+            }
 
-        viewParameters = { idsOfOpenNodes, selectedId, counter, attr, settings }
+        toc : List (Element MarkupMsg)
+        toc =
+            Render.TOCTree.view params.theme viewParameters accumulator_ forest_
 
-        toc = Render.TOCTree.view params.theme viewParameters accumulator forest_
-        banner = Generic.ASTTools.banner forest |> Maybe.map (Render.Block.renderBody ...)
-        title = Element.paragraph [] [ Element.text <| Generic.ASTTools.title forest ]
+        banner : Maybe (Element MarkupMsg)
+        banner =
+            Generic.ASTTools.banner forest_
+                |> Maybe.map (Render.Block.renderBody params.editCount accumulator_ renderSettings [ Font.color (Element.rgb 1 0 0) ])
+                |> Maybe.map (Element.row [ Element.height (Element.px 40) ])
+
+        title : Element MarkupMsg
+        title =
+            Element.paragraph [] [ Element.text <| Generic.ASTTools.title forest_ ]
     in
-    { body = renderForest params renderSettings accumulator forest
+    { body =
+        renderForest params renderSettings accumulator_ forest_
     , banner = banner
     , toc = toc
     , title = title
@@ -190,12 +214,15 @@ render params forest_ =
 ```
 
 **What it does:**
-1. Creates render settings from parameters
-2. Transforms forest with accumulator (tracks numbering, cross-references, etc.)
-3. Generates table of contents from document structure
-4. Extracts and renders banner (if present)
-5. Extracts document title
-6. Renders the main body using `renderForest`
+1. Accepts a tuple of `(Accumulator, Forest ExpressionBlock)` from `parseToForestWithAccumulator`
+2. Creates render settings from parameters
+3. Creates view parameters for rendering
+4. Generates table of contents using the pre-transformed accumulator
+5. Extracts and renders banner (if present)
+6. Extracts document title
+7. Renders the main body using `renderForest` with the pre-transformed accumulator
+
+**Key change:** The accumulator is now passed in as a parameter rather than being computed inside `render`. This allows external code to access the accumulator before rendering, enabling more advanced use cases.
 
 ---
 
@@ -324,30 +351,64 @@ type alias CompilerOutput =
    ↓
 2. String.lines (convert to line list)
    ↓
-3. ScriptaV2.Compiler.compile (dispatch by language)
+3. ScriptaV2.Compiler.compile
    ↓
-4. compileL/M/X (language-specific)
+4. parseToForestWithAccumulator
+   ├─ Select parser based on language (parseL/M/X)
+   ├─ Generic.Compiler.parse_
+   │  ├─ primitiveBlockParser → List PrimitiveBlock
+   │  ├─ forestFromBlocks → Forest PrimitiveBlock
+   │  └─ map toExpressionBlock → Forest ExpressionBlock
+   ├─ filterForest (optional filtering)
+   └─ Generic.Acc.transformAccumulate → (Accumulator, Forest)
    ↓
-5. parseL/M/X (with language-specific parsers)
-   ↓
-6. Generic.Compiler.parse_
-   ├─ primitiveBlockParser → List PrimitiveBlock
-   ├─ forestFromBlocks → Forest PrimitiveBlock
-   └─ map toExpressionBlock → Forest ExpressionBlock
-   ↓
-7. filterForest (optional filtering)
-   ↓
-8. render
-   ├─ transformAccumulate (track cross-refs, numbering)
-   ├─ extract TOC, title, banner
+5. render (receives pre-transformed accumulator and forest)
+   ├─ Create render settings
+   ├─ Generate TOC using accumulator
+   ├─ Extract and render banner
+   ├─ Extract title
    └─ renderForest
       └─ map Render.Tree.renderTree
          └─ Recursive tree rendering to elm-ui Elements
    ↓
-9. ScriptaV2.Compiler.view (final layout)
+6. ScriptaV2.Compiler.view (final layout)
    ↓
-10. List (Element MarkupMsg) - Ready for display
+7. List (Element MarkupMsg) - Ready for display
 ```
+
+**Key architectural change:** The accumulator transformation now happens in `parseToForestWithAccumulator` (step 4) rather than inside `render` (step 5). This makes the accumulator available earlier and allows external code to access it before rendering.
+
+---
+
+## Refactoring Benefits
+
+### Consolidated Architecture
+The refactoring consolidates three language-specific compilation functions (`compileL`, `compileM`, `compileX`) into a single unified flow through `parseToForestWithAccumulator`. This:
+- Reduces code duplication
+- Makes the compilation flow easier to understand
+- Simplifies maintenance and future changes
+
+### Early Accumulator Access
+Moving the accumulator transformation from `render` into `parseToForestWithAccumulator` provides several advantages:
+
+1. **External Access**: Code outside the compiler can now call `parseToForestWithAccumulator` to get both the accumulator and the forest, enabling advanced use cases like:
+   - Custom TOC generation before rendering
+   - Cross-reference extraction
+   - Section numbering queries
+   - Custom transformations based on accumulator data
+
+2. **Flexibility**: The `render` function now accepts a pre-transformed accumulator, allowing callers to:
+   - Modify the accumulator before rendering
+   - Use the same accumulator for multiple render operations
+   - Implement custom accumulator logic
+
+3. **Separation of Concerns**: Parsing and accumulator transformation are now clearly separated from rendering, making the architecture more modular.
+
+### Backward Compatibility
+Despite these internal changes, the public API remains unchanged:
+- `ScriptaV2.APISimple.compile` works exactly as before
+- `ScriptaV2.Compiler.compile` maintains the same signature
+- Existing code continues to work without modification
 
 ---
 
