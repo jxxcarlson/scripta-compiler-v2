@@ -1,4 +1,4 @@
-module M.Regex exposing (SectionType(..), findSectionPrefix, findSectionPrefix_, findSectionType, findUnNumberedSectionPrefix)
+module Scripta.Regex exposing (SectionType(..), findSectionPrefix, findSectionPrefix_, findSectionType, findUnNumberedSectionPrefix)
 
 import Regex
 

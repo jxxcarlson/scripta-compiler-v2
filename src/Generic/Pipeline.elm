@@ -4,7 +4,7 @@ import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..), PrimitiveBlock)
 import List.Extra
-import M.Expression
+import Scripta.Expression
 import ScriptaV2.Language exposing (Language(..))
 import Tools.Utility
 
@@ -55,7 +55,7 @@ toExpressionBlock_ parse primitiveBlock =
                     -- Generic.Language.getMeta block)
                     content_ : List (List Expression)
                     content_ =
-                        List.map (M.Expression.parse 0) items
+                        List.map (Scripta.Expression.parse 0) items
                 in
                 Right (List.map (\list -> ExprList list Generic.Language.emptyExprMeta) content_)
 
@@ -155,7 +155,7 @@ fixTable block lang parse =
                     prepareTableL0 parse (String.join "\n" block.body)
 
                 SMarkdownLang ->
-                    prepareTableL0 (M.Expression.parse 0) (String.join "\n" block.body)
+                    prepareTableL0 (Scripta.Expression.parse 0) (String.join "\n" block.body)
 
                 MarkdownLang ->
                     -- Standard Markdown doesn't use the same table structure

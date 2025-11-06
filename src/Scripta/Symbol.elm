@@ -1,6 +1,6 @@
-module M.Symbol exposing (Symbol(..), balance, toString, toSymbols, value)
+module Scripta.Symbol exposing (Symbol(..), balance, toString, toSymbols, value)
 
-import M.Tokenizer exposing (Token, Token_(..))
+import Scripta.Tokenizer exposing (Token, Token_(..))
 
 
 type Symbol

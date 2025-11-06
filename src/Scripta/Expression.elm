@@ -1,4 +1,4 @@
-module M.Expression exposing
+module Scripta.Expression exposing
     ( State
     , extractMessages
     , fixup
@@ -12,9 +12,9 @@ module M.Expression exposing
 
 import Generic.Language exposing (Expr(..), ExprMeta, Expression)
 import List.Extra
-import M.Match as M
-import M.Symbol as Symbol exposing (Symbol(..))
-import M.Tokenizer as Token exposing (Token, TokenType(..), Token_(..))
+import Scripta.Match as M
+import Scripta.Symbol as Symbol exposing (Symbol(..))
+import Scripta.Tokenizer as Token exposing (Token, TokenType(..), Token_(..))
 import ScriptaV2.Config as Config
 import Tools.Loop exposing (Step(..), loop)
 import Tools.ParserHelpers as Helpers

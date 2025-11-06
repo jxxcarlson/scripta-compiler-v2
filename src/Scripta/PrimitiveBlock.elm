@@ -1,10 +1,10 @@
-module M.PrimitiveBlock exposing (ib, l, ll, p, parse, py)
+module Scripta.PrimitiveBlock exposing (ib, l, ll, p, parse, py)
 
 import Dict exposing (Dict)
 import Generic.Language exposing (Heading(..), PrimitiveBlock)
 import Generic.Line exposing (HeadingData, HeadingError(..), Line)
 import Generic.PrimitiveBlock exposing (ParserFunctions)
-import M.Regex
+import Scripta.Regex
 import Tools.KV as KV
 
 
@@ -65,7 +65,7 @@ parse initialId outerCount lines =
 functionData =
     { isVerbatimBlock = isVerbatimLine
     , getHeadingData = getHeadingData
-    , findSectionPrefix = M.Regex.findSectionPrefix
+    , findSectionPrefix = Scripta.Regex.findSectionPrefix
     }
 
 
@@ -85,16 +85,16 @@ getHeadingData line_ =
         ( args1, properties ) =
             KV.argsAndProperties (String.words line)
     in
-    case M.Regex.findSectionType line of
-        M.Regex.Numbered prefixSection ->
+    case Scripta.Regex.findSectionType line of
+        Scripta.Regex.Numbered prefixSection ->
             { heading = Ordinary "section", args = [ String.length (String.trim prefixSection) |> String.fromInt ], properties = Dict.singleton "section-type" "markdown" }
                 |> Ok
 
-        M.Regex.Unnumbered unnumberedPrefix ->
+        Scripta.Regex.Unnumbered unnumberedPrefix ->
             { heading = Ordinary "section*", args = [ String.length (String.trim unnumberedPrefix) |> String.fromInt ], properties = Dict.singleton "section-type" "markdown" }
                 |> Ok
 
-        M.Regex.Unknown ->
+        Scripta.Regex.Unknown ->
             case args1 of
                 [] ->
                     --Err <| HEMissingPrefix

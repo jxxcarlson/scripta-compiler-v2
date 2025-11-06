@@ -1,7 +1,7 @@
-module M.Match exposing (getSegment, isReducible, match, splitAt)
+module Scripta.Match exposing (getSegment, isReducible, match, splitAt)
 
 import List.Extra
-import M.Symbol exposing (Symbol(..), value)
+import Scripta.Symbol exposing (Symbol(..), value)
 import Tools.ParserHelpers exposing (Step(..), loop)
 
 

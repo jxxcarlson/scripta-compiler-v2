@@ -1,4 +1,4 @@
-module M.Tokenizer exposing
+module Scripta.Tokenizer exposing
     ( Meta
     , SimpleToken
     , Token

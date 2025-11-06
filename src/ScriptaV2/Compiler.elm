@@ -23,8 +23,8 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Compiler
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExpressionBlock)
-import M.Expression
-import M.PrimitiveBlock
+import Scripta.Expression
+import Scripta.PrimitiveBlock
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
@@ -214,7 +214,7 @@ parse lang idPrefix outerCount lines =
 
 parseScripta : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
 parseScripta idPrefix outerCount lines =
-    Generic.Compiler.parse_ M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ Scripta.PrimitiveBlock.parse Scripta.Expression.parse idPrefix outerCount lines
 
 
 parseSMarkdown : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)

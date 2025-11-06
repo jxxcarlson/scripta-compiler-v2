@@ -12,7 +12,7 @@ module XMarkdown.Expression exposing
 
 import Generic.Language exposing (Expr(..), Expression)
 import List.Extra
-import M.Expression exposing (parseWithMessages)
+import Scripta.Expression exposing (parseWithMessages)
 import ScriptaV2.Config as Config
 import Tools.Loop exposing (Step(..), loop)
 import XMarkdown.ForkLog as Tools

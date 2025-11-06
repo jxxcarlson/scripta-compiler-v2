@@ -22,7 +22,7 @@ import Generic.Language exposing (Expr(..), Expression)
 import Generic.Print
 import Generic.TextMacroParser
 import List.Extra
-import M.Expression
+import Scripta.Expression
 
 
 type alias Macro =
@@ -50,7 +50,7 @@ macroFromString str =
 macroFromL0String : String -> Maybe Macro
 macroFromL0String str =
     str
-        |> M.Expression.parse 0
+        |> Scripta.Expression.parse 0
         |> List.head
         |> Maybe.andThen extract
 
@@ -371,7 +371,7 @@ toString exprToString macro =
 
 parseExpr : String -> Maybe Expression
 parseExpr str =
-    M.Expression.parse 0 str |> List.head
+    Scripta.Expression.parse 0 str |> List.head
 
 
 parseMacro : String -> Maybe Macro
@@ -398,7 +398,7 @@ applyMacroS2 macroS exprS =
 
 parseMicroLaTeX : String -> List Expression
 parseMicroLaTeX str =
-    M.Expression.parse 0 str
+    Scripta.Expression.parse 0 str
 
 
 

@@ -3,8 +3,8 @@ module ReplTest exposing (..)
 import Generic.Forest
 import Generic.Language
 import Generic.Pipeline
-import M.Expression
-import M.PrimitiveBlock
+import Scripta.Expression
+import Scripta.PrimitiveBlock
 import MicroLaTeX.PrimitiveBlock
 import Render.Settings
 import ScriptaV2.Compiler
@@ -12,7 +12,7 @@ import ScriptaV2.Compiler
 
 p : String -> List Generic.Language.PrimitiveBlock
 p str =
-    M.PrimitiveBlock.parse "0" 0 (String.lines str)
+    Scripta.PrimitiveBlock.parse "0" 0 (String.lines str)
 
 
 pL : String -> List Generic.Language.PrimitiveBlock
@@ -42,7 +42,7 @@ dfrs =
 
 expressionBlockFromPrimitiveBlock : Generic.Language.PrimitiveBlock -> Generic.Language.ExpressionBlock
 expressionBlockFromPrimitiveBlock =
-    Generic.Pipeline.toExpressionBlock M.Expression.parse
+    Generic.Pipeline.toExpressionBlock Scripta.Expression.parse
 
 
 t1 =

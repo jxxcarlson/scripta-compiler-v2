@@ -28,8 +28,8 @@ import Generic.Language exposing (ExpressionBlock, PrimitiveBlock)
 import Generic.Pipeline
 import Generic.PrimitiveBlock
 import Library.Tree
-import M.Expression
-import M.PrimitiveBlock
+import Scripta.Expression
+import Scripta.PrimitiveBlock
 import MicroLaTeX.Expression
 import MicroLaTeX.PrimitiveBlock
 import Render.Block
@@ -325,7 +325,7 @@ toExprBlock lang =
             Generic.Pipeline.toExpressionBlock MicroLaTeX.Expression.parse
 
         ScriptaLang ->
-            Generic.Pipeline.toExpressionBlock M.Expression.parse
+            Generic.Pipeline.toExpressionBlock Scripta.Expression.parse
 
         SMarkdownLang ->
             Generic.Pipeline.toExpressionBlock XMarkdown.Expression.parse

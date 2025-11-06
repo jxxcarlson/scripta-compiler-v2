@@ -5,7 +5,7 @@ import Element exposing (Element)
 import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (Expression, ExpressionBlock)
 import List.Extra
-import M.Expression
+import Scripta.Expression
 import Render.Expression
 import Render.Settings exposing (RenderSettings)
 import Render.Sync
