@@ -214,12 +214,12 @@ parse lang idPrefix outerCount lines =
 
 parseScripta : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
 parseScripta idPrefix outerCount lines =
-    Generic.Compiler.parse_ ScriptaLang M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
 
 
 parseSMarkdown : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
 parseSMarkdown idPrefix outerCount lines =
-    Generic.Compiler.parse_ SMarkdownLang XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
 
 
 {-| =
@@ -236,7 +236,7 @@ px str =
 -}
 parseMiniLaTeX : String -> Int -> List String -> Forest ExpressionBlock
 parseMiniLaTeX idPrefix outerCount lines =
-    Generic.Compiler.parse_ MiniLaTeXLang MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
 
 
 
