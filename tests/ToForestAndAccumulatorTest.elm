@@ -21,7 +21,7 @@ suite =
                 \_ ->
                     let
                         params =
-                            defaultParams MicroLaTeXLang
+                            defaultParams MiniLaTeXLang
 
                         lines =
                             [ "This is a test paragraph." ]
@@ -36,7 +36,7 @@ suite =
                 \_ ->
                     let
                         params =
-                            defaultParams MicroLaTeXLang
+                            defaultParams MiniLaTeXLang
 
                         lines =
                             [ "\\section{Introduction}", "", "Some text here." ]
@@ -50,7 +50,7 @@ suite =
                 \_ ->
                     let
                         params =
-                            defaultParams MicroLaTeXLang
+                            defaultParams MiniLaTeXLang
 
                         lines =
                             [ "\\section{First}"
@@ -104,7 +104,7 @@ suite =
                 \_ ->
                     let
                         params =
-                            defaultParams EnclosureLang
+                            defaultParams ScriptaLang
 
                         lines =
                             [ "This is a test paragraph." ]
@@ -119,7 +119,7 @@ suite =
                 \_ ->
                     let
                         params =
-                            defaultParams EnclosureLang
+                            defaultParams ScriptaLang
 
                         lines =
                             [ "| section", "Introduction", "", "Some text here." ]
@@ -135,7 +135,7 @@ suite =
                 \_ ->
                     let
                         baseParams =
-                            defaultParams MicroLaTeXLang
+                            defaultParams MiniLaTeXLang
 
                         params =
                             { baseParams | filter = NoFilter }
@@ -153,7 +153,7 @@ suite =
                 \_ ->
                     let
                         baseParams =
-                            defaultParams MicroLaTeXLang
+                            defaultParams MiniLaTeXLang
 
                         paramsNoFilter =
                             { baseParams | filter = NoFilter }

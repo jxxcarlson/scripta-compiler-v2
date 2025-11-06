@@ -197,10 +197,10 @@ parseFromString lang str =
 parse : Language -> String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
 parse lang idPrefix outerCount lines =
     case lang of
-        EnclosureLang ->
+        ScriptaLang ->
             parseM idPrefix outerCount lines
 
-        MicroLaTeXLang ->
+        MiniLaTeXLang ->
             parseL idPrefix outerCount lines
 
         SMarkdownLang ->
@@ -214,7 +214,7 @@ parse lang idPrefix outerCount lines =
 
 parseM : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
 parseM idPrefix outerCount lines =
-    Generic.Compiler.parse_ EnclosureLang M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ ScriptaLang M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
 
 
 parseX : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
@@ -236,7 +236,7 @@ px str =
 -}
 parseL : String -> Int -> List String -> Forest ExpressionBlock
 parseL idPrefix outerCount lines =
-    Generic.Compiler.parse_ MicroLaTeXLang MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ MiniLaTeXLang MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
 
 
 
@@ -288,10 +288,10 @@ parseToForestWithAccumulator params lines =
     let
         parser =
             case params.lang of
-                EnclosureLang ->
+                ScriptaLang ->
                     parseM
 
-                MicroLaTeXLang ->
+                MiniLaTeXLang ->
                     parseL
 
                 SMarkdownLang ->

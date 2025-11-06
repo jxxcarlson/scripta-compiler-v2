@@ -53,7 +53,7 @@ import XMarkdown.PrimitiveBlock
 
 pp : String -> List ExpressionBlock
 pp str =
-    M.PrimitiveBlock.p str |> List.map (toExprBlock ScriptaV2.Language.EnclosureLang)
+    M.PrimitiveBlock.p str |> List.map (toExprBlock ScriptaV2.Language.ScriptaLang)
 
 
 {-| -}
@@ -304,10 +304,10 @@ update editRecord text =
 chunker : Language -> String -> List PrimitiveBlock
 chunker lang str =
     case lang of
-        MicroLaTeXLang ->
+        MiniLaTeXLang ->
             MicroLaTeX.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
 
-        EnclosureLang ->
+        ScriptaLang ->
             M.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
 
         SMarkdownLang ->
@@ -321,10 +321,10 @@ chunker lang str =
 toExprBlock : Language -> PrimitiveBlock -> ExpressionBlock
 toExprBlock lang =
     case lang of
-        MicroLaTeXLang ->
+        MiniLaTeXLang ->
             Generic.Pipeline.toExpressionBlock MicroLaTeX.Expression.parse
 
-        EnclosureLang ->
+        ScriptaLang ->
             Generic.Pipeline.toExpressionBlock M.Expression.parse
 
         SMarkdownLang ->

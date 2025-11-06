@@ -45,7 +45,7 @@ rawExport_ : WrapOption -> String -> Result String String
 rawExport_ wrapOption source =
     let
         ast =
-            ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source)
+            ScriptaV2.Compiler.parse ScriptaV2.Language.ScriptaLang "idPrefix" 0 (String.lines source)
     in
     ast
         |> Generic.Forest.map Generic.BlockUtilities.condenseUrls
@@ -81,7 +81,7 @@ rawExportValidateSimple wrapOption source =
         --prettyText =
         --    rawExport wrapOption ast
         source2 =
-            rawExport wrapOption (ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source))
+            rawExport wrapOption (ScriptaV2.Compiler.parse ScriptaV2.Language.ScriptaLang "idPrefix" 0 (String.lines source))
 
         compress str =
             String.replace " " "" str |> String.replace "\n" "" |> String.replace "\t" ""
@@ -93,13 +93,13 @@ rawExportValidateS : WrapOption -> String -> Bool
 rawExportValidateS wrapOption source =
     let
         astResult1 =
-            ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines source)
+            ScriptaV2.Compiler.parse ScriptaV2.Language.ScriptaLang "idPrefix" 0 (String.lines source)
 
         prettyText =
             rawExport wrapOption astResult1
 
         astResult2 =
-            (\ast -> ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "idPrefix" 0 (String.lines ast)) prettyText
+            (\ast -> ScriptaV2.Compiler.parse ScriptaV2.Language.ScriptaLang "idPrefix" 0 (String.lines ast)) prettyText
     in
     astResult1 == astResult2
 
@@ -112,7 +112,7 @@ rawExportValidate wrapOption ast =
 
         ast2 : List (Tree ExpressionBlock)
         ast2 =
-            ScriptaV2.Compiler.parse ScriptaV2.Language.EnclosureLang "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  idPrefix" 0 (String.lines prettyText)
+            ScriptaV2.Compiler.parse ScriptaV2.Language.ScriptaLang "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  idPrefix" 0 (String.lines prettyText)
     in
     Generic.Language.simplifyForest ast == Generic.Language.simplifyForest ast2
 

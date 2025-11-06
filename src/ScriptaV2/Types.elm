@@ -46,7 +46,7 @@ type Filter
 {-| -}
 defaultCompilerParameters : CompilerParameters
 defaultCompilerParameters =
-    { lang = ScriptaV2.Language.EnclosureLang
+    { lang = ScriptaV2.Language.ScriptaLang
     , docWidth = 800
     , editCount = 0
     , selectedId = ""

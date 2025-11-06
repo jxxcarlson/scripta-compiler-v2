@@ -148,10 +148,10 @@ fixTable block lang parse =
         t1 : List Expression
         t1 =
             case lang of
-                MicroLaTeXLang ->
+                MiniLaTeXLang ->
                     prepareTableLaTeX parse (String.join "\n" block.body)
 
-                EnclosureLang ->
+                ScriptaLang ->
                     prepareTableL0 parse (String.join "\n" block.body)
 
                 SMarkdownLang ->

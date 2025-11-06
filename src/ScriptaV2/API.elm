@@ -1,7 +1,6 @@
 module ScriptaV2.API exposing
     ( compileOutput
-    , viewBodyOnly
-    , viewTOC
+    , viewBodyOnly, viewTOC
     )
 
 {-| ScriptaV2.API provides the core compilation interface for converting markup text
@@ -34,8 +33,9 @@ navigation panels.
 # Usage Example
 
     import ScriptaV2.API
-    import ScriptaV2.Types exposing (defaultCompilerParameters)
     import ScriptaV2.Language exposing (Language(..))
+    import ScriptaV2.Types exposing (defaultCompilerParameters)
+
 
     -- Configure compiler
     params =
@@ -117,10 +117,10 @@ The language field in CompilerParameters determines which parser to use:
 compileOutput : ScriptaV2.Types.CompilerParameters -> List String -> ScriptaV2.Compiler.CompilerOutput
 compileOutput params lines =
     case params.lang of
-        ScriptaV2.Language.EnclosureLang ->
+        ScriptaV2.Language.ScriptaLang ->
             ScriptaV2.Compiler.compileM params lines
 
-        ScriptaV2.Language.MicroLaTeXLang ->
+        ScriptaV2.Language.MiniLaTeXLang ->
             ScriptaV2.Compiler.compileL params lines
 
         ScriptaV2.Language.SMarkdownLang ->
@@ -167,7 +167,7 @@ viewTOC =
 settings : { filter : ScriptaV2.Types.Filter, lang : ScriptaV2.Language.Language, width : Int }
 settings =
     { filter = ScriptaV2.Types.NoFilter
-    , lang = ScriptaV2.Language.MicroLaTeXLang
+    , lang = ScriptaV2.Language.MiniLaTeXLang
     , width = 800
     }
 

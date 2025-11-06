@@ -174,7 +174,8 @@ initCommon flags =
         { windowWidth =
             max 310
                 (max 350
-                    ((flags.window.windowWidth - 230
+                    ((flags.window.windowWidth
+                        - 230
                         - (if flags.window.windowWidth >= 1000 then
                             221
 
@@ -187,7 +188,8 @@ initCommon flags =
                     )
                     - 40
                 )
-          -- Reduced padding experiment
+
+        -- Reduced padding experiment
         , longEquationLimit = 100.0
         , counter = 0
         , selectedId = "-"
@@ -202,7 +204,7 @@ initCommon flags =
     , count = 0
     , windowWidth = flags.window.windowWidth
     , windowHeight = flags.window.windowHeight
-    , currentLanguage = ScriptaV2.Language.EnclosureLang
+    , currentLanguage = ScriptaV2.Language.ScriptaLang
     , selectId = ""
     , title = ""
     , theme = theme
@@ -214,7 +216,7 @@ initCommon flags =
         , toc = []
         , title = Element.text ""
         }
-    , editRecord = ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.EnclosureLang ""
+    , editRecord = ScriptaV2.DifferentialCompiler.init Dict.empty ScriptaV2.Language.ScriptaLang ""
     , documents = []
     , currentDocument = Nothing
     , showDocumentList = False

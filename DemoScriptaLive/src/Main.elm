@@ -148,7 +148,7 @@ handleIncomingPortMsg msg model =
             ( { model | userName = Just name }
             , Cmd.none
             )
-            
+
         Ports.LastDocumentIdLoaded id ->
             -- Main.elm doesn't use localStorage, so we ignore this message
             ( model, Cmd.none )
@@ -680,7 +680,8 @@ update msg model =
 
         SelectedText str ->
             let
-                _ = str
+                _ =
+                    str
 
                 foundIds =
                     ScriptaV2.Helper.matchingIdsInAST str model.editRecord.tree
@@ -690,8 +691,11 @@ update msg model =
                     List.head foundIds |> Maybe.withDefault ""
 
                 -- Update displaySettings with new selectedId
-                oldDisplaySettings = model.displaySettings
-                newDisplaySettings = { oldDisplaySettings | selectedId = firstId }
+                oldDisplaySettings =
+                    model.displaySettings
+
+                newDisplaySettings =
+                    { oldDisplaySettings | selectedId = firstId }
 
                 -- Re-render with updated settings
                 newCompilerOutput =
@@ -706,7 +710,12 @@ update msg model =
                         | selectId = firstId
                         , selectedId = firstId
                         , foundIds = foundIds
-                        , foundIdIndex = if List.isEmpty foundIds then 0 else 1
+                        , foundIdIndex =
+                            if List.isEmpty foundIds then
+                                0
+
+                            else
+                                1
                         , displaySettings = newDisplaySettings
                         , compilerOutput = newCompilerOutput
                     }
@@ -716,6 +725,7 @@ update msg model =
                 -- Add a delay to ensure DOM is updated with new elements
                 Process.sleep 100
                     |> Task.perform (\_ -> LRSync firstId)
+
               else
                 Cmd.none
             )
@@ -877,7 +887,7 @@ compile model =
         (Theme.mapTheme model.theme)
         ""
         { filter = ScriptaV2.Compiler.SuppressDocumentBlocks
-        , lang = ScriptaV2.Language.EnclosureLang
+        , lang = ScriptaV2.Language.ScriptaLang
         , docWidth = panelWidth model - 200 --5 * xPadding
         , editCount = model.count
         , selectedId = model.selectId
@@ -1091,35 +1101,48 @@ jumpToId : String -> Cmd Msg
 jumpToId id =
     if String.isEmpty id then
         Cmd.none
+
     else
         -- Get both the target element and container element
-        Task.map3 (\a b c -> (a, b, c))
+        Task.map3 (\a b c -> ( a, b, c ))
             (Browser.Dom.getElement id)
             (Browser.Dom.getElement "rendered-text-container")
             (Browser.Dom.getViewportOf "rendered-text-container")
-            |> Task.andThen (\(targetEl, containerEl, viewport) ->
-                let
-                    -- Calculate the position of the target relative to the page
-                    targetPageY = targetEl.element.y
-                    containerPageY = containerEl.element.y
+            |> Task.andThen
+                (\( targetEl, containerEl, viewport ) ->
+                    let
+                        -- Calculate the position of the target relative to the page
+                        targetPageY =
+                            targetEl.element.y
 
-                    -- The target's position relative to the container's top
-                    relativeY = targetPageY - containerPageY
+                        containerPageY =
+                            containerEl.element.y
 
-                    -- Add current scroll to get absolute position in scrollable content
-                    absoluteY = relativeY + viewport.viewport.y
+                        -- The target's position relative to the container's top
+                        relativeY =
+                            targetPageY - containerPageY
 
-                    -- Calculate where to scroll to center the element
-                    elementHeight = targetEl.element.height
-                    viewportHeight = viewport.viewport.height
-                    scrollY = absoluteY - (viewportHeight / 2) + (elementHeight / 2)
+                        -- Add current scroll to get absolute position in scrollable content
+                        absoluteY =
+                            relativeY + viewport.viewport.y
 
-                    -- Clamp to valid range
-                    finalScrollY = max 0 scrollY
-                in
-                -- Scroll the container
-                Browser.Dom.setViewportOf "rendered-text-container" 0 finalScrollY
-            )
+                        -- Calculate where to scroll to center the element
+                        elementHeight =
+                            targetEl.element.height
+
+                        viewportHeight =
+                            viewport.viewport.height
+
+                        scrollY =
+                            absoluteY - (viewportHeight / 2) + (elementHeight / 2)
+
+                        -- Clamp to valid range
+                        finalScrollY =
+                            max 0 scrollY
+                    in
+                    -- Scroll the container
+                    Browser.Dom.setViewportOf "rendered-text-container" 0 finalScrollY
+                )
             |> Task.attempt (\_ -> NoOp)
 
 

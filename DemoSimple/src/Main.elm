@@ -57,10 +57,10 @@ type alias Flags =
 
 setSourceText currentLanguage =
     case currentLanguage of
-        ScriptaV2.Language.EnclosureLang ->
+        ScriptaV2.Language.ScriptaLang ->
             Data.M.text
 
-        ScriptaV2.Language.MicroLaTeXLang ->
+        ScriptaV2.Language.MiniLaTeXLang ->
             Data.MicroLaTeX.text
 
         ScriptaV2.Language.SMarkdownLang ->
@@ -73,7 +73,7 @@ init flags =
       , count = 1
       , windowWidth = flags.window.windowWidth
       , windowHeight = flags.window.windowHeight
-      , currentLanguage = ScriptaV2.Language.MicroLaTeXLang
+      , currentLanguage = ScriptaV2.Language.MiniLaTeXLang
       , selectId = "@InitID"
       }
     , Cmd.none
@@ -195,13 +195,13 @@ type Language
 languageToString : ScriptaV2.Language.Language -> String
 languageToString lang =
     case lang of
-        ScriptaV2.Language.EnclosureLang ->
+        ScriptaV2.Language.ScriptaLang ->
             "Enclosure"
 
         ScriptaV2.Language.SMarkdownLang ->
             "SMarkdown"
 
-        ScriptaV2.Language.MicroLaTeXLang ->
+        ScriptaV2.Language.MiniLaTeXLang ->
             "MicroLaTeX"
 
 
@@ -285,8 +285,8 @@ htmlId str =
 header model =
     Element.row [ Element.spacing 32, Element.centerX, paddingEach { left = 0, right = 0, top = 0, bottom = 12 } ]
         [ Element.el [ Font.color (Element.rgb 1 1 1) ] (Element.text "Compiler Demo 1")
-        , languageButton model.currentLanguage ScriptaV2.Language.EnclosureLang
-        , languageButton model.currentLanguage ScriptaV2.Language.MicroLaTeXLang
+        , languageButton model.currentLanguage ScriptaV2.Language.ScriptaLang
+        , languageButton model.currentLanguage ScriptaV2.Language.MiniLaTeXLang
         , languageButton model.currentLanguage ScriptaV2.Language.SMarkdownLang
         ]
 

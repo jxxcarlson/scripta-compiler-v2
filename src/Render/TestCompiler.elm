@@ -13,17 +13,17 @@ main : Html msg
 main =
     let
         compilerParams =
-            { lang = EnclosureLang
+            { lang = ScriptaLang
             , docWidth = 800
             , editCount = 0
             , selectedId = ""
             , idsOfOpenNodes = []
             , filter = Compiler.NoFilter
             }
-            
+
         testDocument =
             "| title\nTest Document\n\n| section\nTest Section\n\nThis is a paragraph with some text."
-            
+
         compiled =
             Compiler.compile compilerParams (String.lines testDocument)
     in
