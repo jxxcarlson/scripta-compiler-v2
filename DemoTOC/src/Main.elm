@@ -1,7 +1,5 @@
 module Main exposing (main)
 
--- import ScriptaV2.Compiler exposing (Filter(..))
-
 import Browser
 import Browser.Dom
 import Browser.Events
@@ -18,6 +16,7 @@ import List.Extra
 import ScriptaV2.Compiler
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
+import ScriptaV2.Types exposing (Filter(..), defaultCompilerParameters)
 import Task
 
 
@@ -67,6 +66,9 @@ setSourceText currentLanguage =
             Data.MicroLaTeX.text
 
         ScriptaV2.Language.SMarkdownLang ->
+            Data.XMarkdown.text
+
+        ScriptaV2.Language.MarkdownLang ->
             Data.XMarkdown.text
 
 
@@ -152,12 +154,13 @@ mainColumn : Model -> Element Msg
 mainColumn model =
     let
         params =
-            { lang = model.currentLanguage
-            , docWidth = rhPanelWidth model - 3 * xPadding
-            , editCount = model.count
-            , selectedId = "selectedId"
-            , idsOfOpenNodes = model.idsOfOpenNodes
-            , filter = ScriptaV2.Compiler.NoFilter
+            { defaultCompilerParameters
+                | lang = model.currentLanguage
+                , docWidth = rhPanelWidth model - 3 * xPadding
+                , editCount = model.count
+                , selectedId = "selectedId"
+                , idsOfOpenNodes = model.idsOfOpenNodes
+                , filter = NoFilter
             }
 
         compilerOutput =
@@ -187,6 +190,9 @@ languageToString lang =
 
         ScriptaV2.Language.MiniLaTeXLang ->
             "MicroLaTeX"
+
+        ScriptaV2.Language.MarkdownLang ->
+            "Markdown"
 
 
 

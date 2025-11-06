@@ -82,6 +82,7 @@ cloc --by-file --exclude-dir=Evergreen src/ compiler/
 
 ## Important Notes
 
+- Use `elm-json` to modify the important `elm.json` file
 - The project uses elm-watch for development with hot reloading
 - Generated JavaScript files (main.js) are git-ignored
 - Tests are in the `tests/` directory and use elm-test

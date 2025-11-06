@@ -9,6 +9,7 @@
         "direct": {
             "Chadtech/elm-bool-extra": "2.4.2",
             "Garados007/elm-svg-parser": "1.1.2",
+            "avh4/elm-color": "1.0.0",
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",
             "elm/html": "1.0.0",
@@ -38,6 +39,7 @@
             "pablohirafuji/elm-syntax-highlight": "3.6.0",
             "pilatch/flip": "1.0.0",
             "rtfeldman/console-print": "1.0.1",
+            "rtfeldman/elm-css": "18.0.0",
             "rtfeldman/elm-hex": "1.0.0",
             "terezka/elm-charts": "4.0.0",
             "terezka/intervals": "2.0.2",
@@ -47,7 +49,6 @@
         "indirect": {
             "K-Adam/elm-dom": "1.0.0",
             "andre-dietrich/parser-combinators": "3.2.0",
-            "avh4/elm-color": "1.0.0",
             "danhandrea/elm-time-extra": "1.1.0",
             "elm/random": "1.0.0",
             "elm/svg": "1.0.1",
@@ -57,6 +58,7 @@
             "elm-community/array-extra": "2.6.0",
             "elm-community/list-extra": "8.7.0",
             "elm-community/typed-svg": "7.0.0",
+            "robinheghan/murmur3": "1.0.0",
             "ryan-haskell/date-format": "1.0.0"
         }
     },
