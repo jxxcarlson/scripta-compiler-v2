@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Kill any process running on port 56907 (elm-watch default port)
+lsof -ti:56907 | xargs kill -9 2>/dev/null || true
+
 # Start elm-watch hot in the background
 npx elm-watch hot &
 
