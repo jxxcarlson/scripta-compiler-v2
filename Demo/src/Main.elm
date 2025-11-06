@@ -20,7 +20,7 @@ import ScriptaV2.APISimple
 import ScriptaV2.Compiler
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
-import ScriptaV2.Types exposing (Filter(..))
+import ScriptaV2.Types exposing (Filter(..), defaultCompilerParameters)
 import Task
 
 
@@ -274,12 +274,13 @@ displayRenderedText : Model -> Element MarkupMsg
 displayRenderedText model =
     let
         params =
-            { lang = model.currentLanguage
-            , docWidth = model.windowWidth // 2
-            , editCount = model.count
-            , selectedId = "selectedId"
-            , idsOfOpenNodes = model.idsOfOpenNodes
-            , filter = NoFilter
+            { defaultCompilerParameters
+                | lang = model.currentLanguage
+                , docWidth = model.windowWidth // 2
+                , editCount = model.count
+                , selectedId = "selectedId"
+                , idsOfOpenNodes = model.idsOfOpenNodes
+                , filter = NoFilter
             }
     in
     column [ spacing 8, Font.size 14 ]
