@@ -186,14 +186,6 @@ margin =
     { left = 20, right = 20, top = 20, bottom = 60, between = 20 }
 
 
-paddingZero =
-    { left = 0, right = 0, top = 0, bottom = 0 }
-
-
-xPadding =
-    16
-
-
 headerHeight =
     40
 
@@ -213,22 +205,22 @@ mainColumn model =
 
 
 type Language
-    = MLang
-    | XMarkdownLang
-    | MicroLaTeXLang
+    = ScriptaLang
+    | SMarkdownLang
+    | MiniLaTeXLang
 
 
 languageToString : ScriptaV2.Language.Language -> String
 languageToString lang =
     case lang of
         ScriptaV2.Language.ScriptaLang ->
-            "M"
+            "Scripta"
 
         ScriptaV2.Language.SMarkdownLang ->
             "SMarkdown"
 
         ScriptaV2.Language.MiniLaTeXLang ->
-            "MicroLaTeX"
+            "MiniLaTeX"
 
         ScriptaV2.Language.MarkdownLang ->
             "Markdown"

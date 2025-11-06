@@ -7,6 +7,22 @@ text =
 
 test =
     """
+| title
+Visual Test
+
+
+ This [b is] a test: $a^2 + b^2 = c^2$
+
+| theorem
+There are infinitely many primes.
+
+| equation label:foo
+int_0^1 x^n dx = frac(1,n+1)
+"""
+
+
+test1 =
+    """
  | title
  Visual Test
  
