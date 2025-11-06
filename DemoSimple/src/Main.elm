@@ -12,10 +12,10 @@ import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
-import ScriptaV2.API
-import ScriptaV2.Compiler
+import ScriptaV2.APISimple
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
+import ScriptaV2.Types exposing (Filter(..), defaultCompilerParameters)
 import Task
 
 
@@ -64,6 +64,9 @@ setSourceText currentLanguage =
             Data.MicroLaTeX.text
 
         ScriptaV2.Language.SMarkdownLang ->
+            Data.XMarkdown.text
+
+        ScriptaV2.Language.MarkdownLang ->
             Data.XMarkdown.text
 
 
@@ -204,6 +207,9 @@ languageToString lang =
         ScriptaV2.Language.MiniLaTeXLang ->
             "MicroLaTeX"
 
+        ScriptaV2.Language.MarkdownLang ->
+            "Markdown"
+
 
 buttonBackground currentLanguage targetLanguage =
     if currentLanguage == targetLanguage then
@@ -254,15 +260,16 @@ displayRenderedText model =
             , htmlId "rendered-text"
             , scrollbarY
             ]
-            (ScriptaV2.API.compile
-                { filter = ScriptaV2.Compiler.NoFilter
-                , lang = model.currentLanguage
-                , docWidth = panelWidth model - 3 * xPadding
-                , editCount = model.count
-                , selectedId = model.selectId
-                , idsOfOpenNodes = []
+            (ScriptaV2.APISimple.compile
+                { defaultCompilerParameters
+                    | filter = NoFilter
+                    , lang = model.currentLanguage
+                    , docWidth = panelWidth model - 3 * xPadding
+                    , editCount = model.count
+                    , selectedId = model.selectId
+                    , idsOfOpenNodes = []
                 }
-                (String.lines model.sourceText)
+                model.sourceText
             )
         ]
 

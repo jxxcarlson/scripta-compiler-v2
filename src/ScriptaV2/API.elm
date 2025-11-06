@@ -116,18 +116,7 @@ The language field in CompilerParameters determines which parser to use:
 -}
 compileOutput : ScriptaV2.Types.CompilerParameters -> List String -> ScriptaV2.Compiler.CompilerOutput
 compileOutput params lines =
-    case params.lang of
-        ScriptaV2.Language.ScriptaLang ->
-            ScriptaV2.Compiler.compileM params lines
-
-        ScriptaV2.Language.MiniLaTeXLang ->
-            ScriptaV2.Compiler.compileL params lines
-
-        ScriptaV2.Language.SMarkdownLang ->
-            ScriptaV2.Compiler.compileX params lines
-
-        ScriptaV2.Language.MarkdownLang ->
-            ScriptaV2.Compiler.compileX params lines
+    ScriptaV2.Compiler.compile params lines
 
 
 {-| Render only the body content from a CompilerOutput.
