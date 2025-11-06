@@ -68,7 +68,7 @@ suite =
                     Generic.Vector.level accumulator.headingIndex
                         |> Expect.atLeast 1
             ]
-        , describe "XMarkdown parsing"
+        , describe "SMarkdown parsing"
             [ test "simple paragraph returns non-empty forest" <|
                 \_ ->
                     let
@@ -99,7 +99,7 @@ suite =
                     Generic.Vector.level accumulator.headingIndex
                         |> Expect.greaterThan 0
             ]
-        , describe "Enclosure/L0 parsing"
+        , describe "Scripta parsing"
             [ test "simple paragraph returns non-empty forest" <|
                 \_ ->
                     let

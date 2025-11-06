@@ -1,6 +1,6 @@
 module ScriptaV2.Compiler exposing
     ( CompilerOutput, compile, parse, parseFromString, renderForest, view, viewTOC, px, viewBody
-    , filterForest2, header_, parseL, parseM, parseToForestWithAccumulator, parseX, pl, ps, viewBodyOnly
+    , filterForest2, header_, parseMiniLaTeX, parseSMarkdown, parseScripta, parseToForestWithAccumulator, pl, ps, viewBodyOnly
     )
 
 {-|
@@ -179,7 +179,7 @@ compile params lines =
 
 -}
 pm str =
-    parseM "!!" 0 (String.lines str) |> Generic.Forest.map Generic.Language.simplifyExpressionBlock
+    parseScripta "!!" 0 (String.lines str) |> Generic.Forest.map Generic.Language.simplifyExpressionBlock
 
 
 {-| -}
@@ -198,13 +198,13 @@ parse : Language -> String -> Int -> List String -> List (RoseTree.Tree.Tree Exp
 parse lang idPrefix outerCount lines =
     case lang of
         ScriptaLang ->
-            parseM idPrefix outerCount lines
+            parseScripta idPrefix outerCount lines
 
         MiniLaTeXLang ->
-            parseL idPrefix outerCount lines
+            parseMiniLaTeX idPrefix outerCount lines
 
         SMarkdownLang ->
-            parseX idPrefix outerCount lines
+            parseSMarkdown idPrefix outerCount lines
 
         MarkdownLang ->
             -- Markdown doesn't use the same tree-based parsing structure
@@ -212,13 +212,13 @@ parse lang idPrefix outerCount lines =
             []
 
 
-parseM : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
-parseM idPrefix outerCount lines =
+parseScripta : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
+parseScripta idPrefix outerCount lines =
     Generic.Compiler.parse_ ScriptaLang M.PrimitiveBlock.parse M.Expression.parse idPrefix outerCount lines
 
 
-parseX : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
-parseX idPrefix outerCount lines =
+parseSMarkdown : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
+parseSMarkdown idPrefix outerCount lines =
     Generic.Compiler.parse_ SMarkdownLang XMarkdown.PrimitiveBlock.parse XMarkdown.Expression.parse idPrefix outerCount lines
 
 
@@ -226,7 +226,7 @@ parseX idPrefix outerCount lines =
 -}
 px : String -> List (RoseTree.Tree.Tree ExpressionBlock)
 px str =
-    parseX "!!" 0 (String.lines str)
+    parseSMarkdown "!!" 0 (String.lines str)
 
 
 {-|
@@ -234,8 +234,8 @@ px str =
     > pl str = parseL "!!" (String.lines str) |> Result.map (F.map simplifyExpressionBlock)
 
 -}
-parseL : String -> Int -> List String -> Forest ExpressionBlock
-parseL idPrefix outerCount lines =
+parseMiniLaTeX : String -> Int -> List String -> Forest ExpressionBlock
+parseMiniLaTeX idPrefix outerCount lines =
     Generic.Compiler.parse_ MiniLaTeXLang MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
 
 
@@ -255,12 +255,12 @@ type alias CompilerOutput =
 {-| -}
 ps : String -> Forest ExpressionBlock
 ps str =
-    parseM Config.idPrefix 0 (String.lines str)
+    parseScripta Config.idPrefix 0 (String.lines str)
 
 
 pl : String -> Forest ExpressionBlock
 pl str =
-    parseL Config.idPrefix 0 (String.lines str)
+    parseMiniLaTeX Config.idPrefix 0 (String.lines str)
 
 
 {-| -}
@@ -289,16 +289,20 @@ parseToForestWithAccumulator params lines =
         parser =
             case params.lang of
                 ScriptaLang ->
-                    parseM
+                    parseScripta
 
                 MiniLaTeXLang ->
-                    parseL
+                    parseMiniLaTeX
 
                 SMarkdownLang ->
-                    parseX
+                    parseSMarkdown
 
                 MarkdownLang ->
-                    parseX
+                    nullParser
+
+        nullParser : String -> Int -> List String -> List (RoseTree.Tree.Tree ExpressionBlock)
+        nullParser _ _ _ =
+            []
 
         -- NOTE: really bad idea!
         forest =
