@@ -112,7 +112,7 @@ rawExportValidate wrapOption ast =
 
         ast2 : List (Tree ExpressionBlock)
         ast2 =
-            ScriptaV2.Compiler.parse ScriptaV2.Language.ScriptaLang "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  idPrefix" 0 (String.lines prettyText)
+            ScriptaV2.Compiler.parse ScriptaV2.Language.ScriptaLang "idPrefix" 0 (String.lines prettyText)
     in
     Generic.Language.simplifyForest ast == Generic.Language.simplifyForest ast2
 
