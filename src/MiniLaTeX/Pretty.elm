@@ -1,9 +1,9 @@
-module MicroLaTeX.Parser.Pretty exposing (idempotencyTest, print, printForest, roundTripTest, weakRoundTripTest)
+module MiniLaTeX.Parser.Pretty exposing (idempotencyTest, print, printForest, roundTripTest, weakRoundTripTest)
 
 import Compiler.DifferentialParser
 import Dict
-import MicroLaTeX.Parser.Transform
-import MicroLaTeX.Parser.TransformLaTeX
+import MiniLaTeX.Parser.Transform
+import MiniLaTeX.Parser.TransformLaTeX
 import Parser.Block
 import Parser.Expr
 import Parser.Forest
@@ -33,13 +33,13 @@ compress str =
 
 
 pseudoBlockNames =
-    MicroLaTeX.Parser.TransformLaTeX.pseudoBlockNames ++ MicroLaTeX.Parser.Transform.pseudoBlockNamesWithContent
+    MiniLaTeX.Parser.TransformLaTeX.pseudoBlockNames ++ MiniLaTeX.Parser.Transform.pseudoBlockNamesWithContent
 
 
 print : String -> String
 print input =
     input
-        |> Compiler.DifferentialParser.init Dict.empty Scripta.Language.MicroLaTeXLang
+        |> Compiler.DifferentialParser.init Dict.empty Scripta.Language.MiniLaTeXLang
         |> .parsed
         |> Compiler.DifferentialParser.forestFromBlocks
         |> printForest
@@ -123,10 +123,10 @@ printBlock ((Parser.Block.ExpressionBlock data) as block) =
                 content =
                     block |> Parser.Block.getContent
             in
-            (if List.member name MicroLaTeX.Parser.TransformLaTeX.pseudoBlockNames then
+            (if List.member name MiniLaTeX.Parser.TransformLaTeX.pseudoBlockNames then
                 printLineNumber block ++ "\\" ++ name ++ " " ++ printExprs content
 
-             else if List.member name MicroLaTeX.Parser.Transform.pseudoBlockNamesWithContent then
+             else if List.member name MiniLaTeX.Parser.Transform.pseudoBlockNamesWithContent then
                 printLineNumber block ++ macro name content
 
              else

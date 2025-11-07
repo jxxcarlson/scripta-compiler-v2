@@ -17,7 +17,7 @@ import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Generic.TextMacro
 import List.Extra
-import MicroLaTeX.Util
+import MiniLaTeX.Util
 import Render.Data
 import Render.Export.Image
 import Render.Export.Preamble
@@ -738,7 +738,7 @@ exportBlock mathMacroDict settings block =
                                         |> List.filter (\line -> String.left 2 line /= "$$")
                                         |> String.join "\n"
                                         |> ETeX.Transform.transformETeX mathMacroDict
-                                        |> MicroLaTeX.Util.transformLabel
+                                        |> MiniLaTeX.Util.transformLabel
                             in
                             -- TODO: This should be fixed upstream
                             [ "$$", fix_ str, "$$" ] |> String.join "\n"
@@ -780,10 +780,10 @@ exportBlock mathMacroDict settings block =
                             in
                             case maybeLabel of
                                 Nothing ->
-                                    [ "\\begin{equation}", str |> ETeX.Transform.transformETeX mathMacroDict |> MicroLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
+                                    [ "\\begin{equation}", str |> ETeX.Transform.transformETeX mathMacroDict |> MiniLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
 
                                 Just label ->
-                                    [ "\\begin{equation}", label, str |> ETeX.Transform.transformETeX mathMacroDict |> MicroLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
+                                    [ "\\begin{equation}", label, str |> ETeX.Transform.transformETeX mathMacroDict |> MiniLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
 
                         "aligned" ->
                             -- TODO: equation numbers and label
@@ -809,7 +809,7 @@ exportBlock mathMacroDict settings block =
                                         |> List.filter (\line -> not (String.isEmpty line))
                                         |> List.map stripTrailingBackslashes
                                         |> List.map (ETeX.Transform.transformETeX mathMacroDict)
-                                        |> List.map MicroLaTeX.Util.transformLabel
+                                        |> List.map MiniLaTeX.Util.transformLabel
 
                                 -- Add \\ to the end of all lines except the last
                                 processedLines =
@@ -1226,7 +1226,7 @@ chapter _ _ body =
         tag =
             body
                 |> String.words
-                |> MicroLaTeX.Util.normalizedWord
+                |> MiniLaTeX.Util.normalizedWord
 
         label =
             " \\label{" ++ tag ++ "}"
@@ -1246,7 +1246,7 @@ section settings args body =
         tag =
             body
                 |> String.words
-                |> MicroLaTeX.Util.normalizedWord
+                |> MiniLaTeX.Util.normalizedWord
 
         label =
             " \\label{" ++ tag ++ "}"
@@ -1318,7 +1318,7 @@ section2 args body =
         tag =
             body
                 |> String.words
-                |> MicroLaTeX.Util.normalizedWord
+                |> MiniLaTeX.Util.normalizedWord
 
         label =
             " \\label{" ++ tag ++ "}"
@@ -1449,10 +1449,10 @@ renderVerbatim mathMacroDict name body =
 
         Just f ->
             if List.member name [ "equation", "aligned", "math" ] then
-                body |> MicroLaTeX.Util.transformLabel |> ETeX.Transform.transformETeX mathMacroDict |> f
+                body |> MiniLaTeX.Util.transformLabel |> ETeX.Transform.transformETeX mathMacroDict |> f
 
             else
-                body |> fixChars |> MicroLaTeX.Util.transformLabel |> f
+                body |> fixChars |> MiniLaTeX.Util.transformLabel |> f
 
 
 

@@ -15,7 +15,7 @@ import Html.String.Attributes exposing (property, style)
 import Json.Encode as JE
 import List.Extra
 import Maybe.Extra
-import MicroLaTeX.Util
+import MiniLaTeX.Util
 import Render.Data
 import Render.Export.Image
 import Render.Export.Util
@@ -234,7 +234,7 @@ exportBlock settings acc block =
                                         |> String.lines
                                         |> List.filter (\line -> String.left 2 line /= "$$")
                                         |> String.join "\n"
-                                        |> MicroLaTeX.Util.transformLabel
+                                        |> MiniLaTeX.Util.transformLabel
                             in
                             -- TODO: This should be fixed upstream
                             [ fix_ str ]
@@ -358,7 +358,7 @@ exportBlock1 settings block =
                                         |> String.lines
                                         |> List.filter (\line -> String.left 2 line /= "$$")
                                         |> String.join "\n"
-                                        |> MicroLaTeX.Util.transformLabel
+                                        |> MiniLaTeX.Util.transformLabel
                             in
                             -- TODO: This should be fixed upstream
                             [ "$$", fix_ str, "$$" ] |> String.join "\n"
@@ -395,11 +395,11 @@ exportBlock1 settings block =
                         "equation" ->
                             -- TODO: there should be a trailing "$$"
                             -- TODO: equation numbers and label
-                            [ "\\begin{equation}", str |> MicroLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
+                            [ "\\begin{equation}", str |> MiniLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
 
                         "aligned" ->
                             -- TODO: equation numbers and label
-                            [ "\\begin{align}", str |> MicroLaTeX.Util.transformLabel, "\\end{align}" ] |> String.join "\n"
+                            [ "\\begin{align}", str |> MiniLaTeX.Util.transformLabel, "\\end{align}" ] |> String.join "\n"
 
                         "code" ->
                             str |> fixChars |> (\s -> "\\begin{verbatim}\n" ++ s ++ "\n\\end{verbatim}")
@@ -784,7 +784,7 @@ section settings args body =
         tag =
             body
                 |> String.words
-                |> MicroLaTeX.Util.normalizedWord
+                |> MiniLaTeX.Util.normalizedWord
 
         label =
             " \\label{" ++ tag ++ "}"
@@ -915,10 +915,10 @@ renderVerbatim name body =
 
         Just f ->
             if List.member name [ "equation", "aligned", "math" ] then
-                body |> MicroLaTeX.Util.transformLabel |> f
+                body |> MiniLaTeX.Util.transformLabel |> f
 
             else
-                body |> fixChars |> MicroLaTeX.Util.transformLabel |> f
+                body |> fixChars |> MiniLaTeX.Util.transformLabel |> f
 
 
 

@@ -17,7 +17,7 @@ import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
 import Generic.TextMacro
 import List.Extra
-import MicroLaTeX.Util
+import MiniLaTeX.Util
 import Render.Export.Image
 import Render.Export.Util
 import Render.Settings exposing (RenderSettings)
@@ -751,7 +751,7 @@ unnumberedSection settings args body =
         tag =
             body
                 |> String.words
-                |> MicroLaTeX.Util.normalizedWord
+                |> MiniLaTeX.Util.normalizedWord
 
         label =
             " \\label{" ++ tag ++ "}"
@@ -790,7 +790,7 @@ section1 args body =
         tag =
             body
                 |> String.words
-                |> MicroLaTeX.Util.normalizedWord
+                |> MiniLaTeX.Util.normalizedWord
 
         label =
             " \\label{" ++ tag ++ "}"
@@ -829,7 +829,7 @@ section2 args body =
         tag =
             body
                 |> String.words
-                |> MicroLaTeX.Util.normalizedWord
+                |> MiniLaTeX.Util.normalizedWord
 
         label =
             " \\label{" ++ tag ++ "}"
@@ -955,10 +955,10 @@ renderVerbatim name body =
 
         Just f ->
             if List.member name [ "equation", "aligned", "math" ] then
-                body |> MicroLaTeX.Util.transformLabel |> f
+                body |> MiniLaTeX.Util.transformLabel |> f
 
             else
-                body |> fixChars |> MicroLaTeX.Util.transformLabel |> f
+                body |> fixChars |> MiniLaTeX.Util.transformLabel |> f
 
 
 

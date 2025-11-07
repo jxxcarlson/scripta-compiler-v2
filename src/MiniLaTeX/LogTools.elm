@@ -1,4 +1,4 @@
-module MicroLaTeX.LogTools exposing
+module MiniLaTeX.LogTools exposing
     ( blue
     , cyan
     , debugBlue

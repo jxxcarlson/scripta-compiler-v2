@@ -1,4 +1,4 @@
-module MicroLaTeX.Token exposing
+module MiniLaTeX.Token exposing
     ( Token(..)
     , TokenType(..)
     , backslashParser2
@@ -10,8 +10,8 @@ module MicroLaTeX.Token exposing
     )
 
 import Generic.Language exposing (ExprMeta)
-import MicroLaTeX.Helpers exposing (Step(..), loop)
-import MicroLaTeX.Tools as PT exposing (Context, Problem)
+import MiniLaTeX.Helpers exposing (Step(..), loop)
+import MiniLaTeX.Tools as PT exposing (Context, Problem)
 import Parser.Advanced as Parser exposing (DeadEnd, Parser)
 
 

@@ -25,8 +25,8 @@ import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExpressionBlock)
 import Scripta.Expression
 import Scripta.PrimitiveBlock
-import MicroLaTeX.Expression
-import MicroLaTeX.PrimitiveBlock
+import MiniLaTeX.Expression
+import MiniLaTeX.PrimitiveBlock
 import Render.Block
 import Render.Settings
 import Render.TOCTree
@@ -236,7 +236,7 @@ px str =
 -}
 parseMiniLaTeX : String -> Int -> List String -> Forest ExpressionBlock
 parseMiniLaTeX idPrefix outerCount lines =
-    Generic.Compiler.parse_ MicroLaTeX.PrimitiveBlock.parse MicroLaTeX.Expression.parse idPrefix outerCount lines
+    Generic.Compiler.parse_ MiniLaTeX.PrimitiveBlock.parse MiniLaTeX.Expression.parse idPrefix outerCount lines
 
 
 

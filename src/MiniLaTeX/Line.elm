@@ -1,4 +1,4 @@
-module MicroLaTeX.Line exposing
+module MiniLaTeX.Line exposing
     ( Line
     , classify
     , getNameAndArgString
@@ -10,7 +10,7 @@ module MicroLaTeX.Line exposing
     , prefixLengths
     )
 
-import MicroLaTeX.Util
+import MiniLaTeX.Util
 import Parser exposing ((|.), (|=), Parser)
 
 
@@ -80,7 +80,7 @@ getNameAndArgs line =
             String.trim line.content
 
         name =
-            case MicroLaTeX.Util.getMicroLaTeXItem "begin" normalizedLine of
+            case MiniLaTeX.Util.getMicroLaTeXItem "begin" normalizedLine of
                 Just str ->
                     Just str
 
@@ -91,7 +91,7 @@ getNameAndArgs line =
                     else
                         Nothing
     in
-    ( name, MicroLaTeX.Util.getBracketedItems normalizedLine )
+    ( name, MiniLaTeX.Util.getBracketedItems normalizedLine )
 
 
 getNameAndArgsFromString : String -> ( Maybe String, List String )
@@ -101,7 +101,7 @@ getNameAndArgsFromString line =
             String.trim line
 
         name =
-            case MicroLaTeX.Util.getMicroLaTeXItem "begin" normalizedLine of
+            case MiniLaTeX.Util.getMicroLaTeXItem "begin" normalizedLine of
                 Just str ->
                     Just str
 
@@ -112,7 +112,7 @@ getNameAndArgsFromString line =
                     else
                         Nothing
     in
-    ( name, MicroLaTeX.Util.getBracketedItems normalizedLine )
+    ( name, MiniLaTeX.Util.getBracketedItems normalizedLine )
 
 
 getNameAndArgString : Line -> ( Maybe String, Maybe String )
@@ -122,7 +122,7 @@ getNameAndArgString line =
             String.trim line.content
 
         name =
-            case MicroLaTeX.Util.getMicroLaTeXItem "begin" normalizedLine of
+            case MiniLaTeX.Util.getMicroLaTeXItem "begin" normalizedLine of
                 Just str ->
                     Just str
 
@@ -133,4 +133,4 @@ getNameAndArgString line =
                     else
                         Nothing
     in
-    ( name, MicroLaTeX.Util.getBracketedItem normalizedLine )
+    ( name, MiniLaTeX.Util.getBracketedItem normalizedLine )

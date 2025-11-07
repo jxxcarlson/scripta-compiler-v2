@@ -1,0 +1,1 @@
+module MiniLaTeX.Config exposing (..)

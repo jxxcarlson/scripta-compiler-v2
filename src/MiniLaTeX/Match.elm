@@ -1,8 +1,8 @@
-module MicroLaTeX.Match exposing (deleteAt, getSegment, hasReducibleArgs, match, reducible, split, splitAt)
+module MiniLaTeX.Match exposing (deleteAt, getSegment, hasReducibleArgs, match, reducible, split, splitAt)
 
 import List.Extra
-import MicroLaTeX.Symbol exposing (Symbol(..), value)
-import MicroLaTeX.Util
+import MiniLaTeX.Symbol exposing (Symbol(..), value)
+import MiniLaTeX.Util
 import Tools.Loop exposing (Step(..), loop)
 
 
@@ -44,7 +44,7 @@ hasReducibleArgs symbols =
                     False
 
                 Just ( a, b ) ->
-                    hasReducibleArgs (MicroLaTeX.Util.middle a) && hasReducibleArgs b
+                    hasReducibleArgs (MiniLaTeX.Util.middle a) && hasReducibleArgs b
 
         L :: _ ->
             --if List.Extra.last rest == Just R then
@@ -53,7 +53,7 @@ hasReducibleArgs symbols =
                     False
 
                 Just ( a, b ) ->
-                    hasReducibleArgs (MicroLaTeX.Util.middle a) && hasReducibleArgs b
+                    hasReducibleArgs (MiniLaTeX.Util.middle a) && hasReducibleArgs b
 
         --else
         --    False

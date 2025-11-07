@@ -1,5 +1,6 @@
 module ScriptaV2.API exposing
     ( compileOutput
+    , compileString
     , compileStringWithTitle
     , viewBodyOnly, viewTOC
     )

@@ -1,4 +1,4 @@
-module MicroLaTeX.Helpers exposing
+module MiniLaTeX.Helpers exposing
     ( Step(..)
     , getFirstOccurrence
     , loop

@@ -16,8 +16,8 @@ import Either exposing (Either(..))
 import Generic.Compiler
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
-import MicroLaTeX.Expression
-import MicroLaTeX.PrimitiveBlock
+import MiniLaTeX.Expression
+import MiniLaTeX.PrimitiveBlock
 import Regex
 import RoseTree.Tree as Tree exposing (Tree)
 import ScriptaV2.Config as Config
@@ -117,9 +117,8 @@ parseL latexSource =
             0
     in
     Generic.Compiler.parse_
-        MiniLaTeXLang
-        MicroLaTeX.PrimitiveBlock.parse
-        MicroLaTeX.Expression.parse
+        MiniLaTeX.PrimitiveBlock.parse
+        MiniLaTeX.Expression.parse
         idPrefix
         outerCount
         lines

@@ -1,4 +1,4 @@
-module MicroLaTeX.Util exposing
+module MiniLaTeX.Util exposing
     ( depth
     , dropLast
     , eraseItem

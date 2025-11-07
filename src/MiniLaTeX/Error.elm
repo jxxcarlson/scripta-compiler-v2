@@ -1,4 +1,4 @@
-module MicroLaTeX.Parser.Error exposing (ordinaryBlock, sliceList)
+module MiniLaTeX.Parser.Error exposing (ordinaryBlock, sliceList)
 
 
 ordinaryBlock : String -> List String -> String -> ( String, List String )

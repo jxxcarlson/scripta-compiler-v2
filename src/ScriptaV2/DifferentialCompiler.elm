@@ -30,8 +30,8 @@ import Generic.PrimitiveBlock
 import Library.Tree
 import Scripta.Expression
 import Scripta.PrimitiveBlock
-import MicroLaTeX.Expression
-import MicroLaTeX.PrimitiveBlock
+import MiniLaTeX.Expression
+import MiniLaTeX.PrimitiveBlock
 import Render.Block
 import Render.Settings
 import Render.TOCTree
@@ -53,7 +53,7 @@ import XMarkdown.PrimitiveBlock
 
 pp : String -> List ExpressionBlock
 pp str =
-    M.PrimitiveBlock.p str |> List.map (toExprBlock ScriptaV2.Language.ScriptaLang)
+    Scripta.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str) |> List.map (toExprBlock ScriptaV2.Language.ScriptaLang)
 
 
 {-| -}
@@ -305,10 +305,10 @@ chunker : Language -> String -> List PrimitiveBlock
 chunker lang str =
     case lang of
         MiniLaTeXLang ->
-            MicroLaTeX.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
+            MiniLaTeX.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
 
         ScriptaLang ->
-            M.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
+            Scripta.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
 
         SMarkdownLang ->
             XMarkdown.PrimitiveBlock.parse ScriptaV2.Config.idPrefix 0 (String.lines str)
@@ -322,7 +322,7 @@ toExprBlock : Language -> PrimitiveBlock -> ExpressionBlock
 toExprBlock lang =
     case lang of
         MiniLaTeXLang ->
-            Generic.Pipeline.toExpressionBlock MicroLaTeX.Expression.parse
+            Generic.Pipeline.toExpressionBlock MiniLaTeX.Expression.parse
 
         ScriptaLang ->
             Generic.Pipeline.toExpressionBlock Scripta.Expression.parse

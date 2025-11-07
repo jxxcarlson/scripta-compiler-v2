@@ -1,4 +1,4 @@
-module MicroLaTeX.Expression exposing
+module MiniLaTeX.Expression exposing
     ( State
     , extractMessages
     , isReducible
@@ -11,11 +11,11 @@ module MicroLaTeX.Expression exposing
 
 import Generic.Language exposing (Expr(..), Expression)
 import List.Extra
-import MicroLaTeX.Helpers as Helpers exposing (Step(..), loop)
-import MicroLaTeX.LogTools as Tools
-import MicroLaTeX.Match
-import MicroLaTeX.Symbol as Symbol exposing (Symbol(..))
-import MicroLaTeX.Token as Token exposing (Token(..), TokenType(..))
+import MiniLaTeX.Helpers as Helpers exposing (Step(..), loop)
+import MiniLaTeX.LogTools as Tools
+import MiniLaTeX.Match
+import MiniLaTeX.Symbol as Symbol exposing (Symbol(..))
+import MiniLaTeX.Token as Token exposing (Token(..), TokenType(..))
 import ScriptaV2.Config as Config
 
 
@@ -415,7 +415,7 @@ reduceRestOfTokens macroName lineNumber tokens =
             Text str (boostMeta lineNumber m1) :: reduceRestOfTokens Nothing lineNumber rest
 
         (LB _) :: _ ->
-            case MicroLaTeX.Match.match (Symbol.convertTokens2 tokens) of
+            case MiniLaTeX.Match.match (Symbol.convertTokens2 tokens) of
                 -- there was no match for the left brace;
                 -- this is an error
                 Nothing ->
@@ -425,7 +425,7 @@ reduceRestOfTokens macroName lineNumber tokens =
                     -- there are k matching tokens
                     let
                         ( a, b ) =
-                            MicroLaTeX.Match.splitAt (k + 1) tokens
+                            MiniLaTeX.Match.splitAt (k + 1) tokens
 
                         aa =
                             -- drop the leading and trailing LB, RG
@@ -453,12 +453,12 @@ reduceRestOfTokens macroName lineNumber tokens =
 
 split : List Token -> ( List Token, List Token )
 split tokens =
-    case MicroLaTeX.Match.match (Symbol.convertTokens2 tokens) of
+    case MiniLaTeX.Match.match (Symbol.convertTokens2 tokens) of
         Nothing ->
             ( tokens, [] )
 
         Just k ->
-            MicroLaTeX.Match.splitAt (k + 1) tokens
+            MiniLaTeX.Match.splitAt (k + 1) tokens
 
 
 isReducible : List Token -> Bool
@@ -473,7 +473,7 @@ isReducible tokens =
         False
 
     else
-        symbols |> MicroLaTeX.Match.reducible
+        symbols |> MiniLaTeX.Match.reducible
 
 
 recoverFromError : State -> Step State State
@@ -706,7 +706,7 @@ recoverFromError2 state =
             Symbol.convertTokens2 (List.reverse newStack)
 
         reducible =
-            MicroLaTeX.Match.reducible newSymbols
+            MiniLaTeX.Match.reducible newSymbols
     in
     if reducible then
         Done <|

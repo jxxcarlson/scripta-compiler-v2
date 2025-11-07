@@ -1,4 +1,4 @@
-module MicroLaTeX.Tools exposing
+module MiniLaTeX.Tools exposing
     ( Context(..)
     , Problem(..)
     , StringData

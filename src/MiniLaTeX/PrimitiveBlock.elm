@@ -1,4 +1,4 @@
-module MicroLaTeX.PrimitiveBlock exposing
+module MiniLaTeX.PrimitiveBlock exposing
     ( example
     , example2
     , getLevel
@@ -29,9 +29,9 @@ import Generic.BlockUtilities
 import Generic.Language exposing (Heading(..), PrimitiveBlock)
 import Generic.Print
 import List.Extra
-import MicroLaTeX.ClassifyBlock as ClassifyBlock exposing (Classification(..), LXSpecial(..))
-import MicroLaTeX.Line as Line exposing (Line)
-import MicroLaTeX.Util
+import MiniLaTeX.ClassifyBlock as ClassifyBlock exposing (Classification(..), LXSpecial(..))
+import MiniLaTeX.Line as Line exposing (Line)
+import MiniLaTeX.Util
 import ScriptaV2.Config as Config
 
 
@@ -996,7 +996,7 @@ elaborate line pb =
                             [ adjustedLine ]
 
                         else
-                            MicroLaTeX.Util.getBracedItems adjustedLine
+                            MiniLaTeX.Util.getBracedItems adjustedLine
 
             properties =
                 namedArgs |> prepareList |> prepareKVData
@@ -1332,7 +1332,7 @@ recoverFromError state =
 
                                 Just str ->
                                     if String.left 4 str == "\\end" then
-                                        MicroLaTeX.Util.dropLast body
+                                        MiniLaTeX.Util.dropLast body
 
                                     else
                                         body

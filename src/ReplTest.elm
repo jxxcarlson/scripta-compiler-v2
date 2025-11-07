@@ -5,7 +5,7 @@ import Generic.Language
 import Generic.Pipeline
 import Scripta.Expression
 import Scripta.PrimitiveBlock
-import MicroLaTeX.PrimitiveBlock
+import MiniLaTeX.PrimitiveBlock
 import Render.Settings
 import ScriptaV2.Compiler
 
@@ -17,7 +17,7 @@ p str =
 
 pL : String -> List Generic.Language.PrimitiveBlock
 pL str =
-    MicroLaTeX.PrimitiveBlock.parse "0" 0 (String.lines str)
+    MiniLaTeX.PrimitiveBlock.parse "0" 0 (String.lines str)
 
 
 q : String -> List Generic.Language.ExpressionBlock
