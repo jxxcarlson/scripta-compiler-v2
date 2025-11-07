@@ -1,4 +1,4 @@
-module Render.Export.Enclosure exposing
+module Render.Export.Scripta exposing
     ( exportExpr, rawExport
     , ExportError(..), WrapOption(..), rawExportSafe, rawExportValidate, rawExportValidateSimple, rawExport_
     )
