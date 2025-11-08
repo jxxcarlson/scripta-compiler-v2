@@ -1,6 +1,5 @@
 module Render.Pretty exposing (..)
 
-import Generic.Forest
 import Generic.Language
 import RoseTree.Tree as Tree exposing (Tree)
 import ScriptaV2.Compiler
@@ -34,7 +33,7 @@ printToForest str =
     str
         |> String.lines
         |> ScriptaV2.Compiler.parseScripta "@@" 0
-        |> forestMap expressionBlockToString
+        |> forestMap Generic.Language.printBlock
 
 
 forestMap : (a -> b) -> List (Tree a) -> List (Tree b)
@@ -55,14 +54,6 @@ treeMap f tree =
             List.map (treeMap f) treeChildren
     in
     Tree.branch newValue newChildren
-
-
-expressionBlockToString : Generic.Language.ExpressionBlock -> String
-expressionBlockToString block =
-    block
-        |> getMetaFromBlock
-        |> Maybe.map (\meta -> meta.sourceText)
-        |> Maybe.withDefault ""
 
 
 getMetaFromBlock : Generic.Language.ExpressionBlock -> Maybe Generic.Language.BlockMeta
@@ -104,6 +95,35 @@ treeToStringHelper level tree =
 
     else
         currentLine ++ "\n" ++ childLines
+
+
+thm =
+    """
+| theorem (Euclid) width:200
+There are infnitely many primes $p$.
+"""
+
+
+cd =
+    """
+| code
+a := 1
+b := 1
+a + b
+"""
+
+
+s =
+    """
+This is a test - a test
+- a test - a test - a test 
+
+| equation
+a^2 + b^2 = c^2
+
+another test
+[b and another] 
+[i and another]"""
 
 
 t : Tree String

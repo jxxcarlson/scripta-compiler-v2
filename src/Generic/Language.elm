@@ -29,6 +29,7 @@ module Generic.Language exposing
     , getVerbatimContent
     , prefixIdInBlockMeta
     , primitiveBlockEmpty
+    , printBlock
     , setName
     , simplifyBlock
     , simplifyExpr
@@ -92,6 +93,87 @@ type alias Block content blockMetaData =
     , meta : blockMetaData
     , style : Maybe Style
     }
+
+
+printBlock : ExpressionBlock -> String
+printBlock block =
+    case block.heading of
+        Paragraph ->
+            block.meta.sourceText
+
+        Ordinary name ->
+            printOrdinaryBlock name block
+
+        Verbatim name ->
+            printVerbatimBlock name block
+
+
+printOrdinaryBlock name block =
+    let
+        content =
+            case block.body of
+                Left str ->
+                    str
+
+                Right exprList ->
+                    List.map renderExpression exprList |> String.join " "
+    in
+    ([ "|", name ] ++ block.args ++ dictToList block.properties |> String.join " ") ++ "\n" ++ content
+
+
+renderExpression : Expression -> String
+renderExpression expr =
+    case expr of
+        Text str _ ->
+            str
+
+        Fun fName exprList _ ->
+            ("[" ++ fName) ++ (List.map renderExpression exprList |> String.join "") ++ "]"
+
+        VFun fName body _ ->
+            case fName of
+                "math" ->
+                    "$" ++ body ++ "$"
+
+                "code" ->
+                    "`" ++ body ++ "`"
+
+                _ ->
+                    [ "[" ++ fName, body, "]" ] |> String.join " "
+
+        ExprList exprList _ ->
+            "[" ++ (List.map renderExpression exprList |> String.join " ") ++ "]"
+
+
+
+--type Expr metaData
+--    = Text String metaData
+--    | Fun String (List (Expr metaData)) metaData
+--    | VFun String String metaData
+--    | ExprList (List (Expr metaData)) metaData
+
+
+printVerbatimBlock : String -> ExpressionBlock -> String
+printVerbatimBlock name block =
+    let
+        content =
+            case block.body of
+                Left str ->
+                    str
+
+                Right _ ->
+                    ""
+    in
+    ([ "|", name ] ++ block.args ++ dictToList block.properties |> String.join " ") ++ "\n" ++ content
+
+
+dictToList : Dict String String -> List String
+dictToList dict =
+    dict
+        |> Dict.remove "id"
+        |> Dict.remove "outerId"
+        |> Dict.toList
+        |> List.map (\( key, value ) -> key ++ ":" ++ value)
 
 
 type alias Style =
