@@ -23,8 +23,6 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Compiler
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExpressionBlock)
-import Scripta.Expression
-import Scripta.PrimitiveBlock
 import MiniLaTeX.Expression
 import MiniLaTeX.PrimitiveBlock
 import Render.Block
@@ -33,6 +31,8 @@ import Render.TOCTree
 import Render.Theme
 import Render.Tree
 import RoseTree.Tree
+import Scripta.Expression
+import Scripta.PrimitiveBlock
 import ScriptaV2.Config as Config
 import ScriptaV2.Language exposing (Language(..))
 import ScriptaV2.Msg exposing (MarkupMsg(..))
