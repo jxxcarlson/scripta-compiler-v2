@@ -99,7 +99,7 @@ printBlock : ExpressionBlock -> String
 printBlock block =
     case block.heading of
         Paragraph ->
-            block.meta.sourceText
+            block.meta.sourceText |> String.replace "\n" " "
 
         Ordinary name ->
             printOrdinaryBlock name block
@@ -118,7 +118,12 @@ printOrdinaryBlock name block =
                 Right exprList ->
                     List.map renderExpression exprList |> String.join " "
     in
-    ([ "|", name ] ++ block.args ++ dictToList block.properties |> String.join " ") ++ "\n" ++ content
+    case name of
+        "numbered" ->
+            ". " ++ content
+
+        _ ->
+            ([ "|", name ] ++ block.args ++ dictToList block.properties |> String.join " ") ++ "\n" ++ content
 
 
 renderExpression : Expression -> String
@@ -128,7 +133,7 @@ renderExpression expr =
             str
 
         Fun fName exprList _ ->
-            ("[" ++ fName) ++ (List.map renderExpression exprList |> String.join "") ++ "]"
+            ("[" ++ fName ++ " ") ++ (List.map renderExpression exprList |> String.join "") ++ "]" |> Debug.log "FUN"
 
         VFun fName body _ ->
             case fName of
@@ -139,18 +144,10 @@ renderExpression expr =
                     "`" ++ body ++ "`"
 
                 _ ->
-                    [ "[" ++ fName, body, "]" ] |> String.join " "
+                    [ "[" ++ fName, body, "]" ] |> String.join " " |> Debug.log "VFUN"
 
         ExprList exprList _ ->
             "[" ++ (List.map renderExpression exprList |> String.join " ") ++ "]"
-
-
-
---type Expr metaData
---    = Text String metaData
---    | Fun String (List (Expr metaData)) metaData
---    | VFun String String metaData
---    | ExprList (List (Expr metaData)) metaData
 
 
 printVerbatimBlock : String -> ExpressionBlock -> String

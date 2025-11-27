@@ -12,13 +12,10 @@ print lang str =
         ScriptaV2.Language.ScriptaLang ->
             printToForest str
                 |> reduceForestToString
+                |> Debug.log "@@ PRINTED !!"
 
         _ ->
             str
-
-
-
--- printExpressionBlock : String -> String
 
 
 reduceForestToString : List (Tree String) -> String
@@ -54,16 +51,6 @@ treeMap f tree =
             List.map (treeMap f) treeChildren
     in
     Tree.branch newValue newChildren
-
-
-getMetaFromBlock : Generic.Language.ExpressionBlock -> Maybe Generic.Language.BlockMeta
-getMetaFromBlock block =
-    case block.heading of
-        Generic.Language.Paragraph ->
-            Just block.meta
-
-        _ ->
-            Nothing
 
 
 treeToString : Tree String -> String
@@ -140,3 +127,18 @@ t =
             , Tree.leaf "3"
             ]
         ]
+
+
+li1 =
+    """
+. (a) As you edit a document, the rendered version is updated as you type.
+(b) As you edit a document, the rendered version is updated as you type.
+(c) As you edit a document, the rendered version is updated as you type.
+"""
+
+
+li =
+    """
+. [b Real-time rendering:] [i As you edit a document], the rendered version is updated as you type.  In real time, [u instantaneosly], along
+with cross-references and the automatically generated table of [u contents].
+"""
