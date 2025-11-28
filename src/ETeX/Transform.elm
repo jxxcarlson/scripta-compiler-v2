@@ -211,15 +211,6 @@ evalStr userDefinedMacroDict str =
             str
 
 
-
--- Convert local MathMacroDict to MathMacroDict
---convertToGenericDict : MathMacroDict -> MathMacroDict
---convertToGenericDict dict =
---    -- For now, just return empty dict as we're focusing on threading the parameter
---    -- This should be properly implemented based on the actual conversion logic
---    Dict.empty
-
-
 parseMany : MathMacroDict -> String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
 parseMany userDefinedMacroDict str =
     parseManyWithDict userDefinedMacroDict str
