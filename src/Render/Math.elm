@@ -87,6 +87,15 @@ getContent { body } =
 
 equation : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 equation count acc settings attrs block =
+    if String.contains "&" (getContent block) then
+        aligned count acc settings attrs block
+
+    else
+        equation_ count acc settings attrs block
+
+
+equation_ : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
+equation_ count acc settings attrs block =
     let
         isNumbered =
             List.member "numbered" block.args
