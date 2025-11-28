@@ -13,7 +13,6 @@ module ETeX.MathMacros exposing
     , makeFunctionNames
     , makeMacroDict
     , parse
-    , parse2
     , parseA
     , parseMany
     , parseNewCommand
@@ -53,21 +52,6 @@ import Result.Extra
 
 {-|
 
-    > parse2  "(sin(3pi^2/5))^3"
-    Ok "(\\sin(3pi^2/5))^3"
-
--}
-parse2 str =
-    str
-        |> parse
-        |> Result.map resolveMacroDefinitions
-        |> Result.map makeFunctionNames
-        |> Result.map resolveSymbolNames
-        |> Result.map printList
-
-
-{-|
-
     ASSUMPTION: The list of expressions begins with a macro application, e.g.: the input "\\sett{x}{y} (x > 0)" yields
 
     (*) parser output = k [Macro "sett" [LeftMathBrace,MathSpace,Param 1,MathSymbols (" "),MathSpace,MathSymbols ("| "),MathSpace,Param 2,MathSpace,RightMathBrace]
@@ -79,45 +63,6 @@ parse2 str =
     (2) rest = [LeftParen,AlphaNum "x",MathSymbols (" "),Macro "in" [],MathSymbols (" "),AlphaNum "R",RightParen,LeftParen,AlphaNum "x",MathSymbols (" > 0"),RightParen]
 
 -}
-
-
-
---applyMacroDefinitions : List MathExpr -> List MathExpr
---applyMacroDefinitions exprs =
---    let
---        macroDef_ : Maybe MathExpr
---        macroDef_ =
---            List.head exprs
---
---        args_ : Maybe (List (List MathExpr))
---        args_ =
---            List.tail exprs |> Maybe.map getArgList
---    in
---    case ( macroDef_, args_ ) of
---        ( Just macroDef, Just args ) ->
---            case macroDef of
---                Macro macroName _ ->
---                    case Dict.get macroName macroDict of
---                        Just (MacroBody arity body) ->
---                            if List.length args == arity then
---                                expandMacro_ args (MacroBody arity args)
---
---                            else
---                                exprs
---
---                        -- TODO: handle error
---                        Nothing ->
---                            exprs
---
---                -- TODO: handle error
---                _ ->
---                    exprs
--- TODO: handle error
---expandMacro_ : List MathExpr -> MacroBody -> List MathExpr
---expandMacro_ args (MacroBody arity macroDefBody) =
---    replaceParams args macroDefBody
-
-
 parseA : String -> Result (List (DeadEnd Context Problem)) (List MathExpr)
 parseA str =
     str

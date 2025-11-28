@@ -41,7 +41,7 @@ render generation acc settings attrs expr =
             Element.el (background :: [ Events.onClick (SendMeta meta), htmlId meta.id ] ++ attrs) (Element.text (string ++ " "))
 
         Fun name exprList meta ->
-            if List.member name [ "chem", "math", "code" ] then
+            if List.member name [ "chem", "math", "m", "code" ] then
                 renderVerbatim name generation acc settings meta (ASTTools.exprListToStringList exprList |> String.join " ")
 
             else if name == "anchor" then
@@ -281,6 +281,7 @@ verbatimDict =
         , ( "`", \g a s m str -> code g a s m str )
         , ( "code", \g a s m str -> code g a s m str )
         , ( "math", \g a s m str -> math g a s m str )
+        , ( "m", \g a s m str -> math g a s m str )
         , ( "chem", \g a s m str -> chem g a s m str )
         ]
 

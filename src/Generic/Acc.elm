@@ -889,11 +889,13 @@ updateWithTextMacros content accumulator =
 updateWithMathMacros : String -> Accumulator -> Accumulator
 updateWithMathMacros content accumulator =
     let
+        definitions : String
         definitions =
             content
                 |> String.replace "\\begin{mathmacros}" ""
                 |> String.replace "\\end{mathmacros}" ""
                 |> String.replace "end" ""
+                |> (\str -> str ++ "\nbr: {[ #1 ]}")
                 |> String.trim
 
         mathMacroDict =
