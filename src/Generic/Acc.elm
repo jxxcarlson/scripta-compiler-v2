@@ -895,7 +895,7 @@ updateWithMathMacros content accumulator =
                 |> String.replace "\\begin{mathmacros}" ""
                 |> String.replace "\\end{mathmacros}" ""
                 |> String.replace "end" ""
-                |> (\str -> str ++ "\nbr: {[ #1 ]}")
+                |> (\str -> str ++ "\nbracket: {[ #1 ]}")
                 |> String.trim
 
         mathMacroDict =
