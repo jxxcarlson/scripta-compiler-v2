@@ -3,11 +3,12 @@ module ReplTest exposing (..)
 import Generic.Forest
 import Generic.Language
 import Generic.Pipeline
-import Scripta.Expression
-import Scripta.PrimitiveBlock
 import MiniLaTeX.PrimitiveBlock
 import Render.Settings
+import Scripta.Expression
+import Scripta.PrimitiveBlock
 import ScriptaV2.Compiler
+import ScriptaV2.Types exposing (defaultCompilerParameters)
 
 
 p : String -> List Generic.Language.PrimitiveBlock
@@ -37,7 +38,7 @@ t str =
 
 dfrs : Render.Settings.RenderSettings
 dfrs =
-    Render.Settings.defaultRenderSettings Render.Settings.defaultDisplaySettings
+    Render.Settings.defaultRenderSettings defaultCompilerParameters
 
 
 expressionBlockFromPrimitiveBlock : Generic.Language.PrimitiveBlock -> Generic.Language.ExpressionBlock
@@ -76,6 +77,35 @@ t3 =
 
 \\end{enumerate}
 
+"""
+
+
+eq1 =
+    "| equation\na^2 + b^2 + c^2"
+
+
+eq2 =
+    """
+| equation
+a^2 + b^2 = c^2
+"""
+
+
+eq3 =
+    """
+| equation
+u &= a + b \\
+v &= a - b \\
+uv &= a^2 - b^2
+"""
+
+
+al =
+    """
+| aligned
+u &= a + b \\
+v &= a - b \\
+uv &= a^2 - b^2
 """
 
 
