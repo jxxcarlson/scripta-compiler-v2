@@ -1,5 +1,6 @@
 port module Main exposing (main)
 
+import DataSci
 import ScriptaV2.APISimple
 import ScriptaV2.Language
 import ScriptaV2.Types
@@ -16,10 +17,10 @@ type Msg
     | GotBenchMarkResult (Result Never String)
 
 
-main : Program () () Msg
+main : Program Int () Msg
 main =
     Platform.worker
-        { init = \_ -> ( (), runBenchmark compileString Virial.str 100 )
+        { init = \reps -> ( (), runBenchmark compileString DataSci.str reps )
         , update = update
         , subscriptions = \_ -> Sub.none
         }
@@ -103,8 +104,3 @@ compileString str =
                 str
     in
     ()
-
-
-getTime : Cmd Msg
-getTime =
-    Task.perform GotTime Time.now
