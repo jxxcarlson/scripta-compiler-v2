@@ -17,6 +17,7 @@ DemoScriptaLive/scripts/
 DemoScriptaLive/assets/main-local.js
 DemoScriptaLive/assets/main-sqlite.js
 DemoScriptaLive/assets/main-tauri.js
+Benchmark/main.js
 
 
 

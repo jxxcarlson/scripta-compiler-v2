@@ -133,7 +133,7 @@ renderExpression expr =
             str
 
         Fun fName exprList _ ->
-            ("[" ++ fName ++ " ") ++ (List.map renderExpression exprList |> String.join "") ++ "]" |> Debug.log "FUN"
+            ("[" ++ fName ++ " ") ++ (List.map renderExpression exprList |> String.join "") ++ "]"
 
         VFun fName body _ ->
             case fName of
@@ -144,7 +144,7 @@ renderExpression expr =
                     "`" ++ body ++ "`"
 
                 _ ->
-                    [ "[" ++ fName, body, "]" ] |> String.join " " |> Debug.log "VFUN"
+                    [ "[" ++ fName, body, "]" ] |> String.join " "
 
         ExprList exprList _ ->
             "[" ++ (List.map renderExpression exprList |> String.join " ") ++ "]"
