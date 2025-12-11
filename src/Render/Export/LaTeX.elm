@@ -777,13 +777,20 @@ exportBlock mathMacroDict settings block =
                                 maybeLabel : Maybe String
                                 maybeLabel =
                                     Dict.get "label" block.properties |> Maybe.map (\l -> "\\label{" ++ String.trim l ++ "}")
-                            in
-                            case maybeLabel of
-                                Nothing ->
-                                    [ "\\begin{equation}", str |> ETeX.Transform.transformETeX mathMacroDict |> MiniLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
 
-                                Just label ->
-                                    [ "\\begin{equation}", label, str |> ETeX.Transform.transformETeX mathMacroDict |> MiniLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
+                                isAlignedBlock =
+                                    String.contains "&" str
+                            in
+                            if isAlignedBlock then
+                                processAlignedBlock block str mathMacroDict
+
+                            else
+                                case maybeLabel of
+                                    Nothing ->
+                                        [ "\\begin{equation}", str |> ETeX.Transform.transformETeX mathMacroDict |> MiniLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
+
+                                    Just label ->
+                                        [ "\\begin{equation}", label, str |> ETeX.Transform.transformETeX mathMacroDict |> MiniLaTeX.Util.transformLabel, "\\end{equation}" ] |> String.join "\n"
 
                         "aligned" ->
                             -- TODO: equation numbers and label
@@ -923,6 +930,51 @@ addTikzPictureClosing flagUp str =
 
     else
         str
+
+
+processAlignedBlock : { a | properties : Dict String String } -> String -> ETeX.MathMacros.MathMacroDict -> String
+processAlignedBlock block str mathMacroDict =
+    let
+        maybeLabel : Maybe String
+        maybeLabel =
+            Dict.get "label" block.properties |> Maybe.map (\l -> "\\label{" ++ String.trim l ++ "}")
+
+        -- Strip trailing \\ from a line if present
+        stripTrailingBackslashes : String -> String
+        stripTrailingBackslashes line =
+            if String.endsWith "\\\\" line then
+                String.dropRight 2 line |> String.trimRight
+
+            else
+                line
+
+        -- Process each line separately and add \\ line breaks
+        lines =
+            str
+                |> String.lines
+                |> List.map String.trim
+                |> List.filter (\line -> not (String.isEmpty line))
+                |> List.map stripTrailingBackslashes
+                |> List.map (ETeX.Transform.transformETeX mathMacroDict)
+                |> List.map MiniLaTeX.Util.transformLabel
+
+        -- Add \\ to the end of all lines except the last
+        processedLines =
+            case List.reverse lines of
+                [] ->
+                    ""
+
+                lastLine :: restReversed ->
+                    (List.reverse restReversed |> List.map (\line -> line ++ "\\\\"))
+                        ++ [ lastLine ]
+                        |> String.join "\n"
+    in
+    case maybeLabel of
+        Nothing ->
+            [ "\\begin{align}", processedLines, "\\end{align}" ] |> String.join "\n"
+
+        Just label ->
+            [ "\\begin{align}", label, processedLines, "\\end{align}" ] |> String.join "\n"
 
 
 commentBlankLine : String -> String

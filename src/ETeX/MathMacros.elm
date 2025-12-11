@@ -6,21 +6,8 @@ module ETeX.MathMacros exposing
     , MathMacroDict
     , NewCommand(..)
     , Problem(..)
-    , defs
-    , evalStr
-    , getArgList
-    , lines
-    , makeFunctionNames
-    , makeMacroDict
     , parse
-    , parseA
-    , parseMany
     , parseNewCommand
-    , print
-    , printList
-    , printNewCommand
-    , replaceParam_
-    , resolveSymbolNames
     )
 
 import Dict exposing (Dict)
