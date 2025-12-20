@@ -1,7 +1,10 @@
 module Virial exposing (str)
 
+str n =
+    head ++ "\n\n" ++ String.repeat n (body ++ "\n\n")
 
-str =
+
+head =
     """
 | title number-to-level:3
 Virial Theorem
@@ -20,7 +23,10 @@ br: {\\mathop{\\mathbf{r}}}
 bu: {\\mathop{\\mathbf{u}}}
 bF: {\\mathop{\\mathbf{F}}}
 ta: \\left< #1 \\right>
+"""
 
+body =
+    """
 # Introduction
 
 We are going to discuss the  virial theorem, a result

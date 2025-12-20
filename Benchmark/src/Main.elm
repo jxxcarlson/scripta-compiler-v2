@@ -12,18 +12,40 @@ import Virial
 port results : String -> Cmd msg
 
 
+type alias Flags =
+    { bodyMultiplier : Int
+    , reps : Int
+    }
+
+
 type Msg
     = GotTime Time.Posix
     | GotBenchMarkResult (Result Never String)
 
 
-main : Program Int () Msg
+main : Program Flags () Msg
 main =
     Platform.worker
-        { init = \reps -> ( (), runBenchmark compileString DataSci.str reps )
+        { init =
+            \flags ->
+                let
+                    input =
+                        DataSci.str flags.bodyMultiplier
+
+                    wordCount =
+                        countWords input
+                in
+                ( (), runBenchmark compileString input flags.reps wordCount )
         , update = update
         , subscriptions = \_ -> Sub.none
         }
+
+
+countWords : String -> Int
+countWords str =
+    str
+        |> String.words
+        |> List.length
 
 
 update : Msg -> () -> ( (), Cmd Msg )
@@ -41,32 +63,39 @@ update msg _ =
                     ( (), Cmd.none )
 
 
-runBenchmark : (String -> ()) -> String -> Int -> Cmd Msg
-runBenchmark task input reps =
-    Task.attempt GotBenchMarkResult (run task input reps)
+runBenchmark : (String -> ()) -> String -> Int -> Int -> Cmd Msg
+runBenchmark task input reps wordCount =
+    Task.attempt GotBenchMarkResult (run task input reps wordCount)
 
 
-run : (b -> a) -> b -> Int -> Task.Task x String
-run task input reps =
+run : (b -> a) -> b -> Int -> Int -> Task.Task x String
+run task input reps wordCount =
     Time.now
-        |> Task.map (\start -> ( start, runBenchMarkTaskMany reps task input ))
-        |> Task.andThen nowAgain
-        |> Task.map (\( ( finished, () ), started ) -> compute started finished reps)
+        |> Task.map (\startTime -> ( startTime, runBenchMarkTaskMany reps task input ))
+        |> Task.andThen captureEndTime
+        |> Task.map (\( ( startTime, () ), endTime ) -> compute startTime endTime reps wordCount)
 
 
-compute : Time.Posix -> Time.Posix -> Int -> String
-compute finished started reps =
+compute : Time.Posix -> Time.Posix -> Int -> Int -> String
+compute startTime endTime reps wordCount =
     let
-        executionTime =
-            String.fromFloat <| (toFloat <| Time.posixToMillis finished - Time.posixToMillis started) / toFloat reps
+        elapsedMs =
+            toFloat (Time.posixToMillis endTime - Time.posixToMillis startTime)
+
+        msPerRun =
+            elapsedMs / toFloat reps
     in
-    String.join " " [ executionTime, "milliseconds per run in", String.fromInt reps, "runs" ]
+    String.join "|"
+        [ String.fromFloat msPerRun
+        , String.fromInt reps
+        , String.fromInt wordCount
+        ]
 
 
-nowAgain : a -> Task.Task x ( a, Time.Posix )
-nowAgain t =
+captureEndTime : a -> Task.Task x ( a, Time.Posix )
+captureEndTime previousResult =
     Time.now
-        |> Task.map (\s -> ( t, s ))
+        |> Task.map (\endTime -> ( previousResult, endTime ))
 
 
 runBenchMarkTaskMany : Int -> (input -> a) -> input -> ()

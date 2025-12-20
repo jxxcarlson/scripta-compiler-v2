@@ -46,6 +46,24 @@ npx elm-review --ignore-dirs src/Evergreen/ --fix-all --rules NoDebug.Log
 cloc --by-file --exclude-dir=Evergreen src/ compiler/
 ```
 
+### Benchmarking
+```bash
+# From Benchmark directory:
+cd Benchmark
+elm make src/Main.elm --optimize --output=main.js
+node run.js [repetitions]  # Default: 100
+
+# With advanced optimizations:
+npx elm-optimize-level-2 src/Main.elm --output=main.js
+```
+
+### Scripts (scripts.yaml)
+```bash
+# Code review commands (also available via scripts.yaml):
+npx elm-review --ignore-dirs src/Evergreen/ --fix      # Auto-fix single issues
+rm -rf elm-stuff && rm -f assets/main-*.js             # Clean all build artifacts
+```
+
 ## High-Level Architecture
 
 ### Compilation Pipeline
@@ -60,10 +78,14 @@ cloc --by-file --exclude-dir=Evergreen src/ compiler/
 - `ScriptaV2.API` - Full API with themes and advanced options
 - `ScriptaV2.Compiler` - Core compiler with detailed configuration
 
+### Two-Step vs Simple API
+- **Simple API** (`ScriptaV2.APISimple.compile`): One-shot compilation from source string directly to elm-ui Elements
+- **Two-Step API** (`ScriptaV2.API.compileOutput`): Returns a `CompilerOutput` with separate body, banner, toc, and title that can be rendered selectively with `viewBodyOnly`/`viewTOC`
+
 ### Language Modules
-- `MicroLaTeX/` - LaTeX-like syntax implementation
+- `MiniLaTeX/` - LaTeX-like syntax implementation
 - `XMarkdown/` - Extended Markdown (Scientific Markdown)
-- `M/` - Enclosure/L0 language implementation
+- `Scripta/` - Core parsing (Expression, Tokenizer, PrimitiveBlock)
 - `ETeX/` - Extended TeX parser (experimental)
 
 ### Core Infrastructure
@@ -86,6 +108,7 @@ cloc --by-file --exclude-dir=Evergreen src/ compiler/
 - The project uses elm-watch for development with hot reloading
 - Generated JavaScript files (main.js) are git-ignored
 - Tests are in the `tests/` directory and use elm-test
+- `ToForestAndAccumulatorTest` exercises the entire pipeline (up to rendering) for all Scripta languages
 - Math rendering requires KaTeX to be loaded in the HTML
 - The compiler supports differential compilation for efficient live editing
 - Interactive blocks include charts (terezka/elm-charts), tables, and iframes
