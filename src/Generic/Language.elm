@@ -120,7 +120,21 @@ printOrdinaryBlock name block =
     in
     case name of
         "numbered" ->
-            ". " ++ content
+            ". " ++ String.trim content
+
+        "item" ->
+            "- " ++ String.trim content
+
+        "section" ->
+            let
+                level =
+                    Maybe.andThen String.toInt (List.head block.args)
+                        |> Maybe.withDefault 1
+
+                prefix =
+                    String.repeat level "#"
+            in
+            prefix ++ " " ++ String.trim content
 
         _ ->
             ([ "|", name ] ++ block.args ++ dictToList block.properties |> String.join " ") ++ "\n" ++ content

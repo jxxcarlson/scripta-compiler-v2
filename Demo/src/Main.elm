@@ -5,7 +5,6 @@ module Main exposing (main)
 import Browser
 import Browser.Dom
 import Browser.Events
-import Color
 import Data.M
 import Data.MicroLaTeX
 import Data.XMarkdown
@@ -17,7 +16,6 @@ import Html exposing (Html)
 import Html.Attributes
 import List.Extra
 import ScriptaV2.APISimple
-import ScriptaV2.Compiler
 import ScriptaV2.Language
 import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.Types exposing (Filter(..), defaultCompilerParameters)
