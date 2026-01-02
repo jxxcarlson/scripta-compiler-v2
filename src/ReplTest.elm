@@ -48,9 +48,9 @@ expressionBlockFromPrimitiveBlock =
 
 t1 =
     """
-| image caption:Entropy
-https://upload.wikimedia.org/wikipedia/commons/3/3d/Entropy_diagram.png
-
+- One
+- Two
+- Three
 """
 
 
