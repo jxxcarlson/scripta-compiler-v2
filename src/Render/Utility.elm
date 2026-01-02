@@ -75,6 +75,13 @@ textWidth_ str_ =
 basicTextWidth : String -> Float
 basicTextWidth str_ =
     let
+        compress string =
+            string
+                ++ " "
+                |> Utility.userReplace "\\\\[a-z].*[^a-zA-Z0-9]" (\_ -> "a")
+                |> Utility.userReplace "\\[A-Z].*[^a-zA-Z0-9]" (\_ -> "A")
+                |> String.trim
+
         -- \\[a-z]*([^a-z])
         str =
             str_ |> String.words |> List.map compress |> String.join " "
@@ -88,14 +95,6 @@ basicTextWidth str_ =
 charWidth : String -> Float
 charWidth c =
     Dict.get c charDict |> Maybe.withDefault 1.0
-
-
-compress string =
-    string
-        ++ " "
-        |> Utility.userReplace "\\\\[a-z].*[^a-zA-Z0-9]" (\_ -> "a")
-        |> Utility.userReplace "\\[A-Z].*[^a-zA-Z0-9]" (\_ -> "A")
-        |> String.trim
 
 
 charDict : Dict String Float

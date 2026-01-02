@@ -116,7 +116,7 @@ printOrdinaryBlock name block =
                     str
 
                 Right exprList ->
-                    List.map renderExpression exprList |> String.join " "
+                    List.map renderExpression exprList |> String.join " " |> compressSpaces
     in
     case name of
         "numbered" ->
@@ -136,6 +136,14 @@ printOrdinaryBlock name block =
             in
             prefix ++ " " ++ String.trim content
 
+        "itemList" ->
+            case block.body of
+                Left str ->
+                    str
+
+                Right exprList ->
+                    List.map (renderExpression >> (\str -> "- " ++ str)) exprList |> String.join "\n"
+
         _ ->
             ([ "|", name ] ++ block.args ++ dictToList block.properties |> String.join " ") ++ "\n" ++ content
 
@@ -152,16 +160,21 @@ renderExpression expr =
         VFun fName body _ ->
             case fName of
                 "math" ->
-                    "$" ++ body ++ "$"
+                    "[math " ++ body ++ "]"
 
                 "code" ->
                     "`" ++ body ++ "`"
 
                 _ ->
-                    [ "[" ++ fName, body, "]" ] |> String.join " "
+                    [ "[" ++ fName, body, "]" ] |> String.join " " |> compressSpaces
 
         ExprList exprList _ ->
-            "[" ++ (List.map renderExpression exprList |> String.join " ") ++ "]"
+            List.map (renderExpression >> (\str -> str)) exprList |> String.join " " |> compressSpaces
+
+
+compressSpaces : String -> String
+compressSpaces str =
+    str |> String.words |> String.join " "
 
 
 printVerbatimBlock : String -> ExpressionBlock -> String
