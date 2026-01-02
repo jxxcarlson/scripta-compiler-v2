@@ -7,10 +7,6 @@ Virial Theorem
 [ilink Physics Notebook id-133c6b4e-8306-4c9c-9a73-413b50af4053]
 
 
-
-
-
-
 | mathmacros
 # bp: {\mathop{\mathbf{p}}}
 bp: {\mathop{\mathbf{p}}}
