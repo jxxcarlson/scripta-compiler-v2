@@ -12,6 +12,7 @@ print lang str =
         ScriptaV2.Language.ScriptaLang ->
             printToForest str
                 |> reduceForestToString
+                |> (\str_ -> str_ ++ "\n")
 
         _ ->
             str
