@@ -104,7 +104,7 @@ render generation acc settings attrs expr =
             -- TODO: Events.onClick (SendMeta meta)?
             renderVerbatim name generation acc settings meta str
 
-        ExprList exprList meta ->
+        ExprList _ exprList meta ->
             Element.column []
                 [ Element.paragraph (background :: [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 0 } ]) (List.map (render generation acc settings attrs) exprList)
                 ]

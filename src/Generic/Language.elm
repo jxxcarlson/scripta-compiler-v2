@@ -54,7 +54,7 @@ type Expr metaData
     = Text String metaData
     | Fun String (List (Expr metaData)) metaData
     | VFun String String metaData
-    | ExprList (List (Expr metaData)) metaData
+    | ExprList Int (List (Expr metaData)) metaData -- the Int parameter is the indentation of the expression list in the source
 
 
 extractText : Expr metaData -> Maybe ( String, metaData )
@@ -170,7 +170,7 @@ renderExpression expr =
                 _ ->
                     [ "[" ++ fName, body, "]" ] |> String.join " " |> compressSpaces
 
-        ExprList exprList _ ->
+        ExprList _ exprList _ ->
             List.map (renderExpression >> (\str -> str)) exprList |> String.join " " |> compressSpaces
 
 
@@ -304,7 +304,7 @@ getMeta expr =
         Text _ meta ->
             meta
 
-        ExprList _ meta ->
+        ExprList _ _ meta ->
             meta
 
 
@@ -320,8 +320,8 @@ setMeta meta expr =
         Text text _ ->
             Text text meta
 
-        ExprList eList _ ->
-            ExprList eList meta
+        ExprList n eList _ ->
+            ExprList n eList meta
 
 
 {-|
@@ -433,7 +433,7 @@ simplifyExpr expr =
         Text text _ ->
             Text text ()
 
-        ExprList eList _ ->
+        ExprList _ eList _ ->
             --ExprList eList ()
             Text "text" ()
 
@@ -582,5 +582,5 @@ getFunctionName expression =
         Text _ _ ->
             Nothing
 
-        ExprList _ _ ->
+        ExprList _ _ _ ->
             Nothing

@@ -108,5 +108,5 @@ toString expr =
                 _ ->
                     "error: verbatim " ++ name ++ " not recognized"
 
-        ExprList _ _ ->
+        ExprList _ _ _ ->
             "[ExprList]"

@@ -43,7 +43,7 @@ toExpressionBlock_ parse primitiveBlock =
                     content_ =
                         List.map parse items
                 in
-                Right (List.map (\list -> ExprList list Generic.Language.emptyExprMeta) content_)
+                Right (List.map (\list -> ExprList 0 list Generic.Language.emptyExprMeta) content_)
 
             Ordinary "numberedList" ->
                 let
@@ -57,7 +57,7 @@ toExpressionBlock_ parse primitiveBlock =
                     content_ =
                         List.map (Scripta.Expression.parse 0) items
                 in
-                Right (List.map (\list -> ExprList list Generic.Language.emptyExprMeta) content_)
+                Right (List.map (\list -> ExprList 0 list Generic.Language.emptyExprMeta) content_)
 
             Ordinary _ ->
                 Right (String.join "\n" primitiveBlock.body |> parse)

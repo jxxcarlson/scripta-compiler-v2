@@ -127,7 +127,7 @@ toLaTeXString expr =
                 _ ->
                     "error: verbatim " ++ name ++ " not recognized"
 
-        ExprList _ _ ->
+        ExprList _ _ _ ->
             "[ExprList]"
 
 
@@ -254,7 +254,7 @@ functionNames_ expr =
         VFun _ _ _ ->
             []
 
-        ExprList _ _ ->
+        ExprList _ _ _ ->
             []
 
 
