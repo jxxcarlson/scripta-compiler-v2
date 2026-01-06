@@ -158,6 +158,23 @@ printOrdinaryBlock name block =
                     in
                     List.map (\expr -> ( indentation expr, renderExpression expr ) |> (\( n, str ) -> String.repeat n " " ++ "- " ++ str)) exprList |> String.join "\n"
 
+        "numberedList" ->
+            case block.body of
+                Left str ->
+                    str
+
+                Right exprList ->
+                    let
+                        indentation expr =
+                            case expr of
+                                ExprList n _ _ ->
+                                    n
+
+                                _ ->
+                                    0
+                    in
+                    List.map (\expr -> ( indentation expr, renderExpression expr ) |> (\( n, str ) -> String.repeat n " " ++ ". " ++ str)) exprList |> String.join "\n"
+
         _ ->
             ([ "|", name ] ++ block.args ++ dictToList block.properties |> String.join " ") ++ "\n" ++ content
 

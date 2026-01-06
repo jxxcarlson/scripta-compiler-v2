@@ -91,6 +91,19 @@ There are infnitely many primes $p$.
 """
 
 
+nl2 =
+    """
+. Foo [m x^2] bar
+  . Yada [m y^2] yada
+    . Tuuk more
+      . Blah blah
+      . Yip yip
+    . Tuuk less
+  . Mumbo jumbo
+. Ho ho ho
+"""
+
+
 cp2 =
     """
 - Foo $x^2$ bar

@@ -20,6 +20,7 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Language exposing (ExpressionBlock)
 import List.Extra
 import Render.BlockRegistry exposing (BlockRegistry)
+import Render.Blocks.Stack as Stack
 import Render.Color as Color
 import Render.Constants
 import Render.Expression
@@ -71,8 +72,7 @@ itemList count acc settings attr block =
                             0
             in
             Element.row [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 4 }, Element.width (Element.px (settings.width - Render.Constants.defaultIndentWidth)) ]
-                [ --renderLabel settings
-                  Element.el [ Element.alignTop, Element.paddingEach { left = 8 * (indentation + 1), right = 12, top = 0, bottom = 0 } ] (Element.text "•")
+                [ Element.el [ Element.alignTop, Element.paddingEach { left = 8 * (indentation + 1), right = 12, top = 0, bottom = 0 } ] (Element.text "•")
                 , Element.paragraph (Render.Sync.attributes settings_ block)
                     (Render.Expression.render count acc settings [] expr :: [])
                 ]
@@ -81,20 +81,23 @@ itemList count acc settings attr block =
         (List.map (renderItem settings) listOfExprList)
 
 
-renderLabel settings =
-    Element.el
-        [ Font.size 14
-        , Element.alignTop
-        , Element.width (Element.px Render.Constants.defaultIndentWidth)
-        , Render.Utility.leftPadding (settings.leftIndentation + 12)
-        , Font.color (Render.Settings.getThemedElementColor .text settings.theme)
-        ]
-        (Element.text (String.fromChar '•'))
-
-
 numberedList : Int -> Accumulator -> RenderSettings -> List (Element.Attribute MarkupMsg) -> ExpressionBlock -> Element MarkupMsg
 numberedList count acc settings attr block =
     let
+        stack =
+            Stack.push 1 []
+
+        indentation_ expr_ =
+            case expr_ of
+                Generic.Language.ExprList n _ _ ->
+                    n
+
+                _ ->
+                    0
+
+        level expr_ =
+            1 + indentation_ expr_ // 2
+
         listOfExprList : List Generic.Language.Expression
         listOfExprList =
             case block.body of
@@ -104,27 +107,74 @@ numberedList count acc settings attr block =
                 Right list ->
                     list
 
-        renderNumberedItem : Int -> Generic.Language.Expression -> Element MarkupMsg
-        renderNumberedItem k expr =
-            Element.row [ Element.width (Element.px (settings.width - Render.Constants.defaultIndentWidth)) ]
-                [ renderNumberedLabel settings k
+        preRenderStep : Generic.Language.Expression -> ( Stack.Stack, List Int ) -> ( Stack.Stack, List Int )
+        preRenderStep expr ( stack_, intList ) =
+            let
+                newStack_ =
+                    Stack.newStack (level expr) stack_
+            in
+            ( newStack_, (Stack.top newStack_ |> Maybe.withDefault 1) :: intList )
+
+        makeLabels : List Generic.Language.Expression -> List Int
+        makeLabels exprs =
+            List.foldl preRenderStep ( [], [] ) exprs
+                |> Tuple.second
+                |> List.reverse
+
+        renderNumberedItem_ : Int -> Generic.Language.Expression -> Element MarkupMsg
+        renderNumberedItem_ k expr =
+            Element.row
+                [ Element.width (Element.px 400)
+                , Element.paddingEach { left = 9 * (1 + indentation_ expr), right = 0, top = 0, bottom = 0 }
+                ]
+                [ renderNumberedLabel settings (level expr) k
                 , Element.paragraph (Render.Sync.attributes settings block)
                     (Render.Expression.render 0 acc settings [] expr :: [])
                 ]
     in
     Element.column (Element.spacing 2 :: Render.Sync.attributes settings block)
-        (List.indexedMap renderNumberedItem listOfExprList)
+        (List.map2 renderNumberedItem_ (makeLabels listOfExprList) listOfExprList)
 
 
-renderNumberedLabel settings k =
+renderNumberedLabel settings level_ index_ =
     Element.el
         [ Font.size 14
         , Element.alignTop
-        , Element.width (Element.px Render.Constants.defaultIndentWidth)
-        , Render.Utility.leftPadding (settings.leftIndentation + 12)
+        , Element.width (Element.px 18)
+
+        --, Render.Utility.leftPadding (settings.leftIndentation + 12)
         , Font.color (Render.Settings.getThemedElementColor .text settings.theme)
         ]
-        (Element.text <| String.fromInt (k + 1) ++ ".")
+        (Element.text <| numbering_ (level_ - 1) index_ ++ ". ")
+
+
+numbering_ : Int -> Int -> String
+numbering_ level_ index_ =
+    let
+        alphabet =
+            [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ]
+
+        romanNumerals =
+            [ "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx", "xi", "xxii", "xxiii", "xxiv", "xxv", "vi" ]
+
+        alpha k =
+            List.Extra.getAt (modBy 26 (k - 1)) alphabet |> Maybe.withDefault "a"
+
+        roman k =
+            List.Extra.getAt (modBy 26 (k - 1)) romanNumerals |> Maybe.withDefault "i"
+
+        label_ =
+            case modBy 3 level_ of
+                1 ->
+                    alpha index_
+
+                2 ->
+                    roman index_
+
+                _ ->
+                    String.fromInt index_
+    in
+    label_
 
 
 {-| Render a box block
