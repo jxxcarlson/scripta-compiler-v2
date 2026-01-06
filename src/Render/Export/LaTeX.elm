@@ -1460,7 +1460,7 @@ exportExpr mathMacroDict settings expr =
         VFun name body _ ->
             renderVerbatim mathMacroDict name body
 
-        ExprList itemExprs _ ->
+        ExprList _ itemExprs _ ->
             -- Export the list of expressions
             exportExprList mathMacroDict settings itemExprs
 

@@ -470,7 +470,7 @@ renderExpression newMacroNames expr =
         VFun name arg _ ->
             renderVerbatimFunction newMacroNames name arg
 
-        ExprList exprs _ ->
+        ExprList _ exprs _ ->
             exprs
                 |> List.map (renderExpression newMacroNames)
                 |> String.join " "

@@ -916,7 +916,7 @@ exportExpr wrapOption expr =
         VFun name body _ ->
             renderVerbatim name body
 
-        ExprList exprList _ ->
+        ExprList _ exprList _ ->
             List.map (exportExpr wrapOption) exprList
                 |> String.join "\n"
 
