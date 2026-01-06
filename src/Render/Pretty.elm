@@ -10,7 +10,7 @@ print : ScriptaV2.Language.Language -> String -> String
 print lang str =
     case lang of
         ScriptaV2.Language.ScriptaLang ->
-            printToForest str
+            printToForest (str ++ "\n\n")
                 |> reduceForestToString
                 |> (\str_ -> str_ ++ "\n")
 
@@ -88,6 +88,24 @@ thm =
     """
 | theorem (Euclid) width:200
 There are infnitely many primes $p$.
+"""
+
+
+cp2 =
+    """
+- Foo, bar
+  - Yada yada
+  - Mumbo jumbo
+- Ho ho ho
+nq
+"""
+
+
+cp1 =
+    """
+- Foo $x^2$ bar
+- Ho ho ho
+
 """
 
 

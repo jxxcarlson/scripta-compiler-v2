@@ -99,7 +99,12 @@ printBlock : ExpressionBlock -> String
 printBlock block =
     case block.heading of
         Paragraph ->
-            block.meta.sourceText |> String.replace "\n" " "
+            case block.body of
+                Left str ->
+                    "YOU SHOULDN'T SEE THIS"
+
+                Right exprList ->
+                    List.map renderExpression exprList |> String.join " " |> compressSpaces
 
         Ordinary name ->
             printOrdinaryBlock name block
@@ -160,10 +165,7 @@ renderExpression expr =
         VFun fName body _ ->
             case fName of
                 "math" ->
-                    "[math " ++ body ++ "]"
-
-                "code" ->
-                    "`" ++ body ++ "`"
+                    "[m " ++ body ++ "]"
 
                 _ ->
                     [ "[" ++ fName, body, "]" ] |> String.join " " |> compressSpaces
