@@ -93,11 +93,10 @@ There are infnitely many primes $p$.
 
 cp2 =
     """
-- Foo, bar
-  - Yada yada
+- Foo $x^2$ bar
+  - Yada $y^2$ yada
   - Mumbo jumbo
 - Ho ho ho
-nq
 """
 
 

@@ -32,7 +32,7 @@ toExpressionBlock_ parse primitiveBlock =
             Paragraph ->
                 Right (String.join "\n" primitiveBlock.body |> parse)
 
-            Ordinary "itemList" ->
+            Ordinary "itemList_" ->
                 let
                     items : List String
                     items =
@@ -44,6 +44,27 @@ toExpressionBlock_ parse primitiveBlock =
                         List.map parse items
                 in
                 Right (List.map (\list -> ExprList 0 list Generic.Language.emptyExprMeta) content_)
+
+            Ordinary "itemList" ->
+                let
+                    foo : String -> ( Int, String )
+                    foo str =
+                        ( numberOfLeadingSpaces str, String.trimLeft str |> String.replace "- " "" )
+
+                    numberOfLeadingSpaces : String -> Int
+                    numberOfLeadingSpaces str =
+                        String.length str - String.length (String.trimLeft str)
+
+                    items : List ( Int, String )
+                    items =
+                        String.split "\n" primitiveBlock.meta.sourceText
+                            |> List.map foo
+
+                    content_ : List ( Int, List Expression )
+                    content_ =
+                        List.map (\( indent, str ) -> ( indent, parse str )) items
+                in
+                Right (List.map (\( indent, exprList ) -> ExprList indent exprList Generic.Language.emptyExprMeta) content_)
 
             Ordinary "numberedList" ->
                 let
