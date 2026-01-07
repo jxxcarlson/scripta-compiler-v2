@@ -70,9 +70,12 @@ itemList count acc settings attr block =
 
                         _ ->
                             0
+
+                level_ =
+                    indentation // 2
             in
             Element.row [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 4 }, Element.width (Element.px (settings.width - Render.Constants.defaultIndentWidth)) ]
-                [ Element.el [ Element.alignTop, Element.paddingEach { left = 8 * (indentation + 1), right = 12, top = 0, bottom = 0 } ] (Element.text "•")
+                [ Element.el [ Element.alignTop, Element.paddingEach { left = 8 * (indentation + 1), right = 12, top = 0, bottom = 0 } ] (Element.text (itemLabel level_))
                 , Element.paragraph (Render.Sync.attributes settings_ block)
                     (Render.Expression.render count acc settings [] expr :: [])
                 ]
@@ -146,6 +149,23 @@ renderNumberedLabel settings level_ index_ =
         , Font.color (Render.Settings.getThemedElementColor .text settings.theme)
         ]
         (Element.text <| numbering_ (level_ - 1) index_ ++ ". ")
+
+
+itemLabel : Int -> String
+itemLabel level_ =
+    let
+        label_ =
+            case modBy 3 level_ of
+                0 ->
+                    String.fromChar '•'
+
+                1 ->
+                    String.fromChar '○'
+
+                _ ->
+                    "◊"
+    in
+    label_
 
 
 numbering_ : Int -> Int -> String
