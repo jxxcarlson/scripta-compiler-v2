@@ -1425,12 +1425,45 @@ exportExprList mathMacroDict settings exprs =
     List.map (exportExpr mathMacroDict settings) exprs |> String.join "" |> mapChars1
 
 
-{-| -}
+{-| Export an expression to LaTeX. Handles both Fun and VFun variants.
+
+For [math ...], [m ...], [chem ...], [code ...] expressions (parsed as Fun),
+extract the text content and render as LaTeX math mode, matching the behavior
+of $...$ expressions (parsed as VFun).
+
+-}
 exportExpr : ETeX.MathMacros.MathMacroDict -> RenderSettings -> Expression -> String
 exportExpr mathMacroDict settings expr =
     case expr of
         Fun name exps_ _ ->
-            if name == "lambda" then
+            -- Handle verbatim-like functions: [math x^2] should export like $x^2$
+            if List.member name [ "chem", "math", "m", "code" ] then
+                let
+                    arg =
+                        case exps_ of
+                            [ Text str _ ] ->
+                                str
+
+                            _ ->
+                                "Invalid argument to " ++ name
+                in
+                case name of
+                    "math" ->
+                        "\\(" ++ ETeX.Transform.transformETeX mathMacroDict arg ++ "\\)"
+
+                    "m" ->
+                        "\\(" ++ ETeX.Transform.transformETeX mathMacroDict arg ++ "\\)"
+
+                    "chem" ->
+                        "\\(\\ce{" ++ arg ++ "}\\)"
+
+                    "code" ->
+                        "[code " ++ arg ++ "]"
+
+                    _ ->
+                        "Invalid " ++ name ++ " in [" ++ name ++ " " ++ arg ++ "]"
+
+            else if name == "lambda" then
                 case Generic.TextMacro.extract expr of
                     Just lambda ->
                         Generic.TextMacro.toString (exportExpr mathMacroDict settings) lambda
@@ -1458,7 +1491,11 @@ exportExpr mathMacroDict settings expr =
             mapChars2 str
 
         VFun name body _ ->
-            renderVerbatim mathMacroDict name body
+            if name == "math" then
+                "\\(" ++ body ++ "\\)"
+
+            else
+                renderVerbatim mathMacroDict name body
 
         ExprList _ itemExprs _ ->
             -- Export the list of expressions

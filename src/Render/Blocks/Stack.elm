@@ -6,6 +6,8 @@ Used to generate sequential labels (1, 2, 3...) at each nesting level
 for numbered lists. When descending to a deeper level, push a new counter.
 When ascending, pop and increment the parent level's counter.
 
+Used in Render.Blocks.Container
+
 -}
 
 
