@@ -215,8 +215,16 @@ printVerbatimBlock name block =
 
                 Right _ ->
                     ""
+
+        block_args =
+            case Dict.get "label" block.properties of
+                Nothing ->
+                    block.args
+
+                Just _ ->
+                    List.filter (\arg -> arg /= "numbered") block.args
     in
-    ([ "|", name ] ++ block.args ++ dictToList block.properties |> String.join " ") ++ "\n" ++ content
+    ([ "|", name ] ++ block_args ++ dictToList block.properties |> String.join " ") ++ "\n" ++ content
 
 
 dictToList : Dict String String -> List String
