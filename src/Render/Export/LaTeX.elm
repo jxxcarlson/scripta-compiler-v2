@@ -1492,7 +1492,7 @@ exportExpr mathMacroDict settings expr =
 
         VFun name body _ ->
             if name == "math" then
-                "\\(" ++ body ++ "\\)"
+                "\\(" ++ ETeX.Transform.transformETeX mathMacroDict body ++ "\\)"
 
             else
                 renderVerbatim mathMacroDict name body
