@@ -177,6 +177,7 @@ publicationData =
     { title = "My Document"
     , authorList = [ "John Doe", "Jane Doe" ]
     , kind = "article" -- or "book"
+    , date = "-"
     }
 
 

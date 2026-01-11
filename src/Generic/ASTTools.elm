@@ -268,6 +268,7 @@ changeName oldName newName block =
 frontMatterDict : List (Tree ExpressionBlock) -> Dict String String
 frontMatterDict ast =
     keyValueDict (getVerbatimBlockValue "docinfo" ast |> String.split "\n" |> fixFrontMatterList)
+        |> Debug.log "@@_FrontMatter"
 
 
 keyValueDict : List String -> Dict String String

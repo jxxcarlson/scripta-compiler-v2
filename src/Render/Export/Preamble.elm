@@ -9,10 +9,15 @@ type alias Publication =
     { title : String
     , authorList : List String
     , kind : String
+    , date : String
     }
 
 
-make : Publication -> List String -> List String -> String
+
+-- make : Publication -> List String -> List String -> String
+
+
+make : { a | kind : String } -> List String -> List String -> String
 make publication =
     if publication.kind == "Book" then
         makeBook
@@ -21,7 +26,10 @@ make publication =
         makeArticle
 
 
-makeBook : List String -> List String -> String
+
+-- makeBook : List String -> List String -> String
+
+
 makeBook blockNames_ expressionNames_ =
     let
         names =
