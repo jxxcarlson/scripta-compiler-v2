@@ -50,6 +50,7 @@ import Render.Export.Check
 import Render.Export.LaTeX
 import Render.Settings exposing (DisplaySettings)
 import Render.TOC
+import Render.Types
 import RoseTree.Tree as Tree
 import ScriptaV2.Msg exposing (MarkupMsg)
 import ScriptaV2.Types
@@ -173,14 +174,6 @@ fileNameForExport ast =
         |> (\s -> s ++ ".tex")
 
 
-publicationData =
-    { title = "My Document"
-    , authorList = [ "John Doe", "Jane Doe" ]
-    , kind = "article" -- or "book"
-    , date = "-"
-    }
-
-
 {-| -}
 pdfFileNameToGet : Forest ExpressionBlock -> String
 pdfFileNameToGet ast =
@@ -206,19 +199,22 @@ packageNames syntaxTree =
 
 
 {-| -}
-prepareContentForExport : Time.Posix -> Render.Settings.RenderSettings -> Forest ExpressionBlock -> String
-prepareContentForExport currentTime settings syntaxTree =
+prepareContentForExport : Render.Types.PublicationData -> Render.Settings.RenderSettings -> Forest ExpressionBlock -> String
+prepareContentForExport publicationData settings syntaxTree =
     let
+        ( _, publicationData_ ) =
+            Render.Export.LaTeX.getPublicationData publicationData syntaxTree
+
         contentForExport : String
         contentForExport =
-            Render.Export.LaTeX.export currentTime publicationData settings syntaxTree
+            Render.Export.LaTeX.export publicationData_ settings syntaxTree
     in
     contentForExport
 
 
 {-| -}
-encodeForPDF : Time.Posix -> Render.Settings.RenderSettings -> Forest ExpressionBlock -> Json.Encode.Value
-encodeForPDF currentTime settings forest =
+encodeForPDF : Render.Types.PublicationData -> Render.Settings.RenderSettings -> Forest ExpressionBlock -> Json.Encode.Value
+encodeForPDF publicationData settings forest =
     let
         imageUrls : List String
         imageUrls =
@@ -230,7 +226,7 @@ encodeForPDF currentTime settings forest =
 
         contentForExport : String
         contentForExport =
-            prepareContentForExport currentTime settings forest
+            prepareContentForExport publicationData settings forest
 
         packages : List String
         packages =

@@ -1,6 +1,6 @@
 module Render.Export.LaTeX exposing
     ( export, exportExpr, rawExport
-    , PublicationData
+    , getPublicationData
     )
 
 {-|
@@ -26,6 +26,7 @@ import Render.Export.Image
 import Render.Export.Preamble
 import Render.Export.Util
 import Render.Settings exposing (RenderSettings)
+import Render.Types
 import Render.Utility as Utility
 import RoseTree.Tree as Tree exposing (Tree(..))
 import Time
@@ -40,17 +41,51 @@ counterValue ast =
         |> Maybe.andThen String.toInt
 
 
-type alias PublicationData =
-    { title : String
-    , authorList : List String
-    , kind : String
-    , date : String
-    }
+getPublicationData : Render.Types.PublicationData -> List (Tree ExpressionBlock) -> ( Dict String String, Render.Types.PublicationData )
+getPublicationData pdData ast =
+    let
+        titleData : Maybe ExpressionBlock
+        titleData =
+            ASTTools.getBlockByName "title" ast
+
+        title =
+            case titleData of
+                Nothing ->
+                    "Untitled"
+
+                Just expr ->
+                    case expr.body of
+                        Right [ Text str _ ] ->
+                            str
+
+                        _ ->
+                            "Untitled"
+
+        -- Extract properties from title block, including the title text itself
+        properties : Dict String String
+        properties =
+            Maybe.map .properties titleData
+                |> Maybe.map (Dict.insert "title" title)
+                |> Maybe.withDefault Dict.empty
+    in
+    ( properties
+    , { title = title
+      , authorList = [ Dict.get "author" properties |> Maybe.withDefault "Anonymous" ]
+      , date =
+            case Dict.get "date" properties of
+                Nothing ->
+                    pdData.date
+
+                Just dateString ->
+                    Either.Right dateString
+      , kind = pdData.kind
+      }
+    )
 
 
 {-| -}
-export : Time.Posix -> PublicationData -> RenderSettings -> List (Tree ExpressionBlock) -> String
-export currentTime publicationData settings_ ast =
+export : Render.Types.PublicationData -> RenderSettings -> List (Tree ExpressionBlock) -> String
+export publicationData settings_ ast =
     let
         titleData : Maybe ExpressionBlock
         titleData =
@@ -107,7 +142,7 @@ export currentTime publicationData settings_ ast =
     Render.Export.Preamble.make publicationData
         rawBlockNames
         expressionNames
-        ++ frontMatter currentTime publicationData ast
+        ++ frontMatter publicationData ast
         ++ setTheFirstSection
         ++ tableofcontents properties rawBlockNames
         ++ "\n\n"
@@ -115,8 +150,8 @@ export currentTime publicationData settings_ ast =
         ++ "\n\n\\end{document}\n"
 
 
-frontMatter : Time.Posix -> PublicationData -> Forest ExpressionBlock -> String
-frontMatter currentTime publicationData ast =
+frontMatter : Render.Types.PublicationData -> Forest ExpressionBlock -> String
+frontMatter publicationData ast =
     let
         dict =
             ASTTools.frontMatterDict ast

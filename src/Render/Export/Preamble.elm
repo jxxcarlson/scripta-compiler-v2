@@ -3,6 +3,7 @@ module Render.Export.Preamble exposing (Publication, make, supportingCode)
 -- PREAMBLE
 
 import List.Extra
+import Render.Types
 
 
 type alias Publication =
@@ -17,13 +18,14 @@ type alias Publication =
 -- make : Publication -> List String -> List String -> String
 
 
-make : { a | kind : String } -> List String -> List String -> String
-make publication =
-    if publication.kind == "Book" then
-        makeBook
+make : Render.Types.PublicationData -> List String -> List String -> String
+make publicationData =
+    case publicationData.kind of
+        Render.Types.DKBook ->
+            makeBook
 
-    else
-        makeArticle
+        _ ->
+            makeArticle
 
 
 
