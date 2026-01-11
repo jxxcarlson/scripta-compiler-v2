@@ -1,4 +1,7 @@
-module Render.Export.LaTeX exposing (export, exportExpr, rawExport)
+module Render.Export.LaTeX exposing
+    ( export, exportExpr, rawExport
+    , PublicationData
+    )
 
 {-|
 
