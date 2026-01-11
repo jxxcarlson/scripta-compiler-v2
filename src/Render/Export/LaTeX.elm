@@ -48,29 +48,52 @@ getPublicationData pdData ast =
         titleData =
             ASTTools.getBlockByName "title" ast
 
-        title =
-            case titleData of
-                Nothing ->
-                    "Untitled"
-
-                Just expr ->
-                    case expr.body of
-                        Right [ Text str _ ] ->
-                            str
-
-                        _ ->
-                            "Untitled"
-
+        --type alias PublicationData =
+        --    { title : String
+        --    , authorList : List String
+        --    , kind : DocumentKind
+        --    , date : Either Time.Posix String
+        --    }
+        --@=@publicationData:
+        --  { authorList = ["jxxcarlson"]
+        --  , date = Left (Posix 1768140009170)
+        --  , kind = DKChapter
+        --  , title = "Physics Notebook: On Optics" } id-8ab81e41-c88e-4136-9985-14ca059756fc:286:10
+        --@=@_in_export:publicationData:
+        --  { authorList = ["jxxcarlson"]
+        --  , date = Right "January 17, 2026"
+        --  , kind = DKChapter
+        --  , title = "Physics Notebook: On Optics" } id-8ab81e41-c88e-4136-9985-14ca059756fc:286:10
+        --@=@!!_frontMatter:
+        --  "\\begin{document}\n\n\\title{Physics Notebook: On Optics}\n\n\\date{}\n\n\\author{\njxxcarlson\n}\n\n\\maketitle"
+        --title =
+        --    case titleData of
+        --        Nothing ->
+        --            "Untitled"
+        --
+        --        Just expr ->
+        --            case expr.body of
+        --                Right [ Text str _ ] ->
+        --                    str
+        --
+        --                _ ->
+        --                    "Untitled"
         -- Extract properties from title block, including the title text itself
         properties : Dict String String
         properties =
             Maybe.map .properties titleData
-                |> Maybe.map (Dict.insert "title" title)
+                |> Maybe.map (Dict.insert "title" pdData.title)
                 |> Maybe.withDefault Dict.empty
     in
     ( properties
-    , { title = title
-      , authorList = [ Dict.get "author" properties |> Maybe.withDefault "Anonymous" ]
+    , { title = pdData.title
+      , authorList =
+            case Dict.get "author" properties of
+                Just str ->
+                    String.split "," str
+
+                Nothing ->
+                    pdData.authorList
       , date =
             case Dict.get "date" properties of
                 Nothing ->
@@ -175,7 +198,12 @@ frontMatter publicationData ast =
             "\\title{" ++ publicationData.title ++ "}"
 
         date =
-            Dict.get "date" dict |> Maybe.map (\date_ -> "\\date{" ++ date_ ++ "}") |> Maybe.withDefault ""
+            case publicationData.date of
+                Left _ ->
+                    ""
+
+                Right str ->
+                    "\\date{" ++ str ++ "}"
     in
     "\\begin{document}"
         :: title
