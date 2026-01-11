@@ -41,6 +41,7 @@ type alias PublicationData =
     { title : String
     , authorList : List String
     , kind : String
+    , date : String
     }
 
 
@@ -52,8 +53,24 @@ export currentTime publicationData settings_ ast =
         titleData =
             ASTTools.getBlockByName "title" ast
 
+        title =
+            case titleData of
+                Nothing ->
+                    "Untitled"
+
+                Just expr ->
+                    case expr.body of
+                        Right [ Text str _ ] ->
+                            str
+
+                        _ ->
+                            "Untitled"
+
+        -- Extract properties from title block, including the title text itself
+        properties : Dict String String
         properties =
             Maybe.map .properties titleData
+                |> Maybe.map (Dict.insert "title" title)
                 |> Maybe.withDefault Dict.empty
 
         settings =
