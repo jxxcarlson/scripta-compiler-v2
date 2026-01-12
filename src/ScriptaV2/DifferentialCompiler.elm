@@ -102,7 +102,9 @@ editRecordToCompilerOutput params editRecord =
             Generic.ASTTools.getBlockByName "title" editRecord.tree
 
         properties =
-            Maybe.map .properties titleData |> Maybe.withDefault Dict.empty
+            Maybe.map .properties titleData
+                |> Maybe.withDefault Dict.empty
+                |> Dict.insert "number-to-level" (String.fromInt params.numberToLevel)
 
         -- TODO: this is a hack to get the title to render correctly
         title : Element MarkupMsg
@@ -134,9 +136,6 @@ type alias AccInitialData =
 init : Maybe Int -> Dict String String -> Language -> String -> EditRecord
 init shiftAndSetCounter_ inclusionData lang str =
     let
-        _ =
-            Debug.log "@==@ DifferentialCompiler.init shiftAndSetCounter_" ( shiftAndSetCounter_, String.left 50 str )
-
         initialData : AccInitialData
         initialData =
             makeInitialData shiftAndSetCounter_ inclusionData lang
@@ -301,9 +300,6 @@ getMessages_ blocks =
 update : Maybe Int -> EditRecord -> String -> EditRecord
 update shiftAndSetCounter_ editRecord text =
     let
-        _ =
-            Debug.log "@==@ DifferentialCompiler.update shiftAndSetCounter" shiftAndSetCounter_
-
         -- Update the initialData with the new shiftAndSetCounter
         oldInitialData =
             editRecord.initialData

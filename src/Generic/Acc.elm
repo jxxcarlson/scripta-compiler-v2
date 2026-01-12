@@ -103,17 +103,17 @@ init data =
     { headingIndex =
         case data.shiftAndSetCounter of
             Nothing ->
-                Vector.init data.vectorSize |> Debug.log "@==@ headingIndex (1)"
+                Vector.init data.vectorSize
 
             Just n ->
-                { content = [ n + 1, 0, 0, 0 ], size = 4 } |> Debug.log "@==@ headingIndex (2)"
+                { content = [ n + 1, 0, 0, 0 ], size = 4 }
     , deltaLevel =
         case data.shiftAndSetCounter of
             Nothing ->
-                0 |> Debug.log "@==@ deltaLevel (1)"
+                0
 
             Just _ ->
-                1 |> Debug.log "@==@ deltaLevel (1)"
+                1
     , documentIndex = Vector.init data.vectorSize
     , inListState = SNotInList
     , counter = Dict.empty

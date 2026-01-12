@@ -243,5 +243,5 @@ makeSettings params =
     , theme = params.theme
     , paddingTop = 0
     , paddingBottom = 0
-    , properties = Dict.empty
+    , properties = Dict.singleton "number-to-level" (String.fromInt params.numberToLevel)
     }
