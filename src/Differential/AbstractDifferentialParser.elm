@@ -39,6 +39,7 @@ type alias InitialData =
     , textMacros : String
     , vectorSize : Int
     , language : Language
+    , shiftAndSetCounter : Maybe Int
     }
 
 

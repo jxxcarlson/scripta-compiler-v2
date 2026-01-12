@@ -1,4 +1,7 @@
-module ScriptaV2.DifferentialCompiler exposing (EditRecord, init, update, messagesFromForest, editRecordToCompilerOutput)
+module ScriptaV2.DifferentialCompiler exposing
+    ( EditRecord, init, update, messagesFromForest, editRecordToCompilerOutput
+    , AccInitialData
+    )
 
 {-|
 
@@ -28,8 +31,6 @@ import Generic.Language exposing (ExpressionBlock, PrimitiveBlock)
 import Generic.Pipeline
 import Generic.PrimitiveBlock
 import Library.Tree
-import Scripta.Expression
-import Scripta.PrimitiveBlock
 import MiniLaTeX.Expression
 import MiniLaTeX.PrimitiveBlock
 import Render.Block
@@ -37,6 +38,8 @@ import Render.Settings
 import Render.TOCTree
 import Render.Theme
 import RoseTree.Tree as Tree exposing (Tree)
+import Scripta.Expression
+import Scripta.PrimitiveBlock
 import ScriptaV2.Compiler
 import ScriptaV2.Config
 import ScriptaV2.Language exposing (Language(..))
@@ -123,27 +126,26 @@ type alias ExpBlockData =
     { name : Maybe String, args : List String, properties : Dict String String, indent : Int, lineNumber : Int, numberOfLines : Int, id : String, tag : String, content : Either String (List Generic.Language.Expression), messages : List String, sourceText : String }
 
 
+type alias AccInitialData =
+    { language : Language, mathMacros : String, textMacros : String, vectorSize : Int, shiftAndSetCounter : Maybe Int }
+
+
 {-| -}
-init : Dict String String -> Language -> String -> EditRecord
-init inclusionData lang str =
+init : Maybe Int -> Dict String String -> Language -> String -> EditRecord
+init shiftAndSetCounter_ inclusionData lang str =
     let
-        initialData : { language : Language, mathMacros : String, textMacros : String, vectorSize : number }
+        _ =
+            Debug.log "@==@ DifferentialCompiler.init shiftAndSetCounter_" ( shiftAndSetCounter_, String.left 50 str )
+
+        initialData : AccInitialData
         initialData =
-            makeInitialData inclusionData lang
+            makeInitialData shiftAndSetCounter_ inclusionData lang
     in
     Differential.AbstractDifferentialParser.init (updateFunctions lang) initialData (str ++ "\n")
 
 
-default lang =
-    { mathMacros = ""
-    , textMacros = ""
-    , vectorSize = 4
-    , language = lang
-    }
-
-
-makeInitialData : Dict String String -> Language -> { language : Language, mathMacros : String, textMacros : String, vectorSize : number }
-makeInitialData filesToIncludeDict lang =
+makeInitialData : Maybe Int -> Dict String String -> Language -> AccInitialData
+makeInitialData shiftAndSetCounter_ filesToIncludeDict lang =
     let
         keys =
             Dict.keys filesToIncludeDict
@@ -162,7 +164,6 @@ makeInitialData filesToIncludeDict lang =
                         , textmacros = Differential.Utility.getKeyedParagraph "|| textmacros" macroText_ |> Maybe.withDefault ""
                         }
 
-        -- foldl : (a -> b -> b) -> b -> List a -> b
         folder new acc =
             { mathmacros = new.mathmacros ++ "\n" ++ acc.mathmacros, textmacros = new.textmacros ++ "\n" ++ acc.textmacros }
 
@@ -185,6 +186,7 @@ makeInitialData filesToIncludeDict lang =
     , mathMacros = macroTexts.mathmacros
     , textMacros = macroTexts.textmacros
     , vectorSize = 4
+    , shiftAndSetCounter = shiftAndSetCounter_
     }
 
 
@@ -296,9 +298,23 @@ getMessages_ blocks =
 
 
 {-| -}
-update : EditRecord -> String -> EditRecord
-update editRecord text =
-    Differential.AbstractDifferentialParser.update (updateFunctions editRecord.lang) (text ++ "\n") editRecord
+update : Maybe Int -> EditRecord -> String -> EditRecord
+update shiftAndSetCounter_ editRecord text =
+    let
+        _ =
+            Debug.log "@==@ DifferentialCompiler.update shiftAndSetCounter" shiftAndSetCounter_
+
+        -- Update the initialData with the new shiftAndSetCounter
+        oldInitialData =
+            editRecord.initialData
+
+        newInitialData =
+            { oldInitialData | shiftAndSetCounter = shiftAndSetCounter_ }
+
+        updatedEditRecord =
+            { editRecord | initialData = newInitialData }
+    in
+    Differential.AbstractDifferentialParser.update (updateFunctions editRecord.lang) (text ++ "\n") updatedEditRecord
 
 
 chunker : Language -> String -> List PrimitiveBlock

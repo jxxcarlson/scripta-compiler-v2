@@ -42,7 +42,6 @@ module Generic.Acc exposing
 
 -}
 
-import Array exposing (Array)
 import Dict exposing (Dict)
 import ETeX.MathMacros
 import ETeX.Transform
@@ -50,7 +49,6 @@ import Either exposing (Either(..))
 import Generic.ASTTools
 import Generic.BlockUtilities
 import Generic.Language exposing (Expr(..), Expression, ExpressionBlock, Heading(..))
-import Generic.MathMacro
 import Generic.Settings
 import Generic.TextMacro exposing (Macro)
 import Generic.Vector as Vector exposing (Vector)
@@ -69,6 +67,7 @@ initialData =
     , textMacros = ""
     , vectorSize = 4
     , language = Config.defaultLanguage
+    , shiftAndSetCounter = Nothing
     }
 
 
@@ -101,8 +100,20 @@ type InListState
 
 init : InitialAccumulatorData -> Accumulator
 init data =
-    { headingIndex = Vector.init data.vectorSize
-    , deltaLevel = 0
+    { headingIndex =
+        case data.shiftAndSetCounter of
+            Nothing ->
+                Vector.init data.vectorSize |> Debug.log "@==@ headingIndex (1)"
+
+            Just n ->
+                { content = [ n + 1, 0, 0, 0 ], size = 4 } |> Debug.log "@==@ headingIndex (2)"
+    , deltaLevel =
+        case data.shiftAndSetCounter of
+            Nothing ->
+                0 |> Debug.log "@==@ deltaLevel (1)"
+
+            Just _ ->
+                1 |> Debug.log "@==@ deltaLevel (1)"
     , documentIndex = Vector.init data.vectorSize
     , inListState = SNotInList
     , counter = Dict.empty
@@ -151,6 +162,7 @@ type alias InitialAccumulatorData =
     , textMacros : String
     , vectorSize : Int
     , language : Language
+    , shiftAndSetCounter : Maybe Int
     }
 
 
@@ -617,21 +629,27 @@ updateAccumulator ({ heading, indent, args, body, meta, properties } as block) a
                     accumulator
 
         Ordinary "title" ->
-            let
-                headingIndex =
-                    case Dict.get "first-section" block.properties of
-                        Nothing ->
-                            { content = [ 0, 0, 0, 0 ], size = 4 }
+            -- Only reset headingIndex if it wasn't set by shiftAndSetCounter (deltaLevel == 1)
+            if accumulator.deltaLevel == 1 then
+                -- Preserve the headingIndex set by shiftAndSetCounter
+                accumulator
 
-                        Just firstSection_ ->
-                            case String.toInt firstSection_ of
-                                Just n ->
-                                    { content = [ max (n - 1) 0, 0, 0, 0 ], size = 4 }
+            else
+                let
+                    headingIndex =
+                        case Dict.get "first-section" block.properties of
+                            Nothing ->
+                                { content = [ 0, 0, 0, 0 ], size = 4 }
 
-                                Nothing ->
-                                    { content = [ 0, 0, 0, 0 ], size = 4 }
-            in
-            { accumulator | headingIndex = headingIndex }
+                            Just firstSection_ ->
+                                case String.toInt firstSection_ of
+                                    Just n ->
+                                        { content = [ max (n - 1) 0, 0, 0, 0 ], size = 4 }
+
+                                    Nothing ->
+                                        { content = [ 0, 0, 0, 0 ], size = 4 }
+                in
+                { accumulator | headingIndex = headingIndex }
 
         Ordinary "setcounter" ->
             let
