@@ -9,12 +9,6 @@ module ScriptaV2.Compiler exposing
 
 -}
 
--- Previous exposing list:
---( CompilerOutput, Filter(..), compile, parse, parseFromString, render, renderForest, view, viewTOC, filterForest, px, viewBody
---, CompilerParameters, filterForest2, header, header_, parseM, pl, pm, ps, viewBodyOnly, view_
---)
--- import Markdown.Compiler
-
 import Dict
 import Element exposing (Element)
 import Element.Font as Font
@@ -28,7 +22,6 @@ import MiniLaTeX.PrimitiveBlock
 import Render.Block
 import Render.Settings
 import Render.TOCTree
-import Render.Theme
 import Render.Tree
 import RoseTree.Tree
 import Scripta.Expression
@@ -74,14 +67,6 @@ view width_ compiled =
     ]
 
 
-view_ : Int -> CompilerOutput -> List (Element MarkupMsg)
-view_ width_ compiled =
-    [ Element.column [ Element.width (Element.px (width_ - 60)) ]
-        (header_ compiled)
-    , body compiled
-    ]
-
-
 {-| -}
 viewBody : Int -> CompilerOutput -> List (Element MarkupMsg)
 viewBody width_ compiled =
@@ -89,10 +74,6 @@ viewBody width_ compiled =
         (header_ compiled)
     , body compiled
     ]
-
-
-
---viewBodyOnly : Int -> CompilerOutput -> List (Element MarkupMsg)
 
 
 viewBodyOnly : Int -> CompilerOutput -> List (Element MarkupMsg)
