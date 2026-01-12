@@ -325,7 +325,7 @@ render params ( accumulator_, forest_ ) =
 
         chapterNumber : Maybe Int
         chapterNumber =
-            accumulator_.headingIndex |> .content >> List.head |> Debug.log "@@@-ChapterNumber"
+            accumulator_.headingIndex |> .content >> List.head
 
         title : Element MarkupMsg
         title =
