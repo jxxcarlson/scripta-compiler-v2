@@ -106,10 +106,22 @@ editRecordToCompilerOutput params editRecord =
                 |> Maybe.withDefault Dict.empty
                 |> Dict.insert "number-to-level" (String.fromInt params.numberToLevel)
 
-        -- TODO: this is a hack to get the title to render correctly
+        chapterNumber : String
+        chapterNumber =
+            case editRecord.accumulator.headingIndex |> .content >> List.head of
+                Nothing ->
+                    ""
+
+                Just k ->
+                    if k == 0 then
+                        ""
+
+                    else
+                        String.fromInt k ++ ". "
+
         title : Element MarkupMsg
         title =
-            Element.paragraph [ Element.paddingEach { left = 0, right = 0, top = 0, bottom = 36 } ] [ Element.text <| Generic.ASTTools.title editRecord.tree ]
+            Element.paragraph [] [ Element.text <| chapterNumber ++ Generic.ASTTools.title editRecord.tree ]
     in
     { body =
         ScriptaV2.Compiler.renderForest params { renderSettings | properties = properties } editRecord.accumulator (ScriptaV2.Compiler.filterForest2 editRecord.tree)

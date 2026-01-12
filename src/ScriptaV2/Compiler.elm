@@ -17,6 +17,7 @@ import Generic.Acc exposing (Accumulator)
 import Generic.Compiler
 import Generic.Forest exposing (Forest)
 import Generic.Language exposing (ExpressionBlock)
+import Generic.Vector
 import MiniLaTeX.Expression
 import MiniLaTeX.PrimitiveBlock
 import Render.Block
@@ -321,6 +322,10 @@ render params ( accumulator_, forest_ ) =
             Generic.ASTTools.banner forest_
                 |> Maybe.map (Render.Block.renderBody params.editCount accumulator_ renderSettings [ Font.color (Element.rgb 1 0 0) ])
                 |> Maybe.map (Element.row [ Element.height (Element.px 40) ])
+
+        chapterNumber : Maybe Int
+        chapterNumber =
+            accumulator_.headingIndex |> .content >> List.head |> Debug.log "@@@-ChapterNumber"
 
         title : Element MarkupMsg
         title =
